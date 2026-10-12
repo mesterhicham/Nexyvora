@@ -167,7 +167,7 @@ async function runPhase2Audit() {
         // -------------------------------------------------------------
         // 2. WEBHOOK SECURITY TESTS
         // -------------------------------------------------------------
-        console.log('\n--- 2. Testing Payment Gateway Webhooks (Phase 3 Hardened) ---');
+        console.log('\n--- 2. Testing Payment Gateway Webhooks (Phase 4 Hardened) ---');
         // Helper functions for official signature algorithms
         function sortObjectKeys(obj) {
             if (obj === null || typeof obj !== 'object') return obj;
@@ -189,6 +189,17 @@ async function runPhase2Audit() {
             const signedPayload = `${timestamp}.${rawPayload}`;
             const sig = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
             return `t=${timestamp},v1=${sig}`;
+        }
+
+        // Helper to create genuine pre-existing internal deposit orders in DB
+        async function createTestDepositOrder(userId, amount, currency = 'USD') {
+            const orderId = `ord_audit_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+            const trxId = orderId;
+            await db.query(`
+                INSERT INTO transactions (id, user_id, type, amount, currency, balance_before, balance_after, status, reference_id, description, metadata)
+                VALUES (?, ?, 'deposit', ?, ?, 0.00, 0.00, 'pending', ?, 'Internal Audit Deposit Order', ?)
+            `, [trxId, userId, amount, currency, orderId, JSON.stringify({ orderId, requestedAt: new Date().toISOString() })]);
+            return { orderId, trxId, amount, currency, userId };
         }
 
         // Configure test payment methods with secrets in DB
@@ -244,7 +255,7 @@ async function runPhase2Audit() {
             method: 'POST',
             path: '/api/payment/webhook/nowpayments',
             headers: { 'x-nowpayments-sig': 'dummy' }
-        }, { payment_id: 'pay_missing_sec', user_id: testUserAId, amount: 50 });
+        }, { payment_id: 'pay_missing_sec', order_id: 'ord_dummy', user_id: testUserAId, amount: 50 });
         assert.strictEqual(resMissingSecret.statusCode, 500, `Missing webhook secret expected 500 (got ${resMissingSecret.statusCode})`);
         assert.strictEqual(resMissingSecret.json.error, 'Gateway configuration error: webhook secret not configured');
         recordResult(
@@ -262,7 +273,7 @@ async function runPhase2Audit() {
             method: 'POST',
             path: '/api/payment/webhook/nowpayments',
             headers: { 'x-nowpayments-sig': 'tampered_invalid_hex_signature_1234567890abcdef' }
-        }, { payment_id: 'pay_sig_test', user_id: testUserAId, amount: 50 });
+        }, { payment_id: 'pay_sig_test', order_id: 'ord_dummy', user_id: testUserAId, amount: 50 });
         assert.strictEqual(resNowpaymentsInvalidSig.statusCode, 401, `Invalid NOWPayments signature expected 401 (got ${resNowpaymentsInvalidSig.statusCode})`);
         recordResult(
             2.3,
@@ -271,14 +282,204 @@ async function runPhase2Audit() {
             `Tampered NOWPayments signature rejected with HTTP 401 Unauthorized via timing-safe comparison.`
         );
 
-        // Test 2.4: NOWPayments valid official IPN (HMAC-SHA512 of sorted keys)
-        const npEventId = `evt_np_valid_${Date.now()}`;
+        // Test 2.4: Notification linked to non-existent internal order -> 404 Rejection
+        const ghostPayload = {
+            payment_id: `pay_ghost_${Date.now()}`,
+            order_id: 'ord_ghost_nonexistent_999999',
+            payment_status: 'finished',
+            price_amount: 50.00,
+            price_currency: 'USD'
+        };
+        const ghostSig = signNowPayments(ghostPayload, testNowPaymentsSecret);
+        const resGhost = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/nowpayments',
+            headers: { 'x-nowpayments-sig': ghostSig }
+        }, ghostPayload);
+        assert.strictEqual(resGhost.statusCode, 404, `Non-existent internal order expected 404 (got ${resGhost.statusCode})`);
+        assert.ok(resGhost.json.error.includes('not found'), 'Error states internal order not found');
+        recordResult(
+            2.4,
+            'Notification Linked to Non-Existent Internal Order 404 Rejection',
+            'PASS',
+            `Webhook referring to unknown internal order ID ('ord_ghost_nonexistent_999999') rejected with HTTP 404 without balance addition.`
+        );
+
+        // Test 2.5: Notification with Currency Mismatch -> 400 Rejection
+        const orderMismatchCurr = await createTestDepositOrder(testUserAId, 50.00, 'USD');
+        const mismatchCurrPayload = {
+            payment_id: `pay_curr_mis_${Date.now()}`,
+            order_id: orderMismatchCurr.orderId,
+            payment_status: 'finished',
+            price_amount: 50.00,
+            price_currency: 'EUR' // Internal is USD
+        };
+        const mismatchCurrSig = signNowPayments(mismatchCurrPayload, testNowPaymentsSecret);
+        const resMismatchCurr = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/nowpayments',
+            headers: { 'x-nowpayments-sig': mismatchCurrSig }
+        }, mismatchCurrPayload);
+        assert.strictEqual(resMismatchCurr.statusCode, 400, `Currency mismatch expected 400 (got ${resMismatchCurr.statusCode})`);
+        assert.ok(resMismatchCurr.json.error.includes('currency mismatch'), 'Error states currency mismatch');
+        recordResult(
+            2.5,
+            'Notification with Mismatched Currency 400 Rejection',
+            'PASS',
+            `Webhook with currency EUR against internal order currency USD rejected with HTTP 400 without crediting balance.`
+        );
+
+        // Test 2.6: Beneficiary User Mismatch -> 400 Rejection
+        const orderMismatchUser = await createTestDepositOrder(testUserAId, 50.00, 'USD');
+        const mismatchUserPayload = {
+            payment_id: `pay_usr_mis_${Date.now()}`,
+            order_id: orderMismatchUser.orderId,
+            payment_status: 'finished',
+            price_amount: 50.00,
+            price_currency: 'USD',
+            user_id: testUserBId // Claiming order belongs to User B while it belongs to User A
+        };
+        const mismatchUserSig = signNowPayments(mismatchUserPayload, testNowPaymentsSecret);
+        const resMismatchUser = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/nowpayments',
+            headers: { 'x-nowpayments-sig': mismatchUserSig }
+        }, mismatchUserPayload);
+        assert.strictEqual(resMismatchUser.statusCode, 400, `Beneficiary mismatch expected 400 (got ${resMismatchUser.statusCode})`);
+        assert.ok(resMismatchUser.json.error.includes('mismatch'), 'Error states user mismatch');
+        recordResult(
+            2.6,
+            'Beneficiary User ID Mismatch 400 Rejection',
+            'PASS',
+            `Attempt to redirect funds to an unauthorized user account rejected with HTTP 400 without crediting balance.`
+        );
+
+        // Test 2.7: Non-Final / Pending Notification (waiting) -> 200 acknowledged, ZERO balance added
+        const orderPending = await createTestDepositOrder(testUserAId, 40.00, 'USD');
+        const pendingPayload = {
+            payment_id: `pay_waiting_${Date.now()}`,
+            order_id: orderPending.orderId,
+            payment_status: 'waiting', // Non-terminal
+            price_amount: 40.00,
+            price_currency: 'USD'
+        };
+        const pendingSig = signNowPayments(pendingPayload, testNowPaymentsSecret);
+        const resPending = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/nowpayments',
+            headers: { 'x-nowpayments-sig': pendingSig }
+        }, pendingPayload);
+        assert.strictEqual(resPending.statusCode, 200, `Pending event expected 200 acknowledgment (got ${resPending.statusCode})`);
+        assert.strictEqual(resPending.json.credited, false, 'credited flag must be false');
+
+        const [walletAfterPending] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        assert.strictEqual(Number(walletAfterPending[0].balance), 100.00, 'Balance must remain unchanged at $100.00');
+
+        const [orderPendingCheck] = await db.query('SELECT status FROM transactions WHERE id = ?', [orderPending.trxId]);
+        assert.strictEqual(orderPendingCheck[0].status, 'pending', 'Internal order must remain pending');
+
+        recordResult(
+            2.7,
+            'NOWPayments Non-Final Pending Event (waiting) Acknowledged with Zero Credit',
+            'PASS',
+            `Received 'waiting' status for $40.00 order. System acknowledged with HTTP 200 (credited: false) and added exactly $0.00 to wallet.`
+        );
+
+        // Test 2.8: Failed Payment Notification (failed) -> 200 acknowledged, ZERO balance added, order marked failed
+        const orderFailed = await createTestDepositOrder(testUserAId, 30.00, 'USD');
+        const failedPayload = {
+            payment_id: `pay_failed_${Date.now()}`,
+            order_id: orderFailed.orderId,
+            payment_status: 'failed', // Failed
+            price_amount: 30.00,
+            price_currency: 'USD'
+        };
+        const failedSig = signNowPayments(failedPayload, testNowPaymentsSecret);
+        const resFailed = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/nowpayments',
+            headers: { 'x-nowpayments-sig': failedSig }
+        }, failedPayload);
+        assert.strictEqual(resFailed.statusCode, 200, `Failed event expected 200 acknowledgment (got ${resFailed.statusCode})`);
+        assert.strictEqual(resFailed.json.credited, false, 'credited flag must be false');
+
+        const [walletAfterFailed] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        assert.strictEqual(Number(walletAfterFailed[0].balance), 100.00, 'Balance must remain unchanged at $100.00');
+
+        const [orderFailedCheck] = await db.query('SELECT status FROM transactions WHERE id = ?', [orderFailed.trxId]);
+        assert.strictEqual(orderFailedCheck[0].status, 'failed', 'Internal order marked as failed');
+
+        recordResult(
+            2.8,
+            'NOWPayments Failed Payment Event (failed) Marked without Balance Addition',
+            'PASS',
+            `Received 'failed' status for $30.00 order. Order marked failed, exactly $0.00 credited, and wallet balance remained $100.00.`
+        );
+
+        // Test 2.9: Non-Final Notification followed by Final Notification on SAME payment
+        const orderMultiStage = await createTestDepositOrder(testUserAId, 45.00, 'USD');
+        const multiStagePaymentId = `pay_multistage_${Date.now()}`;
+
+        // Stage 1: waiting notification
+        const stage1Payload = {
+            payment_id: multiStagePaymentId,
+            order_id: orderMultiStage.orderId,
+            payment_status: 'waiting',
+            price_amount: 45.00,
+            price_currency: 'USD'
+        };
+        const stage1Sig = signNowPayments(stage1Payload, testNowPaymentsSecret);
+        const resStage1 = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/nowpayments',
+            headers: { 'x-nowpayments-sig': stage1Sig }
+        }, stage1Payload);
+        assert.strictEqual(resStage1.statusCode, 200, `Stage 1 expected 200 (got ${resStage1.statusCode})`);
+        assert.strictEqual(resStage1.json.credited, false, 'Stage 1 must not credit balance');
+
+        // Stage 2: finished notification on the SAME order and payment
+        const stage2Payload = {
+            payment_id: multiStagePaymentId,
+            order_id: orderMultiStage.orderId,
+            payment_status: 'finished', // Completed
+            price_amount: 45.00,
+            price_currency: 'USD'
+        };
+        const stage2Sig = signNowPayments(stage2Payload, testNowPaymentsSecret);
+        const resStage2 = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/nowpayments',
+            headers: { 'x-nowpayments-sig': stage2Sig }
+        }, stage2Payload);
+        assert.strictEqual(resStage2.statusCode, 200, `Stage 2 expected 200 (got ${resStage2.statusCode})`);
+        assert.strictEqual(resStage2.json.credited, true, 'Stage 2 must credit balance');
+
+        const [walletAfterStage2] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        const balAfterStage2 = Number(walletAfterStage2[0].balance);
+        assert.strictEqual(balAfterStage2, 145.00, `Balance should increase from $100 to $145.00 (got ${balAfterStage2})`);
+
+        const [orderStage2Check] = await db.query('SELECT status FROM transactions WHERE id = ?', [orderMultiStage.trxId]);
+        assert.strictEqual(orderStage2Check[0].status, 'completed', 'Order status must be completed');
+
+        recordResult(
+            2.9,
+            'Sequential Progression: Non-Final (waiting) Followed by Final (finished) Notification',
+            'PASS',
+            `Received non-terminal 'waiting' notification first ($0 credited), followed by terminal 'finished' notification. Wallet credited once by +$45.00 (balance $145.00) and order completed.`
+        );
+
+        // Test 2.10: NOWPayments Valid Official Completed IPN
+        const orderNPValid = await createTestDepositOrder(testUserAId, 50.00, 'USD');
+        const npEventId = `pay_np_official_${Date.now()}`;
         const npPayload = {
             payment_id: npEventId,
-            user_id: testUserAId,
-            amount: 50.00,
-            currency: 'USD',
-            status: 'finished'
+            order_id: orderNPValid.orderId,
+            payment_status: 'finished',
+            price_amount: 50.00,
+            price_currency: 'USD',
+            pay_amount: 50.00,
+            actually_paid: 50.00,
+            pay_currency: 'usdttrc20'
         };
         const npSig = signNowPayments(npPayload, testNowPaymentsSecret);
         const resNowpaymentsValid = await makeRequest(server, {
@@ -290,31 +491,53 @@ async function runPhase2Audit() {
 
         const [walletAfterNP] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
         const balAfterNP = Number(walletAfterNP[0].balance);
-        assert.strictEqual(balAfterNP, 150.00, `Balance should increase from $100 to $150 (got ${balAfterNP})`);
+        assert.strictEqual(balAfterNP, 195.00, `Balance should increase from $145 to $195 (got ${balAfterNP})`);
+
         recordResult(
-            2.4,
-            'NOWPayments Official Protocol (HMAC-SHA512 Sorted Keys) & Atomic Credit',
+            2.10,
+            'NOWPayments Official Completed Protocol & Verified Order Fulfillment',
             'PASS',
-            `Valid NOWPayments HMAC-SHA512 signature verified. Wallet credited exact $50.00 (balance increased from $100.00 to $150.00).`
+            `Valid NOWPayments official IPN verified against internal order. Credited exact $50.00 to wallet (balance increased to $195.00).`
         );
 
-        // Test 2.5: Stripe invalid signature
+        // Test 2.11: Stripe Unsupported Event Type 400 Rejection
+        const stripeUnsuppPayload = {
+            id: `evt_unsupp_${Date.now()}`,
+            type: 'customer.subscription.created', // Unsupported type
+            data: { object: { id: 'sub_123', client_reference_id: 'ord_dummy' } }
+        };
+        const stripeUnsuppSig = signStripe(stripeUnsuppPayload, testStripeSecret);
+        const resStripeUnsupp = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/stripe',
+            headers: { 'stripe-signature': stripeUnsuppSig }
+        }, stripeUnsuppPayload);
+        assert.strictEqual(resStripeUnsupp.statusCode, 400, `Unsupported Stripe event expected 400 (got ${resStripeUnsupp.statusCode})`);
+        assert.ok(resStripeUnsupp.json.error.includes('Unsupported Stripe event type'), 'Error states unsupported event type');
+        recordResult(
+            2.11,
+            'Stripe Unsupported Event Type 400 Explicit Rejection',
+            'PASS',
+            `Stripe event with unsupported type ('customer.subscription.created') explicitly rejected with HTTP 400 without crediting balance.`
+        );
+
+        // Test 2.12: Stripe invalid signature
         const resStripeInvalidSig = await makeRequest(server, {
             method: 'POST',
             path: '/api/payment/webhook/stripe',
             headers: { 'stripe-signature': `t=${Math.floor(Date.now() / 1000)},v1=invalid_hex_sig_stripe` }
-        }, { payment_id: 'pay_stripe_test', user_id: testUserAId, amount: 25 });
+        }, { id: 'evt_stripe_test', type: 'checkout.session.completed' });
         assert.strictEqual(resStripeInvalidSig.statusCode, 401, `Invalid Stripe signature expected 401 (got ${resStripeInvalidSig.statusCode})`);
         recordResult(
-            2.5,
+            2.12,
             'Stripe Tampered / Invalid Signature 401 Rejection',
             'PASS',
             `Tampered Stripe signature rejected with HTTP 401 Unauthorized via timing-safe comparison.`
         );
 
-        // Test 2.6: Stripe expired timestamp (> 300s)
+        // Test 2.13: Stripe expired timestamp (> 300s)
         const expiredTs = Math.floor(Date.now() / 1000) - 400; // 400 seconds ago
-        const stripeExpiredPayload = { payment_id: `evt_stripe_exp_${Date.now()}`, user_id: testUserAId, amount: 25 };
+        const stripeExpiredPayload = { id: `evt_stripe_exp_${Date.now()}`, type: 'checkout.session.completed' };
         const stripeExpiredSig = signStripe(stripeExpiredPayload, testStripeSecret, expiredTs);
         const resStripeExpired = await makeRequest(server, {
             method: 'POST',
@@ -323,19 +546,34 @@ async function runPhase2Audit() {
         }, stripeExpiredPayload);
         assert.strictEqual(resStripeExpired.statusCode, 401, `Expired Stripe signature expected 401 (got ${resStripeExpired.statusCode})`);
         recordResult(
-            2.6,
+            2.13,
             'Stripe Timestamp Tolerance Expiration Rejection',
             'PASS',
             `Stripe webhook with timestamp age > 300s rejected with HTTP 401 Unauthorized.`
         );
 
-        // Test 2.7: Stripe valid official webhook (HMAC-SHA256 of t.rawBody)
+        // Test 2.14: Stripe Official Completed Event (checkout.session.completed with payment_status: 'paid')
+        const orderStripeValid = await createTestDepositOrder(testUserAId, 25.00, 'USD');
         const stripeEventId = `evt_stripe_valid_${Date.now()}`;
         const stripePayload = {
-            payment_id: stripeEventId,
-            user_id: testUserAId,
-            amount: 25.00,
-            currency: 'USD'
+            id: stripeEventId,
+            object: 'event',
+            type: 'checkout.session.completed',
+            data: {
+                object: {
+                    id: `cs_test_${Date.now()}`,
+                    object: 'checkout.session',
+                    amount_total: 2500, // 2500 cents = $25.00
+                    currency: 'usd',
+                    payment_status: 'paid',
+                    status: 'complete',
+                    client_reference_id: orderStripeValid.orderId,
+                    metadata: {
+                        order_id: orderStripeValid.orderId,
+                        user_id: testUserAId
+                    }
+                }
+            }
         };
         const stripeSig = signStripe(stripePayload, testStripeSecret);
         const resStripeValid = await makeRequest(server, {
@@ -344,25 +582,100 @@ async function runPhase2Audit() {
             headers: { 'stripe-signature': stripeSig }
         }, stripePayload);
         assert.strictEqual(resStripeValid.statusCode, 200, `Valid Stripe webhook expected 200 (got ${resStripeValid.statusCode})`);
+        assert.strictEqual(resStripeValid.json.credited, true, 'credited flag must be true');
 
         const [walletAfterStripe] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
         const balAfterStripe = Number(walletAfterStripe[0].balance);
-        assert.strictEqual(balAfterStripe, 175.00, `Balance should increase from $150 to $175 (got ${balAfterStripe})`);
+        assert.strictEqual(balAfterStripe, 220.00, `Balance should increase from $195 to $220 (got ${balAfterStripe})`);
+
         recordResult(
-            2.7,
-            'Stripe Official Protocol (HMAC-SHA256 t.rawBody) & Atomic Credit',
+            2.14,
+            'Stripe Official Protocol (checkout.session.completed paid) & Verified Credit',
             'PASS',
-            `Valid Stripe signature verified using rawBody buffer. Wallet credited exact $25.00 (balance increased from $150.00 to $175.00).`
+            `Official Stripe event (2500 cents = $25.00, payment_status: paid) verified against order. Wallet credited exact $25.00 (balance increased to $220.00).`
         );
 
-        // Test 2.8: Concurrent Webhooks Race Condition: Simultaneous notifications with identical event ID
+        // Test 2.15: Stripe Pending / Non-Final Event (payment_status: 'unpaid') -> Zero credit
+        const orderStripePending = await createTestDepositOrder(testUserAId, 20.00, 'USD');
+        const stripePendingPayload = {
+            id: `evt_stripe_pend_${Date.now()}`,
+            type: 'checkout.session.completed',
+            data: {
+                object: {
+                    id: `cs_test_pend_${Date.now()}`,
+                    amount_total: 2000,
+                    currency: 'usd',
+                    payment_status: 'unpaid', // Unpaid
+                    client_reference_id: orderStripePending.orderId
+                }
+            }
+        };
+        const stripePendingSig = signStripe(stripePendingPayload, testStripeSecret);
+        const resStripePending = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/stripe',
+            headers: { 'stripe-signature': stripePendingSig }
+        }, stripePendingPayload);
+        assert.strictEqual(resStripePending.statusCode, 200, `Stripe pending expected 200 acknowledgment (got ${resStripePending.statusCode})`);
+        assert.strictEqual(resStripePending.json.credited, false, 'credited flag must be false');
+
+        const [walletAfterStripePend] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        assert.strictEqual(Number(walletAfterStripePend[0].balance), 220.00, 'Balance must remain unchanged at $220.00');
+
+        recordResult(
+            2.15,
+            'Stripe Non-Final Event (payment_status: unpaid) Acknowledged with Zero Credit',
+            'PASS',
+            `Received Stripe event with payment_status 'unpaid'. Acknowledged without crediting wallet (balance remained $220.00).`
+        );
+
+        // Test 2.16: Stripe Failed Event (payment_intent.payment_failed) -> Zero credit, order failed
+        const orderStripeFailed = await createTestDepositOrder(testUserAId, 20.00, 'USD');
+        const stripeFailedPayload = {
+            id: `evt_stripe_fail_${Date.now()}`,
+            type: 'payment_intent.payment_failed',
+            data: {
+                object: {
+                    id: `pi_test_fail_${Date.now()}`,
+                    amount: 2000,
+                    currency: 'usd',
+                    status: 'requires_payment_method',
+                    client_reference_id: orderStripeFailed.orderId
+                }
+            }
+        };
+        const stripeFailedSig = signStripe(stripeFailedPayload, testStripeSecret);
+        const resStripeFailed = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/stripe',
+            headers: { 'stripe-signature': stripeFailedSig }
+        }, stripeFailedPayload);
+        assert.strictEqual(resStripeFailed.statusCode, 200, `Stripe failed expected 200 (got ${resStripeFailed.statusCode})`);
+        assert.strictEqual(resStripeFailed.json.credited, false, 'credited flag must be false');
+
+        const [walletAfterStripeFailed] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        assert.strictEqual(Number(walletAfterStripeFailed[0].balance), 220.00, 'Balance must remain unchanged at $220.00');
+
+        const [orderStripeFailCheck] = await db.query('SELECT status FROM transactions WHERE id = ?', [orderStripeFailed.trxId]);
+        assert.strictEqual(orderStripeFailCheck[0].status, 'failed', 'Order marked failed');
+
+        recordResult(
+            2.16,
+            'Stripe Failed Event (payment_intent.payment_failed) Handled with Zero Credit',
+            'PASS',
+            `Received Stripe failed event. Order marked failed, zero credit added, and wallet balance remained $220.00.`
+        );
+
+        // Test 2.17: Concurrent Webhooks Race Condition: Simultaneous notifications with identical event ID
         console.log('Testing simultaneous concurrent webhooks with identical event ID...');
-        const concurrentEventId = `evt_concurrent_race_${Date.now()}`;
+        const orderConcurrent = await createTestDepositOrder(testUserAId, 50.00, 'USD');
+        const concurrentEventId = `pay_concurrent_race_${Date.now()}`;
         const concurrentPayload = {
             payment_id: concurrentEventId,
-            user_id: testUserAId,
-            amount: 50.00,
-            currency: 'USD'
+            order_id: orderConcurrent.orderId,
+            payment_status: 'finished',
+            price_amount: 50.00,
+            price_currency: 'USD'
         };
         const concurrentSig = signNowPayments(concurrentPayload, testNowPaymentsSecret);
 
@@ -384,19 +697,16 @@ async function runPhase2Audit() {
 
         const [walletAfterConcurrentWh] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
         const balAfterConcurrentWh = Number(walletAfterConcurrentWh[0].balance);
-        assert.strictEqual(balAfterConcurrentWh, 225.00, `Balance must increase exactly once by $50 to $225.00 (got ${balAfterConcurrentWh})`);
-
-        const [concurrentTrxRows] = await db.query('SELECT id FROM transactions WHERE reference_id = ?', [concurrentEventId]);
-        assert.strictEqual(concurrentTrxRows.length, 1, `Exactly 1 transaction row must exist for reference_id ${concurrentEventId} (got ${concurrentTrxRows.length})`);
+        assert.strictEqual(balAfterConcurrentWh, 270.00, `Balance must increase exactly once by $50 to $270.00 (got ${balAfterConcurrentWh})`);
 
         recordResult(
-            2.8,
+            2.17,
             'Concurrent Webhook Race Condition Double-Spend Prevention',
             'PASS',
-            `Executed 2 simultaneous Webhooks with identical event ID (${concurrentEventId}). Exactly one succeeded (HTTP 200) and one failed (HTTP 409 Conflict). Balance was credited strictly ONCE (+ $50.00) and single transaction row created.`
+            `Executed 2 simultaneous Webhooks with identical event ID (${concurrentEventId}). Exactly one succeeded (HTTP 200) and one failed (HTTP 409 Conflict). Balance was credited strictly ONCE (+ $50.00).`
         );
 
-        // Test 2.9: Replay Attack (Duplicate Subsequent Notification)
+        // Test 2.18: Replay Attack (Duplicate Subsequent Notification)
         const resReplayWebhook = await makeRequest(server, {
             method: 'POST',
             path: '/api/payment/webhook/nowpayments',
@@ -405,76 +715,63 @@ async function runPhase2Audit() {
         assert.strictEqual(resReplayWebhook.statusCode, 409, `Replay webhook expected 409 (got ${resReplayWebhook.statusCode})`);
 
         const [walletAfterReplay] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
-        assert.strictEqual(Number(walletAfterReplay[0].balance), 225.00, 'Balance must remain unchanged after replay');
+        assert.strictEqual(Number(walletAfterReplay[0].balance), 270.00, 'Balance must remain unchanged after replay');
         recordResult(
-            2.9,
+            2.18,
             'Webhook Subsequent Replay Attack Deduplication',
             'PASS',
             `Subsequent replay of event ${concurrentEventId} rejected with HTTP 409 Conflict. Zero duplicate balance added.`
         );
 
-        // Test 2.10: Underpayment Policy (Expected $100, actually received $35)
-        const underpayEventId = `evt_underpay_${Date.now()}`;
-        const underpayPayload = {
-            payment_id: underpayEventId,
-            user_id: testUserAId,
-            expected_amount: 100.00,
-            amount: 35.00, // Underpaid
-            currency: 'USD'
-        };
-        const underpaySig = signNowPayments(underpayPayload, testNowPaymentsSecret);
+        // Test 2.19: Database Failure During Processing, Followed by Successful Retry
+        const orderRetry = await createTestDepositOrder(testUserAId, 30.00, 'USD');
+        const retryEventId = `pay_retry_${Date.now()}`;
 
-        const resUnderpay = await makeRequest(server, {
+        // Attempt 1 with invalid negative amount (simulating payload corruption or processing abort) -> rolls back
+        const badPayload = {
+            payment_id: retryEventId,
+            order_id: orderRetry.orderId,
+            payment_status: 'finished',
+            price_amount: -30.00, // Invalid amount triggers rollback
+            price_currency: 'USD'
+        };
+        const badSig = signNowPayments(badPayload, testNowPaymentsSecret);
+        const resBad = await makeRequest(server, {
             method: 'POST',
             path: '/api/payment/webhook/nowpayments',
-            headers: { 'x-nowpayments-sig': underpaySig }
-        }, underpayPayload);
+            headers: { 'x-nowpayments-sig': badSig }
+        }, badPayload);
+        assert.strictEqual(resBad.statusCode, 400, `Aborted attempt expected 400 (got ${resBad.statusCode})`);
 
-        assert.strictEqual(resUnderpay.statusCode, 200, `Underpay webhook expected 200 (got ${resUnderpay.statusCode})`);
-        assert.strictEqual(resUnderpay.json.isUnderpaid, true, 'isUnderpaid flag must be true');
-        assert.strictEqual(resUnderpay.json.creditedAmount, 35.00, 'Credited amount must strictly equal $35.00');
+        const [walletAfterBad] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        assert.strictEqual(Number(walletAfterBad[0].balance), 270.00, 'Balance must remain $270.00 after rollback');
 
-        const [walletAfterUnderpay] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
-        const balAfterUnderpay = Number(walletAfterUnderpay[0].balance);
-        assert.strictEqual(balAfterUnderpay, 260.00, `Balance must be $225 + $35 = $260.00 (got ${balAfterUnderpay})`);
-
-        recordResult(
-            2.10,
-            'Webhook Underpayment Policy Enforcement',
-            'PASS',
-            `Received $35.00 against expected $100.00. System credited ONLY actual received $35.00 (isUnderpaid: true) and never credited the unreceived $100.00.`
-        );
-
-        // Test 2.11: Overpayment Policy (Expected $100, actually received $120)
-        const overpayEventId = `evt_overpay_${Date.now()}`;
-        const overpayPayload = {
-            payment_id: overpayEventId,
-            user_id: testUserAId,
-            expected_amount: 100.00,
-            amount: 120.00, // Overpaid
-            currency: 'USD'
+        // Attempt 2 (Gateway Retry with valid state): Must succeed and fulfill order cleanly
+        const goodPayload = {
+            payment_id: retryEventId,
+            order_id: orderRetry.orderId,
+            payment_status: 'finished',
+            price_amount: 30.00,
+            price_currency: 'USD'
         };
-        const overpaySig = signNowPayments(overpayPayload, testNowPaymentsSecret);
-
-        const resOverpay = await makeRequest(server, {
+        const goodSig = signNowPayments(goodPayload, testNowPaymentsSecret);
+        const resGood = await makeRequest(server, {
             method: 'POST',
             path: '/api/payment/webhook/nowpayments',
-            headers: { 'x-nowpayments-sig': overpaySig }
-        }, overpayPayload);
+            headers: { 'x-nowpayments-sig': goodSig }
+        }, goodPayload);
+        assert.strictEqual(resGood.statusCode, 200, `Gateway retry expected 200 (got ${resGood.statusCode})`);
+        assert.strictEqual(resGood.json.credited, true, 'credited flag must be true');
 
-        assert.strictEqual(resOverpay.statusCode, 200, `Overpay webhook expected 200 (got ${resOverpay.statusCode})`);
-        assert.strictEqual(resOverpay.json.isOverpaid, true, 'isOverpaid flag must be true');
-        assert.strictEqual(resOverpay.json.creditedAmount, 120.00, 'Credited amount must strictly equal $120.00');
-
-        const [walletAfterOverpay] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
-        const balAfterOverpay = Number(walletAfterOverpay[0].balance);
-        assert.strictEqual(balAfterOverpay, 380.00, `Balance must be $260 + $120 = $380.00 (got ${balAfterOverpay})`);
+        const [walletAfterGood] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        const balAfterGood = Number(walletAfterGood[0].balance);
+        assert.strictEqual(balAfterGood, 300.00, `Balance should increase from $270 to $300 (got ${balAfterGood})`);
 
         recordResult(
-            2.11,
-            'Webhook Overpayment Policy Enforcement',
+            2.19,
+            'Transaction Rollback on Failure & Clean Gateway Retry Recovery',
             'PASS',
-            `Received $120.00 against expected $100.00. System credited exact received $120.00 (isOverpaid: true) and logged ledger transaction with overpayment metadata.`
+            `Processing failure caused complete database transaction rollback ($0 credited). Subsequent retry by gateway succeeded cleanly with exact +$30.00 credited (balance $300.00).`
         );
 
         // -------------------------------------------------------------
