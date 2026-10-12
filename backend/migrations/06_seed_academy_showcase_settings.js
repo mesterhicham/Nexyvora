@@ -9,13 +9,13 @@ async function run() {
     const settings = [
       {
         key: 'academy_intro_title',
-        value: 'فيديو تعريفي بمشروع ورؤية أكاديمية Nextvora',
+        value: 'فيديو تعريفي بمشروع ورؤية أكاديمية Nexyvora',
         type: 'text',
         category: 'academy'
       },
       {
         key: 'academy_intro_description',
-        value: 'مرحباً بك في أكاديمية Nextvora! دليلك الشامل للانطلاق في التجارة الإلكترونية، الأتمتة بالذكاء الاصطناعي، وبناء المنتجات الرقمية والـ SaaS من الصفر حتى تحقيق الحرية المالية.',
+        value: 'مرحباً بك في أكاديمية Nexyvora! دليلك الشامل للانطلاق في التجارة الإلكترونية، الأتمتة بالذكاء الاصطناعي، وبناء المنتجات الرقمية والـ SaaS من الصفر حتى تحقيق الحرية المالية.',
         type: 'text',
         category: 'academy'
       },
@@ -27,7 +27,7 @@ async function run() {
       },
       {
         key: 'academy_intro_author',
-        value: 'إدارة Nextvora',
+        value: 'إدارة Nexyvora',
         type: 'text',
         category: 'academy'
       },

@@ -235,10 +235,10 @@ export default function StudentCommunity() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-amber-300 text-xs font-black">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Nextvora Official Community Hub</span>
+                <span>Nexyvora Official Community Hub</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                {isRtl ? 'مجتمع رواد الأعمال وقادة Nextvora' : 'Nextvora Leaders & Builders Community'}
+                {isRtl ? 'مجتمع رواد الأعمال وقادة Nexyvora' : 'Nexyvora Leaders & Builders Community'}
               </h1>
               <p className="text-xs sm:text-sm text-purple-200/90 max-w-2xl leading-relaxed">
                 {isRtl
@@ -456,7 +456,7 @@ export default function StudentCommunity() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                    {isRtl ? 'قنوات مجتمع Nextvora الرسمية' : 'Official VIP Channels'}
+                    {isRtl ? 'قنوات مجتمع Nexyvora الرسمية' : 'Official VIP Channels'}
                   </h3>
                   <p className="text-[10px] text-slate-400">
                     {isRtl ? 'انضم لقنوات التيليجرام والنقاشات المباشرة' : 'Join Telegram channels & live community discussions'}
@@ -496,7 +496,7 @@ export default function StudentCommunity() {
             {/* Community Values & Rules */}
             <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 shadow-xs">
               <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">
-                {isRtl ? 'ميثاق مجتمع Nextvora' : 'Community Guidelines'}
+                {isRtl ? 'ميثاق مجتمع Nexyvora' : 'Community Guidelines'}
               </h4>
               <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
                 <li className="flex items-start gap-2">
@@ -525,7 +525,7 @@ export default function StudentCommunity() {
                   {isRtl ? 'إنشاء منشور أو نقاش جديد' : 'Create New Discussion'}
                 </DialogTitle>
                 <DialogDescription className="text-xs">
-                  {isRtl ? 'شارك أفكارك وتجاربك أو اطرح سؤالاً لمجتمع Nextvora' : 'Share your ideas or ask a question'}
+                  {isRtl ? 'شارك أفكارك وتجاربك أو اطرح سؤالاً لمجتمع Nexyvora' : 'Share your ideas or ask a question'}
                 </DialogDescription>
               </DialogHeader>
 

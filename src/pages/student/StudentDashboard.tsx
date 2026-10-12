@@ -68,7 +68,7 @@ export default function StudentDashboard() {
   const { isAlgeria, isMorocco, convertToLocal } = useCurrency();
   const [showBalance, setShowBalance] = useState(true);
 
-  // Nextvora Packages, Wallet & Affiliate Data
+  // Nexyvora Packages, Wallet & Affiliate Data
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -152,7 +152,7 @@ export default function StudentDashboard() {
     {
       to: '/student/community',
       icon: MessageSquare,
-      label: t('nav.community', isRtl ? 'مجتمع نكستفورا' : 'Nextvora Community'),
+      label: t('nav.community', isRtl ? 'مجتمع نيكسيفورا' : 'Nexyvora Community'),
       color: 'from-violet-600 to-indigo-500',
       shadow: 'shadow-violet-500/25',
     },

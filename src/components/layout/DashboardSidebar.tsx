@@ -92,7 +92,7 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     // 3. Members & Network
     { to: '/admin/users', icon: Users, label: t('nav.users', 'User Management'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
     { to: '/admin/teachers', icon: GraduationCap, label: t('nav.teachers', isRtl ? 'إدارة الأساتذة' : 'Teacher Management'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
-    { to: '/student/community', icon: MessageSquare, label: t('nav.community', 'Nextvora Community'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
+    { to: '/student/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
     { to: '/admin/team-tree', icon: Network, label: t('nav.teamTree', 'Team Network Tree'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
     { to: '/admin/kyc', icon: ShieldCheck, label: t('nav.kycApproval', 'KYC Approvals'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
     { to: '/admin/ranks', icon: Award, label: t('nav.leaderRanks', 'Leader Ranks & Badges'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
@@ -134,7 +134,7 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
   const studentLinks: NavLinkItem[] = [
     { to: '/student', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
     { to: '/student/academy', icon: GraduationCap, label: t('nav.academy', 'Academy') },
-    { to: '/student/community', icon: MessageSquare, label: t('nav.community', 'Nextvora Community') },
+    { to: '/student/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community') },
     { to: '/student/news', icon: Newspaper, label: t('nav.newsCenter', 'News Center') },
     { to: '/student/packages', icon: Package, label: t('nav.packages', 'Packages') },
     { to: '/student/my-package', icon: Sparkles, label: t('nav.myPackage', 'My Package') },

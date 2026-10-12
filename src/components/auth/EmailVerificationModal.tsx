@@ -120,8 +120,8 @@ export function EmailVerificationModal({
               </h4>
               <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
                 {isRtl
-                  ? 'بريدك الإلكتروني موثق الآن بالكامل. يمكنك الاستمتاع بجميع ميزات Nextvora.'
-                  : 'Your email has been successfully verified. You can now access all Nextvora features.'}
+                  ? 'بريدك الإلكتروني موثق الآن بالكامل. يمكنك الاستمتاع بجميع ميزات Nexyvora.'
+                  : 'Your email has been successfully verified. You can now access all Nexyvora features.'}
               </p>
             </div>
             <Button

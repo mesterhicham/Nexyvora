@@ -16,7 +16,7 @@ function walk(dir) {
         const content = fs.readFileSync(fullPath, 'utf8');
         const matches = content.match(/[\u0600-\u06FF]/g);
         if (matches && matches.length > 5) {
-          results.push({ file: path.relative('c:/MAMP/htdocs/Nextvora/Nextvora', fullPath), count: matches.length });
+          results.push({ file: path.relative('c:/MAMP/htdocs/Nexyvora/Nexyvora', fullPath), count: matches.length });
         }
       }
     }

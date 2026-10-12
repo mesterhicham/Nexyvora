@@ -1,10 +1,10 @@
 -- ============================================================
--- NEXTVORA DATABASE SCHEMA (MySQL Version)
+-- NEXYVORA DATABASE SCHEMA (MySQL Version)
 -- Generated to replace Supabase/PostgreSQL
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS `nextvora`;
-USE `nextvora`;
+CREATE DATABASE IF NOT EXISTS `nexyvora`;
+USE `nexyvora`;
 
 -- 1. Users table (Replaces auth.users)
 CREATE TABLE IF NOT EXISTS `users` (

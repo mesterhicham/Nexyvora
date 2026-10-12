@@ -53,8 +53,8 @@ async function up() {
                 '',
                 '',
                 'ssl',
-                'noreply@nextvora.com',
-                'Nextvora Platform',
+                'noreply@nexyvora.com',
+                'Nexyvora Platform',
                 0
             ]);
             console.log('   Initialized default email_settings placeholder.');

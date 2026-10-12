@@ -84,7 +84,7 @@ exports.getNews = async (req, res) => {
 
         let query = `
             SELECT n.*, 
-                   COALESCE(p.full_name, u.email, 'Nextvora Admin') as author_name
+                   COALESCE(p.full_name, u.email, 'Nexyvora Admin') as author_name
             FROM news n
             LEFT JOIN users u ON n.author_id = u.id
             LEFT JOIN profiles p ON n.author_id = p.id

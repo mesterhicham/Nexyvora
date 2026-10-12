@@ -25,7 +25,7 @@ export function PlatformLogo({
   const [imageError, setImageError] = useState(false);
 
   const customLogoUrl = settings?.map?.['logo_url']?.value;
-  const platformName = settings?.map?.['platform_name']?.value || 'Nextvora';
+  const platformName = settings?.map?.['platform_name']?.value || 'Nexyvora';
 
   // Determine effective display mode:
   // 'full' if useFullLogo is true or variant is 'full'

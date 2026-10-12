@@ -37,11 +37,11 @@ export function InstallModal() {
       <DialogContent className={`sm:max-w-md rounded-3xl p-6 border-slate-100 dark:border-slate-800 ${isRtl ? 'text-right rtl' : 'text-left ltr'}`}>
         <DialogHeader className={`text-center ${isRtl ? 'sm:text-right' : 'sm:text-left'} space-y-3`}>
           <div className={`mx-auto ${isRtl ? 'sm:mx-0' : 'sm:mx-0'} w-16 h-16 rounded-2xl bg-gradient-to-tr from-violet-600 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/25`}>
-            <img src="/icons/icon-192x192.png" alt="Nextvora" className="w-12 h-12 rounded-xl object-contain" />
+            <img src="/icons/icon-192x192.png" alt="Nexyvora" className="w-12 h-12 rounded-xl object-contain" />
           </div>
 
           <DialogTitle className={`text-xl font-bold text-slate-900 dark:text-white flex items-center justify-center ${isRtl ? 'sm:justify-start' : 'sm:justify-start'} gap-2`}>
-            <span>{isRtl ? 'تثبيت تطبيق Nextvora' : 'Install Nextvora App'}</span>
+            <span>{isRtl ? 'تثبيت تطبيق Nexyvora' : 'Install Nexyvora App'}</span>
             <Sparkles className="w-4 h-4 text-purple-500" />
           </DialogTitle>
 

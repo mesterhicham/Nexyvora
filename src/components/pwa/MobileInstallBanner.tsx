@@ -45,7 +45,7 @@ export function MobileInstallBanner() {
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
-              <span>Nextvora App</span>
+              <span>Nexyvora App</span>
               <Sparkles className="w-3 h-3 text-purple-500" />
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">

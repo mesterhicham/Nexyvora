@@ -1,5 +1,5 @@
 /**
- * Service Worker Registration for Nextvora PWA
+ * Service Worker Registration for Nexyvora PWA
  */
 
 export function registerServiceWorker() {

@@ -213,7 +213,7 @@ export default function StudentAcademy() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-black text-slate-900 dark:text-white">
-                      {isRtl ? 'أكاديمية Nextvora التعليمية' : 'Nextvora Academy'}
+                      {isRtl ? 'أكاديمية Nexyvora التعليمية' : 'Nexyvora Academy'}
                     </span>
                     {hasActiveLevelPackage ? (
                       <Badge className="bg-emerald-500 text-white text-[11px] font-bold">

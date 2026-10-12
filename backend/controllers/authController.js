@@ -295,7 +295,7 @@ exports.sendEmailOtp = async (req, res) => {
                 name: recipientName,
                 user_name: recipientName,
                 otp_code: code,
-                platform_name: 'Nextvora Platform',
+                platform_name: 'Nexyvora Platform',
                 expires_in: '15',
                 reset_link: code
             }
@@ -408,7 +408,7 @@ exports.forgotPasswordOtp = async (req, res) => {
                 name: cleanEmail.split('@')[0],
                 user_name: cleanEmail.split('@')[0],
                 otp_code: code,
-                platform_name: 'Nextvora Platform',
+                platform_name: 'Nexyvora Platform',
                 expires_in: '15'
             }
         });

@@ -1,8 +1,8 @@
 {
   "id": "/?source=pwa",
-  "name": "Nextvora | منصة التعليم الأكاديمي والمهني",
-  "short_name": "Nextvora",
-  "description": "منصة إدارة التعليم الأكاديمي والتدريب المهني والتسويق التشاركي - Nextvora",
+  "name": "Nexyvora | منصة التعليم الأكاديمي والمهني",
+  "short_name": "Nexyvora",
+  "description": "منصة إدارة التعليم الأكاديمي والتدريب المهني والتسويق التشاركي - Nexyvora",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",

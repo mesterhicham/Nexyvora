@@ -1,5 +1,5 @@
 /**
- * Standard Nextvora Email Templates with modern HTML responsive design,
+ * Standard Nexyvora Email Templates with modern HTML responsive design,
  * branded with violet/purple gradients, clear typography, and {{variables}}.
  */
 
@@ -7,13 +7,13 @@ const defaultTemplates = [
     {
         name: 'كود التحقق لتفعيل الحساب (Registration OTP)',
         slug: 'registration-otp',
-        subject: 'كود التحقق الخاص بك لتفعيل حساب Nextvora: {{otp_code}}',
+        subject: 'كود التحقق الخاص بك لتفعيل حساب Nexyvora: {{otp_code}}',
         variables: ['name', 'otp_code', 'platform_name', 'expires_in'],
-        body_text: 'مرحباً {{name}}، كود التحقق الخاص بك في منصة Nextvora هو: {{otp_code}}. صالح لمدة {{expires_in}} دقيقة.',
+        body_text: 'مرحباً {{name}}، كود التحقق الخاص بك في منصة Nexyvora هو: {{otp_code}}. صالح لمدة {{expires_in}} دقيقة.',
         body_html: `
 <div dir="rtl" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ede9fe; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);">
   <div style="background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%); padding: 40px 30px; text-align: center;">
-    <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Nextvora</h1>
+    <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Nexyvora</h1>
     <p style="color: #ede9fe; margin: 8px 0 0 0; font-size: 14px;">تفعيل الحساب والتحقق من الهوية</p>
   </div>
   
@@ -32,7 +32,7 @@ const defaultTemplates = [
     
     <div style="background-color: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #f1f5f9; margin-top: 25px;">
       <p style="color: #64748b; font-size: 13px; margin: 0; line-height: 1.6;">
-        🔒 لأسباب أمنية، لا تشارك هذا الرمز مع أي شخص. فريق الدعم في Nextvora لن يطلب منك هذا الرمز أبداً.
+        🔒 لأسباب أمنية، لا تشارك هذا الرمز مع أي شخص. فريق الدعم في Nexyvora لن يطلب منك هذا الرمز أبداً.
       </p>
     </div>
   </div>
@@ -46,13 +46,13 @@ const defaultTemplates = [
     {
         name: 'الترحيب بالعضو الجديد (Welcome Member)',
         slug: 'welcome-member',
-        subject: 'أهلاً بك في منصة Nextvora! ابدأ رحلتك التعليمية والمالية الآن 🚀',
+        subject: 'أهلاً بك في منصة Nexyvora! ابدأ رحلتك التعليمية والمالية الآن 🚀',
         variables: ['name', 'email', 'referral_link', 'login_url', 'platform_name'],
-        body_text: 'مرحباً {{name}}، أهلاً بك في Nextvora. حسابك مفعل الآن وجاهز للاستخدام.',
+        body_text: 'مرحباً {{name}}، أهلاً بك في Nexyvora. حسابك مفعل الآن وجاهز للاستخدام.',
         body_html: `
 <div dir="rtl" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ede9fe; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);">
   <div style="background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%); padding: 40px 30px; text-align: center;">
-    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800;">Nextvora Academy</h1>
+    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800;">Nexyvora Academy</h1>
     <p style="color: #ddd6fe; margin: 8px 0 0 0; font-size: 15px;">بوابتك نحو التعلّم والنمو المالي والريادة</p>
   </div>
   
@@ -93,7 +93,7 @@ const defaultTemplates = [
 <div dir="rtl" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ede9fe; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);">
   <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 35px 30px; text-align: center;">
     <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">أرباح جديدة في محفظتك 💸</h1>
-    <p style="color: #d1fae5; margin: 6px 0 0 0; font-size: 14px;">Nextvora Affiliate System</p>
+    <p style="color: #d1fae5; margin: 6px 0 0 0; font-size: 14px;">Nexyvora Affiliate System</p>
   </div>
   
   <div style="padding: 35px 30px;">
@@ -197,7 +197,7 @@ const defaultTemplates = [
 <div dir="rtl" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ede9fe; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);">
   <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 35px 30px; text-align: center;">
     <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">تم تحويل أرباحك بنجاح 🏦</h1>
-    <p style="color: #e0e7ff; margin: 6px 0 0 0; font-size: 14px;">Nextvora Financial Department</p>
+    <p style="color: #e0e7ff; margin: 6px 0 0 0; font-size: 14px;">Nexyvora Financial Department</p>
   </div>
   
   <div style="padding: 35px 30px;">
@@ -248,7 +248,7 @@ const defaultTemplates = [
 <div dir="rtl" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ede9fe; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);">
   <div style="background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%); padding: 35px 30px; text-align: center;">
     <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">تم تفعيل باقتك بنجاح! 🎓</h1>
-    <p style="color: #f3e8ff; margin: 6px 0 0 0; font-size: 14px;">Nextvora Educational Membership</p>
+    <p style="color: #f3e8ff; margin: 6px 0 0 0; font-size: 14px;">Nexyvora Educational Membership</p>
   </div>
   
   <div style="padding: 35px 30px;">
@@ -290,14 +290,14 @@ const defaultTemplates = [
     {
         name: 'إعادة تعيين كلمة المرور (Password Reset)',
         slug: 'password-reset',
-        subject: 'طلب إعادة تعيين كلمة المرور الخاصة بحسابك في Nextvora',
+        subject: 'طلب إعادة تعيين كلمة المرور الخاصة بحسابك في Nexyvora',
         variables: ['name', 'reset_link', 'expires_in', 'platform_name'],
         body_text: 'مرحباً {{name}}، لقد تم طلب إعادة تعيين كلمة المرور لحسابك. استخدم الرابط التالي: {{reset_link}}.',
         body_html: `
 <div dir="rtl" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ede9fe; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);">
   <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); padding: 35px 30px; text-align: center;">
     <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">إعادة تعيين كلمة المرور 🔐</h1>
-    <p style="color: #94a3b8; margin: 6px 0 0 0; font-size: 14px;">Nextvora Security Center</p>
+    <p style="color: #94a3b8; margin: 6px 0 0 0; font-size: 14px;">Nexyvora Security Center</p>
   </div>
   
   <div style="padding: 35px 30px;">
@@ -326,14 +326,14 @@ const defaultTemplates = [
     {
         name: 'تم التحقق من الهوية بنجاح (KYC Approved)',
         slug: 'kyc-approved',
-        subject: 'تهانينا! تم توثيق وتأكيد هويتك في Nextvora بنجاح (KYC Verified) 🛡️',
+        subject: 'تهانينا! تم توثيق وتأكيد هويتك في Nexyvora بنجاح (KYC Verified) 🛡️',
         variables: ['name', 'platform_name', 'dashboard_url'],
         body_text: 'مرحباً {{name}}، تمت مراجعة مستنداتك وتوثيق حسابك بنجاح.',
         body_html: `
 <div dir="rtl" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ede9fe; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);">
   <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 35px 30px; text-align: center;">
     <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">تم توثيق الحساب بنجاح 🛡️</h1>
-    <p style="color: #bae6fd; margin: 6px 0 0 0; font-size: 14px;">Nextvora Identity Verification</p>
+    <p style="color: #bae6fd; margin: 6px 0 0 0; font-size: 14px;">Nexyvora Identity Verification</p>
   </div>
   
   <div style="padding: 35px 30px;">

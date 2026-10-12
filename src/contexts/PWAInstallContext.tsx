@@ -44,7 +44,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
       document.referrer.includes('android-app://');
 
     const isMarkedInstalled = 
-      localStorage.getItem('nextvora_pwa_installed') === 'true' ||
+      localStorage.getItem('nexyvora_pwa_installed') === 'true' ||
       localStorage.getItem('pwa_installed') === 'true';
 
     if (isStandalone || isMarkedInstalled) {
@@ -60,7 +60,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
             if (relatedApps && relatedApps.length > 0) {
               console.log('[PWA] Detected installed related app:', relatedApps);
               setIsInstalled(true);
-              localStorage.setItem('nextvora_pwa_installed', 'true');
+              localStorage.setItem('nexyvora_pwa_installed', 'true');
             }
           })
           .catch((err) => {
@@ -104,7 +104,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     const handleDisplayChange = (e: MediaQueryListEvent) => {
       setIsInstalled(e.matches);
       if (e.matches) {
-        localStorage.setItem('nextvora_pwa_installed', 'true');
+        localStorage.setItem('nexyvora_pwa_installed', 'true');
       }
     };
     mediaQuery.addEventListener('change', handleDisplayChange);
@@ -128,7 +128,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     };
 
     const handleStorageChange = (e: StorageEvent) => {
-      if ((e.key === 'nextvora_pwa_installed' || e.key === 'pwa_installed') && e.newValue === 'true') {
+      if ((e.key === 'nexyvora_pwa_installed' || e.key === 'pwa_installed') && e.newValue === 'true') {
         setIsInstalled(true);
         setIsInstallable(false);
         setDeferredPrompt(null);
@@ -138,14 +138,14 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
-    window.addEventListener('nextvora:pwa-installed', handleCustomInstalled);
+    window.addEventListener('nexyvora:pwa-installed', handleCustomInstalled);
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
       mediaQuery.removeEventListener('change', handleDisplayChange);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
-      window.removeEventListener('nextvora:pwa-installed', handleCustomInstalled);
+      window.removeEventListener('nexyvora:pwa-installed', handleCustomInstalled);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
@@ -155,9 +155,9 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     setIsInstallable(false);
     setDeferredPrompt(null);
     setIsModalOpen(false);
-    localStorage.setItem('nextvora_pwa_installed', 'true');
+    localStorage.setItem('nexyvora_pwa_installed', 'true');
     localStorage.setItem('pwa_installed', 'true');
-    window.dispatchEvent(new Event('nextvora:pwa-installed'));
+    window.dispatchEvent(new Event('nexyvora:pwa-installed'));
   };
 
   // 4. Listen for appinstalled
@@ -165,13 +165,13 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     console.log('[PWA] App successfully installed');
     markAsInstalled();
     const isAr = i18next.language === 'ar';
-    toast.success(isAr ? 'تم تثبيت تطبيق Nextvora بنجاح! شكراً لك.' : 'Nextvora app installed successfully! Thank you.');
+    toast.success(isAr ? 'تم تثبيت تطبيق Nexyvora بنجاح! شكراً لك.' : 'Nexyvora app installed successfully! Thank you.');
   };
 
   const promptInstall = async () => {
     const isAr = i18next.language === 'ar';
     if (isInstalled) {
-      toast.info(isAr ? 'تطبيق Nextvora مثبت بالفعل على هذا الجهاز!' : 'Nextvora app is already installed on this device!');
+      toast.info(isAr ? 'تطبيق Nexyvora مثبت بالفعل على هذا الجهاز!' : 'Nexyvora app is already installed on this device!');
       return;
     }
 
@@ -182,7 +182,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         if (choice.outcome === 'accepted') {
           console.log('[PWA] User accepted the installation prompt');
           markAsInstalled();
-          toast.success(isAr ? 'تم تثبيت تطبيق Nextvora بنجاح!' : 'Nextvora app installed successfully!');
+          toast.success(isAr ? 'تم تثبيت تطبيق Nexyvora بنجاح!' : 'Nexyvora app installed successfully!');
         } else {
           console.log('[PWA] User dismissed the installation prompt');
         }

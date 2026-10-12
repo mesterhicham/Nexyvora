@@ -92,7 +92,7 @@ export default function StudentSupport() {
           role: 'assistant',
           content: t(
             'support.ai.welcomeSubtitle',
-            'مرحباً بك في مركز الدعم الفني لمنصة Nextvora! أنا المساعد الذكي، جاهز للإجابة فوراً عن استفساراتك حول استخدام المنصة، الباقات، المحفظة، الإيداع والسحب، الأكاديمية والشهادات، والتوثيق.'
+            'مرحباً بك في مركز الدعم الفني لمنصة Nexyvora! أنا المساعد الذكي، جاهز للإجابة فوراً عن استفساراتك حول استخدام المنصة، الباقات، المحفظة، الإيداع والسحب، الأكاديمية والشهادات، والتوثيق.'
           ),
           canEscalate: false,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -346,7 +346,7 @@ export default function StudentSupport() {
               </h1>
             </div>
             <p className="text-sm text-muted-foreground">
-              {t('support.subtitle', 'نحن هنا لمساعدتك والإجابة عن كافة استفساراتك حول منصة Nextvora على مدار الساعة')}
+              {t('support.subtitle', 'نحن هنا لمساعدتك والإجابة عن كافة استفساراتك حول منصة Nexyvora على مدار الساعة')}
             </p>
           </div>
 
@@ -396,7 +396,7 @@ export default function StudentSupport() {
                     </div>
                     <div>
                       <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                        {t('support.ai.welcomeTitle', 'المساعد الذكي لمنصة Nextvora')}
+                        {t('support.ai.welcomeTitle', 'المساعد الذكي لمنصة Nexyvora')}
                         <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
                           AI Powered
                         </Badge>
@@ -477,7 +477,7 @@ export default function StudentSupport() {
                         <Loader2 className="w-4 h-4 animate-spin" />
                       </div>
                       <div className="p-3 rounded-2xl bg-muted/60 border border-border/40 text-muted-foreground rounded-tl-none flex items-center gap-2">
-                        <span>{t('support.ai.thinking', 'جاري البحث في دليل Nextvora وتجهيز الإجابة...')}</span>
+                        <span>{t('support.ai.thinking', 'جاري البحث في دليل Nexyvora وتجهيز الإجابة...')}</span>
                       </div>
                     </div>
                   )}

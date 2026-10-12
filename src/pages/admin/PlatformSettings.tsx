@@ -441,8 +441,8 @@ export default function PlatformSettings() {
                         />
                       </div>
                       <div className="overflow-hidden">
-                        <p className="text-sm font-medium text-foreground">{isRtl ? 'الشعار الرسمي النشط (Nextvora)' : 'Active Official Logo (Nextvora)'}</p>
-                        <p className="text-xs text-muted-foreground">{isRtl ? 'شعار Nextvora الافتراضي عالي الدقة مفعل حالياً' : 'Official high-definition Nextvora logo is currently active'}</p>
+                        <p className="text-sm font-medium text-foreground">{isRtl ? 'الشعار الرسمي النشط (Nexyvora)' : 'Active Official Logo (Nexyvora)'}</p>
+                        <p className="text-xs text-muted-foreground">{isRtl ? 'شعار Nexyvora الافتراضي عالي الدقة مفعل حالياً' : 'Official high-definition Nexyvora logo is currently active'}</p>
                       </div>
                     </div>
                   </div>
@@ -1318,7 +1318,7 @@ export default function PlatformSettings() {
                         <img src="/icons/favicon-32x32.png" alt="Default Favicon" className="h-7 w-7 object-contain" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">{isRtl ? 'أيقونة Nextvora الافتراضية نشطة (3D Emblem)' : 'Default Nextvora Favicon is Active (3D Emblem)'}</p>
+                        <p className="text-sm font-medium text-foreground">{isRtl ? 'أيقونة Nexyvora الافتراضية نشطة (3D Emblem)' : 'Default Nexyvora Favicon is Active (3D Emblem)'}</p>
                         <p className="text-xs text-muted-foreground">{isRtl ? 'تظهر الأيقونة الرسمية في شريط تبويب المتصفح وتطبيق PWA' : 'Displayed in browser tabs and PWA installed apps'}</p>
                       </div>
                     </div>
@@ -1470,7 +1470,7 @@ export default function PlatformSettings() {
                     <Input
                       value={getValue('academy_intro_title')}
                       onChange={(e) => handleChange('academy_intro_title', e.target.value)}
-                      placeholder={isRtl ? "فيديو تعريفي بمشروع ورؤية أكاديمية Nextvora" : "Introductory video of Nextvora Academy project and vision"}
+                      placeholder={isRtl ? "فيديو تعريفي بمشروع ورؤية أكاديمية Nexyvora" : "Introductory video of Nexyvora Academy project and vision"}
                     />
                     <Button 
                       onClick={() => handleSave('academy_intro_title')} 
@@ -1511,7 +1511,7 @@ export default function PlatformSettings() {
                       <Input
                         value={getValue('academy_intro_author')}
                         onChange={(e) => handleChange('academy_intro_author', e.target.value)}
-                        placeholder={isRtl ? "إدارة Nextvora" : "Nextvora Management"}
+                        placeholder={isRtl ? "إدارة Nexyvora" : "Nexyvora Management"}
                       />
                       <Button 
                         onClick={() => handleSave('academy_intro_author')} 
@@ -1549,7 +1549,7 @@ export default function PlatformSettings() {
                       rows={5}
                       value={getValue('academy_intro_description')}
                       onChange={(e) => handleChange('academy_intro_description', e.target.value)}
-                      placeholder={isRtl ? "اكتب هنا الرسالة التوجيهية وشرح مشروع وأكاديمية Nextvora..." : "Write orientation message and explanation of Nextvora project & academy here..."}
+                      placeholder={isRtl ? "اكتب هنا الرسالة التوجيهية وشرح مشروع وأكاديمية Nexyvora..." : "Write orientation message and explanation of Nexyvora project & academy here..."}
                     />
                     <div className="flex justify-end">
                       <Button 

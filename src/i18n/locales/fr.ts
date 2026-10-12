@@ -667,7 +667,7 @@ export const fr = {
     unlockedBadge5: "Commissions : Les 5 Générations Complètes",
   },
   wallet: {
-    title: "Votre Portefeuille Nextvora",
+    title: "Votre Portefeuille Nexyvora",
     subtitle: "Déposez des fonds, suivez vos gains d'affiliation et achetez ou surclassez des packs directement avec votre solde.",
     depositBtn: "Déposer des Fonds",
     withdrawBtn: "Demander un Retrait",
@@ -745,7 +745,7 @@ export const fr = {
     myPackageTitle: "Mes Packs & Abonnements",
     myPackageSubtitle: "Suivez votre pack actif, la date d'achat et vos privilèges de surclassement.",
     noPackageTitle: "Aucun abonnement actif pour le moment !",
-    noPackageDesc: "Abonnez-vous à un pack Nextvora pour débloquer les formations et vos commissions d'affiliation sur 5 générations.",
+    noPackageDesc: "Abonnez-vous à un pack Nexyvora pour débloquer les formations et vos commissions d'affiliation sur 5 générations.",
     browsePackages: "Parcourir & Choisir un Pack",
     activePackageBadge: "Pack Actif & Validé ✓",
     level: "Niveau",
@@ -813,7 +813,7 @@ export const fr = {
   },
   support: {
     title: "Centre d'Assistance & Support",
-    subtitle: "Nous sommes là pour répondre à toutes vos questions sur la plateforme Nextvora",
+    subtitle: "Nous sommes là pour répondre à toutes vos questions sur la plateforme Nexyvora",
     adminTitle: "Gestion des Tickets de Support",
     adminSubtitle: "Suivez et gérez les tickets des membres, répondez directement et mettez à jour les statuts et priorités.",
     aiTab: "Assistant IA Instantané",
@@ -890,7 +890,7 @@ export const fr = {
       priorityUpdated: "Priorité du ticket mise à jour."
     },
     ai: {
-      welcomeTitle: "Assistant IA Nextvora",
+      welcomeTitle: "Assistant IA Nexyvora",
       welcomeSubtitle: "Bienvenue ! Je réponds instantanément à vos questions sur les packs, le portefeuille, les dépôts, les cours et les règles de la plateforme.",
       inputPlaceholder: "Posez votre question ici... (ex. Comment retirer mes commissions ? ou Quels sont les avantages du pack 30$ ?)",
       send: "Envoyer",
@@ -898,7 +898,7 @@ export const fr = {
       escalateBtn: "Transférer vers un Ticket Humain",
       escalateNotice: "Vous serez redirigé vers l'ouverture d'un ticket avec votre question pré-remplie.",
       financialDisclaimer: "Avertissement : L'assistant IA fournit une aide technique uniquement et ne délivre aucun conseil financier.",
-      thinking: "Recherche dans la base de connaissances Nextvora...",
+      thinking: "Recherche dans la base de connaissances Nexyvora...",
       sampleQuestions: "Questions fréquentes :",
       q1: "Comment recharger mon portefeuille en USDT ?",
       q2: "Quelles sont les conditions de vérification KYC ?",

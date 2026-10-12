@@ -17,7 +17,7 @@ exports.getEmailSettings = async (req, res) => {
                 smtp_password: '',
                 encryption: 'tls',
                 from_email: '',
-                from_name: 'Nextvora Platform',
+                from_name: 'Nexyvora Platform',
                 is_active: 0,
             });
         }
@@ -59,7 +59,7 @@ exports.saveEmailSettings = async (req, res) => {
                     smtp_password || '',
                     encryption || 'tls',
                     from_email || '',
-                    from_name || 'Nextvora',
+                    from_name || 'Nexyvora',
                     is_active ? 1 : 0,
                     existing[0].id
                 ]
@@ -78,7 +78,7 @@ exports.saveEmailSettings = async (req, res) => {
                     smtp_password || '',
                     encryption || 'tls',
                     from_email || '',
-                    from_name || 'Nextvora',
+                    from_name || 'Nexyvora',
                     is_active ? 1 : 0
                 ]
             );
@@ -108,7 +108,7 @@ exports.testEmailSettings = async (req, res) => {
             smtp_password: smtp_password || dbSettings?.smtp_password,
             encryption: encryption || dbSettings?.encryption || 'tls',
             from_email: from_email || dbSettings?.from_email || '',
-            from_name: from_name || dbSettings?.from_name || 'Nextvora Platform'
+            from_name: from_name || dbSettings?.from_name || 'Nexyvora Platform'
         };
 
         if (!settings.smtp_host) {
@@ -251,7 +251,7 @@ exports.deleteEmailTemplate = async (req, res) => {
 };
 
 /**
- * Reset / Seed Default Nextvora Templates
+ * Reset / Seed Default Nexyvora Templates
  */
 exports.resetDefaultTemplates = async (req, res) => {
     try {

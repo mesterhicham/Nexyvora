@@ -627,7 +627,7 @@ export default function TeachersManagement() {
                 type="email"
                 value={addFormData.email}
                 onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })}
-                placeholder="teacher@nextvora.com"
+                placeholder="teacher@nexyvora.com"
                 className="rounded-xl"
               />
               {addFormErrors.email && <p className="text-xs text-destructive">{addFormErrors.email}</p>}

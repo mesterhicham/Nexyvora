@@ -1,5 +1,5 @@
-/* Nextvora - Progressive Web App Service Worker */
-const CACHE_NAME = 'nextvora-pwa-v2';
+/* Nexyvora - Progressive Web App Service Worker */
+const CACHE_NAME = 'nexyvora-pwa-v2';
 
 const STATIC_ASSETS = [
   '/',

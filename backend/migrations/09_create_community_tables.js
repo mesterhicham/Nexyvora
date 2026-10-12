@@ -68,7 +68,7 @@ async function run() {
         const welcomePostId = crypto.randomUUID();
         await connection.query(`
           INSERT INTO community_posts (id, user_id, channel, title, content, likes_count, comments_count, is_pinned, created_at)
-          VALUES (?, ?, 'general', 'مرحبا بكم في مجتمع رواد الاعمال Nextvora الرسمي!', 'يسرنا ان نرحب بكم في مجتمع Nextvora Academy التفاعلي.\nهنا ملتقى الطلاب، المسوقين ورواد الاعمال لمشاركة الاستراتيجيات، مناقشة احدث تقنيات الذكاء الاصطناعي والتجارة الالكترونية، وتبادل قصص النجاح.\nتاكدوا من متابعة قنوات النقاش ومشاركة تجاربكم اليومية!', 12, 2, 1, NOW())
+          VALUES (?, ?, 'general', 'مرحبا بكم في مجتمع رواد الاعمال Nexyvora الرسمي!', 'يسرنا ان نرحب بكم في مجتمع Nexyvora Academy التفاعلي.\nهنا ملتقى الطلاب، المسوقين ورواد الاعمال لمشاركة الاستراتيجيات، مناقشة احدث تقنيات الذكاء الاصطناعي والتجارة الالكترونية، وتبادل قصص النجاح.\nتاكدوا من متابعة قنوات النقاش ومشاركة تجاربكم اليومية!', 12, 2, 1, NOW())
         `, [welcomePostId, authorId]);
 
         const strategyPostId = crypto.randomUUID();

@@ -886,7 +886,7 @@ export default function AdminPaymentSettings() {
                       <Input
                         value={formData.account_holder}
                         onChange={(e) => setFormData({ ...formData, account_holder: e.target.value })}
-                        placeholder="e.g. Nextvora Academy LLC"
+                        placeholder="e.g. Nexyvora Academy LLC"
                         className="rounded-xl text-xs"
                       />
                     </div>

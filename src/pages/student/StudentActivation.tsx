@@ -194,10 +194,10 @@ export default function StudentActivation() {
 
   const bankMethod = availableMethods.find((m: any) => m.type === 'bank_transfer' || m.bank_name) || {
     name: 'Bank Transfer / BaridiMob',
-    bank_name: 'Nextvora Global Services',
+    bank_name: 'Nexyvora Global Services',
     account_number: '00799999000123456789',
     rib_iban: 'DZ00 0079 9999 0001 2345 6789',
-    account_holder: 'Nextvora Platform Corp',
+    account_holder: 'Nexyvora Platform Corp',
     instructions_ar: 'يرجى تحويل ما يعادل 30 دولار (بالعملة المحلية أو الدولار) إلى الحساب أعلاه، ثم كتابة رقم الحوالة وإرفاق صورة الوصل.'
   };
 
@@ -571,11 +571,11 @@ export default function StudentActivation() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800">
                       <div>
                         <span className="text-slate-400 block text-[10px]">{isRtl ? 'اسم البنك / الجهة:' : 'Bank Name:'}</span>
-                        <span className="font-bold text-white text-xs">{bankMethod.bank_name || 'Nextvora International'}</span>
+                        <span className="font-bold text-white text-xs">{bankMethod.bank_name || 'Nexyvora International'}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 block text-[10px]">{isRtl ? 'اسم صاحب الحساب:' : 'Account Holder:'}</span>
-                        <span className="font-bold text-white text-xs">{bankMethod.account_holder || 'Nextvora Platform Corp'}</span>
+                        <span className="font-bold text-white text-xs">{bankMethod.account_holder || 'Nexyvora Platform Corp'}</span>
                       </div>
                       <div className="sm:col-span-2 flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
                         <div>

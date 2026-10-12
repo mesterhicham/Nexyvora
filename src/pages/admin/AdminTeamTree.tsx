@@ -50,7 +50,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Color palette and commission rates for the 10 Generations Matching Bonus in Nextvora
+// Color palette and commission rates for the 10 Generations Matching Bonus in Nexyvora
 const GENERATION_CONFIG = [
   { gen: 1, rate: '5%', color: 'bg-blue-500' },
   { gen: 2, rate: '4%', color: 'bg-cyan-500' },
@@ -140,7 +140,7 @@ function VisualTreeNode({
 
   // Display role / rank
   const displayRank = node.rank_name || (node.package_name ? `${node.package_name}` : 'DISTRIBUTOR');
-  const username = node.isPlatformRoot ? '@nextvora' : (node.affiliate_code ? `@${node.affiliate_code.toLowerCase()}` : `@${node.email.split('@')[0]}`);
+  const username = node.isPlatformRoot ? '@nexyvora' : (node.affiliate_code ? `@${node.affiliate_code.toLowerCase()}` : `@${node.email.split('@')[0]}`);
 
   return (
     <div className="flex flex-col items-center">
@@ -330,7 +330,7 @@ export default function AdminTeamTree() {
     }
   };
 
-  // Virtual Platform Master Root for Nextvora
+  // Virtual Platform Master Root for Nexyvora
   const masterPlatformRoot: TreeNodeData = useMemo(() => {
     let totalTeam = 0;
     rawRoots.forEach((r) => {
@@ -339,9 +339,9 @@ export default function AdminTeamTree() {
 
     return {
       id: 'platform-root',
-      name: 'Nextvora Platform',
-      email: 'admin@nextvora.com',
-      affiliate_code: 'nextvora',
+      name: 'Nexyvora Platform',
+      email: 'admin@nexyvora.com',
+      affiliate_code: 'nexyvora',
       children: rawRoots,
       rank_name: 'PLATFORM ROOT',
       rank_color: '#8b5cf6',
@@ -536,7 +536,7 @@ export default function AdminTeamTree() {
                     }}
                     className="h-7 text-xs rounded-xl border-purple-200 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40"
                   >
-                    {isRtl ? 'العودة لجذر المنصة (Nextvora Root)' : 'Return to Platform Root (Nextvora Root)'}
+                    {isRtl ? 'العودة لجذر المنصة (Nexyvora Root)' : 'Return to Platform Root (Nexyvora Root)'}
                   </Button>
                 )}
               </div>
@@ -596,7 +596,7 @@ export default function AdminTeamTree() {
                   {currentRootNode.name}
                 </span>
                 <span className="font-mono text-blue-600">
-                  ({currentRootNode.affiliate_code ? `@${currentRootNode.affiliate_code}` : '@nextvora'})
+                  ({currentRootNode.affiliate_code ? `@${currentRootNode.affiliate_code}` : '@nexyvora'})
                 </span>
                 <span>-</span>
                 <span className="font-mono text-slate-400">
@@ -818,7 +818,7 @@ export default function AdminTeamTree() {
                       <div className="flex items-center gap-2">
                         <h3 className="text-base font-black truncate">{selectedMember.name}</h3>
                         {selectedMember.isPlatformRoot && (
-                          <Badge className="bg-amber-400 text-slate-900 text-[9px] font-black">NEXTVORA</Badge>
+                          <Badge className="bg-amber-400 text-slate-900 text-[9px] font-black">NEXYVORA</Badge>
                         )}
                       </div>
                       <p className="text-xs text-white/80 font-mono mt-0.5 truncate">{selectedMember.email}</p>

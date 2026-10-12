@@ -698,7 +698,7 @@ export const en = {
     "unlockedBadge5": "Commissions: All 5 Generations",
     "copyLinkSuccess": "Referral link copied successfully!",
     "copyCodeSuccess": "Referral code copied successfully!",
-    "shareInviteText": "Join my team on Nextvora and unlock global educational opportunities!",
+    "shareInviteText": "Join my team on Nexyvora and unlock global educational opportunities!",
     "linkCopiedShare": "Invite link copied to clipboard!",
     "myTeam": "My Network & Team",
     "scanToJoin": "Scan to Join My Team",
@@ -714,7 +714,7 @@ export const en = {
     "noMembersInLevel": "No members registered at this generation level yet."
   },
   "wallet": {
-    "title": "Your Nextvora Wallet",
+    "title": "Your Nexyvora Wallet",
     "subtitle": "Deposit funds, track affiliate earnings, and buy or upgrade packages directly from your balance.",
     "depositBtn": "Deposit Funds",
     "withdrawBtn": "Request Withdrawal",
@@ -806,7 +806,7 @@ export const en = {
     "myPackageTitle": "My Packages & Subscriptions",
     "myPackageSubtitle": "Track your active package, purchase date, and upgrade privileges.",
     "noPackageTitle": "No Active Package Subscription Yet!",
-    "noPackageDesc": "Subscribe to a Nextvora package to unlock educational courses and activate your 5-tier affiliate commission earnings.",
+    "noPackageDesc": "Subscribe to a Nexyvora package to unlock educational courses and activate your 5-tier affiliate commission earnings.",
     "browsePackages": "Browse & Select a Package",
     "activePackageBadge": "Active Package ✓",
     "level": "Level",
@@ -978,7 +978,7 @@ export const en = {
     "shareAmount": "Your Distributed Share",
     "payoutDate": "Payout Date",
     "payoutStatus": "Status",
-    "congratulationsFounder": "Congratulations! You are officially an active Founder member of Nextvora.",
+    "congratulationsFounder": "Congratulations! You are officially an active Founder member of Nexyvora.",
     "adminTitle": "Founders Club Management",
     "adminSubtitle": "Configure Founder Club parameters, manage seats, manually grant memberships, and execute the 2% monthly net profit distributions.",
     "totalFounders": "Total Qualified Founders",
@@ -1413,7 +1413,7 @@ export const en = {
   "direction": "ltr",
   "support": {
     "title": "Support Center",
-    "subtitle": "We are here to assist you with all inquiries regarding Nextvora platform",
+    "subtitle": "We are here to assist you with all inquiries regarding Nexyvora platform",
     "adminTitle": "Support Tickets & Helpdesk",
     "adminSubtitle": "Manage member support tickets, respond to inquiries, and update statuses and priorities.",
     "aiTab": "Instant AI Assistant",
@@ -1490,7 +1490,7 @@ export const en = {
       "priorityUpdated": "Ticket priority updated successfully."
     },
     "ai": {
-      "welcomeTitle": "Nextvora Smart AI Support Assistant",
+      "welcomeTitle": "Nexyvora Smart AI Support Assistant",
       "welcomeSubtitle": "Welcome! I can instantly answer your questions regarding packages, wallet deposits & withdrawals, academy courses, certificates, and platform policies.",
       "inputPlaceholder": "Type your question here... (e.g. How do I withdraw my commissions? or What are Core $30 package benefits?)",
       "send": "Send",
@@ -1498,7 +1498,7 @@ export const en = {
       "escalateBtn": "Escalate to Human Support Ticket",
       "escalateNotice": "You will be directed to open a new ticket with your inquiry pre-filled.",
       "financialDisclaimer": "Notice: The AI Assistant provides platform guidance only and never provides financial or investment advice.",
-      "thinking": "Searching Nextvora knowledge base...",
+      "thinking": "Searching Nexyvora knowledge base...",
       "sampleQuestions": "Frequently asked questions:",
       "q1": "How do I deposit funds into my wallet using USDT?",
       "q2": "What are the requirements for KYC verification?",

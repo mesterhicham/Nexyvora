@@ -1,6 +1,6 @@
-# Nextvora Backend
+# Nexyvora Backend
 
-This is the standalone Node.js backend for the Nextvora platform, designed to replace Supabase and work with a MySQL database.
+This is the standalone Node.js backend for the Nexyvora platform, designed to replace Supabase and work with a MySQL database.
 
 ## 🚀 Setup & Running
 
@@ -10,7 +10,7 @@ This is the standalone Node.js backend for the Nextvora platform, designed to re
    - Host: `localhost`
    - User: `root`
    - Pass: `root`
-   - DB: `nextvora`
+   - DB: `nexyvora`
 4. **Install Dependencies**:
    ```bash
    cd backend

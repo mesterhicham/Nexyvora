@@ -197,13 +197,13 @@ class EmailService {
                 await transporter.sendMail({
                     from: fromAddress,
                     to: testEmail,
-                    subject: 'Nextvora - Test Email Notification',
+                    subject: 'Nexyvora - Test Email Notification',
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                            <h2 style="color: #7c3aed;">Nextvora Platform</h2>
+                            <h2 style="color: #7c3aed;">Nexyvora Platform</h2>
                             <p style="font-size: 16px; color: #334155;">Hello,</p>
                             <p style="font-size: 14px; color: #475569;">
-                                This is a test email sent from your <strong>Nextvora</strong> platform to verify your SMTP server configuration.
+                                This is a test email sent from your <strong>Nexyvora</strong> platform to verify your SMTP server configuration.
                             </p>
                             <div style="background-color: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 13px; color: #0f172a; margin: 15px 0;">
                                 <strong>Host:</strong> ${settings.smtp_host}<br/>

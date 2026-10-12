@@ -61,7 +61,7 @@ exports.updateAdminRule = async (req, res) => {
     } = req.body;
 
     const adminId = req.user?.id || 'admin';
-    const adminEmail = req.user?.email || 'admin@nextvora.com';
+    const adminEmail = req.user?.email || 'admin@nexyvora.com';
     const ipAddress = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
     const userAgent = req.headers['user-agent'] || '';
 
@@ -189,7 +189,7 @@ exports.createAdminRule = async (req, res) => {
     const effectiveUsdt = code === 'DZ' ? 0 : (usdt_enabled ? 1 : 0);
 
     const adminId = req.user?.id || 'admin';
-    const adminEmail = req.user?.email || 'admin@nextvora.com';
+    const adminEmail = req.user?.email || 'admin@nexyvora.com';
     const ipAddress = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
 
     try {

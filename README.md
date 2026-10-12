@@ -1,6 +1,6 @@
-# Nextvora Platform
+# Nexyvora Platform
 
-**Nextvora** is a hybrid digital platform combining an advanced Academic Learning Management System (LMS) with multi-tier subscription packages, multi-generation affiliate marketing, and a digital wallet ecosystem.
+**Nexyvora** is a hybrid digital platform combining an advanced Academic Learning Management System (LMS) with multi-tier subscription packages, multi-generation affiliate marketing, and a digital wallet ecosystem.
 
 ---
 
@@ -43,8 +43,8 @@
 
 ### 1. Database Setup
 1. Open your MySQL client (e.g. phpMyAdmin via MAMP).
-2. Create a database named `nextvora`.
-3. Import `mysql_schema.sql` into the `nextvora` database.
+2. Create a database named `nexyvora`.
+3. Import `mysql_schema.sql` into the `nexyvora` database.
 4. Run migrations from `backend/migrations` if applicable.
 
 ### 2. Backend Setup
@@ -74,4 +74,4 @@ Refer to [DEPLOYMENT.md](DEPLOYMENT.md) for full deployment instructions on VPS 
 ---
 
 ## 📄 License
-Private & Proprietary - Nextvora.
+Private & Proprietary - Nexyvora.

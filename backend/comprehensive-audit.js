@@ -5,7 +5,7 @@ const API_BASE = 'http://localhost:5001/api';
 
 async function runAudit() {
     console.log('====================================================');
-    console.log('       NEXTVORA FULL SYSTEM AUDIT & API TEST        ');
+    console.log('       NEXYVORA FULL SYSTEM AUDIT & API TEST        ');
     console.log('====================================================\n');
 
     let totalTests = 0;
@@ -31,7 +31,7 @@ async function runAudit() {
 
         const [tables] = await db.query('SHOW TABLES');
         const tableNames = tables.map(t => Object.values(t)[0]);
-        console.log(`  Found ${tableNames.length} tables in nextvora database.`);
+        console.log(`  Found ${tableNames.length} tables in nexyvora database.`);
 
         const requiredTables = [
             'users', 'user_roles', 'profiles', 'user_wallets', 'packages', 'user_packages',

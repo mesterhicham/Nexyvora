@@ -73,7 +73,7 @@ export default function EmailSettings() {
     smtp_password: '',
     encryption: 'tls',
     from_email: '',
-    from_name: 'Nextvora Platform',
+    from_name: 'Nexyvora Platform',
     is_active: false,
   });
   const [formInitialized, setFormInitialized] = useState(false);
@@ -106,7 +106,7 @@ export default function EmailSettings() {
       smtp_password: settings.smtp_password || '',
       encryption: settings.encryption || 'tls',
       from_email: settings.from_email || '',
-      from_name: settings.from_name || 'Nextvora Platform',
+      from_name: settings.from_name || 'Nexyvora Platform',
       is_active: Boolean(settings.is_active),
     });
     setFormInitialized(true);
@@ -117,7 +117,7 @@ export default function EmailSettings() {
   };
 
   const handleOpenTestModal = () => {
-    setTestRecipient(emailForm.from_email || 'test@nextvora.com');
+    setTestRecipient(emailForm.from_email || 'test@nexyvora.com');
     setTestModalOpen(true);
   };
 
@@ -161,12 +161,12 @@ export default function EmailSettings() {
       subject: '',
       body_html: isRtl ? `
 <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #ede9fe; border-radius: 18px;">
-  <h2 style="color: #7c3aed;">Nextvora Platform</h2>
+  <h2 style="color: #7c3aed;">Nexyvora Platform</h2>
   <p>مرحباً {{name}}،</p>
   <p>محتوى الرسالة هنا...</p>
 </div>`.trim() : `
 <div dir="ltr" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #ede9fe; border-radius: 18px;">
-  <h2 style="color: #7c3aed;">Nextvora Platform</h2>
+  <h2 style="color: #7c3aed;">Nexyvora Platform</h2>
   <p>Hello {{name}},</p>
   <p>Message content here...</p>
 </div>`.trim(),
@@ -194,7 +194,7 @@ export default function EmailSettings() {
   };
 
   const handleResetDefaults = async () => {
-    if (confirm(isRtl ? 'هل تريد استعادة جميع قوالب Nextvora الافتراضية (OTP، الترحيب، العمولات، الإيداع، السحب، وغيرها)؟' : 'Do you want to restore all default Nextvora templates (OTP, Welcome, Commissions, Deposit, Withdrawal, etc.)?')) {
+    if (confirm(isRtl ? 'هل تريد استعادة جميع قوالب Nexyvora الافتراضية (OTP، الترحيب، العمولات، الإيداع، السحب، وغيرها)؟' : 'Do you want to restore all default Nexyvora templates (OTP, Welcome, Commissions, Deposit, Withdrawal, etc.)?')) {
       await resetTemplates.mutateAsync();
     }
   };
@@ -204,7 +204,7 @@ export default function EmailSettings() {
     const dummyValues: Record<string, string> = {
       name: isRtl ? 'محمد أحمد' : 'John Doe',
       otp_code: '492015',
-      platform_name: 'Nextvora Academy',
+      platform_name: 'Nexyvora Academy',
       amount: '150.00',
       currency: 'USD',
       generation: '1',
@@ -219,12 +219,12 @@ export default function EmailSettings() {
       tier: 'Platinum',
       price: '500.00',
       expires_in: '15',
-      reset_link: 'https://nextvora.com/reset-password?token=sample',
-      login_url: 'https://nextvora.com/auth',
-      referral_link: 'https://nextvora.com/auth?ref=NEXTVORA77',
-      wallet_url: 'https://nextvora.com/student/wallet',
-      academy_url: 'https://nextvora.com/student/academy',
-      dashboard_url: 'https://nextvora.com/student'
+      reset_link: 'https://nexyvora.com/reset-password?token=sample',
+      login_url: 'https://nexyvora.com/auth',
+      referral_link: 'https://nexyvora.com/auth?ref=NEXYVORA77',
+      wallet_url: 'https://nexyvora.com/student/wallet',
+      academy_url: 'https://nexyvora.com/student/academy',
+      dashboard_url: 'https://nexyvora.com/student'
     };
 
     let result = html;
@@ -297,7 +297,7 @@ export default function EmailSettings() {
                       <span>{isRtl ? 'إعدادات خادم SMTP' : 'SMTP Server Settings'}</span>
                     </CardTitle>
                     <CardDescription className="text-xs text-slate-400 mt-1">
-                      {isRtl ? 'أدخل بيانات خادم البريد الإلكتروني الذي ستعتمد عليه Nextvora في إرسال رموز التحقق والإشعارات.' : 'Configure the mail transport credentials used by Nextvora to send OTPs and financial alerts.'}
+                      {isRtl ? 'أدخل بيانات خادم البريد الإلكتروني الذي ستعتمد عليه Nexyvora في إرسال رموز التحقق والإشعارات.' : 'Configure the mail transport credentials used by Nexyvora to send OTPs and financial alerts.'}
                     </CardDescription>
                   </div>
 
@@ -351,7 +351,7 @@ export default function EmailSettings() {
                               smtp_host: 'smtp.gmail.com',
                               smtp_port: 465,
                               encryption: 'ssl',
-                              from_name: prev.from_name || 'Nextvora Platform',
+                              from_name: prev.from_name || 'Nexyvora Platform',
                               is_active: true
                             }));
                             toast.info(isRtl ? 'تم تحديد إعدادات Gmail (Port 465 SSL). تذكر استخدام كلمة مرور التطبيقات App Password.' : 'Gmail preset applied. Use Google App Password.');
@@ -370,7 +370,7 @@ export default function EmailSettings() {
                               smtp_host: 'smtp.hostinger.com',
                               smtp_port: 465,
                               encryption: 'ssl',
-                              from_name: prev.from_name || 'Nextvora Platform',
+                              from_name: prev.from_name || 'Nexyvora Platform',
                               is_active: true
                             }));
                             toast.info(isRtl ? 'تم تحديد إعدادات Hostinger Webmail' : 'Hostinger preset applied');
@@ -389,7 +389,7 @@ export default function EmailSettings() {
                               smtp_host: 'smtp.titan.email',
                               smtp_port: 465,
                               encryption: 'ssl',
-                              from_name: prev.from_name || 'Nextvora Platform',
+                              from_name: prev.from_name || 'Nexyvora Platform',
                               is_active: true
                             }));
                             toast.info(isRtl ? 'تم تحديد إعدادات Titan Mail' : 'Titan Mail preset applied');
@@ -408,7 +408,7 @@ export default function EmailSettings() {
                               smtp_host: 'smtp.office365.com',
                               smtp_port: 587,
                               encryption: 'tls',
-                              from_name: prev.from_name || 'Nextvora Platform',
+                              from_name: prev.from_name || 'Nexyvora Platform',
                               is_active: true
                             }));
                             toast.info(isRtl ? 'تم تحديد إعدادات Outlook / Office 365' : 'Office 365 preset applied');
@@ -539,7 +539,7 @@ export default function EmailSettings() {
                         <Input
                           value={emailForm.from_email}
                           onChange={(e) => setEmailForm({ ...emailForm, from_email: e.target.value })}
-                          placeholder="noreply@nextvora.com"
+                          placeholder="noreply@nexyvora.com"
                           className="rounded-2xl border-slate-200 dark:border-slate-800 text-sm"
                         />
                       </div>
@@ -551,7 +551,7 @@ export default function EmailSettings() {
                         <Input
                           value={emailForm.from_name}
                           onChange={(e) => setEmailForm({ ...emailForm, from_name: e.target.value })}
-                          placeholder="Nextvora Platform"
+                          placeholder="Nexyvora Platform"
                           className="rounded-2xl border-slate-200 dark:border-slate-800 text-sm"
                         />
                       </div>
@@ -740,7 +740,7 @@ export default function EmailSettings() {
                   <span>{isRtl ? 'سجل الرسائل الصادرة' : 'Email Dispatch History'}</span>
                 </CardTitle>
                 <CardDescription className="text-xs text-slate-400">
-                  {isRtl ? 'أحدث 100 رسالة تم إرسالها أو محاكاتها عبر منصة Nextvora.' : 'Latest 100 email dispatches and delivery statuses.'}
+                  {isRtl ? 'أحدث 100 رسالة تم إرسالها أو محاكاتها عبر منصة Nexyvora.' : 'Latest 100 email dispatches and delivery statuses.'}
                 </CardDescription>
               </CardHeader>
 

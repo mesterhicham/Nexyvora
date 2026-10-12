@@ -116,7 +116,7 @@ app.use('/api/admin/promised-packages', promisedPackageRoutes);
 
 // ─── Root & Health ────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-    res.json({ name: 'Nextvora API', status: 'running' });
+    res.json({ name: 'Nexyvora API', status: 'running' });
 });
 
 app.get('/api/health', (req, res) => {
@@ -133,7 +133,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Nextvora] Server running on http://0.0.0.0:${PORT} (${process.env.NODE_ENV || 'development'})`);
+    console.log(`[Nexyvora] Server running on http://0.0.0.0:${PORT} (${process.env.NODE_ENV || 'development'})`);
 });
 
 process.on('uncaughtException', (err) => {

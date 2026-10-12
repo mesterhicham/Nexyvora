@@ -134,9 +134,9 @@ export function SkoolLevelShowcase({
       level: 0,
       tag: adminIntroSettings?.badge || (isRtl ? 'فيديو تعريفي بالمشروع' : 'Project Overview Video'),
       tabLabel: isRtl ? '📌 فيديو تعريفي بالمشروع' : '📌 Project Intro Video',
-      title: adminIntroSettings?.title || (isRtl ? 'أكاديمية Nextvora — فيديو تعريفي بالمشروع والرؤية' : 'Nextvora Academy — Project & Vision Overview'),
-      communityHandle: 'nextvora.com/intro',
-      author: adminIntroSettings?.author || (isRtl ? 'إدارة Nextvora' : 'Nextvora Management'),
+      title: adminIntroSettings?.title || (isRtl ? 'أكاديمية Nexyvora — فيديو تعريفي بالمشروع والرؤية' : 'Nexyvora Academy — Project & Vision Overview'),
+      communityHandle: 'nexyvora.com/intro',
+      author: adminIntroSettings?.author || (isRtl ? 'إدارة Nexyvora' : 'Nexyvora Management'),
       date: isRtl ? 'منشور مثبت من الإدارة' : 'Pinned by Management',
       price: null,
       priceButtonText: isRtl ? 'مشاهدة المستوى 1 (FLOW) الآن ←' : 'Explore Level 1 (FLOW) Now →',
@@ -169,11 +169,11 @@ export function SkoolLevelShowcase({
           title: isRtl ? 'مرافقة المدربين والدعم الفني' : 'Mentor Support & Coaching'
         }
       ],
-      description: adminIntroSettings?.description || (isRtl ? 'مجتمع ودليل شامل لفهم مشروع وأكاديمية Nextvora 🚀 تعلم مسارات البيزنس الرقمي والتسويق بالعمولة وكيف تبدأ رحلتك من الصفر.' : 'A comprehensive community and guide to Nextvora Academy 🚀 Learn digital business pathways, affiliate marketing, and how to start your journey from scratch.'),
+      description: adminIntroSettings?.description || (isRtl ? 'مجتمع ودليل شامل لفهم مشروع وأكاديمية Nexyvora 🚀 تعلم مسارات البيزنس الرقمي والتسويق بالعمولة وكيف تبدأ رحلتك من الصفر.' : 'A comprehensive community and guide to Nexyvora Academy 🚀 Learn digital business pathways, affiliate marketing, and how to start your journey from scratch.'),
       curriculumHighlights: [
         {
           title: isRtl ? 'رؤية المنصة والأكاديمية' : 'Platform & Academy Vision',
-          desc: isRtl ? 'فهم فلسفة Nextvora في دمج قوة الذكاء الاصطناعي مع الأعمال الرقمية والتسويق بالعمولة متعدد الأجيال.' : 'Understanding Nextvora\'s philosophy in integrating AI power with digital business and multi-generation affiliate marketing.'
+          desc: isRtl ? 'فهم فلسفة Nexyvora في دمج قوة الذكاء الاصطناعي مع الأعمال الرقمية والتسويق بالعمولة متعدد الأجيال.' : 'Understanding Nexyvora\'s philosophy in integrating AI power with digital business and multi-generation affiliate marketing.'
         },
         {
           title: isRtl ? 'المسار التدريجي ثلاثي المراحل' : '3-Stage Progressive Pathway',
@@ -198,8 +198,8 @@ export function SkoolLevelShowcase({
       tag: isRtl ? 'المستوى 1 — الأكثر طلباً للمبتدئين' : 'Level 1 — Most Popular for Beginners',
       tabLabel: isRtl ? '🛒 المستوى 1: FLOW (150$)' : '🛒 Level 1: FLOW ($150)',
       title: isRtl ? 'FLOW 150 $ — التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي' : 'FLOW $150 — AI E-Commerce & Digital Business',
-      communityHandle: 'nextvora.com/flow',
-      author: isRtl ? 'مدربو مسار التجارة الإلكترونية · Nextvora' : 'E-Commerce Instructors · Nextvora',
+      communityHandle: 'nexyvora.com/flow',
+      author: isRtl ? 'مدربو مسار التجارة الإلكترونية · Nexyvora' : 'E-Commerce Instructors · Nexyvora',
       date: isRtl ? 'منهج 2026 المحدث بالذكاء الاصطناعي' : '2026 AI-Updated Curriculum',
       price: 150,
       priceButtonText: 'JOIN $150/year · ' + (isRtl ? 'شراء وتفعيل' : 'Buy & Activate'),
@@ -277,7 +277,7 @@ export function SkoolLevelShowcase({
         isRtl ? '🔓 فتح عمولات التسويق بالعمولة للجيل 1، 2، و 3' : '🔓 Unlock affiliate commissions for Gen 1, 2, and 3',
         isRtl ? '📁 قوالب متاجر جاهزة للاستخدام الفوري' : '📁 Ready-made e-commerce store templates',
         isRtl ? '📑 قائمة بأكثر من 100 نيتش ومنتج رابح جاهزة للإطلاق' : '📑 Curated list of 100+ winning niches & products',
-        isRtl ? '💬 وصول لمجتمع تجار Nextvora الخاص على مدار الساعة' : '💬 24/7 access to Nextvora private merchant community'
+        isRtl ? '💬 وصول لمجتمع تجار Nexyvora الخاص على مدار الساعة' : '💬 24/7 access to Nexyvora private merchant community'
       ],
     },
     {
@@ -289,8 +289,8 @@ export function SkoolLevelShowcase({
       tag: isRtl ? 'المستوى 2 — قيمة استثنائية ونمو متسارع' : 'Level 2 — Exceptional Value & Rapid Growth',
       tabLabel: isRtl ? '🤖 المستوى 2: GROW (500$)' : '🤖 Level 2: GROW ($500)',
       title: isRtl ? 'GROW 500 $ — الذكاء الاصطناعي، الأتمتة ووكلاء AI (AI Automation)' : 'GROW $500 — AI, Automation & AI Agents (AAA)',
-      communityHandle: 'nextvora.com/grow',
-      author: isRtl ? 'مهندسو الذكاء الاصطناعي والأتمتة · Nextvora' : 'AI & Automation Engineers · Nextvora',
+      communityHandle: 'nexyvora.com/grow',
+      author: isRtl ? 'مهندسو الذكاء الاصطناعي والأتمتة · Nexyvora' : 'AI & Automation Engineers · Nexyvora',
       date: isRtl ? 'منهج وكلاء الذكاء الاصطناعي ونظم n8n' : 'AI Agents & n8n Workflows Curriculum',
       price: 500,
       priceButtonText: 'JOIN $500/year · ' + (isRtl ? 'شراء وتفعيل' : 'Buy & Activate'),
@@ -380,8 +380,8 @@ export function SkoolLevelShowcase({
       tag: isRtl ? 'المستوى 3 — VIP النخبة وبناء الـ SaaS والمرافقة' : 'Level 3 — Elite VIP, SaaS Incubator & Mentorship',
       tabLabel: isRtl ? '💻 المستوى 3: PRIME (1000$)' : '💻 Level 3: PRIME ($1000)',
       title: isRtl ? 'PRIME 1000 $ — البرمجة المتقدمة، بناء SaaS والمرافقة الشخصية 1-on-1' : 'PRIME $1000 — Full-Stack SaaS & 1-on-1 Mentorship',
-      communityHandle: 'nextvora.com/prime',
-      author: isRtl ? 'كبار المطورين ورواد الأعمال المؤسسين · Nextvora' : 'Senior Developers & Founders · Nextvora',
+      communityHandle: 'nexyvora.com/prime',
+      author: isRtl ? 'كبار المطورين ورواد الأعمال المؤسسين · Nexyvora' : 'Senior Developers & Founders · Nexyvora',
       date: isRtl ? 'برنامج بناء المشاريع البرمجية والمرافقة الفردية' : 'Software Incubation & Dedicated Mentorship',
       price: 1000,
       priceButtonText: 'JOIN $1000/year · ' + (isRtl ? 'شراء وتفعيل' : 'Buy & Activate'),
@@ -420,7 +420,7 @@ export function SkoolLevelShowcase({
           title: isRtl ? 'دمج الـ APIs والنشر السحابي على Vercel و AWS' : 'Cloud Deployments on Vercel & AWS'
         }
       ],
-      description: isRtl ? 'مجتمع VIP لتطوير تطبيقات الـ SaaS والبرمجة بالذكاء الاصطناعي 🚀 مع مرافقة استشارية شخصية 1-on-1 مع مؤسسي المنصة لتطوير مشروعك.' : 'Elite VIP incubator for building AI-powered SaaS apps 🚀 with dedicated 1-on-1 mentorship from Nextvora founders.',
+      description: isRtl ? 'مجتمع VIP لتطوير تطبيقات الـ SaaS والبرمجة بالذكاء الاصطناعي 🚀 مع مرافقة استشارية شخصية 1-on-1 مع مؤسسي المنصة لتطوير مشروعك.' : 'Elite VIP incubator for building AI-powered SaaS apps 🚀 with dedicated 1-on-1 mentorship from Nexyvora founders.',
       curriculumHighlights: [
         {
           title: isRtl ? '💻 تطوير تطبيقات الويب الحديثة المتكاملة (Full-Stack Web Dev)' : '💻 Modern Full-Stack Web Development',
@@ -452,7 +452,7 @@ export function SkoolLevelShowcase({
         },
         {
           title: isRtl ? '🤝 فرصة الحصول على تمويل وشراكة مباشرة لمشروعك' : '🤝 Investment & Incubation Opportunities',
-          desc: isRtl ? 'إمكانية عرض مشروعك الواعد على شبكة مستثمري Nextvora والحصول على تمويل أو شراكة استراتيجية لتسريع نجاحك.' : 'Pitch promising projects to Nextvora investor network for angel funding and strategic partnerships.'
+          desc: isRtl ? 'إمكانية عرض مشروعك الواعد على شبكة مستثمري Nexyvora والحصول على تمويل أو شراكة استراتيجية لتسريع نجاحك.' : 'Pitch promising projects to Nexyvora investor network for angel funding and strategic partnerships.'
         }
       ],
       bonuses: [
@@ -761,9 +761,9 @@ export function SkoolLevelShowcase({
                 alt={currentPost.title}
                 className="w-full h-full object-cover" 
               />
-              {/* Powered by Nextvora Ribbon in top right corner (like Skool in Image 2) */}
+              {/* Powered by Nexyvora Ribbon in top right corner (like Skool in Image 2) */}
               <div className="absolute top-3 left-3 bg-[#fcd34d] text-slate-950 px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider shadow-sm">
-                Powered by Nextvora
+                Powered by Nexyvora
               </div>
             </div>
 

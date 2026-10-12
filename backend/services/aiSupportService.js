@@ -23,7 +23,7 @@ class AISupportService {
             if (normalized.includes(fk)) {
                 return {
                     matched: false,
-                    answer: `تنبيه: منصة Nextvora هي أكاديمية تعليمية متخصصة ومجتمع تشاركي، ولا تقدم المنصة أو المساعد الذكي أي نصائح مالية، استثمارية، أو توصيات تداول، ولا تعد بأي أرباح تلقائية. جميع العمولات ترتبط بالاشتراكات والتسويق الفعلي وفق خطة المكافآت الرسمية. يمكنك فتح تذكرة دعم فني إذا كان لديك أي استفسار آخر.`,
+                    answer: `تنبيه: منصة Nexyvora هي أكاديمية تعليمية متخصصة ومجتمع تشاركي، ولا تقدم المنصة أو المساعد الذكي أي نصائح مالية، استثمارية، أو توصيات تداول، ولا تعد بأي أرباح تلقائية. جميع العمولات ترتبط بالاشتراكات والتسويق الفعلي وفق خطة المكافآت الرسمية. يمكنك فتح تذكرة دعم فني إذا كان لديك أي استفسار آخر.`,
                     canEscalate: true,
                     suggestEscalate: false
                 };
@@ -72,14 +72,14 @@ class AISupportService {
                 matched: true,
                 category: bestMatch.category,
                 title: bestMatch.title,
-                answer: `بناءً على دليل منصة Nextvora المعتمد:\n\n${bestMatch.content}\n\nإذا كنت بحاجة إلى تفاصيل إضافية أو واجهت أي استفسار خاص بحسابك، يمكنك النقر على "تحويل إلى تذكرة دعم فني" لمتابعة طلبك مع الإدارة.`,
+                answer: `بناءً على دليل منصة Nexyvora المعتمد:\n\n${bestMatch.content}\n\nإذا كنت بحاجة إلى تفاصيل إضافية أو واجهت أي استفسار خاص بحسابك، يمكنك النقر على "تحويل إلى تذكرة دعم فني" لمتابعة طلبك مع الإدارة.`,
                 canEscalate: true
             };
         }
 
         return {
             matched: false,
-            answer: `عذراً، لم أجد إجابة مؤكدة لهذا الاستفسار في دليل استخدام منصة Nextvora. حرصاً على دقة المعلومات وتقديم المساعدة الصحيحة، يرجى فتح تذكرة دعم فني وسيقوم فريق خدمة العملاء بالتواصل معك ومساعدتك فوراً.`,
+            answer: `عذراً، لم أجد إجابة مؤكدة لهذا الاستفسار في دليل استخدام منصة Nexyvora. حرصاً على دقة المعلومات وتقديم المساعدة الصحيحة، يرجى فتح تذكرة دعم فني وسيقوم فريق خدمة العملاء بالتواصل معك ومساعدتك فوراً.`,
             canEscalate: true,
             suggestEscalate: true
         };
@@ -105,7 +105,7 @@ class AISupportService {
 
         // If API key is available, call Google Gemini with strict grounding
         try {
-            const systemInstruction = `${SYSTEM_GUIDELINES}\n\n--- قاعدة المعرفة المعتمدة لمنصة Nextvora ---\n${this.buildContext()}`;
+            const systemInstruction = `${SYSTEM_GUIDELINES}\n\n--- قاعدة المعرفة المعتمدة لمنصة Nexyvora ---\n${this.buildContext()}`;
 
             // Prepare Gemini contents payload
             const contents = [];

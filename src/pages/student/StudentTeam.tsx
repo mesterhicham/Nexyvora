@@ -88,8 +88,8 @@ export default function StudentTeam() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Nextvora Academy',
-          text: `${t('team.shareInviteText', isRtl ? 'انضم إلى فريقي في منصة Nextvora Academy واستفد من البرامج التعليمية والفرص الرائعة!' : 'Join my team on Nextvora Academy and take advantage of great educational programs!')}\n`,
+          title: 'Nexyvora Academy',
+          text: `${t('team.shareInviteText', isRtl ? 'انضم إلى فريقي في منصة Nexyvora Academy واستفد من البرامج التعليمية والفرص الرائعة!' : 'Join my team on Nexyvora Academy and take advantage of great educational programs!')}\n`,
           url: referralLink,
         });
       } catch (err) {

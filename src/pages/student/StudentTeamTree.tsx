@@ -43,7 +43,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 
-// Color palette and commission rates for the 10 Generations Matching Bonus in Nextvora
+// Color palette and commission rates for the 10 Generations Matching Bonus in Nexyvora
 const GENERATION_CONFIG = [
   { gen: 1, rate: '5%', color: 'bg-blue-500' },
   { gen: 2, rate: '4%', color: 'bg-cyan-500' },
@@ -602,7 +602,7 @@ export default function StudentTeamTree() {
             </div>
           </div>
 
-          {/* 2. 10 Generations Breakdown Bar (matching Nextvora Matching Bonus) */}
+          {/* 2. 10 Generations Breakdown Bar (matching Nexyvora Matching Bonus) */}
           <div className="px-4 sm:px-6 py-3 bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
               <span className="text-xs font-black text-slate-400 shrink-0 uppercase tracking-wider">
