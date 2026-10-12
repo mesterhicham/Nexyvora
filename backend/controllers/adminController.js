@@ -449,7 +449,7 @@ exports.impersonateUser = async (req, res) => {
     const { id } = req.params;
     try {
         const [users] = await db.query(
-            `SELECT u.id, u.email, u.role, u.username, u.affiliate_code, p.full_name, p.avatar_url 
+            `SELECT u.id, u.email, u.role, u.username, u.token_version, u.affiliate_code, p.full_name, p.avatar_url 
              FROM users u 
              LEFT JOIN profiles p ON u.id = p.id 
              WHERE u.id = ?`, 
@@ -460,7 +460,7 @@ exports.impersonateUser = async (req, res) => {
         }
         const user = users[0];
         const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role },
+            { id: user.id, email: user.email, role: user.role, token_version: user.token_version || 1 },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );

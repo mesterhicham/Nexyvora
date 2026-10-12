@@ -65,8 +65,13 @@ app.use(cors({
     credentials: true,
 }));
 
-// ─── Body size limit ─────────────────────────────────────────────────────────
-app.use(express.json({ limit: '1mb' }));
+// ─── Body size limit & Raw Body capture for webhook signature verification ──
+app.use(express.json({
+    limit: '1mb',
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 
 // ─── Rate Limiting ───────────────────────────────────────────────────────────
 

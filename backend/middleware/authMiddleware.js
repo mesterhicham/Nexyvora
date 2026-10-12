@@ -27,10 +27,20 @@ const auth = async (req, res, next) => {
             return res.status(403).json({ error: 'تم تعليق هذا الحساب. يرجى الاتصال بالإدارة / Account is suspended or banned' });
         }
 
+        // Strict token_version check: must be explicitly present in decoded payload
+        if (decoded.token_version === undefined || decoded.token_version === null) {
+            return res.status(401).json({
+                error: 'رمز الجلسة قديم أو غير مكتمل المواصفات الأمنية، يرجى إعادة تسجيل الدخول / Token missing version identifier, please re-authenticate',
+                code: 'TOKEN_VERSION_MISSING'
+            });
+        }
+
         const userTokenVersion = user.token_version || 1;
-        const decodedTokenVersion = decoded.token_version || 1;
-        if (decodedTokenVersion !== userTokenVersion) {
-            return res.status(401).json({ error: 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مجدداً / Session revoked, please log in again' });
+        if (Number(decoded.token_version) !== Number(userTokenVersion)) {
+            return res.status(401).json({
+                error: 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مجدداً / Session revoked, please log in again',
+                code: 'SESSION_REVOKED'
+            });
         }
 
         // Attach live user info to request
@@ -62,7 +72,8 @@ const optionalAuth = async (req, res, next) => {
 
         if (users.length > 0 && users[0].status !== 'suspended' && users[0].status !== 'banned') {
             const user = users[0];
-            if ((user.token_version || 1) === (decoded.token_version || 1)) {
+            const userTokenVersion = user.token_version || 1;
+            if (decoded.token_version !== undefined && decoded.token_version !== null && Number(decoded.token_version) === Number(userTokenVersion)) {
                 req.user = {
                     ...decoded,
                     role: user.role || decoded.role,

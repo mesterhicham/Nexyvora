@@ -2,52 +2,145 @@ const db = require('../config/db');
 const crypto = require('crypto');
 
 /**
- * Handle incoming webhook notifications from payment providers
- * (e.g. NOWPayments, Stripe, Custom Crypto gateways)
+ * Recursively sort object keys alphabetically for official NOWPayments IPN verification
  */
-exports.handleGatewayWebhook = async (req, res) => {
-    const provider = (req.params.provider || req.body?.provider || 'nowpayments').toLowerCase();
-    const signature = req.headers['x-signature'] || 
-                      req.headers['x-webhook-signature'] || 
-                      req.headers['x-nowpayments-sig'] ||
-                      req.headers['stripe-signature'];
+function sortObjectKeys(obj) {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(sortObjectKeys);
+    return Object.keys(obj).sort().reduce((acc, key) => {
+        acc[key] = sortObjectKeys(obj[key]);
+        return acc;
+    }, {});
+}
 
-    // 1. Check payment provider in payment_methods
-    const [methods] = await db.query(
-        'SELECT * FROM payment_methods WHERE (LOWER(provider) = ? OR LOWER(type) = ?) AND status = "active" LIMIT 1',
-        [provider, provider]
-    );
-
-    if (methods.length === 0) {
-        return res.status(404).json({ error: `Unknown or inactive payment provider: ${provider}` });
-    }
-
-    const method = methods[0];
-    const webhookSecret = (method.webhook_secret && method.webhook_secret.trim()) 
-        ? method.webhook_secret 
-        : (process.env.WEBHOOK_SECRET || 'nexyvora_whsec_default');
-
-    // 2. Signature verification
+/**
+ * Verify NOWPayments IPN signature according to official specification:
+ * HMAC-SHA512 of alphabetically key-sorted JSON payload
+ */
+function verifyNowPaymentsSignature(req, webhookSecret) {
+    const signature = req.headers['x-nowpayments-sig'];
     if (!signature) {
-        return res.status(401).json({ error: 'Missing webhook signature header' });
+        return { valid: false, error: 'Missing x-nowpayments-sig header' };
     }
 
     try {
-        const payloadString = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+        const sorted = sortObjectKeys(req.body);
+        const serialized = JSON.stringify(sorted);
         const expectedSignature = crypto
-            .createHmac('sha256', webhookSecret)
-            .update(payloadString)
+            .createHmac('sha512', webhookSecret)
+            .update(serialized)
             .digest('hex');
 
-        const cleanSig = signature.replace(/^sha256=/, '').trim();
+        const cleanSig = signature.trim().toLowerCase();
         const expectedBuf = Buffer.from(expectedSignature, 'hex');
         const incomingBuf = Buffer.from(cleanSig, 'hex');
 
         if (expectedBuf.length !== incomingBuf.length || !crypto.timingSafeEqual(expectedBuf, incomingBuf)) {
-            return res.status(401).json({ error: 'Invalid webhook signature' });
+            return { valid: false, error: 'Invalid NOWPayments IPN signature' };
         }
+        return { valid: true };
     } catch (err) {
-        return res.status(401).json({ error: 'Failed to verify signature: ' + err.message });
+        return { valid: false, error: 'Failed to verify NOWPayments signature: ' + err.message };
+    }
+}
+
+/**
+ * Verify Stripe webhook signature according to official specification:
+ * stripe-signature header: t=timestamp,v1=signature
+ * HMAC-SHA256 of timestamp.rawBody
+ */
+function verifyStripeSignature(req, webhookSecret) {
+    const sigHeader = req.headers['stripe-signature'];
+    if (!sigHeader) {
+        return { valid: false, error: 'Missing stripe-signature header' };
+    }
+
+    try {
+        const elements = sigHeader.split(',').reduce((acc, part) => {
+            const [k, v] = part.split('=');
+            if (k && v) acc[k.trim()] = v.trim();
+            return acc;
+        }, {});
+
+        const timestamp = elements['t'];
+        const incomingSig = elements['v1'];
+
+        if (!timestamp || !incomingSig) {
+            return { valid: false, error: 'Malformed stripe-signature header' };
+        }
+
+        // Tolerance check: 5 minutes (300 seconds)
+        const age = Math.abs(Math.floor(Date.now() / 1000) - parseInt(timestamp, 10));
+        if (age > 300) {
+            return { valid: false, error: 'Stripe webhook signature timestamp expired' };
+        }
+
+        const rawPayload = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body);
+        const signedPayload = `${timestamp}.${rawPayload}`;
+        const expectedSignature = crypto
+            .createHmac('sha256', webhookSecret)
+            .update(signedPayload)
+            .digest('hex');
+
+        const expectedBuf = Buffer.from(expectedSignature, 'hex');
+        const incomingBuf = Buffer.from(incomingSig, 'hex');
+
+        if (expectedBuf.length !== incomingBuf.length || !crypto.timingSafeEqual(expectedBuf, incomingBuf)) {
+            return { valid: false, error: 'Invalid Stripe webhook signature' };
+        }
+        return { valid: true };
+    } catch (err) {
+        return { valid: false, error: 'Failed to verify Stripe signature: ' + err.message };
+    }
+}
+
+/**
+ * Handle incoming webhook notifications from payment providers
+ */
+exports.handleGatewayWebhook = async (req, res) => {
+    const rawProvider = (req.params.provider || req.body?.provider || '').toLowerCase().trim();
+
+    if (!rawProvider) {
+        return res.status(400).json({ error: 'Payment provider parameter is required' });
+    }
+
+    // Supported official providers
+    const supportedProviders = ['nowpayments', 'stripe'];
+    if (!supportedProviders.includes(rawProvider)) {
+        return res.status(501).json({
+            error: `Payment provider '${rawProvider}' is not supported or currently disabled. Supported providers: ${supportedProviders.join(', ')}`
+        });
+    }
+
+    // 1. Fetch active payment method and secret from database
+    const [methods] = await db.query(
+        'SELECT * FROM payment_methods WHERE (LOWER(provider) = ? OR LOWER(type) = ?) AND status = "active" LIMIT 1',
+        [rawProvider, rawProvider]
+    );
+
+    if (methods.length === 0) {
+        return res.status(404).json({ error: `Payment provider '${rawProvider}' is not configured or is inactive in payment methods` });
+    }
+
+    const method = methods[0];
+    const webhookSecret = (method.webhook_secret && method.webhook_secret.trim()) || process.env[`WEBHOOK_SECRET_${rawProvider.toUpperCase()}`];
+
+    // Strictly reject if secret is not configured - NO DEFAULT SECRETS ALLOWED
+    if (!webhookSecret) {
+        console.error(`[Webhook Security Error] Webhook secret not configured for provider '${rawProvider}'. Request rejected.`);
+        return res.status(500).json({ error: 'Gateway configuration error: webhook secret not configured' });
+    }
+
+    // 2. Perform provider-specific cryptographic signature verification
+    let verificationResult = { valid: false, error: 'Unsupported verification' };
+    if (rawProvider === 'nowpayments') {
+        verificationResult = verifyNowPaymentsSignature(req, webhookSecret);
+    } else if (rawProvider === 'stripe') {
+        verificationResult = verifyStripeSignature(req, webhookSecret);
+    }
+
+    if (!verificationResult.valid) {
+        return res.status(401).json({ error: verificationResult.error });
     }
 
     // 3. Extract payload details
@@ -55,15 +148,17 @@ exports.handleGatewayWebhook = async (req, res) => {
         payment_id,
         event_id,
         transaction_id,
+        id,
         user_id,
         customer_id,
         amount,
         actually_paid,
+        pay_amount,
         expected_amount,
         currency = 'USD'
     } = req.body || {};
 
-    const eventId = String(payment_id || event_id || transaction_id || '').trim();
+    const eventId = String(payment_id || event_id || transaction_id || id || '').trim();
     if (!eventId) {
         return res.status(400).json({ error: 'Missing payment event or transaction ID' });
     }
@@ -73,7 +168,8 @@ exports.handleGatewayWebhook = async (req, res) => {
         return res.status(400).json({ error: 'Missing target user ID' });
     }
 
-    const receivedAmount = Number(actually_paid !== undefined ? actually_paid : amount);
+    const rawReceived = actually_paid !== undefined ? actually_paid : (pay_amount !== undefined ? pay_amount : amount);
+    const receivedAmount = Number(rawReceived);
     const expected = expected_amount !== undefined ? Number(expected_amount) : receivedAmount;
 
     if (isNaN(receivedAmount) || receivedAmount <= 0) {
@@ -84,7 +180,7 @@ exports.handleGatewayWebhook = async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        // 4. Replay / Duplicate Prevention
+        // 4. Replay / Duplicate Prevention Check
         const [existingTrx] = await connection.query(
             'SELECT id, status, amount FROM transactions WHERE reference_id = ? FOR UPDATE',
             [eventId]
@@ -129,9 +225,9 @@ exports.handleGatewayWebhook = async (req, res) => {
         // Update wallet balance strictly by received amount
         await connection.query('UPDATE user_wallets SET balance = balance + ? WHERE user_id = ?', [amountToCredit, targetUserId]);
 
-        // Insert completed transaction in ledger
+        // Insert completed transaction in ledger with unique reference_id
         const trxId = crypto.randomUUID();
-        const description = `Webhook payment (${provider}): received $${amountToCredit} ${currency}` +
+        const description = `Webhook payment (${rawProvider}): received $${amountToCredit} ${currency}` +
             (isUnderpaid ? ` [جزئي/Underpaid: expected $${expected}]` : '') +
             (isOverpaid ? ` [فائض/Overpaid: expected $${expected}]` : '');
 
@@ -148,7 +244,7 @@ exports.handleGatewayWebhook = async (req, res) => {
             eventId,
             description,
             JSON.stringify({
-                provider,
+                provider: rawProvider,
                 eventId,
                 receivedAmount,
                 expectedAmount: expected,
@@ -161,6 +257,7 @@ exports.handleGatewayWebhook = async (req, res) => {
 
         res.status(200).json({
             success: true,
+            provider: rawProvider,
             eventId,
             creditedAmount: amountToCredit,
             isUnderpaid,
@@ -169,8 +266,15 @@ exports.handleGatewayWebhook = async (req, res) => {
         });
     } catch (err) {
         await connection.rollback();
-        console.error('[handleGatewayWebhook]', err);
-        res.status(500).json({ error: 'Failed to process webhook: ' + err.message });
+        // Specifically handle race-condition duplicate key errors
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+                error: 'Duplicate webhook notification: Event ID already processed (database constraint caught concurrent duplicate)',
+                eventId
+            });
+        }
+        console.error('[handleGatewayWebhook]', err.message);
+        res.status(500).json({ error: 'Failed to process webhook' });
     } finally {
         connection.release();
     }

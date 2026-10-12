@@ -42,9 +42,11 @@ exports.getSecureFile = (req, res) => {
         if (safeFilename.startsWith('sec_')) {
             const parts = safeFilename.split('_');
             const ownerId = parts[1];
-            if (ownerId && ownerId !== userId) {
+            if (ownerId !== userId) {
                 return res.status(403).json({ error: 'Access denied: You do not have permission to view this file' });
             }
+        } else {
+            return res.status(403).json({ error: 'Access denied: You do not have permission to view this private document' });
         }
     }
 

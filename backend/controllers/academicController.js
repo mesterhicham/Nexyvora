@@ -634,7 +634,7 @@ exports.impersonateStudent = async (req, res) => {
     const { id } = req.params;
     try {
         const [sRows] = await db.execute(`
-            SELECT s.id as student_id, s.user_id, u.email, u.role, p.full_name
+            SELECT s.id as student_id, s.user_id, u.email, u.role, u.token_version, p.full_name
             FROM students s
             JOIN users u ON s.user_id = u.id
             LEFT JOIN profiles p ON s.user_id = p.id
@@ -647,7 +647,7 @@ exports.impersonateStudent = async (req, res) => {
 
         const student = sRows[0];
         const token = jwt.sign(
-            { id: student.user_id, role: 'student', impersonatedBy: req.user.id },
+            { id: student.user_id, role: 'student', token_version: student.token_version || 1, impersonatedBy: req.user.id },
             process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );

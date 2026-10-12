@@ -167,104 +167,253 @@ async function runPhase2Audit() {
         // -------------------------------------------------------------
         // 2. WEBHOOK SECURITY TESTS
         // -------------------------------------------------------------
-        console.log('\n--- 2. Testing Payment Gateway Webhooks ---');
-        // Ensure test payment method with webhook secret exists
-        const testWebhookSecret = 'whsec_nexyvora_audit_test_secret_key_98765';
-        const methodId = crypto.randomUUID();
+        console.log('\n--- 2. Testing Payment Gateway Webhooks (Phase 3 Hardened) ---');
+        // Helper functions for official signature algorithms
+        function sortObjectKeys(obj) {
+            if (obj === null || typeof obj !== 'object') return obj;
+            if (Array.isArray(obj)) return obj.map(sortObjectKeys);
+            return Object.keys(obj).sort().reduce((acc, key) => {
+                acc[key] = sortObjectKeys(obj[key]);
+                return acc;
+            }, {});
+        }
+
+        function signNowPayments(body, secret) {
+            const sorted = sortObjectKeys(body);
+            const serialized = JSON.stringify(sorted);
+            return crypto.createHmac('sha512', secret).update(serialized).digest('hex');
+        }
+
+        function signStripe(body, secret, timestamp = Math.floor(Date.now() / 1000)) {
+            const rawPayload = JSON.stringify(body);
+            const signedPayload = `${timestamp}.${rawPayload}`;
+            const sig = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
+            return `t=${timestamp},v1=${sig}`;
+        }
+
+        // Configure test payment methods with secrets in DB
+        const testNowPaymentsSecret = 'whsec_audit_nowpayments_key_512_super_secret_test';
+        const testStripeSecret = 'whsec_audit_stripe_key_256_super_secret_test';
+        const nowpaymentsMethodId = crypto.randomUUID();
+        const stripeMethodId = crypto.randomUUID();
+
         await db.query(`
             INSERT INTO payment_methods 
             (id, name, name_ar, type, provider, currency, webhook_secret, status, enabled_for_deposit)
-            VALUES (?, 'Audit NOWPayments', 'بوابة تدقيق', 'crypto', 'nowpayments', 'USD', ?, 'active', 1)
+            VALUES (?, 'Audit NOWPayments', 'بوابة تدقيق ناو', 'crypto', 'nowpayments', 'USD', ?, 'active', 1)
             ON DUPLICATE KEY UPDATE webhook_secret = VALUES(webhook_secret), status = 'active', enabled_for_deposit = 1
-        `, [methodId, testWebhookSecret]);
+        `, [nowpaymentsMethodId, testNowPaymentsSecret]);
+
+        await db.query(`
+            INSERT INTO payment_methods 
+            (id, name, name_ar, type, provider, currency, webhook_secret, status, enabled_for_deposit)
+            VALUES (?, 'Audit Stripe', 'بوابة تدقيق سترايب', 'fiat', 'stripe', 'USD', ?, 'active', 1)
+            ON DUPLICATE KEY UPDATE webhook_secret = VALUES(webhook_secret), status = 'active', enabled_for_deposit = 1
+        `, [stripeMethodId, testStripeSecret]);
 
         await db.query(`
             UPDATE payment_methods 
             SET webhook_secret = ? 
             WHERE LOWER(provider) = 'nowpayments' OR LOWER(type) = 'nowpayments'
-        `, [testWebhookSecret]);
+        `, [testNowPaymentsSecret]);
 
-        // Helper to sign payloads
-        function signPayload(body, secret) {
-            return crypto.createHmac('sha256', secret).update(JSON.stringify(body)).digest('hex');
-        }
+        await db.query(`
+            UPDATE payment_methods 
+            SET webhook_secret = ? 
+            WHERE LOWER(provider) = 'stripe' OR LOWER(type) = 'stripe'
+        `, [testStripeSecret]);
 
-        // Test 2a: Unknown payment method
-        const resUnknownGateway = await makeRequest(server, {
+        // Test 2.1: Unsupported provider rejection (e.g. paypal_ipn) -> 501 Not Implemented
+        const resUnsupported = await makeRequest(server, {
             method: 'POST',
-            path: '/api/payment/webhook/unknown_nonexistent_gateway',
+            path: '/api/payment/webhook/paypal_ipn',
             headers: { 'x-signature': 'dummy' }
-        }, { payment_id: 'pay_unknown', amount: 50 });
-        assert.strictEqual(resUnknownGateway.statusCode, 404, `Unknown gateway expected 404 (got ${resUnknownGateway.statusCode})`);
+        }, { payment_id: 'pay_unsupported', amount: 50 });
+        assert.strictEqual(resUnsupported.statusCode, 501, `Unsupported gateway expected 501 (got ${resUnsupported.statusCode})`);
+        assert.ok(resUnsupported.json.error.includes('not supported'), 'Error message states unsupported provider');
         recordResult(
             2.1,
-            'Webhook Unknown Payment Method Rejection',
+            'Unsupported Payment Gateway Explicit 501 Rejection',
             'PASS',
-            `Request to unknown payment provider returned HTTP ${resUnknownGateway.statusCode} ("Unknown or inactive payment provider").`
+            `Unsupported gateway provider (paypal_ipn) explicitly rejected with HTTP 501 Not Implemented instead of pretending support.`
         );
 
-        // Test 2b: Invalid signature
-        const resInvalidSig = await makeRequest(server, {
+        // Test 2.2: Configured provider with NULL / Empty secret -> 500 Configuration Error without leaking secret
+        await db.query("UPDATE payment_methods SET webhook_secret = NULL WHERE LOWER(provider) = 'nowpayments' OR LOWER(type) = 'nowpayments'");
+        const resMissingSecret = await makeRequest(server, {
             method: 'POST',
             path: '/api/payment/webhook/nowpayments',
-            headers: { 'x-signature': 'tampered_invalid_hex_signature_1234567890abcdef' }
-        }, { payment_id: 'pay_sig_test', user_id: testUserAId, amount: 50 });
-        assert.strictEqual(resInvalidSig.statusCode, 401, `Invalid signature expected 401 (got ${resInvalidSig.statusCode})`);
+            headers: { 'x-nowpayments-sig': 'dummy' }
+        }, { payment_id: 'pay_missing_sec', user_id: testUserAId, amount: 50 });
+        assert.strictEqual(resMissingSecret.statusCode, 500, `Missing webhook secret expected 500 (got ${resMissingSecret.statusCode})`);
+        assert.strictEqual(resMissingSecret.json.error, 'Gateway configuration error: webhook secret not configured');
         recordResult(
             2.2,
-            'Webhook HMAC Signature Verification (Tampered/Invalid)',
+            'Missing Webhook Secret Strict 500 Rejection (No Default Fallback)',
             'PASS',
-            `Tampered or forged signature rejected with HTTP 401 Unauthorized using timing-safe comparison.`
+            `When webhook secret is unset (NULL), request is strictly rejected with HTTP 500 without leaking keys or using hardcoded defaults.`
         );
 
-        // Test 2c: Valid signature & exact deposit credit
-        const validEventId = `evt_valid_${Date.now()}`;
-        const validPayload = {
-            payment_id: validEventId,
+        // Restore active webhook secret
+        await db.query("UPDATE payment_methods SET webhook_secret = ? WHERE LOWER(provider) = 'nowpayments' OR LOWER(type) = 'nowpayments'", [testNowPaymentsSecret]);
+
+        // Test 2.3: NOWPayments invalid signature
+        const resNowpaymentsInvalidSig = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/nowpayments',
+            headers: { 'x-nowpayments-sig': 'tampered_invalid_hex_signature_1234567890abcdef' }
+        }, { payment_id: 'pay_sig_test', user_id: testUserAId, amount: 50 });
+        assert.strictEqual(resNowpaymentsInvalidSig.statusCode, 401, `Invalid NOWPayments signature expected 401 (got ${resNowpaymentsInvalidSig.statusCode})`);
+        recordResult(
+            2.3,
+            'NOWPayments Tampered / Invalid Signature 401 Rejection',
+            'PASS',
+            `Tampered NOWPayments signature rejected with HTTP 401 Unauthorized via timing-safe comparison.`
+        );
+
+        // Test 2.4: NOWPayments valid official IPN (HMAC-SHA512 of sorted keys)
+        const npEventId = `evt_np_valid_${Date.now()}`;
+        const npPayload = {
+            payment_id: npEventId,
+            user_id: testUserAId,
+            amount: 50.00,
+            currency: 'USD',
+            status: 'finished'
+        };
+        const npSig = signNowPayments(npPayload, testNowPaymentsSecret);
+        const resNowpaymentsValid = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/nowpayments',
+            headers: { 'x-nowpayments-sig': npSig }
+        }, npPayload);
+        assert.strictEqual(resNowpaymentsValid.statusCode, 200, `Valid NOWPayments IPN expected 200 (got ${resNowpaymentsValid.statusCode})`);
+
+        const [walletAfterNP] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        const balAfterNP = Number(walletAfterNP[0].balance);
+        assert.strictEqual(balAfterNP, 150.00, `Balance should increase from $100 to $150 (got ${balAfterNP})`);
+        recordResult(
+            2.4,
+            'NOWPayments Official Protocol (HMAC-SHA512 Sorted Keys) & Atomic Credit',
+            'PASS',
+            `Valid NOWPayments HMAC-SHA512 signature verified. Wallet credited exact $50.00 (balance increased from $100.00 to $150.00).`
+        );
+
+        // Test 2.5: Stripe invalid signature
+        const resStripeInvalidSig = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/stripe',
+            headers: { 'stripe-signature': `t=${Math.floor(Date.now() / 1000)},v1=invalid_hex_sig_stripe` }
+        }, { payment_id: 'pay_stripe_test', user_id: testUserAId, amount: 25 });
+        assert.strictEqual(resStripeInvalidSig.statusCode, 401, `Invalid Stripe signature expected 401 (got ${resStripeInvalidSig.statusCode})`);
+        recordResult(
+            2.5,
+            'Stripe Tampered / Invalid Signature 401 Rejection',
+            'PASS',
+            `Tampered Stripe signature rejected with HTTP 401 Unauthorized via timing-safe comparison.`
+        );
+
+        // Test 2.6: Stripe expired timestamp (> 300s)
+        const expiredTs = Math.floor(Date.now() / 1000) - 400; // 400 seconds ago
+        const stripeExpiredPayload = { payment_id: `evt_stripe_exp_${Date.now()}`, user_id: testUserAId, amount: 25 };
+        const stripeExpiredSig = signStripe(stripeExpiredPayload, testStripeSecret, expiredTs);
+        const resStripeExpired = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/stripe',
+            headers: { 'stripe-signature': stripeExpiredSig }
+        }, stripeExpiredPayload);
+        assert.strictEqual(resStripeExpired.statusCode, 401, `Expired Stripe signature expected 401 (got ${resStripeExpired.statusCode})`);
+        recordResult(
+            2.6,
+            'Stripe Timestamp Tolerance Expiration Rejection',
+            'PASS',
+            `Stripe webhook with timestamp age > 300s rejected with HTTP 401 Unauthorized.`
+        );
+
+        // Test 2.7: Stripe valid official webhook (HMAC-SHA256 of t.rawBody)
+        const stripeEventId = `evt_stripe_valid_${Date.now()}`;
+        const stripePayload = {
+            payment_id: stripeEventId,
+            user_id: testUserAId,
+            amount: 25.00,
+            currency: 'USD'
+        };
+        const stripeSig = signStripe(stripePayload, testStripeSecret);
+        const resStripeValid = await makeRequest(server, {
+            method: 'POST',
+            path: '/api/payment/webhook/stripe',
+            headers: { 'stripe-signature': stripeSig }
+        }, stripePayload);
+        assert.strictEqual(resStripeValid.statusCode, 200, `Valid Stripe webhook expected 200 (got ${resStripeValid.statusCode})`);
+
+        const [walletAfterStripe] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        const balAfterStripe = Number(walletAfterStripe[0].balance);
+        assert.strictEqual(balAfterStripe, 175.00, `Balance should increase from $150 to $175 (got ${balAfterStripe})`);
+        recordResult(
+            2.7,
+            'Stripe Official Protocol (HMAC-SHA256 t.rawBody) & Atomic Credit',
+            'PASS',
+            `Valid Stripe signature verified using rawBody buffer. Wallet credited exact $25.00 (balance increased from $150.00 to $175.00).`
+        );
+
+        // Test 2.8: Concurrent Webhooks Race Condition: Simultaneous notifications with identical event ID
+        console.log('Testing simultaneous concurrent webhooks with identical event ID...');
+        const concurrentEventId = `evt_concurrent_race_${Date.now()}`;
+        const concurrentPayload = {
+            payment_id: concurrentEventId,
             user_id: testUserAId,
             amount: 50.00,
             currency: 'USD'
         };
-        const validSig = signPayload(validPayload, testWebhookSecret);
+        const concurrentSig = signNowPayments(concurrentPayload, testNowPaymentsSecret);
 
-        const resValidWebhook = await makeRequest(server, {
-            method: 'POST',
-            path: '/api/payment/webhook/nowpayments',
-            headers: { 'x-signature': validSig }
-        }, validPayload);
-        assert.strictEqual(resValidWebhook.statusCode, 200, `Valid webhook expected 200 (got ${resValidWebhook.statusCode})`);
+        const [resConcurrent1, resConcurrent2] = await Promise.all([
+            makeRequest(server, {
+                method: 'POST',
+                path: '/api/payment/webhook/nowpayments',
+                headers: { 'x-nowpayments-sig': concurrentSig }
+            }, concurrentPayload),
+            makeRequest(server, {
+                method: 'POST',
+                path: '/api/payment/webhook/nowpayments',
+                headers: { 'x-nowpayments-sig': concurrentSig }
+            }, concurrentPayload)
+        ]);
 
-        const [walletAfterWebhook] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
-        const balAfterValidWh = Number(walletAfterWebhook[0].balance);
-        assert.strictEqual(balAfterValidWh, 150.00, `Balance should increase to $150.00 (got ${balAfterValidWh})`);
+        const whStatusCodes = [resConcurrent1.statusCode, resConcurrent2.statusCode].sort();
+        assert.deepStrictEqual(whStatusCodes, [200, 409], `Expected exactly one 200 and one 409 for concurrent webhooks (got ${whStatusCodes.join(', ')})`);
+
+        const [walletAfterConcurrentWh] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
+        const balAfterConcurrentWh = Number(walletAfterConcurrentWh[0].balance);
+        assert.strictEqual(balAfterConcurrentWh, 225.00, `Balance must increase exactly once by $50 to $225.00 (got ${balAfterConcurrentWh})`);
+
+        const [concurrentTrxRows] = await db.query('SELECT id FROM transactions WHERE reference_id = ?', [concurrentEventId]);
+        assert.strictEqual(concurrentTrxRows.length, 1, `Exactly 1 transaction row must exist for reference_id ${concurrentEventId} (got ${concurrentTrxRows.length})`);
 
         recordResult(
-            2.3,
-            'Webhook Valid HMAC Signature & Atomic Balance Credit',
+            2.8,
+            'Concurrent Webhook Race Condition Double-Spend Prevention',
             'PASS',
-            `Valid HMAC-SHA256 signature accepted with HTTP 200. Wallet credited exact $50.00 (balance increased from $100.00 to $150.00) and transaction recorded in ledger.`
+            `Executed 2 simultaneous Webhooks with identical event ID (${concurrentEventId}). Exactly one succeeded (HTTP 200) and one failed (HTTP 409 Conflict). Balance was credited strictly ONCE (+ $50.00) and single transaction row created.`
         );
 
-        // Test 2d: Replay Attack (Duplicate Webhook Notification)
+        // Test 2.9: Replay Attack (Duplicate Subsequent Notification)
         const resReplayWebhook = await makeRequest(server, {
             method: 'POST',
             path: '/api/payment/webhook/nowpayments',
-            headers: { 'x-signature': validSig }
-        }, validPayload);
+            headers: { 'x-nowpayments-sig': concurrentSig }
+        }, concurrentPayload);
         assert.strictEqual(resReplayWebhook.statusCode, 409, `Replay webhook expected 409 (got ${resReplayWebhook.statusCode})`);
 
         const [walletAfterReplay] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
-        const balAfterReplay = Number(walletAfterReplay[0].balance);
-        assert.strictEqual(balAfterReplay, 150.00, `Balance must remain $150.00 with zero duplicate credit (got ${balAfterReplay})`);
-
+        assert.strictEqual(Number(walletAfterReplay[0].balance), 225.00, 'Balance must remain unchanged after replay');
         recordResult(
-            2.4,
-            'Webhook Replay Attack / Duplicate Deduplication',
+            2.9,
+            'Webhook Subsequent Replay Attack Deduplication',
             'PASS',
-            `Replay of exact same notification event (${validEventId}) rejected with HTTP 409 Conflict. Zero duplicate balance credit added.`
+            `Subsequent replay of event ${concurrentEventId} rejected with HTTP 409 Conflict. Zero duplicate balance added.`
         );
 
-        // Test 2e: Underpayment Policy (Expected $100, actually received $35)
+        // Test 2.10: Underpayment Policy (Expected $100, actually received $35)
         const underpayEventId = `evt_underpay_${Date.now()}`;
         const underpayPayload = {
             payment_id: underpayEventId,
@@ -273,12 +422,12 @@ async function runPhase2Audit() {
             amount: 35.00, // Underpaid
             currency: 'USD'
         };
-        const underpaySig = signPayload(underpayPayload, testWebhookSecret);
+        const underpaySig = signNowPayments(underpayPayload, testNowPaymentsSecret);
 
         const resUnderpay = await makeRequest(server, {
             method: 'POST',
             path: '/api/payment/webhook/nowpayments',
-            headers: { 'x-signature': underpaySig }
+            headers: { 'x-nowpayments-sig': underpaySig }
         }, underpayPayload);
 
         assert.strictEqual(resUnderpay.statusCode, 200, `Underpay webhook expected 200 (got ${resUnderpay.statusCode})`);
@@ -287,16 +436,16 @@ async function runPhase2Audit() {
 
         const [walletAfterUnderpay] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
         const balAfterUnderpay = Number(walletAfterUnderpay[0].balance);
-        assert.strictEqual(balAfterUnderpay, 185.00, `Balance must be $150 + $35 = $185.00 (got ${balAfterUnderpay})`);
+        assert.strictEqual(balAfterUnderpay, 260.00, `Balance must be $225 + $35 = $260.00 (got ${balAfterUnderpay})`);
 
         recordResult(
-            2.5,
+            2.10,
             'Webhook Underpayment Policy Enforcement',
             'PASS',
-            `Received $35.00 against expected $100.00. System credited ONLY the actual received $35.00 (isUnderpaid: true) and never credited the unreceived $100.00.`
+            `Received $35.00 against expected $100.00. System credited ONLY actual received $35.00 (isUnderpaid: true) and never credited the unreceived $100.00.`
         );
 
-        // Test 2f: Overpayment Policy (Expected $100, actually received $120)
+        // Test 2.11: Overpayment Policy (Expected $100, actually received $120)
         const overpayEventId = `evt_overpay_${Date.now()}`;
         const overpayPayload = {
             payment_id: overpayEventId,
@@ -305,12 +454,12 @@ async function runPhase2Audit() {
             amount: 120.00, // Overpaid
             currency: 'USD'
         };
-        const overpaySig = signPayload(overpayPayload, testWebhookSecret);
+        const overpaySig = signNowPayments(overpayPayload, testNowPaymentsSecret);
 
         const resOverpay = await makeRequest(server, {
             method: 'POST',
             path: '/api/payment/webhook/nowpayments',
-            headers: { 'x-signature': overpaySig }
+            headers: { 'x-nowpayments-sig': overpaySig }
         }, overpayPayload);
 
         assert.strictEqual(resOverpay.statusCode, 200, `Overpay webhook expected 200 (got ${resOverpay.statusCode})`);
@@ -319,10 +468,10 @@ async function runPhase2Audit() {
 
         const [walletAfterOverpay] = await db.query('SELECT balance FROM user_wallets WHERE user_id = ?', [testUserAId]);
         const balAfterOverpay = Number(walletAfterOverpay[0].balance);
-        assert.strictEqual(balAfterOverpay, 305.00, `Balance must be $185 + $120 = $305.00 (got ${balAfterOverpay})`);
+        assert.strictEqual(balAfterOverpay, 380.00, `Balance must be $260 + $120 = $380.00 (got ${balAfterOverpay})`);
 
         recordResult(
-            2.6,
+            2.11,
             'Webhook Overpayment Policy Enforcement',
             'PASS',
             `Received $120.00 against expected $100.00. System credited exact received $120.00 (isOverpaid: true) and logged ledger transaction with overpayment metadata.`
@@ -494,6 +643,65 @@ async function runPhase2Audit() {
             'Global Session Revocation via token_version',
             'PASS',
             `Resetting password incremented user token_version. Pre-existing JWT session tokens immediately rejected with HTTP 401 ("Session revoked, please log in again").`
+        );
+
+        // 3.5. Explicit token_version Verification: Token missing token_version
+        const tokenMissingVer = jwt.sign(
+            { id: testUserAId, role: 'student' }, // Notice: no token_version property
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+        const resMissingVer = await makeRequest(server, {
+            method: 'GET',
+            path: '/api/user/profile',
+            headers: { Authorization: `Bearer ${tokenMissingVer}` }
+        });
+        assert.strictEqual(resMissingVer.statusCode, 401, `Token missing version expected 401 (got ${resMissingVer.statusCode})`);
+        assert.strictEqual(resMissingVer.json.code, 'TOKEN_VERSION_MISSING', 'Expected TOKEN_VERSION_MISSING error code');
+        recordResult(
+            3.5,
+            'JWT Token Explicit token_version Missing Rejection',
+            'PASS',
+            `JWT token without 'token_version' field explicitly rejected with HTTP 401 and code 'TOKEN_VERSION_MISSING'. System does not default to 1.`
+        );
+
+        // 3.6. Explicit token_version Verification: Outdated token_version
+        const tokenOutdatedVer = jwt.sign(
+            { id: testUserAId, role: 'student', token_version: 0 }, // Current user A has token_version = 1
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+        const resOutdatedVer = await makeRequest(server, {
+            method: 'GET',
+            path: '/api/user/profile',
+            headers: { Authorization: `Bearer ${tokenOutdatedVer}` }
+        });
+        assert.strictEqual(resOutdatedVer.statusCode, 401, `Token with outdated version expected 401 (got ${resOutdatedVer.statusCode})`);
+        assert.strictEqual(resOutdatedVer.json.code, 'SESSION_REVOKED', 'Expected SESSION_REVOKED error code');
+        recordResult(
+            3.6,
+            'JWT Token Outdated token_version Rejection',
+            'PASS',
+            `JWT token with outdated 'token_version' (0 vs current 1) rejected with HTTP 401 and code 'SESSION_REVOKED'.`
+        );
+
+        // 3.7. Explicit token_version Verification: Valid matching token_version
+        const tokenValidVer = jwt.sign(
+            { id: testUserAId, role: 'student', token_version: 1 },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+        const resValidVer = await makeRequest(server, {
+            method: 'GET',
+            path: '/api/user/profile',
+            headers: { Authorization: `Bearer ${tokenValidVer}` }
+        });
+        assert.strictEqual(resValidVer.statusCode, 200, `Token with valid version expected 200 (got ${resValidVer.statusCode})`);
+        recordResult(
+            3.7,
+            'JWT Token Valid Current token_version Authorization',
+            'PASS',
+            `JWT token with exact current 'token_version' (1) authorized successfully with HTTP 200.`
         );
 
         // -------------------------------------------------------------
@@ -716,11 +924,18 @@ async function runPhase2Audit() {
             const codeLen = colOtpCode[0].character_maximum_length || colOtpCode[0].CHARACTER_MAXIMUM_LENGTH;
             assert.ok(codeLen >= 64, `verification_otps.code must be >= 64 chars (got ${codeLen})`);
 
+            // Verify unique constraint on transactions.reference_id
+            const [idxReference] = await cleanConn.query(`
+                SELECT index_name FROM information_schema.statistics 
+                WHERE table_schema = ? AND table_name = 'transactions' AND index_name = 'uq_transactions_reference'
+            `, [cleanDbName]);
+            assert.ok(idxReference.length > 0, 'transactions.uq_transactions_reference unique constraint exists');
+
             recordResult(
                 5.1,
                 'Full Clean Database Build & Sequential Migrations Audit',
                 'PASS',
-                `Successfully created fresh database ${cleanDbName}. Executed schema and all ${migrationFiles.length} sequential migrations (01 through 20) with zero errors. Verified ${tableNames.length} total tables and critical schema constraints.`
+                `Successfully created fresh database ${cleanDbName}. Executed schema and all ${migrationFiles.length} sequential migrations (01 through 21) with zero errors. Verified ${tableNames.length} total tables and critical schema constraints (including uq_transactions_reference).`
             );
         } finally {
             if (cleanConn) {
