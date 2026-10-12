@@ -162,23 +162,25 @@ exports.getCommissionsHistory = async (req, res) => {
  */
 exports.requestWithdrawal = async (req, res) => {
     const userId = req.user.id;
-    const { amount, paymentMethod, paymentDetails } = req.body;
+    const { amount, paymentMethod, paymentDetails, payment_method, payment_details } = req.body || {};
+    const method = paymentMethod || payment_method;
+    const details = paymentDetails || payment_details;
 
     const withdrawAmount = Number(amount);
     if (!withdrawAmount || withdrawAmount <= 0) {
         return res.status(400).json({ error: 'Please enter a valid amount' });
     }
 
-    if (!paymentMethod || !paymentDetails) {
+    if (!method || !details) {
         return res.status(400).json({ error: 'Payment method and details are required' });
     }
 
     // Strict security check: DZ users cannot withdraw via crypto or USDT
     const countryCode = await currencyService.detectUserCountry(req);
-    const isCrypto = (paymentMethod || '').toLowerCase().includes('usdt') || 
-                     (paymentMethod || '').toLowerCase().includes('crypto') || 
-                     (paymentMethod || '').toLowerCase().includes('nowpayments') ||
-                     (paymentDetails || '').toLowerCase().includes('usdt');
+    const isCrypto = (method || '').toLowerCase().includes('usdt') || 
+                     (method || '').toLowerCase().includes('crypto') || 
+                     (method || '').toLowerCase().includes('nowpayments') ||
+                     (details || '').toLowerCase().includes('usdt');
     if (countryCode === 'DZ' && isCrypto) {
         return res.status(403).json({ error: 'معاملات USDT والعملات المشفرة غير متاحة في الجزائر' });
     }
@@ -187,8 +189,18 @@ exports.requestWithdrawal = async (req, res) => {
     try {
         await connection.beginTransaction();
 
+        // Idempotency & duplicate submission guard: throttle rapid requests within 10 seconds
+        const [recentDup] = await connection.query(
+            "SELECT id FROM withdrawal_requests WHERE user_id = ? AND status = 'pending' AND created_at > NOW() - INTERVAL 10 SECOND",
+            [userId]
+        );
+        if (recentDup.length > 0) {
+            await connection.rollback();
+            return res.status(409).json({ error: 'طلب سحب مماثل قيد المعالجة حالياً. يرجى الانتظار / A matching withdrawal request is already pending.' });
+        }
+
         // Check min withdrawal threshold
-        const [minWithdrawRow] = await connection.query("SELECT value FROM platform_settings WHERE `key` = 'affiliate_min_withdrawal'");
+        const [minWithdrawRow] = await connection.query("SELECT value FROM platform_settings WHERE platform_settings.key = 'affiliate_min_withdrawal'");
         const minWithdrawal = Number(minWithdrawRow[0]?.value || 50);
 
         if (withdrawAmount < minWithdrawal) {
@@ -196,27 +208,26 @@ exports.requestWithdrawal = async (req, res) => {
             return res.status(400).json({ error: `Minimum withdrawal amount is $${minWithdrawal}` });
         }
 
-        // Check wallet balance
+        // Check wallet balance with row lock
         const [wallets] = await connection.query('SELECT * FROM user_wallets WHERE user_id = ? FOR UPDATE', [userId]);
         if (wallets.length === 0 || Number(wallets[0].balance) < withdrawAmount) {
             await connection.rollback();
-            return res.status(400).json({ error: 'Insufficient available balance' });
+            return res.status(400).json({ error: 'Insufficient available balance', code: 'INSUFFICIENT_BALANCE' });
         }
 
-        // Deduct from balance
+        // Deduct from available balance (total_withdrawn is only incremented when approved)
         await connection.query(`
             UPDATE user_wallets
-            SET balance = balance - ?,
-                total_withdrawn = total_withdrawn + ?
+            SET balance = balance - ?
             WHERE user_id = ?
-        `, [withdrawAmount, withdrawAmount, userId]);
+        `, [withdrawAmount, userId]);
 
         // Insert withdrawal request
         const withdrawalId = genUuid();
         await connection.query(`
             INSERT INTO withdrawal_requests (id, user_id, amount, payment_method, payment_details, status)
             VALUES (?, ?, ?, ?, ?, 'pending')
-        `, [withdrawalId, userId, withdrawAmount, paymentMethod, paymentDetails]);
+        `, [withdrawalId, userId, withdrawAmount, method, details]);
 
         await connection.commit();
 

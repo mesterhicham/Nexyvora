@@ -2,6 +2,7 @@ const runAuthTests = require('./auth.test');
 const runRbacTests = require('./rbac.test');
 const runWalletSecurityTests = require('./wallet_security.test');
 const runUploadSecurityTests = require('./upload_security.test');
+const runCleanDbTest = require('./clean_db.test');
 
 async function runAll() {
     console.log('================================================================');
@@ -12,35 +13,43 @@ async function runAll() {
     const results = [];
 
     try {
-        console.log('\n[1/4] Running Authentication & Session Tests...');
+        console.log('\n[1/5] Running Authentication & Recovery HTTP Integration Tests...');
         await runAuthTests();
-        results.push({ name: 'Authentication & Session Invalidation', status: 'PASSED' });
+        results.push({ name: 'Authentication, Admin Secret & SHA-256 OTP', status: 'PASSED' });
     } catch (err) {
-        results.push({ name: 'Authentication & Session Invalidation', status: 'FAILED', error: err.message });
+        results.push({ name: 'Authentication, Admin Secret & SHA-256 OTP', status: 'FAILED', error: err.message });
     }
 
     try {
-        console.log('\n[2/4] Running RBAC & Authorization Tests...');
+        console.log('\n[2/5] Running RBAC & Teacher Approval HTTP Integration Tests...');
         await runRbacTests();
-        results.push({ name: 'RBAC & Authorization Guards', status: 'PASSED' });
+        results.push({ name: 'RBAC & Teacher Approval Guards', status: 'PASSED' });
     } catch (err) {
-        results.push({ name: 'RBAC & Authorization Guards', status: 'FAILED', error: err.message });
+        results.push({ name: 'RBAC & Teacher Approval Guards', status: 'FAILED', error: err.message });
     }
 
     try {
-        console.log('\n[3/4] Running Financial & Wallet Security Tests...');
+        console.log('\n[3/5] Running Financial & Wallet HTTP Integration Tests...');
         await runWalletSecurityTests();
-        results.push({ name: 'Financial Integrity & Over-withdrawal Protection', status: 'PASSED' });
+        results.push({ name: 'Financial Integrity, Deductions & Duplicate Guard', status: 'PASSED' });
     } catch (err) {
-        results.push({ name: 'Financial Integrity & Over-withdrawal Protection', status: 'FAILED', error: err.message });
+        results.push({ name: 'Financial Integrity, Deductions & Duplicate Guard', status: 'FAILED', error: err.message });
     }
 
     try {
-        console.log('\n[4/4] Running File Upload Security Tests...');
+        console.log('\n[4/5] Running File Upload Security HTTP Integration Tests...');
         await runUploadSecurityTests();
-        results.push({ name: 'File Upload Extension Whitelist & Execution Block', status: 'PASSED' });
+        results.push({ name: 'File Upload Whitelist, SVG Ban & Private File ACL', status: 'PASSED' });
     } catch (err) {
-        results.push({ name: 'File Upload Extension Whitelist & Execution Block', status: 'FAILED', error: err.message });
+        results.push({ name: 'File Upload Whitelist, SVG Ban & Private File ACL', status: 'FAILED', error: err.message });
+    }
+
+    try {
+        console.log('\n[5/5] Running Clean Database Schema Import & Migration Test...');
+        await runCleanDbTest();
+        results.push({ name: 'Clean Database Installation & Validation', status: 'PASSED' });
+    } catch (err) {
+        results.push({ name: 'Clean Database Installation & Validation', status: 'FAILED', error: err.message });
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -51,7 +60,10 @@ async function runAll() {
     for (const r of results) {
         const mark = r.status === 'PASSED' ? '✓ [PASS]' : '✗ [FAIL]';
         console.log(`${mark} ${r.name}`);
-        if (r.status === 'FAILED') hasFailure = true;
+        if (r.status === 'FAILED') {
+            console.log(`       Error: ${r.error}`);
+            hasFailure = true;
+        }
     }
     console.log(`Total duration: ${duration}s`);
     console.log('================================================================\n');

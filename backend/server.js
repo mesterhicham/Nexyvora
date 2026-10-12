@@ -41,22 +41,26 @@ const isProd = process.env.NODE_ENV === 'production';
 
 // ─── CORS - Restrict to known origins ───────────────────────────────────────
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
     : ['http://localhost:8080', 'http://localhost:3000'];
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin, allowed origins, dev mode, or local network IPs
-        if (
-            !origin ||
-            allowedOrigins.includes(origin) ||
-            !isProd ||
-            /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|172\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)
-        ) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
+        // Allow requests with no origin (mobile apps, curl, server-to-server)
+        if (!origin) {
+            return callback(null, true);
         }
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        // In non-production, allow local development hostnames & LAN testing
+        if (!isProd && /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|172\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
 }));
@@ -106,8 +110,10 @@ app.use('/api/auth/reset-password-otp', otpLimiter);
 app.use('/api/auth/whatsapp/verify-otp', otpLimiter);
 app.use('/api/auth/email/verify-otp', otpLimiter);
 
-// ─── Static Files ─────────────────────────────────────────────────────────────
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// ─── Static Files (Public Assets Only) ───────────────────────────────────────
+// Only files saved under uploads/public are accessible directly.
+// Private files under uploads/private MUST be accessed through authenticated /api/upload/secure/:filename
+app.use('/uploads', express.static(path.join(__dirname, 'uploads', 'public')));
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
@@ -148,9 +154,11 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Nexyvora] Server running on http://0.0.0.0:${PORT} (${process.env.NODE_ENV || 'development'})`);
-});
+if (require.main === module) {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`[Nexyvora] Server running on http://0.0.0.0:${PORT} (${process.env.NODE_ENV || 'development'})`);
+    });
+}
 
 process.on('uncaughtException', (err) => {
     console.error('[Uncaught Exception]', err);

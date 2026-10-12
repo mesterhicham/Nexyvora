@@ -210,16 +210,30 @@ exports.approveWithdrawal = async (req, res) => {
     const { transactionProof, notes } = req.body;
     const adminId = req.user.id;
 
+    const connection = await db.getConnection();
     try {
-        const [rows] = await db.query('SELECT * FROM withdrawal_requests WHERE id = ?', [id]);
-        if (rows.length === 0) return res.status(404).json({ error: 'Withdrawal request not found' });
+        await connection.beginTransaction();
+
+        const [rows] = await connection.query('SELECT * FROM withdrawal_requests WHERE id = ? FOR UPDATE', [id]);
+        if (rows.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: 'Withdrawal request not found' });
+        }
         const request = rows[0];
 
         if (request.status !== 'pending') {
+            await connection.rollback();
             return res.status(400).json({ error: 'This request is already processed' });
         }
 
-        await db.query(`
+        // Increment total_withdrawn now that payment is approved
+        await connection.query(`
+            UPDATE user_wallets
+            SET total_withdrawn = total_withdrawn + ?
+            WHERE user_id = ?
+        `, [request.amount, request.user_id]);
+
+        await connection.query(`
             UPDATE withdrawal_requests
             SET status = 'completed',
                 transaction_proof = ?,
@@ -229,8 +243,8 @@ exports.approveWithdrawal = async (req, res) => {
             WHERE id = ?
         `, [transactionProof || null, notes || null, adminId, id]);
 
-        // Record in transactions
-        await db.query(`
+        // Record in transactions ledger
+        await connection.query(`
             INSERT INTO transactions (id, user_id, type, amount, currency, status, reference_id, description)
             VALUES (?, ?, 'withdrawal', ?, 'USD', 'completed', ?, ?)
         `, [
@@ -241,10 +255,14 @@ exports.approveWithdrawal = async (req, res) => {
             `Withdrawal payout approved via ${request.payment_method}`
         ]);
 
+        await connection.commit();
         res.json({ message: 'Withdrawal request approved successfully' });
     } catch (err) {
+        await connection.rollback();
         console.error('[approveWithdrawal]', err);
         res.status(500).json({ error: 'Failed to approve withdrawal' });
+    } finally {
+        connection.release();
     }
 };
 
@@ -269,13 +287,12 @@ exports.rejectWithdrawal = async (req, res) => {
             return res.status(400).json({ error: 'This request is already processed' });
         }
 
-        // Refund the amount to user's wallet balance
+        // Refund the amount to user's wallet available balance
         await connection.query(`
             UPDATE user_wallets
-            SET balance = balance + ?,
-                total_withdrawn = total_withdrawn - ?
+            SET balance = balance + ?
             WHERE user_id = ?
-        `, [request.amount, request.amount, request.user_id]);
+        `, [request.amount, request.user_id]);
 
         // Update withdrawal request
         await connection.query(`

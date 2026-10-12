@@ -14,4 +14,8 @@ router.post('/', auth, (req, res, next) => {
     });
 });
 
+// Protected route for private documents (KYC, payment proofs)
+router.get('/secure/:filename', auth, uploadController.getSecureFile);
+
 module.exports = router;
+

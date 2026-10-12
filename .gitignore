@@ -21,6 +21,8 @@ dist.zip
 *.zip
 *.tar.gz
 *.tar
+*dump*.sql
+*.dump.sql
 
 # Environment Variables & Secrets
 .env

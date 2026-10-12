@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const teacherController = require('../controllers/teacherController');
 const { auth, authorize } = require('../middleware/authMiddleware');
+const { requireApprovedTeacher } = require('../middleware/teacherMiddleware');
 
 router.use(auth);
 router.use(authorize('admin', 'teacher'));
+router.use(requireApprovedTeacher);
 
 // Lessons
 router.get('/lessons', teacherController.getTeacherLessons);

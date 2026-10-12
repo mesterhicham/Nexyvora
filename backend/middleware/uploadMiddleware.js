@@ -3,33 +3,58 @@ const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+// Ensure public and private upload directories exist
+const baseUploadsDir = path.join(__dirname, '..', 'uploads');
+const publicUploadsDir = path.join(baseUploadsDir, 'public');
+const privateUploadsDir = path.join(baseUploadsDir, 'private');
+
+for (const dir of [baseUploadsDir, publicUploadsDir, privateUploadsDir]) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
 }
 
-// Setup storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadsDir);
+        const isPrivate = req.query.private === 'true' || 
+                          req.body?.visibility === 'private' ||
+                          req.body?.is_private === 'true' ||
+                          req.body?.is_private === true ||
+                          req.baseUrl?.includes('kyc') || 
+                          req.path?.includes('private') || 
+                          req.path?.includes('secure');
+        cb(null, isPrivate ? privateUploadsDir : publicUploadsDir);
     },
     filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(6).toString('hex');
+        const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(8).toString('hex');
         const ext = path.extname(file.originalname).toLowerCase();
         cb(null, 'file-' + uniqueSuffix + ext);
     }
 });
 
-// File filter supporting common images, documents, and media
+// File filter strictly disallowing executables, scripts, and dangerous SVGs
 const fileFilter = (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
+    const dangerousExts = [
+        'php', 'phtml', 'phar', 'html', 'htm', 'js', 'jsp', 'asp', 'aspx',
+        'exe', 'sh', 'bat', 'cmd', 'cgi', 'pl', 'svg' // SVG forbidden to prevent Stored XSS
+    ];
+
+    if (dangerousExts.includes(ext)) {
+        return cb(new Error(`File extension .${ext} is strictly forbidden for security reasons.`));
+    }
+
     const allowedExts = [
-        'jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'svg', 'jfif', 'pjpeg', 'pjp', 'avif',
+        'jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'jfif', 'pjpeg', 'pjp', 'avif',
         'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt',
         'webm', 'mp3', 'wav', 'ogg', 'mp4', 'mov'
     ];
-    const isImage = file.mimetype.startsWith('image/');
+
+    if (!allowedExts.includes(ext)) {
+        return cb(new Error(`File extension .${ext} is not allowed.`));
+    }
+
+    const isImage = file.mimetype.startsWith('image/') && !file.mimetype.includes('svg');
     const isDoc = file.mimetype.includes('pdf') || 
                   file.mimetype.includes('document') || 
                   file.mimetype.includes('msword') || 
@@ -40,15 +65,6 @@ const fileFilter = (req, file, cb) => {
                   file.mimetype.includes('text/');
     const isMedia = file.mimetype.startsWith('audio/') || file.mimetype.startsWith('video/');
 
-    const dangerousExts = ['php', 'phtml', 'phar', 'html', 'htm', 'js', 'jsp', 'asp', 'aspx', 'exe', 'sh', 'bat', 'cmd', 'cgi', 'pl'];
-    if (dangerousExts.includes(ext)) {
-        return cb(new Error(`File extension .${ext} is strictly forbidden for security.`));
-    }
-
-    if (!allowedExts.includes(ext)) {
-        return cb(new Error(`File extension .${ext} is not allowed.`));
-    }
-
     if (!isImage && !isDoc && !isMedia) {
         return cb(new Error(`MIME type ${file.mimetype} is not permitted.`));
     }
@@ -58,12 +74,12 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit
+    limits: { fileSize: 15 * 1024 * 1024 }, // 15MB limit
     fileFilter: fileFilter
 });
 
 upload.fileFilter = fileFilter;
+upload.publicDir = publicUploadsDir;
+upload.privateDir = privateUploadsDir;
 
 module.exports = upload;
-
-
