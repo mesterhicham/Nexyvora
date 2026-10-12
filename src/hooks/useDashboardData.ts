@@ -114,34 +114,14 @@ export function useTeacherModules() {
     queryFn: async (): Promise<ModuleWithTeacher[]> => {
       if (!user?.id) return [];
 
-      // First get the teacher record
-      const { data: teacherData, error: teacherError } = await supabase
-        .from('teachers')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const allModules = await academicService.getModules();
+      const modules = allModules.filter(
+        (m: any) => m.teacher_user_id === user?.id || m.teacher_id === user?.id
+      );
 
-      if (teacherError) throw teacherError;
-      if (!teacherData) return [];
-
-      // Then get modules assigned to this teacher
-      const { data: modules, error } = await supabase
-        .from('modules')
-        .select('*')
-        .eq('teacher_id', teacherData.id);
-
-      if (error) throw error;
-      if (!modules) return [];
-
-      const specialtyIds = modules.map(m => m.specialty_id).filter(Boolean) as string[];
-      const { data: specialties } = await supabase
-        .from('specialties')
-        .select('id, name')
-        .in('id', specialtyIds.length > 0 ? specialtyIds : ['none']);
-
-      return modules.map(module => ({
+      return modules.map((module: any) => ({
         ...module,
-        specialty: specialties?.find(s => s.id === module.specialty_id) || null,
+        specialty: module.specialty || null,
         teacher: null
       }));
     },

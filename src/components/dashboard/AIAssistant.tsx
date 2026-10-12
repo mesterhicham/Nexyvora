@@ -18,7 +18,7 @@ interface AIAssistantProps {
   role: UserRole;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
+import { supportService } from '@/services/apiService';
 const STORAGE_KEY_PREFIX = 'ai-assistant-history-';
 
 export function AIAssistant({ role }: AIAssistantProps) {
@@ -64,67 +64,20 @@ export function AIAssistant({ role }: AIAssistantProps) {
     }
   }, [isOpen, isMinimized]);
 
-  const streamChat = async (userMessages: Message[]) => {
-    const resp = await fetch(CHAT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({ messages: userMessages, role }),
+  const sendChatMessage = async (userMessages: Message[]) => {
+    const lastUserMsg = userMessages[userMessages.length - 1];
+    const history = userMessages.slice(0, -1).map(m => ({
+      sender_role: m.role === 'user' ? 'user' : 'assistant',
+      message: m.content,
+    }));
+
+    const response = await supportService.sendAiMessage({
+      message: lastUserMsg.content,
+      history,
     });
 
-    if (!resp.ok) {
-      const errorData = await resp.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error || `Request failed with status ${resp.status}`);
-    }
-
-    if (!resp.body) throw new Error("No response body");
-
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let textBuffer = "";
-    let assistantContent = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      textBuffer += decoder.decode(value, { stream: true });
-
-      let newlineIndex: number;
-      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-        let line = textBuffer.slice(0, newlineIndex);
-        textBuffer = textBuffer.slice(newlineIndex + 1);
-
-        if (line.endsWith("\r")) line = line.slice(0, -1);
-        if (line.startsWith(":") || line.trim() === "") continue;
-        if (!line.startsWith("data: ")) continue;
-
-        const jsonStr = line.slice(6).trim();
-        if (jsonStr === "[DONE]") break;
-
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-          if (content) {
-            assistantContent += content;
-            setMessages(prev => {
-              const lastMsg = prev[prev.length - 1];
-              if (lastMsg?.role === 'assistant') {
-                return prev.map((m, i) => 
-                  i === prev.length - 1 ? { ...m, content: assistantContent } : m
-                );
-              }
-              return [...prev, { role: 'assistant', content: assistantContent }];
-            });
-          }
-        } catch {
-          textBuffer = line + "\n" + textBuffer;
-          break;
-        }
-      }
-    }
+    const reply = response?.reply || response?.message || response?.content || "تمت معالجة استفسارك بنجاح.";
+    setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
   };
 
   const handleSend = async () => {
@@ -136,7 +89,7 @@ export function AIAssistant({ role }: AIAssistantProps) {
     setIsLoading(true);
 
     try {
-      await streamChat([...messages, userMessage]);
+      await sendChatMessage([...messages, userMessage]);
     } catch (error) {
       console.error('AI error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to get AI response');
