@@ -26,12 +26,26 @@ exports.uploadFile = (req, res) => {
 
 exports.getSecureFile = (req, res) => {
     const { filename } = req.params;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
     // Security check: prevent path traversal attacks
     const safeFilename = path.basename(filename);
     const filePath = path.join(upload.privateDir, safeFilename);
 
     if (!fs.existsSync(filePath)) {
         return res.status(404).json({ error: 'Requested document not found' });
+    }
+
+    // Authorization & Ownership check:
+    if (userRole !== 'admin') {
+        if (safeFilename.startsWith('sec_')) {
+            const parts = safeFilename.split('_');
+            const ownerId = parts[1];
+            if (ownerId && ownerId !== userId) {
+                return res.status(403).json({ error: 'Access denied: You do not have permission to view this file' });
+            }
+        }
     }
 
     res.sendFile(filePath);

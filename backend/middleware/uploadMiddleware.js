@@ -26,9 +26,17 @@ const storage = multer.diskStorage({
         cb(null, isPrivate ? privateUploadsDir : publicUploadsDir);
     },
     filename: (req, file, cb) => {
+        const isPrivate = req.query.private === 'true' || 
+                          req.body?.visibility === 'private' ||
+                          req.body?.is_private === 'true' ||
+                          req.body?.is_private === true ||
+                          req.baseUrl?.includes('kyc') || 
+                          req.path?.includes('private') || 
+                          req.path?.includes('secure');
         const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(8).toString('hex');
         const ext = path.extname(file.originalname).toLowerCase();
-        cb(null, 'file-' + uniqueSuffix + ext);
+        const prefix = isPrivate ? `sec_${req.user?.id || 'anon'}_` : 'file-';
+        cb(null, prefix + uniqueSuffix + ext);
     }
 });
 

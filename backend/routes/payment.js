@@ -3,6 +3,12 @@ const router = express.Router();
 const paymentController = require('../controllers/paymentController');
 const { auth, authorize } = require('../middleware/authMiddleware');
 
+const webhookController = require('../controllers/webhookController');
+
+// Gateway Webhooks (Public endpoint authenticated via HMAC signature)
+router.post('/webhook', webhookController.handleGatewayWebhook);
+router.post('/webhook/:provider', webhookController.handleGatewayWebhook);
+
 router.use(auth);
 
 // Pricing

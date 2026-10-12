@@ -27,7 +27,9 @@ const auth = async (req, res, next) => {
             return res.status(403).json({ error: 'تم تعليق هذا الحساب. يرجى الاتصال بالإدارة / Account is suspended or banned' });
         }
 
-        if (user.token_version && decoded.token_version && decoded.token_version !== user.token_version) {
+        const userTokenVersion = user.token_version || 1;
+        const decodedTokenVersion = decoded.token_version || 1;
+        if (decodedTokenVersion !== userTokenVersion) {
             return res.status(401).json({ error: 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مجدداً / Session revoked, please log in again' });
         }
 
@@ -60,7 +62,7 @@ const optionalAuth = async (req, res, next) => {
 
         if (users.length > 0 && users[0].status !== 'suspended' && users[0].status !== 'banned') {
             const user = users[0];
-            if (!user.token_version || !decoded.token_version || decoded.token_version === user.token_version) {
+            if ((user.token_version || 1) === (decoded.token_version || 1)) {
                 req.user = {
                     ...decoded,
                     role: user.role || decoded.role,

@@ -172,8 +172,20 @@ exports.getOrCreateCohortConversation = async (req, res) => {
 exports.getMessages = async (req, res) => {
     const { id: conversationId } = req.params;
     const userId = req.user.id;
+    const userRole = req.user.role;
 
     try {
+        // Enforce conversation membership
+        if (userRole !== 'admin') {
+            const [membership] = await db.execute(
+                'SELECT id FROM conversation_participants WHERE conversation_id = ? AND user_id = ?',
+                [conversationId, userId]
+            );
+            if (membership.length === 0) {
+                return res.status(403).json({ error: 'Access denied: You are not a member of this conversation.' });
+            }
+        }
+
         const [messages] = await db.execute(`
             SELECT m.*,
                    p.full_name as sender_name, p.email as sender_email, p.avatar_url as sender_avatar,
@@ -235,6 +247,7 @@ exports.getMessages = async (req, res) => {
 exports.sendMessage = async (req, res) => {
     const { id: conversationId } = req.params;
     const senderId = req.user.id;
+    const userRole = req.user.role;
     const { content, attachment_url, attachment_type, reply_to_id } = req.body;
 
     if (!content && !attachment_url) {
@@ -242,6 +255,16 @@ exports.sendMessage = async (req, res) => {
     }
 
     try {
+        if (userRole !== 'admin') {
+            const [membership] = await db.execute(
+                'SELECT id FROM conversation_participants WHERE conversation_id = ? AND user_id = ?',
+                [conversationId, senderId]
+            );
+            if (membership.length === 0) {
+                return res.status(403).json({ error: 'Access denied: You are not a member of this conversation.' });
+            }
+        }
+
         const messageId = crypto.randomUUID();
         await db.execute(`
             INSERT INTO messages (id, conversation_id, sender_id, content, attachment_url, attachment_type, reply_to_id, created_at, updated_at)
@@ -287,8 +310,19 @@ exports.sendMessage = async (req, res) => {
 exports.markAsRead = async (req, res) => {
     const { id: conversationId } = req.params;
     const userId = req.user.id;
+    const userRole = req.user.role;
 
     try {
+        if (userRole !== 'admin') {
+            const [membership] = await db.execute(
+                'SELECT id FROM conversation_participants WHERE conversation_id = ? AND user_id = ?',
+                [conversationId, userId]
+            );
+            if (membership.length === 0) {
+                return res.status(403).json({ error: 'Access denied: You are not a member of this conversation.' });
+            }
+        }
+
         await db.execute(`
             UPDATE conversation_participants 
             SET last_read_at = NOW() 
@@ -334,9 +368,20 @@ exports.toggleReaction = async (req, res) => {
 exports.setTyping = async (req, res) => {
     const { id: conversationId } = req.params;
     const userId = req.user.id;
+    const userRole = req.user.role;
     const { isTyping } = req.body;
 
     try {
+        if (userRole !== 'admin') {
+            const [membership] = await db.execute(
+                'SELECT id FROM conversation_participants WHERE conversation_id = ? AND user_id = ?',
+                [conversationId, userId]
+            );
+            if (membership.length === 0) {
+                return res.status(403).json({ error: 'Access denied: You are not a member of this conversation.' });
+            }
+        }
+
         if (isTyping) {
             await db.execute(`
                 INSERT INTO typing_indicators (id, conversation_id, user_id, started_at)
@@ -357,8 +402,19 @@ exports.setTyping = async (req, res) => {
 exports.getTyping = async (req, res) => {
     const { id: conversationId } = req.params;
     const userId = req.user.id;
+    const userRole = req.user.role;
 
     try {
+        if (userRole !== 'admin') {
+            const [membership] = await db.execute(
+                'SELECT id FROM conversation_participants WHERE conversation_id = ? AND user_id = ?',
+                [conversationId, userId]
+            );
+            if (membership.length === 0) {
+                return res.status(403).json({ error: 'Access denied: You are not a member of this conversation.' });
+            }
+        }
+
         // Active in last 6 seconds
         const [rows] = await db.execute(`
             SELECT t.*, p.full_name
