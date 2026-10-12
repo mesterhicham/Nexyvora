@@ -1,6 +1,6 @@
 # Nexyvora Backend
 
-This is the standalone Node.js backend for the Nexyvora platform, designed to replace Supabase and work with a MySQL database.
+This is the standalone Node.js backend for the Nexyvora platform, powered by Express and MySQL.
 
 ## 🚀 Setup & Running
 

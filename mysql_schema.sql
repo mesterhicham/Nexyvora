@@ -1,6 +1,6 @@
 -- ============================================================
 -- NEXYVORA DATABASE SCHEMA (MySQL Version)
--- Generated to replace Supabase/PostgreSQL
+-- Core Database Architecture
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS `nexyvora`;
