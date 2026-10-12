@@ -34,7 +34,7 @@ exports.register = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 12);
         const userId = crypto.randomUUID();
-        const affiliateCode = 'NV' + Math.floor(100000 + Math.random() * 900000);
+        const affiliateCode = 'NV' + crypto.randomInt(100000, 1000000);
 
         // 1. Insert into users table with affiliate_code and referrer_id
         await db.execute(
@@ -104,10 +104,20 @@ exports.login = async (req, res) => {
         if (users.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
 
         const user = users[0];
+
+        // Check account status
+        if (user.status === 'suspended' || user.status === 'banned') {
+            return res.status(403).json({ error: 'تم تعليق هذا الحساب. يرجى مراجعة إدارة المنصة / Account is suspended or banned' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
-        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign(
+            { id: user.id, role: user.role, token_version: user.token_version || 1 },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
 
         res.json({
             token,
@@ -134,8 +144,12 @@ exports.changePassword = async (req, res) => {
         const isMatch = await bcrypt.compare(currentPassword, user.password);
         if (!isMatch) return res.status(401).json({ error: 'Current password incorrect' });
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.user.id]);
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        // Invalidate previous sessions by incrementing token_version
+        await db.execute(
+            'UPDATE users SET password = ?, token_version = COALESCE(token_version, 1) + 1 WHERE id = ?',
+            [hashedPassword, req.user.id]
+        );
 
         res.json({ message: 'Password updated successfully' });
     } catch (err) {
@@ -155,7 +169,15 @@ exports.checkAdminExists = async (req, res) => {
 
 exports.setupFirstAdmin = async (req, res) => {
     const userId = req.user.id;
+    const { setupSecret } = req.body || {};
     try {
+        const requiredSecret = process.env.ADMIN_SETUP_SECRET;
+        if (requiredSecret) {
+            if (!setupSecret || setupSecret.trim() !== requiredSecret.trim()) {
+                return res.status(403).json({ error: 'رمز التثبيت السري غير صحيح أو مفقود / Invalid or missing setup secret key' });
+            }
+        }
+
         const [rows] = await db.execute("SELECT id FROM user_roles WHERE role = 'admin' LIMIT 1");
         if (rows.length > 0) {
             return res.status(400).json({ error: 'An admin already exists in the system.' });
@@ -174,21 +196,35 @@ exports.setupFirstAdmin = async (req, res) => {
 };
 
 // --- WHATSAPP OTP ---
-const otpStore = new Map(); // phone -> { code, expiresAt }
-
 exports.sendWhatsAppOtp = async (req, res) => {
     const { phone_number } = req.body;
     if (!phone_number || phone_number.length < 8) {
         return res.status(400).json({ error: 'Valid phone number is required' });
     }
 
-    try {
-        // Generate random 6-digit code
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const cleanPhone = phone_number.trim();
 
-        otpStore.set(phone_number.trim(), { code, expiresAt });
-        console.log(`[WhatsApp OTP] Code for ${phone_number}: ${code}`);
+    try {
+        // Rate limit cooldown (60 seconds)
+        const [recent] = await db.query(
+            'SELECT created_at FROM verification_otps WHERE identifier = ? AND type = "whatsapp" AND created_at > NOW() - INTERVAL 60 SECOND ORDER BY created_at DESC LIMIT 1',
+            [cleanPhone]
+        );
+        if (recent.length > 0) {
+            return res.status(429).json({ error: 'يرجى الانتظار 60 ثانية قبل طلب رمز جديد / Please wait 60s before requesting another code' });
+        }
+
+        // Cryptographically secure 6-digit code
+        const code = crypto.randomInt(100000, 1000000).toString();
+        const otpId = crypto.randomUUID();
+
+        await db.query(
+            `INSERT INTO verification_otps (id, identifier, type, code, expires_at, is_verified, attempts)
+             VALUES (?, ?, 'whatsapp', ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE), 0, 0)`,
+            [otpId, cleanPhone, code]
+        );
+
+        console.log(`[WhatsApp OTP] Secure code generated for ${cleanPhone}: ${code}`);
 
         res.json({
             success: true,
@@ -196,6 +232,7 @@ exports.sendWhatsAppOtp = async (req, res) => {
             devOtp: process.env.NODE_ENV !== 'production' ? code : undefined
         });
     } catch (err) {
+        console.error('[sendWhatsAppOtp] Error:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -207,25 +244,35 @@ exports.verifyWhatsAppOtp = async (req, res) => {
     }
 
     const cleanPhone = phone_number.trim();
-    const stored = otpStore.get(cleanPhone);
-
-    if (!stored) {
-        return res.status(400).json({ error: 'No OTP requested for this number or expired' });
-    }
-
-    if (Date.now() > stored.expiresAt) {
-        otpStore.delete(cleanPhone);
-        return res.status(400).json({ error: 'OTP has expired. Please request a new code.' });
-    }
-
-    if (stored.code !== code.toString().trim()) {
-        return res.status(400).json({ error: 'Invalid verification code' });
-    }
-
-    // OTP verified
-    otpStore.delete(cleanPhone);
+    const cleanCode = code.toString().trim();
 
     try {
+        const [rows] = await db.query(
+            `SELECT id, code, attempts, expires_at FROM verification_otps
+             WHERE identifier = ? AND type = 'whatsapp' AND is_verified = 0 AND expires_at > NOW()
+             ORDER BY created_at DESC LIMIT 1`,
+            [cleanPhone]
+        );
+
+        if (rows.length === 0) {
+            return res.status(400).json({ error: 'رمز التحقق غير صالح أو انتهت صلاحيته / No OTP requested for this number or expired' });
+        }
+
+        const otpRecord = rows[0];
+
+        // Max 5 attempts
+        if (otpRecord.attempts >= 5) {
+            return res.status(429).json({ error: 'تم تجاوز عدد المحاولات المسموح بها / Too many failed attempts. Please request a new code.' });
+        }
+
+        if (otpRecord.code !== cleanCode) {
+            await db.query('UPDATE verification_otps SET attempts = attempts + 1 WHERE id = ?', [otpRecord.id]);
+            return res.status(400).json({ error: 'رمز التحقق غير صحيح / Invalid verification code' });
+        }
+
+        // Mark OTP verified
+        await db.query('UPDATE verification_otps SET is_verified = 1 WHERE id = ?', [otpRecord.id]);
+
         // If user is authenticated, update their profile
         if (req.user?.id) {
             await db.execute('UPDATE profiles SET whatsapp_verified = 1 WHERE id = ?', [req.user.id]);
@@ -235,6 +282,7 @@ exports.verifyWhatsAppOtp = async (req, res) => {
 
         res.json({ success: true, verified: true });
     } catch (err) {
+        console.error('[verifyWhatsAppOtp] Error:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -269,8 +317,8 @@ exports.sendEmailOtp = async (req, res) => {
             console.warn('[sendEmailOtp] table check warning:', tableErr.message);
         }
 
-        // Generate 6-digit code
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        // Generate cryptographically secure 6-digit code
+        const code = crypto.randomInt(100000, 1000000).toString();
         const otpId = crypto.randomUUID();
 
         // Save in verification_otps table
@@ -393,7 +441,7 @@ exports.forgotPasswordOtp = async (req, res) => {
             return res.status(404).json({ error: 'لم يتم العثور على حساب مسجل بهذا البريد الإلكتروني / No account found with this email' });
         }
 
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const code = crypto.randomInt(100000, 1000000).toString();
         const otpId = crypto.randomUUID();
 
         await db.query(
@@ -462,9 +510,9 @@ exports.resetPasswordWithOtp = async (req, res) => {
         // Mark OTP as used
         await db.query('UPDATE verification_otps SET is_verified = 1 WHERE id = ?', [otpRecord.id]);
 
-        // Hash and update password
+        // Hash and update password with session invalidation
         const hashedPassword = await bcrypt.hash(newPassword, 12);
-        await db.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, cleanEmail]);
+        await db.query('UPDATE users SET password = ?, token_version = COALESCE(token_version, 1) + 1 WHERE email = ?', [hashedPassword, cleanEmail]);
 
         res.json({
             success: true,

@@ -2,7 +2,7 @@ import api from '@/lib/api';
 
 export const authService = {
     checkAdminExists: () => api.get('/auth/check-admin').then(res => res.data),
-    setupFirstAdmin: () => api.post('/auth/setup-admin').then(res => res.data),
+    setupFirstAdmin: (setupSecret?: string) => api.post('/auth/setup-admin', { setupSecret }).then(res => res.data),
     sendWhatsAppOtp: (phoneNumber: string) => api.post('/auth/whatsapp/send-otp', { phone_number: phoneNumber }).then(res => res.data),
     verifyWhatsAppOtp: (phoneNumber: string, code: string) => api.post('/auth/whatsapp/verify-otp', { phone_number: phoneNumber, code }).then(res => res.data),
     sendEmailOtp: (email: string, type: string = 'registration', name?: string) => 

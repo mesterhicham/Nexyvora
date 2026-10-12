@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { authService } from '@/services/apiService';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { GraduationCap, Shield, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
+import { GraduationCap, Shield, ArrowLeft, Loader2, CheckCircle, Key } from 'lucide-react';
 
 export default function AdminSetup() {
   const { t } = useTranslation();
@@ -17,6 +18,7 @@ export default function AdminSetup() {
   const [hasAdmin, setHasAdmin] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [setupSecret, setSetupSecret] = useState('');
 
   useEffect(() => {
     checkAdminExists();
@@ -58,7 +60,7 @@ export default function AdminSetup() {
 
     setProcessing(true);
     try {
-      const data = await authService.setupFirstAdmin();
+      const data = await authService.setupFirstAdmin(setupSecret.trim() || undefined);
 
       if (data.error) {
         toast({
@@ -79,11 +81,11 @@ export default function AdminSetup() {
       setTimeout(() => {
         window.location.href = '/admin';
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting up admin:', error);
       toast({
         title: t('auth.error'),
-        description: 'Failed to set up admin',
+        description: error.response?.data?.error || 'Failed to set up admin',
         variant: 'destructive',
       });
     } finally {
@@ -115,7 +117,7 @@ export default function AdminSetup() {
             <div className="p-3 bg-primary/10 rounded-xl">
               <GraduationCap className="h-8 w-8 text-primary" />
             </div>
-            <span className="text-2xl font-bold font-serif text-foreground">Simply University</span>
+            <span className="text-2xl font-bold font-serif text-foreground">Nexyvora</span>
           </div>
 
           <div className="bg-card rounded-2xl p-8 shadow-lg border border-border text-center">
@@ -168,6 +170,20 @@ export default function AdminSetup() {
                       <p className="text-sm text-muted-foreground mb-1">Signed in as:</p>
                       <p className="font-medium text-foreground">{user.email}</p>
                     </div>
+                    
+                    <div className="text-left space-y-1">
+                      <label className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Key className="h-3 w-3" /> Setup Secret Key (Optional / if set in server):
+                      </label>
+                      <Input
+                        type="password"
+                        placeholder="ADMIN_SETUP_SECRET"
+                        value={setupSecret}
+                        onChange={(e) => setSetupSecret(e.target.value)}
+                        className="text-sm"
+                      />
+                    </div>
+
                     <Button 
                       className="w-full" 
                       size="lg"
