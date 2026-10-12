@@ -86,9 +86,25 @@ const authLimiter = rateLimit({
     message: { error: 'Too many authentication attempts, please try again later.' },
 });
 
+// Strict limiter for OTP generation & password resets to prevent spam and brute-force
+const otpLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: isProd ? 10 : 200,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { xForwardedForHeader: false },
+    message: { error: 'Too many verification code attempts, please try again in 15 minutes.' },
+});
+
 app.use('/api/', generalLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/whatsapp/send-otp', otpLimiter);
+app.use('/api/auth/email/send-otp', otpLimiter);
+app.use('/api/auth/forgot-password-otp', otpLimiter);
+app.use('/api/auth/reset-password-otp', otpLimiter);
+app.use('/api/auth/whatsapp/verify-otp', otpLimiter);
+app.use('/api/auth/email/verify-otp', otpLimiter);
 
 // ─── Static Files ─────────────────────────────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

@@ -150,6 +150,20 @@ function RequireActiveMembership() {
   return <Outlet />;
 }
 
+function RequireRole({ allowedRoles }: { allowedRoles: string[] }) {
+  const { user, role, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-6">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/auth" replace />;
+  if (!role || !allowedRoles.includes(role)) return <Navigate to="/dashboard" replace />;
+  return <Outlet />;
+}
+
 function DashboardRedirect() {
   const { user, role, loading } = useAuth();
   if (loading) return null;
@@ -184,64 +198,69 @@ const App = () => (
               {/* Public Policies / Legal Pages */}
               <Route path="/policies" element={<PoliciesPage />} />
               <Route path="/policies/:policyId" element={<PoliciesPage />} />
-              {/* Admin Routes */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/academy" element={<AdminAcademy />} />
-              <Route path="/admin/packages" element={<AdminPackages />} />
-              <Route path="/admin/promised-packages" element={<AdminPromisedPackages />} />
-              <Route path="/admin/promised-package" element={<AdminPromisedPackages />} />
-              <Route path="/admin/wallets" element={<WalletManagement />} />
-              <Route path="/admin/bonus-pools" element={<AdminBonusPools />} />
-              <Route path="/admin/founders" element={<AdminFounderManagement />} />
-              <Route path="/admin/founder" element={<AdminFounderManagement />} />
-              <Route path="/admin/withdrawals" element={<WithdrawalMonitoring />} />
-              <Route path="/admin/deposits" element={<DepositManagement />} />
-              <Route path="/admin/transactions" element={<AdminTransactions />} />
-              <Route path="/admin/team-tree" element={<AdminTeamTree />} />
-              <Route path="/admin/kyc" element={<AdminKYC />} />
-              <Route path="/admin/ranks" element={<LeaderRanks />} />
-              <Route path="/admin/leader-achievers" element={<LeaderAchievers />} />
-              <Route path="/admin/challenges" element={<AdminChallenges />} />
-              <Route path="/admin/generation-settings" element={<GenerationSettings />} />
-              <Route path="/admin/students" element={<StudentsManagement />} />
-              <Route path="/admin/teachers" element={<TeachersManagement />} />
-              <Route path="/admin/programs" element={<ProgramsManagement />} />
-              <Route path="/admin/program-pricing" element={<ProgramPricing />} />
-              <Route path="/admin/specialties" element={<SpecialtiesManagement />} />
-              <Route path="/admin/cohorts" element={<CohortsManagement />} />
-              <Route path="/admin/modules" element={<ModulesManagement />} />
-              <Route path="/admin/diplomas" element={<DiplomasManagement />} />
-              <Route path="/admin/reports" element={<ReportsPage />} />
-              <Route path="/admin/settings" element={<PlatformSettings />} />
-              <Route path="/admin/policies" element={<AdminPolicies />} />
-              <Route path="/admin/holidays" element={<HolidaysManagement />} />
-              <Route path="/admin/news" element={<NewsManagement />} />
-              <Route path="/admin/email-settings" element={<EmailSettings />} />
-              <Route path="/admin/email" element={<EmailSettings />} />
-              <Route path="/admin/zoom" element={<ZoomMeetings />} />
-              <Route path="/admin/placement-test" element={<PlacementTestManagement />} />
-              <Route path="/admin/payments" element={<PaymentsManagement />} />
-              <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
-              <Route path="/admin/currency-settings" element={<AdminCurrencySettings />} />
-              <Route path="/admin/formations" element={<FormationsManagement />} />
-              <Route path="/admin/users" element={<UsersManagement />} />
-              <Route path="/admin/formation-progress" element={<FormationProgressDashboard />} />
-              <Route path="/admin/chat" element={<ChatPage />} />
-              <Route path="/admin/support" element={<AdminSupport />} />
-              <Route path="/admin/profile" element={<ProfileSettings />} />
-              {/* Teacher Routes */}
-              <Route path="/teacher" element={<TeacherDashboard />} />
-              <Route path="/teacher/modules" element={<TeacherModules />} />
-              <Route path="/teacher/lessons" element={<TeacherLessons />} />
-              <Route path="/teacher/assignments" element={<TeacherAssignments />} />
-              <Route path="/teacher/attendance" element={<TeacherAttendance />} />
-              <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
-              <Route path="/teacher/meetings" element={<TeacherMeetingsPage />} />
-              <Route path="/teacher/formations" element={<TeacherFormations />} />
-              <Route path="/teacher/formation-progress" element={<FormationProgressDashboard />} />
-              <Route path="/teacher/chat" element={<ChatPage />} />
-              <Route path="/teacher/support" element={<StudentSupport />} />
-              <Route path="/teacher/profile" element={<ProfileSettings />} />
+              {/* Admin Routes (Protected) */}
+              <Route element={<RequireRole allowedRoles={['admin']} />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/academy" element={<AdminAcademy />} />
+                <Route path="/admin/packages" element={<AdminPackages />} />
+                <Route path="/admin/promised-packages" element={<AdminPromisedPackages />} />
+                <Route path="/admin/promised-package" element={<AdminPromisedPackages />} />
+                <Route path="/admin/wallets" element={<WalletManagement />} />
+                <Route path="/admin/bonus-pools" element={<AdminBonusPools />} />
+                <Route path="/admin/founders" element={<AdminFounderManagement />} />
+                <Route path="/admin/founder" element={<AdminFounderManagement />} />
+                <Route path="/admin/withdrawals" element={<WithdrawalMonitoring />} />
+                <Route path="/admin/deposits" element={<DepositManagement />} />
+                <Route path="/admin/transactions" element={<AdminTransactions />} />
+                <Route path="/admin/team-tree" element={<AdminTeamTree />} />
+                <Route path="/admin/kyc" element={<AdminKYC />} />
+                <Route path="/admin/ranks" element={<LeaderRanks />} />
+                <Route path="/admin/leader-achievers" element={<LeaderAchievers />} />
+                <Route path="/admin/challenges" element={<AdminChallenges />} />
+                <Route path="/admin/generation-settings" element={<GenerationSettings />} />
+                <Route path="/admin/students" element={<StudentsManagement />} />
+                <Route path="/admin/teachers" element={<TeachersManagement />} />
+                <Route path="/admin/programs" element={<ProgramsManagement />} />
+                <Route path="/admin/program-pricing" element={<ProgramPricing />} />
+                <Route path="/admin/specialties" element={<SpecialtiesManagement />} />
+                <Route path="/admin/cohorts" element={<CohortsManagement />} />
+                <Route path="/admin/modules" element={<ModulesManagement />} />
+                <Route path="/admin/diplomas" element={<DiplomasManagement />} />
+                <Route path="/admin/reports" element={<ReportsPage />} />
+                <Route path="/admin/settings" element={<PlatformSettings />} />
+                <Route path="/admin/policies" element={<AdminPolicies />} />
+                <Route path="/admin/holidays" element={<HolidaysManagement />} />
+                <Route path="/admin/news" element={<NewsManagement />} />
+                <Route path="/admin/email-settings" element={<EmailSettings />} />
+                <Route path="/admin/email" element={<EmailSettings />} />
+                <Route path="/admin/zoom" element={<ZoomMeetings />} />
+                <Route path="/admin/placement-test" element={<PlacementTestManagement />} />
+                <Route path="/admin/payments" element={<PaymentsManagement />} />
+                <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
+                <Route path="/admin/currency-settings" element={<AdminCurrencySettings />} />
+                <Route path="/admin/formations" element={<FormationsManagement />} />
+                <Route path="/admin/users" element={<UsersManagement />} />
+                <Route path="/admin/formation-progress" element={<FormationProgressDashboard />} />
+                <Route path="/admin/chat" element={<ChatPage />} />
+                <Route path="/admin/support" element={<AdminSupport />} />
+                <Route path="/admin/profile" element={<ProfileSettings />} />
+              </Route>
+
+              {/* Teacher Routes (Protected) */}
+              <Route element={<RequireRole allowedRoles={['teacher', 'admin']} />}>
+                <Route path="/teacher" element={<TeacherDashboard />} />
+                <Route path="/teacher/modules" element={<TeacherModules />} />
+                <Route path="/teacher/lessons" element={<TeacherLessons />} />
+                <Route path="/teacher/assignments" element={<TeacherAssignments />} />
+                <Route path="/teacher/attendance" element={<TeacherAttendance />} />
+                <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
+                <Route path="/teacher/meetings" element={<TeacherMeetingsPage />} />
+                <Route path="/teacher/formations" element={<TeacherFormations />} />
+                <Route path="/teacher/formation-progress" element={<FormationProgressDashboard />} />
+                <Route path="/teacher/chat" element={<ChatPage />} />
+                <Route path="/teacher/support" element={<StudentSupport />} />
+                <Route path="/teacher/profile" element={<ProfileSettings />} />
+              </Route>
               {/* Student Activation & Shared Support */}
               <Route path="/student/activation" element={<StudentActivation />} />
               <Route path="/student/support" element={<StudentSupport />} />

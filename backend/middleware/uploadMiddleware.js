@@ -40,11 +40,20 @@ const fileFilter = (req, file, cb) => {
                   file.mimetype.includes('text/');
     const isMedia = file.mimetype.startsWith('audio/') || file.mimetype.startsWith('video/');
 
-    if (allowedExts.includes(ext) || isImage || isDoc || isMedia) {
-        return cb(null, true);
-    } else {
-        cb(new Error(`File type .${ext} is not allowed`));
+    const dangerousExts = ['php', 'phtml', 'phar', 'html', 'htm', 'js', 'jsp', 'asp', 'aspx', 'exe', 'sh', 'bat', 'cmd', 'cgi', 'pl'];
+    if (dangerousExts.includes(ext)) {
+        return cb(new Error(`File extension .${ext} is strictly forbidden for security.`));
     }
+
+    if (!allowedExts.includes(ext)) {
+        return cb(new Error(`File extension .${ext} is not allowed.`));
+    }
+
+    if (!isImage && !isDoc && !isMedia) {
+        return cb(new Error(`MIME type ${file.mimetype} is not permitted.`));
+    }
+
+    return cb(null, true);
 };
 
 const upload = multer({
