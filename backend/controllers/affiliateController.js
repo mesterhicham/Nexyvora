@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const crypto = require('crypto');
 const currencyService = require('../services/currencyService');
+const nowpaymentsService = require('../services/nowpaymentsService');
 
 function genUuid() {
     return crypto.randomUUID();
@@ -467,7 +468,7 @@ exports.getRanksAndProgress = async (req, res) => {
  */
 exports.requestDeposit = async (req, res) => {
     const userId = req.user.id;
-    const { amount, paymentMethod = 'bank_transfer', paymentReference = '', notes = '', receiptUrl = '' } = req.body;
+    const { amount, paymentMethod = 'bank_transfer', paymentReference = '', notes = '', receiptUrl = '', payCurrency } = req.body;
 
     const depositAmount = Number(amount);
     if (!depositAmount || depositAmount <= 0) {
@@ -482,6 +483,24 @@ exports.requestDeposit = async (req, res) => {
                      (paymentReference || '').toLowerCase().includes('usdt');
     if (countryCode === 'DZ' && isCrypto) {
         return res.status(403).json({ error: 'إيداعات USDT والعملات المشفرة غير متاحة في الجزائر' });
+    }
+
+    const isNowPayments = (paymentMethod || '').toLowerCase().includes('nowpayments');
+
+    // Pre-flight check for NOWPayments limits if crypto method selected
+    let nowPaymentsConfig = null;
+    if (isNowPayments) {
+        try {
+            nowPaymentsConfig = await nowpaymentsService.getConfig();
+            if (depositAmount < nowPaymentsConfig.minDeposit) {
+                return res.status(400).json({ error: `الحد الأدنى للإيداع عبر NOWPayments هو $${nowPaymentsConfig.minDeposit} USD` });
+            }
+            if (depositAmount > nowPaymentsConfig.maxDeposit) {
+                return res.status(400).json({ error: `الحد الأقصى للإيداع عبر NOWPayments هو $${nowPaymentsConfig.maxDeposit} USD` });
+            }
+        } catch (cfgErr) {
+            return res.status(500).json({ error: cfgErr.message || 'فشل تحميل إعدادات بوابة NOWPayments' });
+        }
     }
 
     const connection = await db.getConnection();
@@ -501,15 +520,54 @@ exports.requestDeposit = async (req, res) => {
         const currentBal = Number(wallets[0].balance);
 
         const trxId = genUuid();
-        const refId = paymentReference || `DEP-${Date.now()}`;
-        const metadata = JSON.stringify({
+        const refId = isNowPayments ? `NP-DEP-${trxId.substring(0, 8).toUpperCase()}` : (paymentReference || `DEP-${Date.now()}`);
+        
+        let initialPayment = null;
+        let attemptId = null;
+        let nextRenewalTime = null;
+
+        if (isNowPayments) {
+            // 1. Call official NOWPayments API to create payment
+            try {
+                initialPayment = await nowpaymentsService.createPayment({
+                    priceAmount: depositAmount,
+                    priceCurrency: 'USD',
+                    payCurrency: payCurrency || nowPaymentsConfig?.defaultPayCurrency || 'usdtbsc',
+                    orderId: trxId,
+                    orderDescription: `Nexyvora Deposit #${trxId} ($${depositAmount} USD)`
+                });
+            } catch (apiErr) {
+                await connection.rollback();
+                console.error('[requestDeposit:NowPayments] API Error:', apiErr.message);
+                return res.status(502).json({
+                    error: 'فشل الاتصال ببوابة NOWPayments لإنشاء عنوان الدفع. يرجى المحاولة لاحقاً.',
+                    details: apiErr.message
+                });
+            }
+
+            attemptId = genUuid();
+            nextRenewalTime = new Date(Date.now() + 20 * 60 * 1000); // 20 minutes from now
+        }
+
+        const metadata = {
             paymentMethod,
-            paymentReference,
+            paymentReference: refId,
             notes,
             receiptUrl,
-            requestedAt: new Date().toISOString()
-        });
+            requestedAt: new Date().toISOString(),
+            ...(isNowPayments ? {
+                active_attempt_id: attemptId,
+                active_attempt_number: 1,
+                active_payment_id: initialPayment.paymentId,
+                active_pay_address: initialPayment.payAddress,
+                active_pay_amount: initialPayment.payAmount,
+                active_pay_currency: initialPayment.payCurrency,
+                active_network: initialPayment.network,
+                next_renewal_at: nextRenewalTime.toISOString()
+            } : {})
+        };
 
+        // 2. Persist parent deposit transaction
         await connection.query(`
             INSERT INTO transactions (id, user_id, type, amount, currency, balance_before, balance_after, status, reference_id, description, metadata)
             VALUES (?, ?, 'deposit', ?, 'USD', ?, ?, 'pending', ?, ?, ?)
@@ -520,9 +578,37 @@ exports.requestDeposit = async (req, res) => {
             currentBal,
             currentBal,
             refId,
-            `طلب إيداع في المحفظة عبر ${paymentMethod}`,
-            metadata
+            isNowPayments ? `طلب إيداع عبر NOWPayments (${initialPayment.payCurrency})` : `طلب إيداع في المحفظة عبر ${paymentMethod}`,
+            JSON.stringify(metadata)
         ]);
+
+        // 3. Persist initial payment attempt if NOWPayments
+        if (isNowPayments && initialPayment) {
+            await connection.query(`
+                INSERT INTO payment_attempts (
+                    id, transaction_id, user_id, provider, provider_payment_id, provider_order_id,
+                    attempt_number, pay_address, pay_amount, pay_currency, price_amount, price_currency,
+                    network, status, is_wallet_credited, next_renewal_at, metadata
+                ) VALUES (?, ?, ?, 'nowpayments', ?, ?, 1, ?, ?, ?, ?, ?, ?, 'waiting', 0, ?, ?)
+            `, [
+                attemptId,
+                trxId,
+                userId,
+                initialPayment.paymentId,
+                trxId,
+                initialPayment.payAddress,
+                initialPayment.payAmount,
+                initialPayment.payCurrency,
+                initialPayment.priceAmount,
+                initialPayment.priceCurrency,
+                initialPayment.network || 'bsc',
+                nextRenewalTime,
+                JSON.stringify({
+                    created_at: new Date().toISOString(),
+                    rawResponse: initialPayment.raw
+                })
+            ]);
+        }
 
         // Create notification for admin
         const notifId = genUuid();
@@ -535,8 +621,25 @@ exports.requestDeposit = async (req, res) => {
         await connection.commit();
 
         res.status(201).json({
-            message: 'تم تقديم طلب الإيداع بنجاح! سيتم مراجعته وتأكيد شحن رصيدك.',
-            transactionId: trxId
+            message: isNowPayments ? 'تم إنشاء طلب الدفع بنجاح عبر NOWPayments' : 'تم تقديم طلب الإيداع بنجاح! سيتم مراجعته وتأكيد شحن رصيدك.',
+            transactionId: trxId,
+            referenceId: refId,
+            ...(isNowPayments ? {
+                payment: {
+                    attemptId,
+                    attemptNumber: 1,
+                    paymentId: initialPayment.paymentId,
+                    payAddress: initialPayment.payAddress,
+                    payAmount: initialPayment.payAmount,
+                    payCurrency: initialPayment.payCurrency,
+                    priceAmount: initialPayment.priceAmount,
+                    priceCurrency: initialPayment.priceCurrency,
+                    network: initialPayment.network,
+                    status: initialPayment.paymentStatus,
+                    nextRenewalAt: nextRenewalTime.toISOString(),
+                    expirationEstimateDate: initialPayment.expirationEstimateDate
+                }
+            } : {})
         });
     } catch (err) {
         await connection.rollback();
@@ -548,7 +651,7 @@ exports.requestDeposit = async (req, res) => {
 };
 
 /**
- * Get current user's wallet deposit requests history
+ * Get current user's wallet deposit requests history with payment attempts
  */
 exports.getMyDeposits = async (req, res) => {
     const userId = req.user.id;
@@ -559,15 +662,71 @@ exports.getMyDeposits = async (req, res) => {
             ORDER BY created_at DESC
         `, [userId]);
 
-        const formatted = deposits.map(d => ({
-            ...d,
-            metadata: typeof d.metadata === 'string' ? JSON.parse(d.metadata || '{}') : (d.metadata || {})
-        }));
+        const [attempts] = await db.query(`
+            SELECT * FROM payment_attempts
+            WHERE user_id = ?
+            ORDER BY attempt_number ASC
+        `, [userId]);
+
+        const attemptsByTrx = {};
+        for (const att of attempts) {
+            if (!attemptsByTrx[att.transaction_id]) attemptsByTrx[att.transaction_id] = [];
+            attemptsByTrx[att.transaction_id].push(att);
+        }
+
+        const formatted = deposits.map(d => {
+            const meta = typeof d.metadata === 'string' ? JSON.parse(d.metadata || '{}') : (d.metadata || {});
+            const trxAttempts = attemptsByTrx[d.id] || [];
+            const activeAttempt = trxAttempts.length > 0 ? trxAttempts[trxAttempts.length - 1] : null;
+            return {
+                ...d,
+                metadata: meta,
+                attempts: trxAttempts,
+                activeAttempt
+            };
+        });
 
         res.json({ deposits: formatted });
     } catch (err) {
         console.error('[getMyDeposits]', err);
         res.status(500).json({ error: 'Failed to fetch deposits' });
+    }
+};
+
+/**
+ * Get all payment attempts for a specific deposit session (Member or Admin)
+ */
+exports.getDepositAttempts = async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const isAdmin = req.user.role === 'admin';
+
+    try {
+        const [trxRows] = await db.query('SELECT * FROM transactions WHERE id = ?', [id]);
+        if (trxRows.length === 0) {
+            return res.status(404).json({ error: 'Deposit transaction not found' });
+        }
+
+        const trx = trxRows[0];
+        if (!isAdmin && trx.user_id !== userId) {
+            return res.status(403).json({ error: 'Unauthorized to view this deposit session' });
+        }
+
+        const [attempts] = await db.query(
+            'SELECT * FROM payment_attempts WHERE transaction_id = ? ORDER BY attempt_number ASC',
+            [id]
+        );
+
+        res.json({
+            transaction: {
+                ...trx,
+                metadata: typeof trx.metadata === 'string' ? JSON.parse(trx.metadata || '{}') : (trx.metadata || {})
+            },
+            attempts
+        });
+    } catch (err) {
+        console.error('[getDepositAttempts]', err);
+        res.status(500).json({ error: 'Failed to fetch deposit attempts' });
     }
 };
 

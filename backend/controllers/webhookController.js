@@ -392,6 +392,19 @@ exports.handleGatewayWebhook = async (req, res) => {
             });
         }
 
+        // 4.5 Look up attempt in payment_attempts table by provider and payment ID
+        let matchedAttempt = null;
+        if (parsed.paymentId) {
+            const [attRows] = await connection.query(
+                'SELECT * FROM payment_attempts WHERE provider = ? AND provider_payment_id = ? FOR UPDATE',
+                [rawProvider, parsed.paymentId]
+            );
+            if (attRows.length > 0) {
+                matchedAttempt = attRows[0];
+                parsed.internalOrderId = matchedAttempt.transaction_id;
+            }
+        }
+
         // 5. Look up internal payment order in database (transactions table or payments table)
         let internalOrder = null;
         let orderSource = null;
@@ -485,18 +498,45 @@ exports.handleGatewayWebhook = async (req, res) => {
             });
         }
 
-        // 8. Prevent duplicate credit if internal order is already completed
-        if (internalOrder.status === 'completed' || internalOrder.status === 'approved') {
-            await connection.rollback();
+        // 8. Prevent duplicate credit if internal order or any associated attempt is already completed
+        let isAlreadyCredited = false;
+        if (matchedAttempt && matchedAttempt.is_wallet_credited === 1) {
+            isAlreadyCredited = true;
+        } else if (orderSource === 'transactions') {
+            const [creditedAttempts] = await connection.query(
+                'SELECT id FROM payment_attempts WHERE transaction_id = ? AND is_wallet_credited = 1 LIMIT 1',
+                [internalOrder.id]
+            );
+            if (creditedAttempts.length > 0) {
+                isAlreadyCredited = true;
+            }
+        }
+
+        if (internalOrder.status === 'completed' || internalOrder.status === 'approved' || isAlreadyCredited) {
+            if (matchedAttempt) {
+                await connection.query(
+                    'UPDATE payment_attempts SET status = ?, actually_paid = ?, actually_paid_fiat = ?, last_ipn_payload = ? WHERE id = ?',
+                    [parsed.rawStatus, parsed.actuallyPaid || null, parsed.amount || null, JSON.stringify(req.body), matchedAttempt.id]
+                );
+            }
+            await connection.commit();
             return res.status(409).json({
-                error: `Duplicate payment processing: internal order '${internalOrder.id}' has already been completed`,
+                error: `Duplicate payment processing: internal order '${internalOrder.id}' or an associated attempt has already been credited`,
                 internalOrderId: internalOrder.id,
-                status: internalOrder.status
+                status: internalOrder.status,
+                alreadyCredited: true
             });
         }
 
         // 9. Handle Non-Final / Pending Events (e.g. waiting, confirming, processing)
         if (parsed.isNonFinal) {
+            if (matchedAttempt) {
+                await connection.query(
+                    'UPDATE payment_attempts SET status = ?, actually_paid = ?, actually_paid_fiat = ?, last_ipn_payload = ? WHERE id = ?',
+                    [parsed.rawStatus, parsed.actuallyPaid || null, parsed.amount || null, JSON.stringify(req.body), matchedAttempt.id]
+                );
+            }
+
             if (orderSource === 'transactions') {
                 const meta = {
                     ...(typeof internalOrder.metadata === 'string' ? JSON.parse(internalOrder.metadata || '{}') : (internalOrder.metadata || {})),
@@ -527,6 +567,13 @@ exports.handleGatewayWebhook = async (req, res) => {
 
         // 10. Handle Failed / Canceled Events
         if (parsed.isFailed) {
+            if (matchedAttempt) {
+                await connection.query(
+                    'UPDATE payment_attempts SET status = ?, actually_paid = ?, actually_paid_fiat = ?, last_ipn_payload = ? WHERE id = ?',
+                    [parsed.rawStatus, parsed.actuallyPaid || null, parsed.amount || null, JSON.stringify(req.body), matchedAttempt.id]
+                );
+            }
+
             if (orderSource === 'transactions') {
                 const meta = {
                     ...(typeof internalOrder.metadata === 'string' ? JSON.parse(internalOrder.metadata || '{}') : (internalOrder.metadata || {})),
@@ -557,6 +604,13 @@ exports.handleGatewayWebhook = async (req, res) => {
 
         // 10.5 Handle Terminal Status with Unverified / Missing Amount (Never add unearned credit)
         if (!parsed.hasValidPaymentAmount || parsed.amount <= 0) {
+            if (matchedAttempt) {
+                await connection.query(
+                    'UPDATE payment_attempts SET status = ?, calculation_policy = ?, last_ipn_payload = ? WHERE id = ?',
+                    [parsed.rawStatus, parsed.calculationPolicy, JSON.stringify(req.body), matchedAttempt.id]
+                );
+            }
+
             if (orderSource === 'transactions') {
                 const meta = {
                     ...(typeof internalOrder.metadata === 'string' ? JSON.parse(internalOrder.metadata || '{}') : (internalOrder.metadata || {})),
@@ -642,6 +696,23 @@ exports.handleGatewayWebhook = async (req, res) => {
                 SET status = ?, amount = ?, balance_before = ?, balance_after = ?, reference_id = ?, description = ?, metadata = ?
                 WHERE id = ?
             `, [targetStatus, amountToCredit, currentBal, newBal, parsed.eventId, description, JSON.stringify(meta), internalOrder.id]);
+
+            if (matchedAttempt) {
+                await connection.query(`
+                    UPDATE payment_attempts 
+                    SET status = ?, is_wallet_credited = 1, wallet_credited_at = NOW(),
+                        actually_paid = ?, actually_paid_fiat = ?, calculation_policy = ?,
+                        last_ipn_payload = ?
+                    WHERE id = ?
+                `, [
+                    parsed.rawStatus,
+                    parsed.actuallyPaid || null,
+                    amountToCredit,
+                    parsed.calculationPolicy,
+                    JSON.stringify(req.body),
+                    matchedAttempt.id
+                ]);
+            }
         } else if (orderSource === 'payments') {
             // CRITICAL: NEVER mark service or course purchase as 'completed' if underpaid!
             const targetStatus = isUnderpaid ? 'partially_paid' : 'completed';

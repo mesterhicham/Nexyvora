@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { adminAffiliateService } from '@/services/apiService';
+import { adminAffiliateService, adminIpnLogService } from '@/services/apiService';
 import { 
   ArrowUpRight, 
   DollarSign, 
@@ -30,30 +30,74 @@ import {
   X,
   AlertCircle,
   ExternalLink,
-  Search
+  Search,
+  RefreshCw,
+  Clock,
+  Copy,
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  Calendar
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function DepositManagement() {
+interface DepositManagementProps {
+  defaultTab?: string;
+}
+
+export default function DepositManagement({ defaultTab }: DepositManagementProps) {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   const dateLocale = i18n.language === 'ar' ? 'ar-EG' : i18n.language === 'fr' ? 'fr-FR' : 'en-US';
 
   const [deposits, setDeposits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterCategory, setFilterCategory] = useState<'all' | 'wallet' | 'package'>('all');
+  const [filterCategory, setFilterCategory] = useState<'all' | 'wallet' | 'package' | 'ipn_log'>(
+    (defaultTab as any) || 'all'
+  );
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Action Dialogs
+  // Action Dialogs for manual deposits
   const [approveItem, setApproveItem] = useState<any>(null);
   const [rejectItem, setRejectItem] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [processingAction, setProcessingAction] = useState(false);
 
+  // IPN Log states
+  const [ipnLogs, setIpnLogs] = useState<any[]>([]);
+  const [ipnLoading, setIpnLoading] = useState(false);
+  const [ipnPage, setIpnPage] = useState(1);
+  const [ipnTotalPages, setIpnTotalPages] = useState(1);
+  const [ipnMetrics, setIpnMetrics] = useState<any>({
+    total_attempts: 0,
+    credited_count: 0,
+    pending_count: 0,
+    failed_count: 0,
+    total_credited_volume: 0
+  });
+  const [ipnSearch, setIpnSearch] = useState('');
+  const [ipnProvider, setIpnProvider] = useState('all');
+  const [ipnStatus, setIpnStatus] = useState('all');
+  const [ipnCredited, setIpnCredited] = useState('all');
+
+  // Detail Modal for an IPN deposit session
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [detailData, setDetailData] = useState<any>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [renewingId, setRenewingId] = useState<string | null>(null);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
   useEffect(() => {
     loadDeposits();
   }, []);
+
+  useEffect(() => {
+    if (filterCategory === 'ipn_log') {
+      loadIpnLogs();
+    }
+  }, [filterCategory, ipnPage, ipnProvider, ipnStatus, ipnCredited]);
 
   const loadDeposits = async () => {
     try {
@@ -64,6 +108,63 @@ export default function DepositManagement() {
       toast.error('Failed to load deposits');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadIpnLogs = async () => {
+    try {
+      setIpnLoading(true);
+      const res = await adminIpnLogService.getLogs({
+        page: ipnPage,
+        limit: 15,
+        search: ipnSearch || undefined,
+        provider: ipnProvider !== 'all' ? ipnProvider : undefined,
+        status: ipnStatus !== 'all' ? ipnStatus : undefined,
+        credited: ipnCredited !== 'all' ? ipnCredited : undefined
+      });
+      setIpnLogs(res.attempts || []);
+      setIpnTotalPages(res.pagination?.totalPages || 1);
+      if (res.metrics) setIpnMetrics(res.metrics);
+    } catch (err: any) {
+      toast.error('Failed to load IPN log records');
+    } finally {
+      setIpnLoading(false);
+    }
+  };
+
+  const handleIpnSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIpnPage(1);
+    loadIpnLogs();
+  };
+
+  const handleOpenDetail = async (trxOrAttemptId: string) => {
+    try {
+      setSelectedSessionId(trxOrAttemptId);
+      setDetailLoading(true);
+      const res = await adminIpnLogService.getLogDetail(trxOrAttemptId);
+      setDetailData(res);
+    } catch (err: any) {
+      toast.error('Failed to load session attempt details');
+      setSelectedSessionId(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleTriggerRenewal = async (transactionId: string) => {
+    try {
+      setRenewingId(transactionId);
+      const res = await adminIpnLogService.triggerRenewal(transactionId);
+      toast.success(res.message || 'Renewal initiated successfully');
+      loadIpnLogs();
+      if (selectedSessionId) {
+        handleOpenDetail(selectedSessionId);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to renew payment attempt');
+    } finally {
+      setRenewingId(null);
     }
   };
 
@@ -100,7 +201,14 @@ export default function DepositManagement() {
     }
   };
 
-  // Compute Metrics
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(label);
+    toast.success(isRtl ? 'تم النسخ إلى الحافظة' : 'Copied to clipboard');
+    setTimeout(() => setCopiedText(null), 2500);
+  };
+
+  // Compute Metrics for manual deposits
   const packageSales = deposits
     .filter(d => d.category === 'package' && (d.status === 'active' || d.status === 'upgraded'))
     .reduce((sum, d) => sum + Number(d.price_paid || 0), 0);
@@ -111,7 +219,7 @@ export default function DepositManagement() {
 
   const pendingCount = deposits.filter(d => d.status === 'pending').length;
 
-  // Filtered List
+  // Filtered List for standard deposits
   const filteredDeposits = deposits.filter((d) => {
     if (filterCategory !== 'all' && d.category !== filterCategory) return false;
     if (filterStatus !== 'all' && d.status !== filterStatus) return false;
@@ -125,9 +233,32 @@ export default function DepositManagement() {
     return true;
   });
 
+  const getStatusBadge = (status: string) => {
+    const s = (status || '').toLowerCase();
+    switch (s) {
+      case 'waiting':
+        return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300">في انتظار الدفع / Waiting</Badge>;
+      case 'confirming':
+      case 'sending':
+        return <Badge className="bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border-sky-300">جارٍ التأكيد / Confirming</Badge>;
+      case 'confirmed':
+      case 'finished':
+      case 'completed':
+        return <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300">مكتمل / Confirmed</Badge>;
+      case 'partially_paid':
+        return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border-purple-300">مدفوع جزئياً / Partially Paid</Badge>;
+      case 'expired':
+        return <Badge className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300">منتهي الصلاحية / Expired</Badge>;
+      case 'failed':
+        return <Badge className="bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-300">فاشل / Failed</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   return (
     <DashboardLayout role="admin">
-      <div className="space-y-6 pb-12">
+      <div className="space-y-6 pb-12" dir={isRtl ? 'rtl' : 'ltr'}>
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
           <div className={isRtl ? 'text-right' : 'text-left'}>
@@ -135,56 +266,85 @@ export default function DepositManagement() {
               FINANCIAL MANAGEMENT
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-              {t('adminExtra.depositsTitle')}
+              {filterCategory === 'ipn_log' ? (isRtl ? 'سجل محاولات الدفع وإشعارات IPN Log' : 'IPN Log & Payment Attempts') : t('adminExtra.depositsTitle')}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              {t('adminExtra.depositsSubtitle')}
+              {filterCategory === 'ipn_log'
+                ? (isRtl ? 'متابعة وتدقيق جميع محاولات الدفع عبر NOWPayments وتجديداتها كل 20 دقيقة والتحقق من عدم ازدواج الرصيد.' 
+                         : 'Audit all NOWPayments deposit attempts, 20-min renewals, webhook events, and wallet settlements.')
+                : t('adminExtra.depositsSubtitle')}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Package Sales Card */}
-            <div className="px-4 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
-              <span className="text-[10px] font-bold text-slate-500 block">
-                {t('adminExtra.packageSales')}
-              </span>
-              <span className="font-mono text-lg font-black text-indigo-600 dark:text-indigo-400">
-                ${packageSales.toFixed(2)} USD
-              </span>
-            </div>
-
-            {/* Wallet Deposits Card */}
-            <div className="px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
-              <span className="text-[10px] font-bold text-slate-500 block">
-                {t('adminExtra.confirmedDeposits')}
-              </span>
-              <span className="font-mono text-lg font-black text-emerald-600 dark:text-emerald-400">
-                ${walletDepositsTotal.toFixed(2)} USD
-              </span>
-            </div>
-
-            {/* Pending Actions Count */}
-            {pendingCount > 0 && (
-              <div className="px-4 py-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 animate-pulse">
-                <span className="text-[10px] font-bold text-amber-600 block">
-                  {t('adminExtra.pendingRequests')}
+          {filterCategory === 'ipn_log' ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="px-4 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
+                <span className="text-[10px] font-bold text-slate-500 block">
+                  {isRtl ? 'إجمالي المحاولات المسجلة' : 'Total Attempts'}
                 </span>
-                <span className="font-mono text-lg font-black text-amber-600">
-                  {pendingCount}
+                <span className="font-mono text-lg font-black text-indigo-600 dark:text-indigo-400">
+                  {ipnMetrics.total_attempts}
                 </span>
               </div>
-            )}
-          </div>
+              <div className="px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+                <span className="text-[10px] font-bold text-slate-500 block">
+                  {isRtl ? 'حجم الرصيد المضاف' : 'Credited Volume'}
+                </span>
+                <span className="font-mono text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  ${Number(ipnMetrics.total_credited_volume || 0).toFixed(2)} USD
+                </span>
+              </div>
+              <div className="px-4 py-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
+                <span className="text-[10px] font-bold text-amber-600 block">
+                  {isRtl ? 'محاولات قيد الانتظار' : 'Waiting / Pending'}
+                </span>
+                <span className="font-mono text-lg font-black text-amber-600">
+                  {ipnMetrics.pending_count}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="px-4 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
+                <span className="text-[10px] font-bold text-slate-500 block">
+                  {t('adminExtra.packageSales')}
+                </span>
+                <span className="font-mono text-lg font-black text-indigo-600 dark:text-indigo-400">
+                  ${packageSales.toFixed(2)} USD
+                </span>
+              </div>
+
+              <div className="px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+                <span className="text-[10px] font-bold text-slate-500 block">
+                  {t('adminExtra.confirmedDeposits')}
+                </span>
+                <span className="font-mono text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  ${walletDepositsTotal.toFixed(2)} USD
+                </span>
+              </div>
+
+              {pendingCount > 0 && (
+                <div className="px-4 py-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 animate-pulse">
+                  <span className="text-[10px] font-bold text-amber-600 block">
+                    {t('adminExtra.pendingRequests')}
+                  </span>
+                  <span className="font-mono text-lg font-black text-amber-600">
+                    {pendingCount}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Filters & Search Bar */}
+        {/* Navigation Categories */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
-          {/* Categories */}
           <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
             {[
-              { id: 'all', label: t('adminExtra.filterAll') },
-              { id: 'wallet', label: t('adminExtra.filterWallet') },
-              { id: 'package', label: t('adminExtra.filterPackages') },
+              { id: 'all', label: t('adminExtra.filterAll', 'الكل') },
+              { id: 'wallet', label: t('adminExtra.filterWallet', 'شحن المحفظة') },
+              { id: 'package', label: t('adminExtra.filterPackages', 'الباقات') },
+              { id: 'ipn_log', label: isRtl ? '🪙 سجل IPN Log والتجديدات' : '🪙 IPN Log & Renewals' },
             ].map((cat) => (
               <Button
                 key={cat.id}
@@ -200,201 +360,509 @@ export default function DepositManagement() {
             ))}
           </div>
 
-          {/* Search Box */}
-          <div className="relative w-full sm:w-72">
-            <Search className={`h-4 w-4 absolute top-3 text-slate-400 ${isRtl ? 'right-3' : 'left-3'}`} />
-            <Input
-              placeholder={t('adminExtra.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`rounded-xl text-xs h-10 ${isRtl ? 'pr-9' : 'pl-9'}`}
-            />
-          </div>
+          {filterCategory === 'ipn_log' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={loadIpnLogs}
+              disabled={ipnLoading}
+              className="rounded-xl text-xs font-bold gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${ipnLoading ? 'animate-spin' : ''}`} />
+              {isRtl ? 'تحديث السجل' : 'Refresh Logs'}
+            </Button>
+          )}
         </div>
 
-        {/* Deposits Table */}
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
-            <table className={`w-full text-xs ${isRtl ? 'text-right' : 'text-left'}`}>
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 font-bold border-b border-slate-100 dark:border-slate-800">
-                <tr>
-                  <th className="p-4">{t('adminExtra.userCol')}</th>
-                  <th className="p-4">{t('adminExtra.typeCol')}</th>
-                  <th className="p-4 text-emerald-600">{t('adminExtra.amountCol')}</th>
-                  <th className="p-4">{t('adminExtra.methodCol')}</th>
-                  <th className="p-4">{t('adminExtra.referenceCol')}</th>
-                  <th className="p-4">{t('adminExtra.dateCol')}</th>
-                  <th className="p-4 text-center">{t('adminExtra.statusCol')}</th>
-                  <th className="p-4 text-center">{t('adminExtra.actionsCol')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {loading ? (
-                  <tr>
-                    <td colSpan={8} className="p-12 text-center text-slate-400">
-                      <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
-                      Loading...
-                    </td>
-                  </tr>
-                ) : filteredDeposits.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="p-12 text-center text-slate-400">
-                      {isRtl ? 'لا توجد أي إيداعات مطابقة للشروط الحالية.' : 'No deposits match the current criteria.'}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredDeposits.map((d) => {
-                    const isWallet = d.category === 'wallet';
-                    const isPending = d.status === 'pending';
+        {/* ========================================================================= */}
+        {/* VIEW 1: IPN LOG & RENEWAL ATTEMPTS AUDIT                                   */}
+        {/* ========================================================================= */}
+        {filterCategory === 'ipn_log' && (
+          <div className="space-y-4">
+            {/* Filters & Search */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <form onSubmit={handleIpnSearchSubmit} className="relative sm:col-span-2">
+                <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-2.5 h-4 w-4 text-slate-400`} />
+                <Input
+                  placeholder={isRtl ? 'ابحث بالمعرف، العنوان، البريد أو Payment ID...' : 'Search by ID, Address, Email, Payment ID...'}
+                  value={ipnSearch}
+                  onChange={(e) => setIpnSearch(e.target.value)}
+                  className={`${isRtl ? 'pr-9' : 'pl-9'} rounded-xl text-xs bg-slate-50 dark:bg-slate-800/60`}
+                />
+              </form>
 
-                    return (
-                      <tr key={d.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                        {/* User */}
-                        <td className="p-4">
-                          <p className="font-bold text-slate-900 dark:text-white text-xs">{d.user_name}</p>
-                          <p className="text-[10px] text-slate-400">{d.user_email}</p>
+              <select
+                value={ipnProvider}
+                onChange={(e) => { setIpnProvider(e.target.value); setIpnPage(1); }}
+                className="text-xs font-bold rounded-xl px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
+              >
+                <option value="all">{isRtl ? 'جميع المزودين (All)' : 'All Providers'}</option>
+                <option value="nowpayments">NOWPayments</option>
+                <option value="stripe">Stripe</option>
+              </select>
+
+              <select
+                value={ipnStatus}
+                onChange={(e) => { setIpnStatus(e.target.value); setIpnPage(1); }}
+                className="text-xs font-bold rounded-xl px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
+              >
+                <option value="all">{isRtl ? 'جميع الحالات (All)' : 'All Statuses'}</option>
+                <option value="waiting">{isRtl ? 'في انتظار الدفع (Waiting)' : 'Waiting'}</option>
+                <option value="confirming">{isRtl ? 'جارٍ التأكيد (Confirming)' : 'Confirming'}</option>
+                <option value="finished">{isRtl ? 'مكتمل (Finished/Confirmed)' : 'Finished'}</option>
+                <option value="partially_paid">{isRtl ? 'مدفوع جزئياً (Partial)' : 'Partially Paid'}</option>
+                <option value="expired">{isRtl ? 'منتهي الصلاحية (Expired)' : 'Expired'}</option>
+                <option value="failed">{isRtl ? 'فاشل (Failed)' : 'Failed'}</option>
+              </select>
+
+              <select
+                value={ipnCredited}
+                onChange={(e) => { setIpnCredited(e.target.value); setIpnPage(1); }}
+                className="text-xs font-bold rounded-xl px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
+              >
+                <option value="all">{isRtl ? 'حالة الرصيد (الكل)' : 'Wallet Credit (All)'}</option>
+                <option value="1">{isRtl ? 'تم شحن المحفظة (Credited)' : 'Credited'}</option>
+                <option value="0">{isRtl ? 'لم يضاف رصيد (Pending/None)' : 'Not Credited'}</option>
+              </select>
+            </div>
+
+            {/* Table */}
+            <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left rtl:text-right border-collapse">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
+                    <tr>
+                      <th className="p-3.5">{isRtl ? 'العضو' : 'Member'}</th>
+                      <th className="p-3.5">{isRtl ? 'المزود والمحاولة' : 'Provider & Attempt'}</th>
+                      <th className="p-3.5">{isRtl ? 'المبلغ المطلوب' : 'Price / Expected'}</th>
+                      <th className="p-3.5">{isRtl ? 'المستلم فعلياً' : 'Actually Paid'}</th>
+                      <th className="p-3.5">{isRtl ? 'عنوان الدفع والمراجع' : 'Address & Payment ID'}</th>
+                      <th className="p-3.5">{isRtl ? 'حالة البوابة' : 'Gateway Status'}</th>
+                      <th className="p-3.5">{isRtl ? 'شحن المحفظة' : 'Wallet Credited'}</th>
+                      <th className="p-3.5">{isRtl ? 'التاريخ والتجديد' : 'Timestamps'}</th>
+                      <th className="p-3.5 text-center">{isRtl ? 'الإجراءات' : 'Actions'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {ipnLoading ? (
+                      <tr>
+                        <td colSpan={9} className="text-center py-12">
+                          <Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-500 mb-2" />
+                          <span className="text-xs text-slate-400">{isRtl ? 'جارٍ تحميل السجلات...' : 'Loading IPN logs...'}</span>
                         </td>
+                      </tr>
+                    ) : ipnLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="text-center py-12 text-slate-400">
+                          {isRtl ? 'لا توجد محاولات دفع مسجلة مطابقة للفلاتر' : 'No payment attempts found matching filters'}
+                        </td>
+                      </tr>
+                    ) : (
+                      ipnLogs.map((log) => (
+                        <tr key={log.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="p-3.5">
+                            <div className="font-bold text-slate-800 dark:text-slate-100">{log.user_name}</div>
+                            <div className="text-[10px] text-slate-400 font-mono">{log.user_email}</div>
+                          </td>
 
-                        {/* Category / Package */}
-                        <td className="p-4">
-                          {isWallet ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="p-1 rounded-md bg-emerald-500/10 text-emerald-600">
-                                <Wallet className="h-3.5 w-3.5" />
-                              </span>
-                              <span className="font-bold text-emerald-700 dark:text-emerald-300">
-                                {t('adminExtra.filterWallet')}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-slate-800 dark:text-slate-200">
-                                {isRtl ? (d.package_name_ar || d.package_name) : (d.package_name || d.package_name_ar)}
-                              </span>
-                              <Badge className="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 border border-indigo-200 text-[10px] font-bold">
-                                Lvl {d.package_level}
+                          <td className="p-3.5">
+                            <div className="flex items-center gap-1.5 font-bold">
+                              <Coins className="h-3.5 w-3.5 text-emerald-500" />
+                              <span>{log.provider}</span>
+                              <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 bg-slate-100 dark:bg-slate-800">
+                                #{log.attempt_number}
                               </Badge>
                             </div>
-                          )}
-                        </td>
-
-                        {/* Amount */}
-                        <td className="p-4 font-mono font-black text-sm text-emerald-600 dark:text-emerald-400">
-                          ${Number(d.price_paid).toFixed(2)} USD
-                        </td>
-
-                        {/* Method */}
-                        <td className="p-4 font-bold text-[11px] text-slate-700 dark:text-slate-300">
-                          {d.payment_method === 'baridimob' ? 'BaridiMob / CCP' :
-                           d.payment_method === 'usdt' ? 'USDT TRC-20' :
-                           d.payment_method === 'bank_transfer' ? (isRtl ? 'تحويل بنكي' : 'Bank Transfer') :
-                           d.payment_method === 'wallet' ? (isRtl ? 'رصيد المحفظة' : 'Wallet Balance') :
-                           d.payment_method || 'Transfer'}
-                        </td>
-
-                        {/* Reference / Details */}
-                        <td className="p-4">
-                          <div className="space-y-0.5">
-                            <span className="font-mono text-[11px] text-slate-600 dark:text-slate-300 block">
-                              {d.payment_reference || 'N/A'}
+                            <span className="text-[10px] text-slate-400 block font-mono">
+                              {log.network ? `Network: ${log.network.toUpperCase()}` : ''}
                             </span>
-                            {d.notes && (
-                              <p className="text-[10px] text-slate-500 italic max-w-xs truncate" title={d.notes}>
-                                {d.notes}
-                              </p>
+                          </td>
+
+                          <td className="p-3.5 font-mono font-bold">
+                            <span className="text-slate-800 dark:text-slate-200">
+                              ${Number(log.price_amount).toFixed(2)} {log.price_currency}
+                            </span>
+                            {log.pay_amount && (
+                              <span className="block text-[10px] text-slate-400">
+                                ~{Number(log.pay_amount)} {log.pay_currency}
+                              </span>
                             )}
-                            {d.receipt_url && (
-                              <a 
-                                href={d.receipt_url} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline font-bold"
-                              >
-                                {t('adminExtra.viewReceipt')}
-                                <ExternalLink className="h-2.5 w-2.5" />
-                              </a>
+                          </td>
+
+                          <td className="p-3.5 font-mono">
+                            {log.actually_paid_fiat ? (
+                              <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                ${Number(log.actually_paid_fiat).toFixed(2)} USD
+                              </span>
+                            ) : log.actually_paid ? (
+                              <span className="text-emerald-600 font-bold">
+                                {Number(log.actually_paid)} {log.pay_currency}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">—</span>
                             )}
-                          </div>
-                        </td>
+                          </td>
 
-                        {/* Date */}
-                        <td className="p-4 text-slate-400 text-[11px]">
-                          {new Date(d.created_at || d.purchased_at).toLocaleString(dateLocale)}
-                        </td>
+                          <td className="p-3.5 max-w-[180px]">
+                            {log.pay_address ? (
+                              <div className="flex items-center gap-1">
+                                <span className="font-mono text-[10px] text-slate-600 dark:text-slate-300 truncate" title={log.pay_address}>
+                                  {log.pay_address.substring(0, 10)}...{log.pay_address.slice(-6)}
+                                </span>
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-5 w-5 shrink-0"
+                                  onClick={() => copyToClipboard(log.pay_address, log.id)}
+                                >
+                                  {copiedText === log.id ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3 text-slate-400" />}
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                            <span className="text-[9px] text-slate-400 font-mono block">
+                              ID: {log.provider_payment_id || log.transaction_id.substring(0, 8)}
+                            </span>
+                          </td>
 
-                        {/* Status */}
-                        <td className="p-4 text-center">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            d.status === 'active' || d.status === 'completed'
-                              ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
-                              : d.status === 'upgraded'
-                              ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300'
-                              : d.status === 'rejected' || d.status === 'cancelled'
-                              ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300'
-                              : 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300'
-                          }`}>
-                            {d.status === 'active' ? t('adminExtra.activeStatus') : 
-                             d.status === 'completed' ? t('adminExtra.completedStatus') :
-                             d.status === 'upgraded' ? t('adminExtra.upgradedStatus') : 
-                             d.status === 'rejected' || d.status === 'cancelled' ? (isRtl ? 'مرفوض' : 'Rejected') : t('adminExtra.pendingStatus')}
-                          </span>
-                        </td>
+                          <td className="p-3.5">
+                            {getStatusBadge(log.status)}
+                          </td>
 
-                        {/* Action Buttons for Pending Requests (Wallet or Package) */}
-                        <td className="p-4 text-center">
-                          {isPending ? (
+                          <td className="p-3.5">
+                            {log.is_wallet_credited === 1 ? (
+                              <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 gap-1">
+                                <CheckCircle2 className="h-3 w-3" />
+                                {isRtl ? 'تم الشحن' : 'Credited'}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-slate-400 border-slate-300 gap-1">
+                                <Clock className="h-3 w-3" />
+                                {isRtl ? 'قيد المعالجة' : 'Pending'}
+                              </Badge>
+                            )}
+                          </td>
+
+                          <td className="p-3.5 text-[10px] text-slate-500 font-mono">
+                            <div>{new Date(log.created_at).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })}</div>
+                            <div className="text-[9px] text-slate-400">{new Date(log.created_at).toLocaleDateString(dateLocale)}</div>
+                            {log.next_renewal_at && log.status === 'waiting' && log.is_wallet_credited === 0 && (
+                              <span className="text-amber-600 dark:text-amber-400 text-[9px] block">
+                                ↻ {new Date(log.next_renewal_at).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="p-3.5 text-center">
                             <div className="flex items-center justify-center gap-1.5">
                               <Button
                                 size="sm"
-                                onClick={() => setApproveItem(d)}
-                                className="h-8 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1 px-3 shadow-xs"
+                                variant="outline"
+                                className="h-7 px-2 text-[10px] rounded-lg font-bold"
+                                onClick={() => handleOpenDetail(log.transaction_id)}
                               >
-                                <Check className="h-3.5 w-3.5" />
-                                {t('adminExtra.approveBtn')}
+                                {isRtl ? 'التفاصيل' : 'Details'}
+                              </Button>
+
+                              {log.status === 'waiting' && log.is_wallet_credited === 0 && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 px-2 text-[10px] text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg font-bold"
+                                  disabled={renewingId === log.transaction_id}
+                                  onClick={() => handleTriggerRenewal(log.transaction_id)}
+                                  title={isRtl ? 'تجديد فوري الآن' : 'Trigger Renewal Now'}
+                                >
+                                  {renewingId === log.transaction_id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <RefreshCw className="h-3 w-3" />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {ipnTotalPages > 1 && (
+                <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-800 text-xs">
+                  <span className="text-slate-500 font-semibold">
+                    {isRtl ? `صفحة ${ipnPage} من ${ipnTotalPages}` : `Page ${ipnPage} of ${ipnTotalPages}`}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={ipnPage <= 1 || ipnLoading}
+                      onClick={() => setIpnPage(p => p - 1)}
+                      className="rounded-xl h-8 px-2.5"
+                    >
+                      <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={ipnPage >= ipnTotalPages || ipnLoading}
+                      onClick={() => setIpnPage(p => p + 1)}
+                      className="rounded-xl h-8 px-2.5"
+                    >
+                      <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* VIEW 2: STANDARD MANUAL DEPOSITS & PACKAGES LIST (Original Functionality)  */}
+        {/* ========================================================================= */}
+        {filterCategory !== 'ipn_log' && (
+          <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left rtl:text-right border-collapse">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="p-4">{t('adminExtra.studentCol', 'Member')}</th>
+                    <th className="p-4">{t('adminExtra.typeCol', 'Type')}</th>
+                    <th className="p-4">{t('adminExtra.amountCol', 'Amount')}</th>
+                    <th className="p-4">{t('adminExtra.methodCol', 'Method')}</th>
+                    <th className="p-4">{t('adminExtra.referenceCol', 'Reference')}</th>
+                    <th className="p-4">{t('adminExtra.statusCol', 'Status')}</th>
+                    <th className="p-4">{t('adminExtra.dateCol', 'Date')}</th>
+                    <th className="p-4 text-center">{t('adminExtra.actionsCol', 'Actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={8} className="text-center py-12">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-500 mb-2" />
+                        <span className="text-xs text-slate-400">{t('common.loading', 'Loading...')}</span>
+                      </td>
+                    </tr>
+                  ) : filteredDeposits.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="text-center py-12 text-slate-400">
+                        {t('adminExtra.noDepositsFound', 'No deposits found')}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredDeposits.map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="p-4">
+                          <div className="font-bold text-slate-800 dark:text-slate-100">{item.user_name}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">{item.user_email}</div>
+                        </td>
+                        <td className="p-4">
+                          {item.category === 'package' ? (
+                            <Badge className="bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200">
+                              {isRtl ? item.package_name_ar : item.package_name}
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200">
+                              {isRtl ? item.package_name_ar : item.package_name}
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="p-4 font-mono font-bold text-slate-800 dark:text-slate-200">
+                          ${Number(item.price_paid || 0).toFixed(2)} USD
+                        </td>
+                        <td className="p-4 font-semibold text-slate-600 dark:text-slate-300">
+                          {item.payment_method}
+                        </td>
+                        <td className="p-4 font-mono text-[10px] text-slate-500">
+                          {item.payment_reference}
+                        </td>
+                        <td className="p-4">
+                          {getStatusBadge(item.status)}
+                        </td>
+                        <td className="p-4 text-[10px] text-slate-500 font-mono">
+                          {new Date(item.created_at).toLocaleDateString(dateLocale)}
+                        </td>
+                        <td className="p-4 text-center">
+                          {item.status === 'pending' ? (
+                            <div className="flex items-center justify-center gap-1.5">
+                              <Button
+                                size="sm"
+                                className="h-7 px-2.5 text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold"
+                                onClick={() => setApproveItem(item)}
+                              >
+                                <Check className="h-3 w-3 mr-1" />
+                                {t('adminExtra.approveBtn', 'Approve')}
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => { setRejectItem(d); setRejectReason(''); }}
-                                className="h-8 rounded-xl font-bold text-xs border-rose-200 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 gap-1 px-3"
+                                className="h-7 px-2 text-[10px] text-rose-600 border-rose-300 hover:bg-rose-50 rounded-lg font-bold"
+                                onClick={() => setRejectItem(item)}
                               >
-                                <X className="h-3.5 w-3.5" />
-                                {t('adminExtra.rejectBtn')}
+                                <X className="h-3 w-3" />
                               </Button>
                             </div>
                           ) : (
-                            <span className="text-slate-400 text-[10px]">
-                              {d.status === 'completed' || d.status === 'active' ? '✓' : '—'}
-                            </span>
+                            <span className="text-[10px] text-slate-400 font-semibold">—</span>
                           )}
                         </td>
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
 
-        {/* Approve Deposit Confirmation Dialog */}
+        {/* ========================================================================= */}
+        {/* MODAL: DETAIL & ALL ATTEMPTS TIMELINE FOR AN IPN DEPOSIT SESSION          */}
+        {/* ========================================================================= */}
+        <Dialog open={!!selectedSessionId} onOpenChange={(open) => !open && setSelectedSessionId(null)}>
+          <DialogContent className="sm:max-w-2xl rounded-3xl p-6 max-h-[85vh] overflow-y-auto">
+            <DialogHeader className={isRtl ? 'text-right' : 'text-left'}>
+              <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Coins className="h-5 w-5 text-emerald-500" />
+                {isRtl ? 'تفاصيل جلسة الإيداع وسجل المحاولات' : 'Deposit Session & Attempts Timeline'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500">
+                {isRtl 
+                  ? 'عرض جميع محاولات الدفع المنشأة عبر NOWPayments، العناوين المستخدمة، والتسوية التلقائية.' 
+                  : 'View all NOWPayments payment attempts, generated addresses, and settlement audit.'}
+              </DialogDescription>
+            </DialogHeader>
+
+            {detailLoading || !detailData ? (
+              <div className="py-12 text-center">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-500 mb-2" />
+                <span className="text-xs text-slate-400">{isRtl ? 'جارٍ تحميل التفاصيل...' : 'Loading attempt details...'}</span>
+              </div>
+            ) : (
+              <div className="space-y-4 py-2">
+                {/* Session Header Card */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">{isRtl ? 'معرف الإيداع الداخلي' : 'Transaction ID'}</span>
+                      <span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-100">{detailData.transaction?.id}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">{isRtl ? 'العضو' : 'Member'}</span>
+                      <span className="text-xs font-bold">{detailData.transaction?.user_name} ({detailData.transaction?.user_email})</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">{isRtl ? 'المبلغ المطلوب' : 'Price Amount'}</span>
+                      <span className="font-mono text-sm font-black text-emerald-600">${Number(detailData.transaction?.amount).toFixed(2)} USD</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attempts Timeline */}
+                <div>
+                  <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center justify-between">
+                    <span>{isRtl ? `محاولات الدفع المنشأة (${detailData.attempts?.length || 0}):` : `Payment Attempts (${detailData.attempts?.length || 0}):`}</span>
+                    {detailData.transaction?.status === 'pending' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 px-2 text-[10px] font-bold text-indigo-600 border-indigo-200"
+                        disabled={renewingId === detailData.transaction?.id}
+                        onClick={() => handleTriggerRenewal(detailData.transaction?.id)}
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                        {isRtl ? 'إنشاء محاولة بديلة الآن' : 'Renew / Next Attempt Now'}
+                      </Button>
+                    )}
+                  </h4>
+
+                  <div className="space-y-2.5">
+                    {detailData.attempts?.map((att: any) => (
+                      <div 
+                        key={att.id} 
+                        className={`p-3.5 rounded-2xl border ${
+                          att.is_wallet_credited === 1
+                            ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800'
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="font-mono font-bold text-xs bg-slate-100 dark:bg-slate-800">
+                              {isRtl ? `المحاولة #${att.attempt_number}` : `Attempt #${att.attempt_number}`}
+                            </Badge>
+                            {getStatusBadge(att.status)}
+                            {att.is_wallet_credited === 1 && (
+                              <Badge className="bg-emerald-600 text-white text-[10px]">
+                                {isRtl ? 'تم شحن المحفظة بهذه المحاولة' : 'Settled to Wallet'}
+                              </Badge>
+                            )}
+                          </div>
+
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {new Date(att.created_at).toLocaleString(dateLocale)}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
+                          <div>
+                            <span className="text-slate-400 text-[10px] block">{isRtl ? 'عنوان الدفع المحجوز:' : 'Payment Address:'}</span>
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400 break-all select-all">
+                              {att.pay_address || '—'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 text-[10px] block">{isRtl ? 'المبلغ والشبكة:' : 'Pay Amount & Network:'}</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              {Number(att.pay_amount || 0)} {att.pay_currency} ({att.network?.toUpperCase() || 'BSC'})
+                            </span>
+                          </div>
+                        </div>
+
+                        {att.renewal_error && (
+                          <div className="mt-2 p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-[10px] text-rose-600 border border-rose-200 dark:border-rose-800">
+                            <strong>{isRtl ? 'خطأ الاتصال أثناء التجديد:' : 'Renewal Error:'}</strong> {att.renewal_error}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter className="pt-2">
+              <Button variant="outline" onClick={() => setSelectedSessionId(null)} className="rounded-2xl text-xs font-bold">
+                {isRtl ? 'إغلاق' : 'Close'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Approve Deposit Dialog (Manual) */}
         <Dialog open={!!approveItem} onOpenChange={(open) => !open && setApproveItem(null)}>
           <DialogContent className="sm:max-w-md rounded-3xl p-6">
             <DialogHeader className={isRtl ? 'text-right' : 'text-left'}>
-              <DialogTitle className="text-lg font-bold text-emerald-600 flex items-center gap-2">
+              <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                {t('adminExtra.approveModalTitle')}
+                {t('adminExtra.approveModalTitle', 'Confirm Deposit Approval')}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500 pt-1">
-                {t('adminExtra.approveModalDesc')}
+                {t('adminExtra.approveModalDesc', 'Review and approve this deposit')}
               </DialogDescription>
             </DialogHeader>
 
             {approveItem && (
-              <div className="space-y-3 py-3 text-xs bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">{t('adminExtra.userCol')}:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{approveItem.user_name}</span>
+                  <span className="text-slate-400">{t('adminExtra.studentCol')}:</span>
+                  <span className="font-bold">{approveItem.user_name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">{t('adminExtra.amountCol')}:</span>
@@ -403,10 +871,6 @@ export default function DepositManagement() {
                 <div className="flex justify-between">
                   <span className="text-slate-400">{t('adminExtra.methodCol')}:</span>
                   <span className="font-semibold">{approveItem.payment_method}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">{t('adminExtra.referenceCol')}:</span>
-                  <span className="font-mono text-slate-600 dark:text-slate-300">{approveItem.payment_reference || '—'}</span>
                 </div>
               </div>
             )}
@@ -426,7 +890,7 @@ export default function DepositManagement() {
           </DialogContent>
         </Dialog>
 
-        {/* Reject Deposit Dialog */}
+        {/* Reject Deposit Dialog (Manual) */}
         <Dialog open={!!rejectItem} onOpenChange={(open) => !open && setRejectItem(null)}>
           <DialogContent className="sm:max-w-md rounded-3xl p-6">
             <DialogHeader className={isRtl ? 'text-right' : 'text-left'}>

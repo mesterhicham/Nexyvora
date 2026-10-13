@@ -238,9 +238,10 @@ export const packageService = {
 
 export const affiliateService = {
     getWallet: () => api.get('/affiliate/wallet').then(res => res.data),
-    requestDeposit: (data: { amount: number; paymentMethod: string; paymentReference?: string; receiptUrl?: string; notes?: string }) => 
+    requestDeposit: (data: { amount: number; paymentMethod: string; paymentReference?: string; receiptUrl?: string; notes?: string; payCurrency?: string }) => 
         api.post('/affiliate/deposit', data).then(res => res.data),
     getDeposits: () => api.get('/affiliate/deposits').then(res => res.data),
+    getDepositAttempts: (id: string) => api.get(`/affiliate/deposits/${id}/attempts`).then(res => res.data),
     getPaymentMethods: (mode?: 'deposit' | 'withdrawal') => 
         api.get('/affiliate/payment-methods', { params: { mode } }).then(res => res.data),
     getCommissions: (params?: { generation?: number; limit?: number; offset?: number }) => 
@@ -253,6 +254,15 @@ export const affiliateService = {
     getTeam: () => api.get('/affiliate/team').then(res => res.data),
     getTeamTree: () => api.get('/affiliate/team-tree').then(res => res.data),
     getRanks: () => api.get('/affiliate/ranks').then(res => res.data),
+};
+
+export const adminIpnLogService = {
+    getLogs: (params?: { page?: number; limit?: number; search?: string; provider?: string; status?: string; credited?: string; startDate?: string; endDate?: string }) => 
+        api.get('/admin/ipn-logs', { params }).then(res => res.data),
+    getLogDetail: (id: string) => 
+        api.get(`/admin/ipn-logs/${id}`).then(res => res.data),
+    triggerRenewal: (id: string) => 
+        api.post(`/admin/ipn-logs/${id}/renew`).then(res => res.data),
 };
 
 export const adminAffiliateService = {

@@ -72,6 +72,7 @@ export default function StudentWallet() {
   const [depositReceiptUrl, setDepositReceiptUrl] = useState('');
   const [submittingDeposit, setSubmittingDeposit] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [activePaymentOrder, setActivePaymentOrder] = useState<any>(null);
 
   useEffect(() => {
     loadData();
@@ -275,7 +276,9 @@ export default function StudentWallet() {
       return toast.error(`${t('wallet.minDepositNotice', isRtl ? 'الحد الأدنى للإيداع لهذه الطريقة هو' : 'Minimum deposit for this method is')} $${selectedDepositMethod.min_deposit} USD`);
     }
 
-    if (!depositReference.trim()) {
+    const isCrypto = selectedDepositMethod?.type === 'nowpayments_crypto' || selectedDepositMethod?.provider === 'nowpayments';
+
+    if (!isCrypto && !depositReference.trim()) {
       return toast.error(t('wallet.reference', isRtl ? 'يرجى كتابة رقم العملية أو المعاملة (Reference / TxID) لتسريع التدقيق' : 'Please enter reference / TxID for faster verification'));
     }
 
@@ -284,13 +287,20 @@ export default function StudentWallet() {
       const methodLabel = selectedDepositMethod ? (isRtl ? (selectedDepositMethod.name_ar || selectedDepositMethod.name) : (selectedDepositMethod.name || selectedDepositMethod.name_ar)) : depositMethod;
       const res = await affiliateService.requestDeposit({
         amount: amt,
-        paymentMethod: methodLabel,
-        paymentReference: depositReference.trim(),
+        paymentMethod: isCrypto ? 'nowpayments_crypto' : methodLabel,
+        paymentReference: depositReference.trim() || undefined,
         receiptUrl: depositReceiptUrl.trim() || undefined,
         notes: depositNotes.trim() || undefined
       });
-      toast.success(res.message || t('common.success', isRtl ? 'تم إرسال طلب الإيداع بنجاح' : 'Deposit request submitted successfully'));
-      setIsDepositOpen(false);
+
+      if (res.payment) {
+        setActivePaymentOrder(res.payment);
+        toast.success(isRtl ? 'تم إنشاء عنوان الدفع المخصص لك بنجاح!' : 'Payment order created successfully!');
+      } else {
+        toast.success(res.message || t('common.success', isRtl ? 'تم إرسال طلب الإيداع بنجاح' : 'Deposit request submitted successfully'));
+        setIsDepositOpen(false);
+      }
+
       setDepositAmount('50');
       setDepositReference('');
       setDepositNotes('');
@@ -950,31 +960,92 @@ export default function StudentWallet() {
                 )}
               </div>
 
-              {/* Reference ID / Transaction Hash */}
-              <div className="space-y-1">
-                <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                  {t('wallet.reference', isRtl ? 'رقم العملية / الحوالة أو TxID' : 'Transaction Ref / TxID')} <span className="text-rose-500">*</span>
-                </Label>
-                <Input
-                  placeholder="REF-123456 or TxID"
-                  value={depositReference}
-                  onChange={(e) => setDepositReference(e.target.value)}
-                  className="rounded-xl text-xs h-8 sm:h-9 bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-mono"
-                />
-              </div>
+              {/* Active Payment Order View (When NOWPayments order is created) */}
+              {activePaymentOrder ? (
+                <div className="space-y-3 p-3.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                  <div className="flex items-center justify-between text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      {isRtl ? 'تم تجهيز عنوان الدفع بنجاح' : 'Payment Order Ready'}
+                    </span>
+                    <Badge variant="outline" className="font-mono text-[10px] bg-white dark:bg-slate-900 border-emerald-300">
+                      ID: {activePaymentOrder.paymentId}
+                    </Badge>
+                  </div>
 
-              {/* Notes or Image URL */}
-              <div className="space-y-1">
-                <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                  {t('wallet.receiptUrl', isRtl ? 'رابط الوصل أو ملاحظات (اختياري)' : 'Receipt URL or Notes (Optional)')}
-                </Label>
-                <Input
-                  placeholder="https://... or notes"
-                  value={depositReceiptUrl}
-                  onChange={(e) => setDepositReceiptUrl(e.target.value)}
-                  className="rounded-xl text-xs h-8 sm:h-9 bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-                />
-              </div>
+                  <div>
+                    <span className="text-[10px] text-slate-500 block mb-1">
+                      {isRtl ? 'أرسل المبلغ التالي بالضبط:' : 'Exact Amount to Send:'}
+                    </span>
+                    <div className="text-base font-black font-mono text-slate-900 dark:text-white">
+                      {activePaymentOrder.payAmount} {activePaymentOrder.payCurrency} <span className="text-xs font-normal text-slate-500">({activePaymentOrder.network?.toUpperCase() || 'BSC'})</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-slate-500 block mb-1">
+                      {isRtl ? 'عنوان الإيداع المخصص لك:' : 'Your Dedicated Deposit Address:'}
+                    </span>
+                    <div className="flex items-center justify-between font-mono font-bold bg-white dark:bg-slate-900 p-2 rounded-xl border border-emerald-200 dark:border-emerald-800 text-[11px]">
+                      <span className="text-emerald-600 dark:text-emerald-400 break-all select-all mr-1 rtl:ml-1 rtl:mr-0">
+                        {activePaymentOrder.payAddress}
+                      </span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-1.5 text-[10px] gap-1 shrink-0"
+                        onClick={() => copyToClipboard(activePaymentOrder.payAddress, 'nowpay_address')}
+                      >
+                        {copiedField === 'nowpay_address' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                        {t('wallet.copy', isRtl ? 'نسخ' : 'Copy')}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-700 dark:text-amber-400 flex items-start gap-1.5">
+                    <Clock className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" />
+                    <span>
+                      {isRtl 
+                        ? 'ملاحظة: يتم تجديد عنوان وطلب الدفع تلقائياً كل 20 دقيقة إذا لم يتم التحويل. العناوين السابقة تظل صالحة ومعتمدة للتسوية التلقائية فور تأكيد الشبكة.'
+                        : 'Notice: Payment request renews automatically every 20 minutes if unpaid. Previous addresses remain valid and linked for settlement upon blockchain confirmation.'}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Manual Fields (only for manual bank transfers) */}
+                  {selectedDepositMethod?.type !== 'nowpayments_crypto' && (
+                    <>
+                      {/* Reference ID / Transaction Hash */}
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                          {t('wallet.reference', isRtl ? 'رقم العملية / الحوالة أو TxID' : 'Transaction Ref / TxID')} <span className="text-rose-500">*</span>
+                        </Label>
+                        <Input
+                          placeholder="REF-123456 or TxID"
+                          value={depositReference}
+                          onChange={(e) => setDepositReference(e.target.value)}
+                          className="rounded-xl text-xs h-8 sm:h-9 bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-mono"
+                        />
+                      </div>
+
+                      {/* Notes or Image URL */}
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                          {t('wallet.receiptUrl', isRtl ? 'رابط الوصل أو ملاحظات (اختياري)' : 'Receipt URL or Notes (Optional)')}
+                        </Label>
+                        <Input
+                          placeholder="https://... or notes"
+                          value={depositReceiptUrl}
+                          onChange={(e) => setDepositReceiptUrl(e.target.value)}
+                          className="rounded-xl text-xs h-8 sm:h-9 bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                        />
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Sticky Footer */}
@@ -982,20 +1053,24 @@ export default function StudentWallet() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => setIsDepositOpen(false)} 
+                onClick={() => { setIsDepositOpen(false); setActivePaymentOrder(null); }} 
                 className="rounded-xl text-xs h-8 sm:h-9 px-3"
               >
-                {t('common.cancel', isRtl ? 'إلغاء' : 'Cancel')}
+                {activePaymentOrder ? (isRtl ? 'إغلاق ومتابعة' : 'Close') : (isRtl ? 'إلغاء' : 'Cancel')}
               </Button>
-              <Button 
-                onClick={handleDepositSubmit} 
-                disabled={submittingDeposit} 
-                size="sm"
-                className="rounded-xl font-bold bg-primary hover:bg-primary/90 text-white text-xs h-8 sm:h-9 px-4 shadow-sm"
-              >
-                {submittingDeposit ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
-                {t('wallet.submitDeposit', isRtl ? 'تأكيد إرسال طلب الشحن' : 'Confirm Deposit Request')}
-              </Button>
+              {!activePaymentOrder && (
+                <Button 
+                  onClick={handleDepositSubmit} 
+                  disabled={submittingDeposit} 
+                  size="sm"
+                  className="rounded-xl font-bold bg-primary hover:bg-primary/90 text-white text-xs h-8 sm:h-9 px-4 shadow-sm"
+                >
+                  {submittingDeposit ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                  {selectedDepositMethod?.type === 'nowpayments_crypto'
+                    ? (isRtl ? 'إنشاء طلب دفع عبر NOWPayments' : 'Create NOWPayments Order')
+                    : (isRtl ? 'تأكيد إرسال طلب الشحن' : 'Confirm Deposit Request')}
+                </Button>
+              )}
             </div>
           </DialogContent>
         </Dialog>

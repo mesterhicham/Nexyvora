@@ -211,6 +211,7 @@ const App = () => (
                 <Route path="/admin/founder" element={<AdminFounderManagement />} />
                 <Route path="/admin/withdrawals" element={<WithdrawalMonitoring />} />
                 <Route path="/admin/deposits" element={<DepositManagement />} />
+                <Route path="/admin/ipn-logs" element={<DepositManagement defaultTab="ipn_log" />} />
                 <Route path="/admin/transactions" element={<AdminTransactions />} />
                 <Route path="/admin/team-tree" element={<AdminTeamTree />} />
                 <Route path="/admin/kyc" element={<AdminKYC />} />

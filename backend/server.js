@@ -23,6 +23,8 @@ const founderRoutes = require('./routes/founder');
 const currencyRoutes = require('./routes/currency');
 const supportRoutes = require('./routes/support');
 const promisedPackageRoutes = require('./routes/promisedPackage');
+const ipnLogRoutes = require('./routes/ipnLog');
+const paymentRenewalWorker = require('./workers/paymentRenewalWorker');
 
 dotenv.config();
 
@@ -140,6 +142,7 @@ app.use('/api/founders', founderRoutes);
 app.use('/api/currency', currencyRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/admin/promised-packages', promisedPackageRoutes);
+app.use('/api/admin/ipn-logs', ipnLogRoutes);
 
 // ─── Root & Health ────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -162,6 +165,8 @@ app.use((err, req, res, next) => {
 if (require.main === module) {
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`[Nexyvora] Server running on http://0.0.0.0:${PORT} (${process.env.NODE_ENV || 'development'})`);
+        // Start background payment renewal worker in standalone mode
+        paymentRenewalWorker.start();
     });
 }
 

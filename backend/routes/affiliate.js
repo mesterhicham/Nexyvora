@@ -17,6 +17,7 @@ router.get('/withdrawals', affiliateController.getMyWithdrawals);
 // Wallet Deposits
 router.post('/deposit', affiliateController.requestDeposit);
 router.get('/deposits', affiliateController.getMyDeposits);
+router.get('/deposits/:id/attempts', affiliateController.getDepositAttempts);
 // Payment methods for deposits and withdrawals
 const paymentMethodController = require('../controllers/paymentMethodController');
 router.get('/payment-methods', paymentMethodController.getActiveMethodsForStudents);
