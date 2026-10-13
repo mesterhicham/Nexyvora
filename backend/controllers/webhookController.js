@@ -96,28 +96,65 @@ function verifyStripeSignature(req, webhookSecret) {
 
 /**
  * Parse NOWPayments IPN payload according to official specifications
+ * Distinguishes between invoice fiat (price_amount/price_currency) and cryptocurrency paid (pay_amount/pay_currency/actually_paid).
+ * Never substitutes price_amount for actually_paid.
  */
 function parseNowPaymentsPayload(body) {
     const paymentId = String(body.payment_id || body.id || '').trim();
     const eventId = String(body.payment_id || body.event_id || body.id || '').trim();
     const internalOrderId = String(body.order_id || body.order_description || body.custom_id || '').trim();
     const rawStatus = String(body.payment_status || body.status || '').toLowerCase().trim();
-    const currency = String(body.price_currency || body.pay_currency || 'USD').toUpperCase().trim();
+    const priceCurrency = String(body.price_currency || 'USD').toUpperCase().trim();
+    const payCurrency = String(body.pay_currency || body.price_currency || 'USD').toUpperCase().trim();
+    const currency = priceCurrency; // Accounting currency of the order
 
-    // In NOWPayments: price_amount is invoice fiat amount; actually_paid is actual crypto/fiat received
-    const priceAmount = body.price_amount !== undefined ? Number(body.price_amount) : undefined;
-    const actualAmount = body.actually_paid !== undefined
-        ? Number(body.actually_paid)
-        : (body.pay_amount !== undefined ? Number(body.pay_amount) : Number(body.amount));
-
-    const amount = !isNaN(actualAmount) && actualAmount > 0 ? actualAmount : (priceAmount || 0);
-    const expectedAmount = priceAmount !== undefined ? priceAmount : amount;
-    const claimedUserId = body.user_id || body.customer_id || null;
+    const priceAmount = body.price_amount !== undefined && body.price_amount !== null ? Number(body.price_amount) : undefined;
+    const payAmount = body.pay_amount !== undefined && body.pay_amount !== null ? Number(body.pay_amount) : undefined;
+    const actuallyPaid = body.actually_paid !== undefined && body.actually_paid !== null ? Number(body.actually_paid) : undefined;
+    const actuallyPaidAtFiat = body.actually_paid_at_fiat !== undefined && body.actually_paid_at_fiat !== null ? Number(body.actually_paid_at_fiat) : undefined;
 
     // Status classification according to NOWPayments documentation
-    const isCompleted = ['finished', 'confirmed'].includes(rawStatus);
+    const isCompletedStatus = ['finished', 'confirmed'].includes(rawStatus);
     const isNonFinal = ['waiting', 'confirming', 'sending', 'partially_paid'].includes(rawStatus);
     const isFailed = ['failed', 'refunded', 'expired'].includes(rawStatus);
+
+    let confirmedFiatAmount = 0;
+    let hasValidPaymentAmount = false;
+    let calculationPolicy = 'unverified';
+
+    // Verify actually_paid strictly: must be a positive number
+    if (actuallyPaid !== undefined && !isNaN(actuallyPaid) && actuallyPaid > 0) {
+        if (payCurrency === priceCurrency) {
+            // Direct fiat / pegged currency match
+            confirmedFiatAmount = Number(actuallyPaid.toFixed(2));
+            hasValidPaymentAmount = true;
+            calculationPolicy = 'direct_currency_match';
+        } else if (actuallyPaidAtFiat !== undefined && !isNaN(actuallyPaidAtFiat) && actuallyPaidAtFiat > 0) {
+            // Official gateway fiat valuation
+            confirmedFiatAmount = Number(actuallyPaidAtFiat.toFixed(2));
+            hasValidPaymentAmount = true;
+            calculationPolicy = 'gateway_fiat_valuation';
+        } else if (payAmount !== undefined && !isNaN(payAmount) && payAmount > 0 && priceAmount !== undefined && !isNaN(priceAmount) && priceAmount > 0) {
+            // Relative crypto fulfillment ratio: (actually_paid / pay_amount) * price_amount
+            const fulfillmentRatio = actuallyPaid / payAmount;
+            confirmedFiatAmount = Number((priceAmount * fulfillmentRatio).toFixed(2));
+            hasValidPaymentAmount = true;
+            calculationPolicy = 'crypto_fulfillment_ratio';
+        } else {
+            // Exchange rate cannot be proven from gateway data - DO NOT DEFAULT OR GUESS
+            hasValidPaymentAmount = false;
+            confirmedFiatAmount = 0;
+            calculationPolicy = 'unverifiable_crypto_rate';
+        }
+    } else {
+        // Missing, null, zero or negative actually_paid - NEVER fall back to price_amount
+        hasValidPaymentAmount = false;
+        confirmedFiatAmount = 0;
+        calculationPolicy = 'missing_or_invalid_actually_paid';
+    }
+
+    const isCompleted = isCompletedStatus && hasValidPaymentAmount && confirmedFiatAmount > 0;
+    const claimedUserId = body.user_id || body.customer_id || null;
 
     return {
         provider: 'nowpayments',
@@ -126,8 +163,15 @@ function parseNowPaymentsPayload(body) {
         internalOrderId,
         rawStatus,
         currency,
-        amount,
-        expectedAmount,
+        priceCurrency,
+        payCurrency,
+        priceAmount,
+        payAmount,
+        actuallyPaid,
+        amount: confirmedFiatAmount,
+        expectedAmount: priceAmount || confirmedFiatAmount,
+        hasValidPaymentAmount,
+        calculationPolicy,
         claimedUserId,
         isCompleted,
         isNonFinal,
@@ -138,11 +182,13 @@ function parseNowPaymentsPayload(body) {
 
 /**
  * Parse Stripe Webhook Event payload according to official Stripe specifications
+ * Validates event.type, object type parity, cents conversion, and explicit order linking.
  */
 function parseStripePayload(body) {
     const eventId = String(body.id || '').trim();
     const eventType = String(body.type || '').trim();
     const object = body.data?.object || body;
+    const objectType = String(object.object || '').trim();
     const paymentId = String(object.id || '').trim();
 
     // Internal order ID from metadata, client_reference_id, or payment intent
@@ -151,12 +197,36 @@ function parseStripePayload(body) {
         object.metadata?.order_id ||
         object.metadata?.internal_id ||
         object.metadata?.payment_id ||
-        object.id ||
         ''
     ).trim();
 
     const claimedUserId = object.metadata?.user_id || object.metadata?.customer_id || null;
     const currency = String(object.currency || 'USD').toUpperCase().trim();
+
+    // Supported Stripe event types and their required object type schema
+    const supportedTypeMap = {
+        'checkout.session.completed': 'checkout.session',
+        'checkout.session.expired': 'checkout.session',
+        'payment_intent.succeeded': 'payment_intent',
+        'payment_intent.payment_failed': 'payment_intent',
+        'payment_intent.canceled': 'payment_intent',
+        'payment_intent.processing': 'payment_intent',
+        'payment_intent.created': 'payment_intent',
+        'charge.succeeded': 'charge',
+        'charge.failed': 'charge'
+    };
+
+    const isSupportedType = Object.prototype.hasOwnProperty.call(supportedTypeMap, eventType);
+    let isObjectTypeValid = true;
+    let objectTypeError = null;
+
+    if (isSupportedType && objectType) {
+        const expectedObjectType = supportedTypeMap[eventType];
+        if (objectType !== expectedObjectType) {
+            isObjectTypeValid = false;
+            objectTypeError = `Stripe object type mismatch: event '${eventType}' expects object '${expectedObjectType}', got '${objectType}'`;
+        }
+    }
 
     // In Stripe, amounts in the object are in cents (smallest currency unit, e.g. 5000 = $50.00)
     let rawAmount = 0;
@@ -169,20 +239,6 @@ function parseStripePayload(body) {
     }
     const amount = Number(rawAmount.toFixed(2));
     const expectedAmount = amount;
-
-    // Supported Stripe event types
-    const supportedTypes = [
-        'checkout.session.completed',
-        'payment_intent.succeeded',
-        'payment_intent.payment_failed',
-        'payment_intent.canceled',
-        'payment_intent.processing',
-        'payment_intent.created',
-        'checkout.session.expired',
-        'charge.succeeded',
-        'charge.failed'
-    ];
-    const isSupportedType = supportedTypes.includes(eventType);
 
     let rawStatus = 'unknown';
     let isCompleted = false;
@@ -218,21 +274,27 @@ function parseStripePayload(body) {
         isNonFinal = true;
     }
 
+    const hasValidPaymentAmount = amount > 0;
+
     return {
         provider: 'stripe',
         eventId,
         paymentId,
         eventType,
+        objectType,
+        isObjectTypeValid,
+        objectTypeError,
         internalOrderId,
         rawStatus,
         currency,
         amount,
         expectedAmount,
+        hasValidPaymentAmount,
         claimedUserId,
-        isCompleted,
+        isCompleted: isCompleted && isObjectTypeValid && hasValidPaymentAmount,
         isNonFinal,
         isFailed,
-        isSupportedType
+        isSupportedType: isSupportedType && isObjectTypeValid
     };
 }
 
@@ -293,11 +355,12 @@ exports.handleGatewayWebhook = async (req, res) => {
         parsed = parseStripePayload(req.body);
     }
 
-    // Verify Stripe event type support
+    // Verify Stripe event type support and object schema parity
     if (rawProvider === 'stripe' && !parsed.isSupportedType) {
         return res.status(400).json({
-            error: `Unsupported Stripe event type '${parsed.eventType}'`,
-            eventType: parsed.eventType
+            error: parsed.objectTypeError || `Unsupported Stripe event type '${parsed.eventType}'`,
+            eventType: parsed.eventType,
+            objectType: parsed.objectType
         });
     }
 
@@ -492,7 +555,33 @@ exports.handleGatewayWebhook = async (req, res) => {
             });
         }
 
-        // 11. Handle Terminal Completed Payment: Add balance & finalize transaction
+        // 10.5 Handle Terminal Status with Unverified / Missing Amount (Never add unearned credit)
+        if (!parsed.hasValidPaymentAmount || parsed.amount <= 0) {
+            if (orderSource === 'transactions') {
+                const meta = {
+                    ...(typeof internalOrder.metadata === 'string' ? JSON.parse(internalOrder.metadata || '{}') : (internalOrder.metadata || {})),
+                    last_gateway_status: parsed.rawStatus,
+                    gateway_event_id: parsed.eventId,
+                    unverified_reason: parsed.calculationPolicy || 'missing_or_invalid_actually_paid',
+                    received_body: req.body,
+                    updated_at: new Date().toISOString()
+                };
+                await connection.query('UPDATE transactions SET metadata = ? WHERE id = ?', [JSON.stringify(meta), internalOrder.id]);
+            } else if (orderSource === 'payments') {
+                await connection.query('UPDATE payments SET gateway_response = ? WHERE id = ?', [JSON.stringify(req.body), internalOrder.id]);
+            }
+            await connection.commit();
+            return res.status(200).json({
+                success: true,
+                processed: false,
+                credited: false,
+                status: parsed.rawStatus,
+                calculationPolicy: parsed.calculationPolicy,
+                message: `Payment received amount could not be reliably verified (${parsed.calculationPolicy}); acknowledged with zero credit`
+            });
+        }
+
+        // 11. Handle Terminal Completed Payment: Add verified balance & update order
         if (!parsed.isCompleted) {
             await connection.rollback();
             return res.status(400).json({
@@ -528,8 +617,9 @@ exports.handleGatewayWebhook = async (req, res) => {
         // Update wallet balance strictly by credited amount
         await connection.query('UPDATE user_wallets SET balance = balance + ? WHERE user_id = ?', [amountToCredit, internalOrder.user_id]);
 
-        // Update internal order to completed and record ledger transaction
+        // Update internal order to completed or partially_paid and record ledger transaction
         if (orderSource === 'transactions') {
+            const targetStatus = isUnderpaid ? 'partially_paid' : 'completed';
             const meta = {
                 ...(typeof internalOrder.metadata === 'string' ? JSON.parse(internalOrder.metadata || '{}') : (internalOrder.metadata || {})),
                 provider: rawProvider,
@@ -539,6 +629,7 @@ exports.handleGatewayWebhook = async (req, res) => {
                 expected_amount: expected,
                 isUnderpaid,
                 isOverpaid,
+                calculationPolicy: parsed.calculationPolicy,
                 completed_at: new Date().toISOString()
             };
 
@@ -548,15 +639,24 @@ exports.handleGatewayWebhook = async (req, res) => {
 
             await connection.query(`
                 UPDATE transactions 
-                SET status = 'completed', amount = ?, balance_before = ?, balance_after = ?, reference_id = ?, description = ?, metadata = ?
+                SET status = ?, amount = ?, balance_before = ?, balance_after = ?, reference_id = ?, description = ?, metadata = ?
                 WHERE id = ?
-            `, [amountToCredit, currentBal, newBal, parsed.eventId, description, JSON.stringify(meta), internalOrder.id]);
+            `, [targetStatus, amountToCredit, currentBal, newBal, parsed.eventId, description, JSON.stringify(meta), internalOrder.id]);
         } else if (orderSource === 'payments') {
+            // CRITICAL: NEVER mark service or course purchase as 'completed' if underpaid!
+            const targetStatus = isUnderpaid ? 'partially_paid' : 'completed';
+
             await connection.query(`
                 UPDATE payments 
-                SET status = 'completed', transaction_id = ?, gateway_response = ?
+                SET status = ?, transaction_id = ?, gateway_response = ?, admin_notes = ?
                 WHERE id = ?
-            `, [parsed.paymentId || parsed.eventId, JSON.stringify(req.body), internalOrder.id]);
+            `, [
+                targetStatus, 
+                parsed.paymentId || parsed.eventId, 
+                JSON.stringify(req.body),
+                isUnderpaid ? `Underpaid: received $${amountToCredit} of expected $${expected}` : 'Full payment confirmed via webhook',
+                internalOrder.id
+            ]);
 
             const trxId = crypto.randomUUID();
             const description = `Payment for order ${internalOrder.id} via ${rawProvider}: received $${amountToCredit} ${parsed.currency}` +
@@ -565,7 +665,7 @@ exports.handleGatewayWebhook = async (req, res) => {
 
             await connection.query(`
                 INSERT INTO transactions (id, user_id, type, amount, currency, balance_before, balance_after, status, reference_id, description, metadata)
-                VALUES (?, ?, 'deposit', ?, ?, ?, ?, 'completed', ?, ?, ?)
+                VALUES (?, ?, 'deposit', ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 trxId,
                 internalOrder.user_id,
@@ -573,6 +673,7 @@ exports.handleGatewayWebhook = async (req, res) => {
                 parsed.currency,
                 currentBal,
                 newBal,
+                targetStatus,
                 parsed.eventId,
                 description,
                 JSON.stringify({
@@ -583,7 +684,8 @@ exports.handleGatewayWebhook = async (req, res) => {
                     receivedAmount: amountToCredit,
                     expectedAmount: expected,
                     isUnderpaid,
-                    isOverpaid
+                    isOverpaid,
+                    completed: !isUnderpaid
                 })
             ]);
         }
@@ -594,6 +696,8 @@ exports.handleGatewayWebhook = async (req, res) => {
             success: true,
             processed: true,
             credited: true,
+            completed: !isUnderpaid,
+            status: isUnderpaid ? 'partially_paid' : 'completed',
             provider: rawProvider,
             eventId: parsed.eventId,
             internalOrderId: internalOrder.id,
