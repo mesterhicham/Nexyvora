@@ -61,7 +61,7 @@ async function runPhase2Audit() {
             'otp_expired@nextvora.com', 'otp_locked@nextvora.com', 'otp_onetime@nextvora.com', 'otp_revoke@nextvora.com',
             'otp_test_student@nextvora.com'
         ];
-        await db.query('DELETE FROM users WHERE email IN (?)', [testEmails]).catch(() => {});
+        await db.query('DELETE FROM users WHERE email IN (?)', [testEmails]).catch(() => { });
 
         // Setup initial test users
         await db.query(`
@@ -127,7 +127,7 @@ async function runPhase2Audit() {
         const oneRejected = statusCodes.includes(400) || statusCodes.includes(409);
         const balanceCorrect = finalBalance === 40.00;
 
-        assert.ok(oneSucceeded && oneRejected && balanceCorrect, 
+        assert.ok(oneSucceeded && oneRejected && balanceCorrect,
             `Financial concurrency failed: statusCodes=${statusCodes}, balance=${finalBalance}`);
 
         recordResult(
@@ -1514,8 +1514,8 @@ async function runPhase2Audit() {
             );
         } finally {
             if (cleanConn) {
-                await cleanConn.query(`DROP DATABASE IF EXISTS \`${cleanDbName}\``).catch(() => {});
-                await cleanConn.end().catch(() => {});
+                await cleanConn.query(`DROP DATABASE IF EXISTS \`${cleanDbName}\``).catch(() => { });
+                await cleanConn.end().catch(() => { });
             }
         }
 
@@ -1626,17 +1626,17 @@ async function runPhase2Audit() {
         return { success: true, results: testResults };
     } finally {
         // Clean up test data
-        await db.query('DELETE FROM support_messages WHERE sender_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => {});
-        await db.query('DELETE FROM support_tickets WHERE user_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => {});
-        await db.query('DELETE FROM messages WHERE sender_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => {});
-        await db.query('DELETE FROM conversation_participants WHERE user_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => {});
-        await db.query('DELETE FROM withdrawal_requests WHERE user_id = ?', [testUserAId]).catch(() => {});
-        await db.query('DELETE FROM transactions WHERE user_id = ?', [testUserAId]).catch(() => {});
-        await db.query('DELETE FROM user_wallets WHERE user_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => {});
-        await db.query('DELETE FROM verification_otps WHERE identifier LIKE "%nextvora.com%"').catch(() => {});
-        await db.query('DELETE FROM profiles WHERE id IN (?, ?, ?)', [testUserAId, testUserBId, adminUserId]).catch(() => {});
-        await db.query('DELETE FROM users WHERE id IN (?, ?, ?) OR email LIKE "%@nextvora.com%"', [testUserAId, testUserBId, adminUserId]).catch(() => {});
-        await db.query('DELETE FROM payment_methods WHERE name = "Audit NOWPayments"').catch(() => {});
+        await db.query('DELETE FROM support_messages WHERE sender_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => { });
+        await db.query('DELETE FROM support_tickets WHERE user_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => { });
+        await db.query('DELETE FROM messages WHERE sender_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => { });
+        await db.query('DELETE FROM conversation_participants WHERE user_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => { });
+        await db.query('DELETE FROM withdrawal_requests WHERE user_id = ?', [testUserAId]).catch(() => { });
+        await db.query('DELETE FROM transactions WHERE user_id = ?', [testUserAId]).catch(() => { });
+        await db.query('DELETE FROM user_wallets WHERE user_id IN (?, ?)', [testUserAId, testUserBId]).catch(() => { });
+        await db.query('DELETE FROM verification_otps WHERE identifier LIKE "%nextvora.com%"').catch(() => { });
+        await db.query('DELETE FROM profiles WHERE id IN (?, ?, ?)', [testUserAId, testUserBId, adminUserId]).catch(() => { });
+        await db.query('DELETE FROM users WHERE id IN (?, ?, ?) OR email LIKE "%@nextvora.com%"', [testUserAId, testUserBId, adminUserId]).catch(() => { });
+        await db.query('DELETE FROM payment_methods WHERE name = "Audit NOWPayments"').catch(() => { });
 
         const testPrivateFile = path.join(__dirname, '../../uploads/private', `sec_${testUserBId}_identity_passport_proof.pdf`);
         if (fs.existsSync(testPrivateFile)) fs.unlinkSync(testPrivateFile);
