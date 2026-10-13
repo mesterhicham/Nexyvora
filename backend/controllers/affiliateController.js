@@ -487,6 +487,16 @@ exports.requestDeposit = async (req, res) => {
 
     const isNowPayments = (paymentMethod || '').toLowerCase().includes('nowpayments');
 
+    // For manual bank transfers and offline deposits: transaction reference and receipt proof image are MANDATORY
+    if (!isNowPayments) {
+        if (!paymentReference || !paymentReference.toString().trim()) {
+            return res.status(400).json({ error: 'يرجى إدخال رقم المعاملة أو الرقم المرجعي للتحويل البنكي (Transaction Reference / TxID)' });
+        }
+        if (!receiptUrl || !receiptUrl.toString().trim()) {
+            return res.status(400).json({ error: 'يرجى رفع صورة وصل التحويل البنكي لإتمام طلب الإيداع' });
+        }
+    }
+
     // Pre-flight check for NOWPayments limits if crypto method selected
     let nowPaymentsConfig = null;
     if (isNowPayments) {

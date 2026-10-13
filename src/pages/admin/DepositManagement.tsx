@@ -38,7 +38,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
-  Calendar
+  Calendar,
+  Image as ImageIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -64,6 +65,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
   const [rejectItem, setRejectItem] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [processingAction, setProcessingAction] = useState(false);
+  const [viewingReceipt, setViewingReceipt] = useState<{ url: string; title: string } | null>(null);
 
   // IPN Log states
   const [ipnLogs, setIpnLogs] = useState<any[]>([]);
@@ -637,6 +639,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                     <th className="p-4">{t('adminExtra.amountCol', 'Amount')}</th>
                     <th className="p-4">{t('adminExtra.methodCol', 'Method')}</th>
                     <th className="p-4">{t('adminExtra.referenceCol', 'Reference')}</th>
+                    <th className="p-4">{isRtl ? 'وصل التحويل' : 'Receipt Proof'}</th>
                     <th className="p-4">{t('adminExtra.statusCol', 'Status')}</th>
                     <th className="p-4">{t('adminExtra.dateCol', 'Date')}</th>
                     <th className="p-4 text-center">{t('adminExtra.actionsCol', 'Actions')}</th>
@@ -645,14 +648,14 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {loading ? (
                     <tr>
-                      <td colSpan={8} className="text-center py-12">
+                      <td colSpan={9} className="text-center py-12">
                         <Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-500 mb-2" />
                         <span className="text-xs text-slate-400">{t('common.loading', 'Loading...')}</span>
                       </td>
                     </tr>
                   ) : filteredDeposits.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="text-center py-12 text-slate-400">
+                      <td colSpan={9} className="text-center py-12 text-slate-400">
                         {t('adminExtra.noDepositsFound', 'No deposits found')}
                       </td>
                     </tr>
@@ -682,6 +685,23 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                         </td>
                         <td className="p-4 font-mono text-[10px] text-slate-500">
                           {item.payment_reference}
+                        </td>
+                        <td className="p-4">
+                          {item.receipt_url ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setViewingReceipt({ url: item.receipt_url, title: `${item.user_name} — ${item.payment_reference || 'Receipt'}` })}
+                              className="h-7 px-2.5 text-[10px] gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 font-bold"
+                            >
+                              <ImageIcon className="h-3.5 w-3.5" />
+                              <span>{isRtl ? 'عرض الوصل' : 'View'}</span>
+                            </Button>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 italic">
+                              {isRtl ? 'بدون وصل' : 'No Receipt'}
+                            </span>
+                          )}
                         </td>
                         <td className="p-4">
                           {getStatusBadge(item.status)}
@@ -859,7 +879,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
             </DialogHeader>
 
             {approveItem && (
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-2.5">
                 <div className="flex justify-between">
                   <span className="text-slate-400">{t('adminExtra.studentCol')}:</span>
                   <span className="font-bold">{approveItem.user_name}</span>
@@ -871,6 +891,40 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 <div className="flex justify-between">
                   <span className="text-slate-400">{t('adminExtra.methodCol')}:</span>
                   <span className="font-semibold">{approveItem.payment_method}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">{t('adminExtra.referenceCol', 'Reference')}:</span>
+                  <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{approveItem.payment_reference || '—'}</span>
+                </div>
+
+                {/* Receipt Preview in Approval Dialog */}
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <span className="text-slate-400 block mb-1.5 font-bold">{isRtl ? 'صورة وصل التحويل:' : 'Transfer Receipt Proof:'}</span>
+                  {approveItem.receipt_url ? (
+                    <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-black/5 dark:bg-black/30 p-2 text-center">
+                      <img 
+                        src={approveItem.receipt_url} 
+                        alt="Transfer Receipt" 
+                        className="max-h-44 mx-auto rounded-lg object-contain cursor-pointer hover:opacity-95 transition-opacity"
+                        onClick={() => window.open(approveItem.receipt_url, '_blank')}
+                      />
+                      <div className="mt-1.5 flex items-center justify-center gap-2">
+                        <a 
+                          href={approveItem.receipt_url} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {isRtl ? 'عرض بالحجم الكامل ↗' : 'View Full Image ↗'}
+                        </a>
+                      </div>
+                    </div>
+                  ) : (
+                    <Badge variant="outline" className="text-rose-500 border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/20 text-[10px]">
+                      {isRtl ? 'لم يقم العضو برفع وصل' : 'No Receipt Attached'}
+                    </Badge>
+                  )}
                 </div>
               </div>
             )}
@@ -927,6 +981,71 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 {processingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : t('adminExtra.confirmRejectBtn')}
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Receipt Image Lightbox Preview Dialog */}
+        <Dialog open={!!viewingReceipt} onOpenChange={(open) => !open && setViewingReceipt(null)}>
+          <DialogContent className="sm:max-w-xl rounded-3xl p-5 max-h-[90vh] overflow-y-auto">
+            <DialogHeader className={isRtl ? 'text-right' : 'text-left'}>
+              <DialogTitle className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" />
+                <span>{isRtl ? 'وصل التحويل البنكي' : 'Bank Transfer Receipt'}</span>
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 font-mono truncate">
+                {viewingReceipt?.title}
+              </DialogDescription>
+            </DialogHeader>
+
+            {viewingReceipt && (
+              <div className="space-y-3 py-2">
+                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-950/5 dark:bg-slate-950/50 flex items-center justify-center p-2 min-h-[250px]">
+                  {viewingReceipt.url.toLowerCase().endsWith('.pdf') ? (
+                    <div className="text-center p-6 space-y-3">
+                      <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+                        <ExternalLink className="h-6 w-6" />
+                      </div>
+                      <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {isRtl ? 'المستند بصيغة PDF' : 'Document is in PDF format'}
+                      </p>
+                      <Button
+                        size="sm"
+                        onClick={() => window.open(viewingReceipt.url, '_blank')}
+                        className="rounded-xl font-bold text-xs"
+                      >
+                        {isRtl ? 'فتح ملف PDF في نافذة جديدة' : 'Open PDF in New Tab'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <img
+                      src={viewingReceipt.url}
+                      alt="Transfer Receipt"
+                      className="max-h-[60vh] w-auto max-w-full rounded-xl object-contain shadow-sm"
+                    />
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <a
+                    href={viewingReceipt.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-bold"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>{isRtl ? 'فتح في نافذة جديدة' : 'Open in New Tab'}</span>
+                  </a>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setViewingReceipt(null)}
+                    className="rounded-xl text-xs font-bold"
+                  >
+                    {isRtl ? 'إغلاق' : 'Close'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>

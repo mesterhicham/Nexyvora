@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { affiliateService } from '@/services/apiService';
+import { affiliateService, uploadService } from '@/services/apiService';
 import { 
   Wallet, 
   ArrowDownToLine, 
@@ -38,7 +38,12 @@ import {
   Copy,
   Check,
   Coins,
-  Receipt
+  Receipt,
+  Upload,
+  Image as ImageIcon,
+  FileCheck,
+  Trash2,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from "sonner";
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -70,6 +75,8 @@ export default function StudentWallet() {
   const [depositReference, setDepositReference] = useState('');
   const [depositNotes, setDepositNotes] = useState('');
   const [depositReceiptUrl, setDepositReceiptUrl] = useState('');
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const receiptFileInputRef = useRef<HTMLInputElement>(null);
   const [submittingDeposit, setSubmittingDeposit] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [activePaymentOrder, setActivePaymentOrder] = useState<any>(null);
@@ -266,6 +273,33 @@ export default function StudentWallet() {
     }
   };
 
+  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      return toast.error(isRtl ? 'حجم الملف يجب ألا يتجاوز 5 ميغابايت' : 'File size must be under 5MB');
+    }
+
+    try {
+      setUploadingReceipt(true);
+      const res = await uploadService.uploadFile(file);
+      const url = res.url || res.fileUrl || res.path || (res.filename ? `/uploads/${res.filename}` : '');
+      if (url) {
+        setDepositReceiptUrl(url);
+        toast.success(isRtl ? 'تم رفع صورة الوصل بنجاح!' : 'Receipt uploaded successfully!');
+      } else {
+        toast.error(isRtl ? 'فشل معالجة رابط الملف المرفوع' : 'Failed to process uploaded file URL');
+      }
+    } catch (err: any) {
+      console.error('[handleReceiptUpload]', err);
+      toast.error(err.response?.data?.error || (isRtl ? 'فشل رفع صورة الوصل' : 'Failed to upload receipt'));
+    } finally {
+      setUploadingReceipt(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
   const handleDepositSubmit = async () => {
     const amt = Number(depositAmount);
     if (!amt || amt <= 0) {
@@ -278,8 +312,13 @@ export default function StudentWallet() {
 
     const isCrypto = selectedDepositMethod?.type === 'nowpayments_crypto' || selectedDepositMethod?.provider === 'nowpayments';
 
-    if (!isCrypto && !depositReference.trim()) {
-      return toast.error(t('wallet.reference', isRtl ? 'يرجى كتابة رقم العملية أو المعاملة (Reference / TxID) لتسريع التدقيق' : 'Please enter reference / TxID for faster verification'));
+    if (!isCrypto) {
+      if (!depositReference.trim()) {
+        return toast.error(isRtl ? 'يرجى كتابة رقم العملية أو المعاملة (Reference / TxID)' : 'Please enter transaction reference / TxID');
+      }
+      if (!depositReceiptUrl.trim()) {
+        return toast.error(isRtl ? 'يرجى رفع صورة وصل التحويل البنكي لإتمام طلب الإيداع' : 'Please upload the bank transfer receipt image to complete your deposit request');
+      }
     }
 
     try {
@@ -660,7 +699,18 @@ export default function StudentWallet() {
                                meta.paymentMethod || 'Deposit'}
                             </td>
                             <td className="p-4 font-mono text-[11px] text-slate-500">
-                              {dep.reference_id || meta.paymentReference || '—'}
+                              <div>{dep.reference_id || meta.paymentReference || '—'}</div>
+                              {meta.receiptUrl && (
+                                <a
+                                  href={meta.receiptUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline font-bold mt-1"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  {t('wallet.viewReceipt', isRtl ? 'وصل التحويل' : 'Receipt')}
+                                </a>
+                              )}
                             </td>
                             <td className="p-4 text-slate-500 text-[11px] max-w-xs truncate">
                               {dep.description || meta.notes || '—'}
@@ -1016,11 +1066,23 @@ export default function StudentWallet() {
                 <>
                   {/* Manual Fields (only for manual bank transfers) */}
                   {selectedDepositMethod?.type !== 'nowpayments_crypto' && (
-                    <>
+                    <div className="space-y-3 pt-1">
+                      {/* Notice box */}
+                      <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[10px] sm:text-[11px] text-blue-700 dark:text-blue-300 flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+                        <span>
+                          {t('wallet.receiptProofRequired', isRtl 
+                            ? 'يرجى إرفاق صورة واضحة لوصل التحويل البنكي ورقم المعاملة لإتمام طلب الإيداع وتأكيده فوراً.' 
+                            : 'Receipt image and transaction reference are mandatory for bank deposits.')}
+                        </span>
+                      </div>
+
                       {/* Reference ID / Transaction Hash */}
                       <div className="space-y-1">
-                        <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                          {t('wallet.reference', isRtl ? 'رقم العملية / الحوالة أو TxID' : 'Transaction Ref / TxID')} <span className="text-rose-500">*</span>
+                        <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between">
+                          <span>
+                            {t('wallet.reference', isRtl ? 'رقم المعاملة / كود الحوالة البنكية' : 'Transaction Reference / TxID')} <span className="text-rose-500">*</span>
+                          </span>
                         </Label>
                         <Input
                           placeholder="REF-123456 or TxID"
@@ -1030,19 +1092,104 @@ export default function StudentWallet() {
                         />
                       </div>
 
-                      {/* Notes or Image URL */}
+                      {/* Receipt Image Upload */}
+                      <div className="space-y-1.5">
+                        <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between">
+                          <span>
+                            {t('wallet.receiptProofTitle', isRtl ? 'صورة وصل التحويل البنكي' : 'Bank Transfer Receipt Proof')} <span className="text-rose-500">*</span>
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-normal">
+                            {t('wallet.uploadReceiptHint', isRtl ? 'PNG, JPG, PDF بحد أقصى 5MB' : 'PNG, JPG, PDF up to 5MB')}
+                          </span>
+                        </Label>
+
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          ref={receiptFileInputRef}
+                          onChange={handleReceiptUpload}
+                          className="hidden"
+                        />
+
+                        {depositReceiptUrl ? (
+                          <div className="p-2.5 sm:p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 truncate">
+                              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                <FileCheck className="h-4 w-4" />
+                              </div>
+                              <div className="truncate">
+                                <span className="text-emerald-700 dark:text-emerald-300 font-bold block truncate text-[11px]">
+                                  {t('wallet.receiptUploadedSuccess', isRtl ? 'تم إرفاق صورة الوصل بنجاح ✓' : 'Receipt attached successfully ✓')}
+                                </span>
+                                <span className="text-slate-400 text-[9px] sm:text-[10px] block truncate font-mono">
+                                  {depositReceiptUrl.split('/').pop()}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <a
+                                href={depositReceiptUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-[10px] font-bold text-primary hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center gap-1"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                {t('wallet.viewReceipt', isRtl ? 'معاينة' : 'View')}
+                              </a>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setDepositReceiptUrl('')}
+                                className="h-7 w-7 p-0 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                                title={t('wallet.removeReceipt', isRtl ? 'حذف الوصل' : 'Remove')}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => receiptFileInputRef.current?.click()}
+                            className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-primary/60 dark:hover:border-primary/60 bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl text-center cursor-pointer transition-all hover:bg-primary/5 group"
+                          >
+                            {uploadingReceipt ? (
+                              <div className="flex flex-col items-center justify-center gap-1.5 py-1.5">
+                                <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                  {t('wallet.uploadingReceipt', isRtl ? 'جاري رفع صورة الوصل...' : 'Uploading receipt...')}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center gap-1 py-1">
+                                <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                                  <Upload className="h-4 w-4" />
+                                </div>
+                                <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                                  {t('wallet.uploadReceiptPrompt', isRtl ? 'انقر لاختيار أو رفع صورة الوصل' : 'Click to select or upload receipt image')}
+                                </span>
+                                <span className="text-[10px] text-slate-400">
+                                  {t('wallet.uploadReceiptHint', isRtl ? 'PNG, JPG, WebP أو PDF (الحد الأقصى 5MB)' : 'PNG, JPG, WebP or PDF (up to 5MB)')}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Optional Notes */}
                       <div className="space-y-1">
-                        <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                          {t('wallet.receiptUrl', isRtl ? 'رابط الوصل أو ملاحظات (اختياري)' : 'Receipt URL or Notes (Optional)')}
+                        <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                          {isRtl ? 'ملاحظات إضافية (اختياري)' : 'Additional Notes (Optional)'}
                         </Label>
                         <Input
-                          placeholder="https://... or notes"
-                          value={depositReceiptUrl}
-                          onChange={(e) => setDepositReceiptUrl(e.target.value)}
-                          className="rounded-xl text-xs h-8 sm:h-9 bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                          placeholder={isRtl ? 'مثال: تم التحويل من حساب السيد...' : 'e.g. Transferred from account...'}
+                          value={depositNotes}
+                          onChange={(e) => setDepositNotes(e.target.value)}
+                          className="rounded-xl text-xs h-8 bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
                         />
                       </div>
-                    </>
+                    </div>
                   )}
                 </>
               )}

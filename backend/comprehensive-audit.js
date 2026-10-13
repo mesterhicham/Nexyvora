@@ -137,6 +137,7 @@ async function runAudit() {
                 amount: depositAmount,
                 paymentMethod: 'baridimob',
                 paymentReference: depositRef,
+                receiptUrl: 'https://nexyvora.net/uploads/receipts/audit_test_receipt.jpg',
                 notes: 'Automated deposit audit test'
             })
         });
