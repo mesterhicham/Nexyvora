@@ -10,7 +10,33 @@ class EmailService {
     async getSettings() {
         try {
             const [rows] = await pool.query('SELECT * FROM email_settings ORDER BY id ASC LIMIT 1');
-            return rows.length > 0 ? rows[0] : null;
+            const dbSettings = rows.length > 0 ? rows[0] : null;
+
+            // If active and has smtp_host configured in database, use it
+            if (dbSettings && dbSettings.is_active && dbSettings.smtp_host) {
+                return dbSettings;
+            }
+
+            // Fallback to environment variables if configured
+            const envHost = process.env.SMTP_HOST || process.env.EMAIL_HOST;
+            const envUser = process.env.SMTP_USER || process.env.SMTP_USERNAME || process.env.EMAIL_USER;
+            const envPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.EMAIL_PASS;
+            if (envHost && envUser && envPass) {
+                const envPort = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT) || 587;
+                return {
+                    id: dbSettings ? dbSettings.id : null,
+                    is_active: 1,
+                    smtp_host: envHost,
+                    smtp_port: envPort,
+                    smtp_username: envUser,
+                    smtp_password: envPass,
+                    encryption: (envPort === 465 || process.env.SMTP_SECURE === 'true') ? 'ssl' : 'tls',
+                    from_email: process.env.FROM_EMAIL || envUser,
+                    from_name: process.env.FROM_NAME || 'Nexyvora Platform'
+                };
+            }
+
+            return dbSettings;
         } catch (err) {
             console.error('[EmailService] Error fetching settings:', err.message);
             return null;
