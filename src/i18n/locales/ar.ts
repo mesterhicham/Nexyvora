@@ -496,6 +496,7 @@ export const ar = {
     bulkAssignCohort: "تعيين جماعي للدفعة",
     bulkActionDesc: "تطبيق التعديلات على جميع الطلاب المحددين دفعة واحدة.",
     totalSales: "إجمالي المبيعات",
+    totalDeposits: "إجمالي الإيداعات",
     totalWithdrawals: "إجمالي السحوبات",
     walletBalances: "أرصدة محافظ الأعضاء",
     netPlatformRevenue: "صافي أرباح المنصة",

@@ -516,6 +516,7 @@ export const en = {
     "bulkAssignCohort": "Bulk Assign Cohort",
     "bulkActionDesc": "Apply changes to all selected students simultaneously.",
     "totalSales": "Total Sales",
+    "totalDeposits": "Total Deposits",
     "totalWithdrawals": "Total Withdrawals",
     "walletBalances": "Member Wallet Balances",
     "netPlatformRevenue": "Net Platform Revenue",

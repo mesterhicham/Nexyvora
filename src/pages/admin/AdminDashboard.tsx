@@ -96,7 +96,21 @@ export default function AdminDashboard() {
         </div>
 
         {/* Secondary Financial & Academy Overview Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
+          <Link to="/admin/deposits" className="p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex items-center justify-between hover:border-teal-200 transition-all group">
+            <div className="min-w-0">
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">
+                {t('admin.totalDeposits', 'Total Deposits')}
+              </span>
+              <span className="text-sm sm:text-base font-black text-teal-600 font-mono block truncate mt-0.5">
+                ${Number(stats.totalDeposits || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="h-8 w-8 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+              <CreditCard className="h-4 w-4" />
+            </div>
+          </Link>
+
           <div className="p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex items-center justify-between">
             <div className="min-w-0">
               <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">
@@ -110,20 +124,6 @@ export default function AdminDashboard() {
               <ShieldCheck className="h-4 w-4" />
             </div>
           </div>
-
-          <Link to="/admin/withdrawals" className="p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex items-center justify-between hover:border-rose-200 transition-all group">
-            <div className="min-w-0">
-              <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">
-                {t('admin.pendingWithdrawals')}
-              </span>
-              <span className="text-sm sm:text-base font-black text-rose-500 font-mono block truncate mt-0.5">
-                ${Number(stats.pendingWithdrawals || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="h-8 w-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-              <Clock className="h-4 w-4" />
-            </div>
-          </Link>
 
           <Link to="/admin/packages" className="p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex items-center justify-between hover:border-indigo-200 transition-all group">
             <div className="min-w-0">
@@ -150,6 +150,20 @@ export default function AdminDashboard() {
             </div>
             <div className="h-8 w-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
               <Sparkles className="h-4 w-4" />
+            </div>
+          </Link>
+
+          <Link to="/admin/withdrawals" className="p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex items-center justify-between hover:border-rose-200 transition-all group">
+            <div className="min-w-0">
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">
+                {t('admin.pendingWithdrawals')}
+              </span>
+              <span className="text-sm sm:text-base font-black text-rose-500 font-mono block truncate mt-0.5">
+                ${Number(stats.pendingWithdrawals || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="h-8 w-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+              <Clock className="h-4 w-4" />
             </div>
           </Link>
         </div>
@@ -241,6 +255,13 @@ export default function AdminDashboard() {
               </div>
 
               <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-xs">
+                <span className="text-slate-500 font-bold">{isRtl ? 'إجمالي إيداعات المحافظ:' : 'Total Wallet Deposits:'}</span>
+                <strong className="font-mono text-teal-600 dark:text-teal-400 text-xs sm:text-sm">
+                  ${Number(stats.totalDeposits || 0).toFixed(2)}
+                </strong>
+              </div>
+
+              <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-xs">
                 <span className="text-slate-500 font-bold">{t('admin.totalWithdrawals')}:</span>
                 <strong className="font-mono text-rose-500 text-xs sm:text-sm">
                   ${Number(stats.totalWithdrawals || 0).toFixed(2)}
@@ -251,6 +272,13 @@ export default function AdminDashboard() {
                 <span className="text-slate-500 font-bold">{t('admin.pendingWithdrawals')}:</span>
                 <strong className="font-mono text-amber-500 text-xs sm:text-sm">
                   ${Number(stats.pendingWithdrawals || 0).toFixed(2)}
+                </strong>
+              </div>
+
+              <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-xs">
+                <span className="text-slate-500 font-bold">{t('admin.walletBalances')}:</span>
+                <strong className="font-mono text-sky-600 dark:text-sky-400 text-xs sm:text-sm">
+                  ${Number(stats.totalMemberBalances || 0).toFixed(2)}
                 </strong>
               </div>
 

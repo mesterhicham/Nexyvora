@@ -70,7 +70,7 @@ exports.getAdminStats = async (req, res) => {
         const [packageSales] = await db.query(`
             SELECT COUNT(*) as count, COALESCE(SUM(amount_paid), 0) as total 
             FROM user_packages 
-            WHERE status = 'active'
+            WHERE status IN ('active', 'upgraded')
         `);
         const [formationSales] = await db.query(`
             SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total 
@@ -82,9 +82,21 @@ exports.getAdminStats = async (req, res) => {
             FROM transactions 
             WHERE type = 'deposit' AND status = 'completed'
         `);
+        const [pendingDeposits] = await db.query(`
+            SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total 
+            FROM transactions 
+            WHERE type = 'deposit' AND status = 'pending'
+        `);
 
-        const totalSales = Number(packageSales[0].total) + Number(formationSales[0].total) + Number(completedDeposits[0].total);
-        const totalSalesCount = Number(packageSales[0].count) + Number(formationSales[0].count) + Number(completedDeposits[0].count);
+        // Real platform sales = Package purchases/upgrades + Course/Formation sales.
+        // Wallet deposits are liabilities (customer wallet funds), NOT platform sales.
+        const totalSales = Number(packageSales[0].total) + Number(formationSales[0].total);
+        const totalSalesCount = Number(packageSales[0].count) + Number(formationSales[0].count);
+
+        const totalDeposits = Number(completedDeposits[0].total);
+        const totalDepositsCount = Number(completedDeposits[0].count);
+        const pendingDepositsTotal = Number(pendingDeposits[0].total);
+        const pendingDepositsCount = Number(pendingDeposits[0].count);
 
         // 4. Withdrawals
         const [approvedWithdrawals] = await db.query(`
@@ -168,6 +180,12 @@ exports.getAdminStats = async (req, res) => {
             packageSales: Number(packageSales[0].total),
             packageSalesCount: Number(packageSales[0].count),
             courseSales: Number(formationSales[0].total),
+
+            // Deposits (Tracked cleanly & separately from sales)
+            totalDeposits,
+            totalDepositsCount,
+            pendingDeposits: pendingDepositsTotal,
+            pendingDepositsCount,
 
             // Withdrawals
             totalWithdrawals,

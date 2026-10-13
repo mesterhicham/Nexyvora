@@ -496,6 +496,7 @@ export const fr = {
     bulkAssignCohort: "Assignation groupée de cohorte",
     bulkActionDesc: "Appliquer les modifications à tous les étudiants sélectionnés.",
     totalSales: "Ventes Totales",
+    totalDeposits: "Dépôts Totaux",
     totalWithdrawals: "Retraits Totaux",
     walletBalances: "Soldes des Portefeuilles",
     netPlatformRevenue: "Revenus Nets de la Plateforme",

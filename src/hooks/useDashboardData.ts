@@ -198,6 +198,12 @@ export function useAdminStats() {
     packageSales: stats?.packageSales || 0,
     courseSales: stats?.courseSales || 0,
 
+    // Wallet Deposits
+    totalDeposits: stats?.totalDeposits || 0,
+    totalDepositsCount: stats?.totalDepositsCount || 0,
+    pendingDeposits: stats?.pendingDeposits || 0,
+    pendingDepositsCount: stats?.pendingDepositsCount || 0,
+
     totalWithdrawals: stats?.totalWithdrawals || 0,
     totalWithdrawalsCount: stats?.totalWithdrawalsCount || 0,
     pendingWithdrawals: stats?.pendingWithdrawals || 0,
