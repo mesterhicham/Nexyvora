@@ -788,8 +788,7 @@ export default function PlatformSettings() {
               </div>
 
               {/* Hero Image Live Preview */}
-              {(getValue('hero_image_url') || '/simply_university_hero.jpg') && (
-                <div className="p-4 bg-card border border-border rounded-2xl shadow-sm space-y-3">
+              <div className="p-4 bg-card border border-border rounded-2xl shadow-sm space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <Eye className="h-4 w-4 text-primary" />
@@ -818,7 +817,6 @@ export default function PlatformSettings() {
                     </div>
                   </div>
                 </div>
-              )}
             </CardContent>
           </Card>
 
