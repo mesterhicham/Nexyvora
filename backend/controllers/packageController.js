@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
+const nowpaymentsService = require('../services/nowpaymentsService');
 
 function genUuid() {
     return crypto.randomUUID();
@@ -553,10 +554,38 @@ exports.getMyPackage = async (req, res) => {
             }));
         }
 
+        // Check if there is an active pending NOWPayments payment order
+        let activeNowPaymentsOrder = null;
+        const [pendingTxRows] = await db.query(`
+            SELECT id, reference_id, amount, status, metadata, created_at
+            FROM transactions
+            WHERE user_id = ? AND type = 'package_purchase' AND status = 'pending'
+            ORDER BY created_at DESC
+            LIMIT 1
+        `, [userId]);
+
+        if (pendingTxRows.length > 0) {
+            const tx = pendingTxRows[0];
+            const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata || '{}') : (tx.metadata || {});
+            if (meta.isNowPayments && meta.active_pay_address) {
+                activeNowPaymentsOrder = {
+                    orderId: tx.id,
+                    paymentId: meta.active_payment_id || tx.reference_id,
+                    payAddress: meta.active_pay_address,
+                    payAmount: meta.active_pay_amount || tx.amount || 30,
+                    payCurrency: meta.active_pay_currency || 'USDTBSC',
+                    network: meta.active_network || 'bsc',
+                    createdAt: tx.created_at,
+                    expiresAt: meta.expires_at || new Date(new Date(tx.created_at).getTime() + 20 * 60 * 1000).toISOString()
+                };
+            }
+        }
+
         res.json({ 
             currentPackage: current, 
             hasActivePackage: !!current, 
             pendingPackage: pending, 
+            activeNowPaymentsOrder,
             availableUpgrades: upgrades 
         });
     } catch (err) {
@@ -688,8 +717,132 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 isUpgrade: !!upgradedFromId,
                 commissionsDistributed: distributedCommissions.length
             });
+        } else if (paymentMethod === 'nowpayments_crypto' || paymentMethod === 'usdt') {
+            // NOWPayments Crypto (USDT BEP20) dynamic dedicated wallet creation
+            const trxId = genUuid();
+            let initialPayment = null;
+            try {
+                initialPayment = await nowpaymentsService.createPayment({
+                    priceAmount: saleAmount,
+                    priceCurrency: 'USD',
+                    payCurrency: 'usdtbsc', // Always USDT on BEP20 (Binance Smart Chain)
+                    orderId: trxId,
+                    orderDescription: `Nexyvora Package Activation #${trxId} ($${saleAmount} USD)`
+                });
+            } catch (apiErr) {
+                await connection.rollback();
+                console.error('[purchaseOrUpgradePackage:NowPayments] API Error:', apiErr.message);
+                return res.status(502).json({
+                    error: 'فشل الاتصال ببوابة NOWPayments لإنشاء عنوان الدفع المخصص. يرجى المحاولة لاحقاً.',
+                    details: apiErr.message
+                });
+            }
+
+            const attemptId = genUuid();
+            const nextRenewalTime = new Date(Date.now() + 20 * 60 * 1000);
+
+            // Upsert user_packages in pending status
+            const [existingPending] = await connection.query(`
+                SELECT id FROM user_packages WHERE user_id = ? AND status = 'pending'
+            `, [userId]);
+
+            let targetUserPackageId = genUuid();
+            if (existingPending.length > 0) {
+                targetUserPackageId = existingPending[0].id;
+                await connection.query(`
+                    UPDATE user_packages 
+                    SET package_id = ?, amount_paid = ?, payment_method = 'nowpayments_crypto', payment_reference = ?,
+                        receipt_url = NULL, notes = 'NOWPayments USDT (BEP20)', upgraded_from_package_id = ?, purchased_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                `, [targetPackage.id, saleAmount, initialPayment.paymentId, upgradedFromId, targetUserPackageId]);
+            } else {
+                await connection.query(`
+                    INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, upgraded_from_package_id, purchased_at)
+                    VALUES (?, ?, ?, ?, 'nowpayments_crypto', ?, NULL, 'NOWPayments USDT (BEP20)', 'pending', 0, ?, CURRENT_TIMESTAMP)
+                `, [targetUserPackageId, userId, targetPackage.id, saleAmount, initialPayment.paymentId, upgradedFromId]);
+            }
+
+            const meta = {
+                isNowPayments: true,
+                packageId: targetPackage.id,
+                userPackageId: targetUserPackageId,
+                paymentMethod: 'nowpayments_crypto',
+                isUpgrade: !!upgradedFromId,
+                upgradedFromId,
+                active_attempt_id: attemptId,
+                active_payment_id: initialPayment.paymentId,
+                active_pay_address: initialPayment.payAddress,
+                active_pay_amount: initialPayment.payAmount,
+                active_pay_currency: initialPayment.payCurrency,
+                active_network: initialPayment.network || 'bsc',
+                next_renewal_at: nextRenewalTime.toISOString(),
+                expires_at: nextRenewalTime.toISOString(),
+                requested_at: new Date().toISOString()
+            };
+
+            await connection.query(`
+                INSERT INTO transactions (id, user_id, type, amount, currency, balance_before, balance_after, status, reference_id, description, metadata)
+                VALUES (?, ?, 'package_purchase', ?, 'USD', 0, 0, 'pending', ?, ?, ?)
+            `, [
+                trxId,
+                userId,
+                saleAmount,
+                initialPayment.paymentId,
+                upgradedFromId ? `طلب ترقية باقة عبر NOWPayments (USDT BEP20) إلى ${targetPackage.name_ar || targetPackage.name}` : `طلب تفعيل باقة عبر NOWPayments (USDT BEP20): ${targetPackage.name_ar || targetPackage.name}`,
+                JSON.stringify(meta)
+            ]);
+
+            try {
+                await connection.query(`
+                    INSERT INTO payment_attempts (
+                        id, transaction_id, user_id, provider, provider_payment_id, provider_order_id,
+                        attempt_number, pay_address, pay_amount, pay_currency, price_amount, price_currency,
+                        network, status, is_wallet_credited, next_renewal_at, metadata
+                    ) VALUES (?, ?, ?, 'nowpayments', ?, ?, 1, ?, ?, ?, ?, ?, ?, 'waiting', 0, ?, ?)
+                `, [
+                    attemptId,
+                    trxId,
+                    userId,
+                    initialPayment.paymentId,
+                    trxId,
+                    initialPayment.payAddress,
+                    initialPayment.payAmount,
+                    initialPayment.payCurrency,
+                    initialPayment.priceAmount,
+                    initialPayment.priceCurrency,
+                    initialPayment.network || 'bsc',
+                    nextRenewalTime,
+                    JSON.stringify({
+                        is_package_activation: true,
+                        package_id: targetPackage.id,
+                        user_package_id: targetUserPackageId,
+                        rawResponse: initialPayment.raw
+                    })
+                ]);
+            } catch (attErr) {
+                console.warn('[purchaseOrUpgradePackage] Could not write payment_attempts (ignored):', attErr.message);
+            }
+
+            await connection.commit();
+
+            return res.json({
+                message: 'تم إنشاء عنوان محفظة الدفع المخصصة بنجاح عبر NOWPayments!',
+                status: 'waiting_payment',
+                isNowPayments: true,
+                orderId: trxId,
+                userPackageId: targetUserPackageId,
+                payment: {
+                    orderId: trxId,
+                    paymentId: initialPayment.paymentId,
+                    payAddress: initialPayment.payAddress,
+                    payAmount: initialPayment.payAmount,
+                    payCurrency: initialPayment.payCurrency,
+                    network: initialPayment.network || 'bsc',
+                    expiresAt: nextRenewalTime.toISOString()
+                }
+            });
         } else {
-            // Non-wallet payment (USDT, Bank Transfer): Create PENDING request
+            // Non-wallet payment (Bank Transfer): Create PENDING request
             paymentRefToSave = paymentReference || `PKG-${Date.now()}`;
 
             // Check if user already has a pending package request for this or another package; if so, we can update or create
@@ -881,4 +1034,168 @@ exports.updatePackage = async (req, res) => {
         res.status(500).json({ error: 'Failed to update package' });
     }
 };
+
+/**
+ * Check real-time payment status of NOWPayments package purchase and activate if confirmed
+ */
+exports.checkNowPaymentsPayment = async (req, res) => {
+    const userId = req.user.id;
+    const { orderId } = req.params;
+
+    if (!orderId) {
+        return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    try {
+        // 1. Check if user already has an active package
+        const [activeRows] = await db.query(`
+            SELECT up.*, p.name AS package_name, p.name_ar AS package_name_ar
+            FROM user_packages up
+            JOIN packages p ON up.package_id = p.id
+            WHERE up.user_id = ? AND up.status = 'active'
+            ORDER BY p.level DESC LIMIT 1
+        `, [userId]);
+
+        // 2. Find transaction
+        const [txRows] = await db.query(`
+            SELECT * FROM transactions
+            WHERE (id = ? OR reference_id = ?) AND user_id = ? AND type = 'package_purchase'
+            ORDER BY created_at DESC LIMIT 1
+        `, [orderId, orderId, userId]);
+
+        if (txRows.length === 0) {
+            if (activeRows.length > 0) {
+                return res.json({
+                    status: 'active',
+                    message: 'تم تفعيل حسابك بنجاح!',
+                    currentPackage: activeRows[0]
+                });
+            }
+            return res.status(404).json({ error: 'لم يتم العثور على معاملة تفعيل الباقة' });
+        }
+
+        const transaction = txRows[0];
+        if (transaction.status === 'completed') {
+            return res.json({
+                status: 'active',
+                message: 'تم تفعيل حسابك بنجاح!',
+                currentPackage: activeRows[0] || null
+            });
+        }
+
+        const meta = typeof transaction.metadata === 'string' ? JSON.parse(transaction.metadata || '{}') : (transaction.metadata || {});
+        const paymentId = meta.active_payment_id || transaction.reference_id;
+
+        if (!paymentId) {
+            return res.json({ status: 'pending', message: 'في انتظار بيانات بوابة الدفع' });
+        }
+
+        // 3. Query NOWPayments live API
+        let statusData;
+        try {
+            statusData = await nowpaymentsService.getPaymentStatus(paymentId);
+        } catch (apiErr) {
+            console.error('[checkNowPaymentsPayment] API Error:', apiErr.message);
+            return res.json({
+                status: 'waiting_payment',
+                paymentStatus: 'waiting',
+                message: 'جاري مراقبة الشبكة والتحقق من المعاملة...'
+            });
+        }
+
+        const isCompleted = ['finished', 'confirmed'].includes(statusData.paymentStatus);
+
+        if (isCompleted) {
+            // Activate now in transaction
+            const connection = await db.getConnection();
+            try {
+                await connection.beginTransaction();
+
+                // Re-check transaction status under lock
+                const [lockedTx] = await connection.query('SELECT status FROM transactions WHERE id = ? FOR UPDATE', [transaction.id]);
+                if (lockedTx[0]?.status === 'completed') {
+                    await connection.rollback();
+                    return res.json({ status: 'active', message: 'تم تفعيل حسابك بنجاح!' });
+                }
+
+                // Get target package
+                const packageId = meta.packageId;
+                const [pkgRows] = await connection.query('SELECT * FROM packages WHERE id = ?', [packageId]);
+                const targetPackage = pkgRows[0];
+
+                let userPackageId = meta.userPackageId;
+                if (!userPackageId) {
+                    const [pendingUp] = await connection.query(`
+                        SELECT id FROM user_packages WHERE user_id = ? AND status = 'pending' ORDER BY purchased_at DESC LIMIT 1
+                    `, [userId]);
+                    userPackageId = pendingUp[0]?.id;
+                }
+
+                if (!targetPackage || !userPackageId) {
+                    await connection.rollback();
+                    return res.status(500).json({ error: 'بيانات الباقة غير متوفرة لإتمام التفعيل' });
+                }
+
+                // Call core activation processor
+                await processPackageActivation(connection, {
+                    userPackageId,
+                    userId,
+                    targetPackage,
+                    saleAmount: Number(transaction.amount || targetPackage.price),
+                    upgradedFromId: meta.upgradedFromId || null,
+                    paymentMethod: 'nowpayments_crypto',
+                    paymentReference: paymentId
+                });
+
+                // Update transaction status to completed
+                const updatedMeta = {
+                    ...meta,
+                    payment_status: statusData.paymentStatus,
+                    completed_at: new Date().toISOString(),
+                    actually_paid: statusData.actuallyPaid,
+                    actually_paid_fiat: statusData.actuallyPaidAtFiat
+                };
+
+                await connection.query(`
+                    UPDATE transactions 
+                    SET status = 'completed', description = CONCAT(description, ' [تم الدفع والتفعيل التلقائي]'), metadata = ?
+                    WHERE id = ?
+                `, [JSON.stringify(updatedMeta), transaction.id]);
+
+                // Update payment_attempts
+                await connection.query(`
+                    UPDATE payment_attempts 
+                    SET status = ?, actually_paid = ?, actually_paid_fiat = ?, is_wallet_credited = 1, wallet_credited_at = NOW()
+                    WHERE transaction_id = ? OR provider_payment_id = ?
+                `, [statusData.paymentStatus, statusData.actuallyPaid, statusData.actuallyPaidAtFiat, transaction.id, paymentId]);
+
+                await connection.commit();
+
+                return res.json({
+                    status: 'active',
+                    message: '🎉 تم استلام الدفع بنجاح وتفعيل عضويتك الرسمية في الأكاديمية!',
+                    package: targetPackage
+                });
+            } catch (actErr) {
+                await connection.rollback();
+                console.error('[checkNowPaymentsPayment:ActivationError]', actErr);
+                return res.status(500).json({ error: 'فشل تفعيل الباقة: ' + actErr.message });
+            } finally {
+                connection.release();
+            }
+        }
+
+        return res.json({
+            status: 'waiting_payment',
+            paymentStatus: statusData.paymentStatus,
+            message: statusData.paymentStatus === 'sending' || statusData.paymentStatus === 'confirming'
+                ? 'تم استلام المعاملة على البلوكشين وجاري تأكيدها...'
+                : 'في انتظار وصول التحويل عبر شبكة USDT (BEP20)...'
+        });
+    } catch (err) {
+        console.error('[checkNowPaymentsPayment]', err);
+        res.status(500).json({ error: 'Failed to check payment status' });
+    }
+};
+
 

@@ -235,8 +235,10 @@ export const packageService = {
     getAll: () => api.get('/packages').then(res => res.data),
     getDetails: (id: string) => api.get(`/packages/${id}`).then(res => res.data),
     getMyPackage: () => api.get('/packages/user/my-package').then(res => res.data),
-    purchaseOrUpgrade: (data: { packageId: string; paymentMethod?: string; paymentReference?: string }) => 
+    purchaseOrUpgrade: (data: { packageId: string; paymentMethod?: string; paymentReference?: string; receiptUrl?: string; notes?: string; payCurrency?: string }) => 
         api.post('/packages/purchase', data).then(res => res.data),
+    checkNowPaymentsPayment: (orderId: string) => 
+        api.get(`/packages/check-nowpayments/${orderId}`).then(res => res.data),
     assignCourses: (packageId: string, formationIds: string[]) => 
         api.post(`/packages/admin/${packageId}/courses`, { formationIds }).then(res => res.data),
     updatePackage: (id: string, data: any) => 

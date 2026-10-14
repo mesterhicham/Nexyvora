@@ -655,6 +655,91 @@ exports.handleGatewayWebhook = async (req, res) => {
         const isUnderpaid = expected > 0 && amountToCredit < expected;
         const isOverpaid = expected > 0 && amountToCredit > expected;
 
+        const isPackagePurchase = (orderSource === 'transactions' && internalOrder.type === 'package_purchase') 
+            || (orderSource === 'transactions' && (typeof internalOrder.metadata === 'string' ? internalOrder.metadata.includes('"packageId"') : !!internalOrder.metadata?.packageId));
+
+        if (isPackagePurchase) {
+            const meta = typeof internalOrder.metadata === 'string' ? JSON.parse(internalOrder.metadata || '{}') : (internalOrder.metadata || {});
+            const targetStatus = isUnderpaid ? 'partially_paid' : 'completed';
+
+            const updatedMeta = {
+                ...meta,
+                provider: rawProvider,
+                gateway_event_id: parsed.eventId,
+                gateway_payment_id: parsed.paymentId,
+                received_amount: amountToCredit,
+                expected_amount: expected,
+                isUnderpaid,
+                isOverpaid,
+                calculationPolicy: parsed.calculationPolicy,
+                completed_at: new Date().toISOString()
+            };
+
+            const description = `NOWPayments USDT (BEP20) Package Activation: received $${amountToCredit} ${parsed.currency}` +
+                (isUnderpaid ? ` [جزئي/Underpaid: expected $${expected}]` : '') +
+                (isOverpaid ? ` [فائض/Overpaid: expected $${expected}]` : '');
+
+            await connection.query(`
+                UPDATE transactions 
+                SET status = ?, amount = ?, reference_id = ?, description = ?, metadata = ?
+                WHERE id = ?
+            `, [targetStatus, amountToCredit, parsed.paymentId || parsed.eventId, description, JSON.stringify(updatedMeta), internalOrder.id]);
+
+            if (matchedAttempt) {
+                await connection.query(`
+                    UPDATE payment_attempts 
+                    SET status = ?, is_wallet_credited = 1, wallet_credited_at = NOW(),
+                        actually_paid = ?, actually_paid_fiat = ?, calculation_policy = ?,
+                        last_ipn_payload = ?
+                    WHERE id = ?
+                `, [
+                    parsed.rawStatus,
+                    parsed.actuallyPaid || null,
+                    amountToCredit,
+                    parsed.calculationPolicy,
+                    JSON.stringify(req.body),
+                    matchedAttempt.id
+                ]);
+            }
+
+            if (!isUnderpaid) {
+                // Execute automatic package activation
+                const packageId = meta.packageId;
+                const [pkgRows] = await connection.query('SELECT * FROM packages WHERE id = ?', [packageId]);
+                const targetPackage = pkgRows[0];
+
+                let userPackageId = meta.userPackageId;
+                if (!userPackageId) {
+                    const [pendingUp] = await connection.query(`
+                        SELECT id FROM user_packages WHERE user_id = ? AND status = 'pending' ORDER BY purchased_at DESC LIMIT 1
+                    `, [internalOrder.user_id]);
+                    userPackageId = pendingUp[0]?.id;
+                }
+
+                if (targetPackage && userPackageId) {
+                    const packageController = require('./packageController');
+                    await packageController.processPackageActivation(connection, {
+                        userPackageId,
+                        userId: internalOrder.user_id,
+                        targetPackage,
+                        saleAmount: expected,
+                        upgradedFromId: meta.upgradedFromId || null,
+                        paymentMethod: 'nowpayments_crypto',
+                        paymentReference: parsed.paymentId || parsed.eventId
+                    });
+                }
+            }
+
+            await connection.commit();
+            return res.status(200).json({
+                success: true,
+                processed: true,
+                packageActivated: !isUnderpaid,
+                status: targetStatus,
+                message: isUnderpaid ? 'Payment received is underpaid; package not activated' : 'Package activated successfully via NOWPayments webhook'
+            });
+        }
+
         // Fetch user wallet with lock
         let [wallets] = await connection.query('SELECT * FROM user_wallets WHERE user_id = ? FOR UPDATE', [internalOrder.user_id]);
         if (wallets.length === 0) {

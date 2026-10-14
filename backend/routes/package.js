@@ -7,6 +7,7 @@ const { auth, authorize } = require('../middleware/authMiddleware');
 router.get('/user/my-package', auth, packageController.getMyPackage);
 router.get('/my-package', auth, packageController.getMyPackage);
 router.post('/purchase', auth, packageController.purchaseOrUpgradePackage);
+router.get('/check-nowpayments/:orderId', auth, packageController.checkNowPaymentsPayment);
 
 // Admin routes
 router.post('/admin/:packageId/courses', auth, authorize('admin'), packageController.assignCoursesToPackage);

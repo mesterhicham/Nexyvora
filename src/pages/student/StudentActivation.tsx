@@ -61,6 +61,12 @@ export default function StudentActivation() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
 
+  // NOWPayments Crypto States
+  const [activePaymentOrder, setActivePaymentOrder] = useState<any>(null);
+  const [orderTimeLeft, setOrderTimeLeft] = useState<number>(20 * 60);
+  const [isCreatingCryptoOrder, setIsCreatingCryptoOrder] = useState(false);
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const loadData = async (showToast = false) => {
@@ -81,6 +87,11 @@ export default function StudentActivation() {
       }
 
       setPendingPackage(pkgRes.pendingPackage || null);
+
+      if (pkgRes.activeNowPaymentsOrder) {
+        setActivePaymentOrder(pkgRes.activeNowPaymentsOrder);
+        setPaymentMethod('usdt');
+      }
 
       // Find Community package
       const packs = allPkgsRes.packages || [];
@@ -109,6 +120,88 @@ export default function StudentActivation() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // 20-minute countdown timer & auto-polling for payment confirmation
+  useEffect(() => {
+    if (!activePaymentOrder) return;
+
+    const expiryTime = activePaymentOrder.expiresAt 
+      ? new Date(activePaymentOrder.expiresAt).getTime() 
+      : Date.now() + 20 * 60 * 1000;
+
+    const updateTimer = () => {
+      const remaining = Math.max(0, Math.floor((expiryTime - Date.now()) / 1000));
+      setOrderTimeLeft(remaining);
+    };
+
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
+
+    // Auto-poll payment status every 6 seconds to detect blockchain confirmation immediately
+    const pollInterval = setInterval(async () => {
+      if (!activePaymentOrder.orderId) return;
+      try {
+        const res = await packageService.checkNowPaymentsPayment(activePaymentOrder.orderId);
+        if (res.status === 'active') {
+          toast.success(isRtl ? '🎉 تم استلام الدفع بنجاح وتفعيل عضويتك الرسمية في الأكاديمية!' : 'Payment confirmed! Your membership is active!');
+          clearInterval(pollInterval);
+          clearInterval(timerInterval);
+          setTimeout(() => navigate('/student'), 1200);
+        }
+      } catch (err) {
+        // Silent catch during periodic polling
+      }
+    }, 6000);
+
+    return () => {
+      clearInterval(timerInterval);
+      clearInterval(pollInterval);
+    };
+  }, [activePaymentOrder, isRtl, navigate]);
+
+  const handleCreateCryptoOrder = async () => {
+    if (!communityPackage) {
+      return toast.error(isRtl ? 'تعذر تحديد باقة المجتمع' : 'Community package not found');
+    }
+
+    try {
+      setIsCreatingCryptoOrder(true);
+      const res = await packageService.purchaseOrUpgrade({
+        packageId: communityPackage.id,
+        paymentMethod: 'nowpayments_crypto'
+      });
+
+      if (res.payment) {
+        setActivePaymentOrder(res.payment);
+        toast.success(isRtl ? 'تم إنشاء محفظة دفع مخصصة لك (USDT BEP20) بنجاح!' : 'Dedicated USDT (BEP20) wallet created!');
+      } else if (res.status === 'active') {
+        toast.success(isRtl ? 'حسابك مفعل بالفعل!' : 'Account is active!');
+        navigate('/student');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || (isRtl ? 'فشل إنشاء محفظة الدفع عبر NOWPayments' : 'Failed to create payment order'));
+    } finally {
+      setIsCreatingCryptoOrder(false);
+    }
+  };
+
+  const handleCheckCryptoPayment = async () => {
+    if (!activePaymentOrder?.orderId) return;
+    try {
+      setIsCheckingPayment(true);
+      const res = await packageService.checkNowPaymentsPayment(activePaymentOrder.orderId);
+      if (res.status === 'active') {
+        toast.success(isRtl ? '🎉 تم تأكيد الدفع وتفعيل حسابك بنجاح! جاري تحويلك...' : 'Payment confirmed and account activated! Redirecting...');
+        setTimeout(() => navigate('/student'), 1000);
+      } else {
+        toast.info(res.message || (isRtl ? 'المعاملة قيد التدقيق على شبكة البلوكشين. سيتم تفعيل حسابك فور وصول التحويل.' : 'Transaction is being monitored on the blockchain.'));
+      }
+    } catch (err: any) {
+      toast.error(isRtl ? 'فشل فحص حالة الدفع' : 'Failed to check payment status');
+    } finally {
+      setIsCheckingPayment(false);
+    }
+  };
 
   const copyToClipboard = (text: string, fieldId: string) => {
     navigator.clipboard.writeText(text);
@@ -453,7 +546,12 @@ export default function StudentActivation() {
                   {!isAlgeria && usdtEnabled && (
                     <button
                       type="button"
-                      onClick={() => setPaymentMethod('usdt')}
+                      onClick={() => {
+                        setPaymentMethod('usdt');
+                        if (!activePaymentOrder) {
+                          handleCreateCryptoOrder();
+                        }
+                      }}
                       className={`p-4 rounded-2xl border text-start transition-all flex items-center justify-between gap-3 ${
                         paymentMethod === 'usdt'
                           ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10 text-white'
@@ -470,8 +568,8 @@ export default function StudentActivation() {
                           <span className="font-bold text-xs sm:text-sm block text-white">
                             USDT (Crypto)
                           </span>
-                          <span className="text-[10px] text-slate-400 block font-mono">
-                            TRC20 / BEP20
+                          <span className="text-[10px] text-emerald-400 block font-mono font-bold">
+                            NOWPayments (BEP20)
                           </span>
                         </div>
                       </div>
@@ -538,36 +636,167 @@ export default function StudentActivation() {
 
                 {/* Method Specific Instructions Box */}
                 {paymentMethod === 'usdt' && (
-                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-white text-sm">
-                        {isRtl ? 'عنوان محفظة USDT الرسمي للمنصة:' : 'Official USDT Deposit Address:'}
-                      </span>
-                      <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] font-mono">
-                        TRC20 / BEP20
-                      </Badge>
-                    </div>
+                  <div className="space-y-4">
+                    {activePaymentOrder ? (
+                      <div className="space-y-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-emerald-950/20 border border-emerald-500/30 shadow-2xl animate-in fade-in duration-300">
+                        {/* Header & Status */}
+                        <div className="flex items-center justify-between pb-3 border-b border-emerald-500/20">
+                          <div className="flex items-center gap-2.5">
+                            <span className="relative flex h-3 w-3">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                            </span>
+                            <span className="text-xs sm:text-sm font-black text-emerald-300">
+                              {isRtl ? 'محفظة الدفع المخصصة جاهزة (NOWPayments)' : 'Dedicated NOWPayments Wallet Ready'}
+                            </span>
+                          </div>
+                          <Badge variant="outline" className="font-mono text-[11px] bg-slate-950 border-emerald-500/40 text-emerald-300 font-bold px-2.5 py-0.5">
+                            #{activePaymentOrder.paymentId}
+                          </Badge>
+                        </div>
 
-                    <div className="flex items-center gap-2 bg-slate-900 p-3 rounded-xl border border-slate-800 font-mono text-slate-200 text-xs">
-                      <span className="flex-1 break-all select-all">
-                        {cryptoMethod.crypto_wallet_address || '0x1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B'}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => copyToClipboard(cryptoMethod.crypto_wallet_address || '0x1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B', 'crypto_addr')}
-                        className="h-8 px-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 shrink-0 gap-1 font-bold text-xs"
-                      >
-                        {copiedField === 'crypto_addr' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>{copiedField === 'crypto_addr' ? (isRtl ? 'تم!' : 'Copied!') : (isRtl ? 'نسخ' : 'Copy')}</span>
-                      </Button>
-                    </div>
+                        {/* 20-Minute Live Countdown Timer */}
+                        <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-emerald-500/20 space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-400 font-bold flex items-center gap-1.5">
+                              <Clock className={`h-4 w-4 ${orderTimeLeft < 300 ? 'text-rose-500 animate-pulse' : 'text-amber-400'}`} />
+                              {isRtl ? 'الوقت المتبقي لصلاحية هذا العنوان:' : 'Address Validity Remaining:'}
+                            </span>
+                            <span className={`font-mono text-sm sm:text-base font-black ${
+                              orderTimeLeft < 300 ? 'text-rose-400' : 'text-emerald-400'
+                            }`}>
+                              {Math.floor(orderTimeLeft / 60)}:{(orderTimeLeft % 60).toString().padStart(2, '0')}
+                            </span>
+                          </div>
+                          {/* Progress Bar */}
+                          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full transition-all duration-1000 ${
+                                orderTimeLeft < 300 ? 'bg-rose-500' : 'bg-emerald-500'
+                              }`}
+                              style={{ width: `${Math.min(100, Math.max(0, (orderTimeLeft / (20 * 60)) * 100))}%` }}
+                            />
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-tight">
+                            {isRtl 
+                              ? 'العنوان صالح ومخصص لك لمدة 20 دقيقة. بمجرد إرسال المبلغ، يقوم النظام برصد المعاملة عبر البلوكشين وتفعيل حسابك تلقائياً دون أي انتظار.'
+                              : 'The address is active for 20 minutes. Once sent, the blockchain confirms and your account activates automatically.'}
+                          </p>
+                        </div>
 
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
-                      💡 {isRtl 
-                        ? 'يرجى إرسال مبلغ $30 USDT بدقة. بعد اكتمال التحويل، قم بنسخ معرف المعاملة (TxID) وإرفاق لقطة شاشة للوصل بالأسفل لتأكيد التفعيل.'
-                        : 'Send exactly $30 USDT. Once sent, copy your Transaction Hash (TxID) and upload a screenshot proof below.'}
-                    </p>
+                        {/* Amount to Send */}
+                        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                          <span className="text-xs text-emerald-400 font-bold block mb-1">
+                            {isRtl ? 'المبلغ المطلوب إرساله بالضبط:' : 'Exact Amount to Send:'}
+                          </span>
+                          <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight">
+                            {activePaymentOrder.payAmount || 30} <span className="text-sm font-sans uppercase">USDT</span>
+                          </div>
+                          <span className="inline-block mt-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-300 font-mono">
+                            BNB Smart Chain (BEP20)
+                          </span>
+                        </div>
+
+                        {/* Dynamic QR Code & Wallet Address */}
+                        <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-slate-950/90 border border-slate-800">
+                          <div className="p-2 rounded-2xl bg-white border border-slate-200 shadow-lg shrink-0">
+                            <img 
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${encodeURIComponent(activePaymentOrder.payAddress)}`}
+                              alt="USDT BEP20 QR Code"
+                              className="w-28 h-28 sm:w-24 sm:h-24 object-contain rounded-xl"
+                            />
+                          </div>
+
+                          <div className="flex-1 w-full space-y-2 text-center sm:text-start">
+                            <span className="text-xs text-slate-400 block font-medium">
+                              {isRtl ? 'عنوان محفظة الإيداع المخصصة لك (BEP20):' : 'Your Dedicated Deposit Address (BEP20):'}
+                            </span>
+                            <div className="p-2.5 rounded-xl bg-slate-900 font-mono text-xs font-bold text-slate-200 break-all select-all border border-slate-800">
+                              {activePaymentOrder.payAddress}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => copyToClipboard(activePaymentOrder.payAddress, 'nowpay_address')}
+                                className="h-8 px-3 text-xs gap-1.5 font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-900/30"
+                              >
+                                {copiedField === 'nowpay_address' ? <Check className="h-3.5 w-3.5 text-white" /> : <Copy className="h-3.5 w-3.5" />}
+                                <span>{copiedField === 'nowpay_address' ? (isRtl ? 'تم نسخ العنوان!' : 'Copied!') : (isRtl ? 'نسخ العنوان' : 'Copy Address')}</span>
+                              </Button>
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleCreateCryptoOrder}
+                                disabled={isCreatingCryptoOrder}
+                                className="h-8 px-2.5 text-[11px] text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-xl"
+                              >
+                                <RefreshCw className={`w-3 h-3 mr-1 ${isCreatingCryptoOrder ? 'animate-spin' : ''}`} />
+                                <span>{isRtl ? 'تجديد العنوان' : 'Renew Address'}</span>
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Checking Status Button & Notice */}
+                        <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                          <Button
+                            type="button"
+                            onClick={handleCheckCryptoPayment}
+                            disabled={isCheckingPayment}
+                            className="w-full sm:flex-1 h-11 rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-lg shadow-emerald-900/40"
+                          >
+                            <RefreshCw className={`w-4 h-4 ${isCheckingPayment ? 'animate-spin' : ''}`} />
+                            <span>{isRtl ? 'فحص حالة الدفع والتفعيل الآن' : 'Check Payment & Activation Status'}</span>
+                          </Button>
+                        </div>
+
+                        <div className="text-center">
+                          <p className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
+                            {isRtl 
+                              ? 'يقوم النظام بمراقبة وصول التحويل تلقائياً كل 6 ثوانٍ وسيتم تفعيل حسابك فوراً.'
+                              : 'Auto-monitoring every 6s. Your account will unlock automatically upon confirmation.'}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-6 rounded-3xl bg-slate-950 border border-slate-800 text-center space-y-4">
+                        <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                          <Coins className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="text-base font-bold text-white">
+                            {isRtl ? 'الدفع الآلي عبر USDT BEP20 (NOWPayments)' : 'Automated Payment via USDT BEP20 (NOWPayments)'}
+                          </h3>
+                          <p className="text-xs text-slate-400 max-w-md mx-auto">
+                            {isRtl 
+                              ? 'انقر على الزر أدناه لإنشاء محفظة دفع مخصصة لك بالكامل. بمجرد إرسال $30 USDT عبر شبكة BEP20، سيتم تفعيل حسابك فوراً وبشكل تلقائي دون انتظار المراجعة اليدوية!'
+                              : 'Click below to generate your dedicated wallet. Once sent, activation happens automatically without manual review!'}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={handleCreateCryptoOrder}
+                          disabled={isCreatingCryptoOrder}
+                          className="h-11 px-6 rounded-2xl font-black bg-primary hover:bg-primary/90 text-white gap-2 shadow-lg shadow-primary/20"
+                        >
+                          {isCreatingCryptoOrder ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>{isRtl ? 'جاري إنشاء محفظة الدفع...' : 'Creating dedicated wallet...'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4" />
+                              <span>{isRtl ? 'إنشاء محفظة الدفع المخصصة (USDT BEP20)' : 'Generate Dedicated BEP20 Wallet'}</span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -682,16 +911,16 @@ export default function StudentActivation() {
                   </div>
                 )}
 
-                {/* FORM INPUTS (Only needed for crypto or bank transfer) */}
-                {paymentMethod !== 'wallet' && (
+                {/* FORM INPUTS (Only needed for manual bank transfer) */}
+                {paymentMethod === 'bank_transfer' && (
                   <div className="space-y-4 pt-2">
                     {/* Reference / TxID */}
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold text-slate-300">
-                        {isRtl ? 'رقم المعاملة / كود التحويل (TxID أو رقم الوصل)' : 'Transaction ID / Reference (TxID)'} <span className="text-rose-400">*</span>
+                        {isRtl ? 'رقم المعاملة / كود التحويل البنكي' : 'Transaction Reference / Transfer Code'} <span className="text-rose-400">*</span>
                       </Label>
                       <Input
-                        placeholder="TxID / Ref: e.g. 0x8a9f... or V-982314"
+                        placeholder="Ref: e.g. V-982314 or 20261015-889"
                         value={paymentReference}
                         onChange={(e) => setPaymentReference(e.target.value)}
                         className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs font-mono"
@@ -704,7 +933,7 @@ export default function StudentActivation() {
                         {isRtl ? 'اسم المرسل أو ملاحظات إضافية (اختياري)' : 'Sender Name / Extra Notes (Optional)'}
                       </Label>
                       <Input
-                        placeholder={isRtl ? 'مثال: محمد العمري - حوالة BaridiMob' : 'e.g. John Doe - Transfer note'}
+                        placeholder={isRtl ? 'مثال: محمد العمري - حوالة بنكية' : 'e.g. John Doe - Bank transfer note'}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
@@ -782,30 +1011,32 @@ export default function StudentActivation() {
                   </div>
                 )}
 
-                {/* Big Submit Button */}
-                <div className="pt-4">
-                  <Button
-                    onClick={handleSubmitActivation}
-                    disabled={submitting || (paymentMethod === 'wallet' && walletBalance < 30)}
-                    className="w-full h-12 rounded-2xl font-black text-sm bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white shadow-xl shadow-primary/20 gap-2"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>{isRtl ? 'جاري إرسال الطلب...' : 'Submitting activation request...'}</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="w-4 h-4" />
-                        <span>
-                          {paymentMethod === 'wallet'
-                            ? (isRtl ? 'تفعيل فوري من رصيد المحفظة ($30 USD)' : 'Activate Instantly with Wallet ($30 USD)')
-                            : (isRtl ? 'تأكيد وإرسال طلب التفعيل ($30 USD)' : 'Confirm and Submit Activation Request ($30 USD)')}
-                        </span>
-                      </>
-                    )}
-                  </Button>
-                </div>
+                {/* Big Submit Button (Only for wallet or manual bank transfer) */}
+                {paymentMethod !== 'usdt' && (
+                  <div className="pt-4">
+                    <Button
+                      onClick={handleSubmitActivation}
+                      disabled={submitting || (paymentMethod === 'wallet' && walletBalance < 30)}
+                      className="w-full h-12 rounded-2xl font-black text-sm bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white shadow-xl shadow-primary/20 gap-2"
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>{isRtl ? 'جاري إرسال الطلب...' : 'Submitting activation request...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="w-4 h-4" />
+                          <span>
+                            {paymentMethod === 'wallet'
+                              ? (isRtl ? 'تفعيل فوري من رصيد المحفظة ($30 USD)' : 'Activate Instantly with Wallet ($30 USD)')
+                              : (isRtl ? 'تأكيد وإرسال طلب التفعيل البنكي ($30 USD)' : 'Confirm and Submit Bank Activation Request ($30 USD)')}
+                          </span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
