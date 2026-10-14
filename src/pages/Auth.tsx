@@ -207,14 +207,14 @@ export default function Auth() {
       {/* ========================================================= */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         
-        {/* Luminous 3D Ribbon Loop Image at bottom-left */}
+        {/* Luminous 3D Ribbon Loop Image at bottom-left corner */}
         <img
           src="/auth-bg-wave.jpg"
           alt="3D Neon Wave"
-          className={`absolute bottom-0 select-none object-cover sm:object-contain object-left-bottom pointer-events-none opacity-85 transition-opacity duration-1000 ${
+          className={`absolute -bottom-16 sm:-bottom-24 select-none object-cover sm:object-contain object-left-bottom pointer-events-none opacity-80 transition-opacity duration-1000 ${
             isRtl 
-              ? '-right-20 lg:-right-10 w-[700px] lg:w-[950px] max-w-none transform scale-x-[-1]' 
-              : '-left-20 lg:-left-10 w-[700px] lg:w-[950px] max-w-none'
+              ? '-right-16 lg:right-0 w-[550px] lg:w-[800px] max-w-none transform scale-x-[-1]' 
+              : '-left-16 lg:left-0 w-[550px] lg:w-[800px] max-w-none'
           }`}
         />
 
@@ -311,29 +311,29 @@ export default function Auth() {
             </div>
 
             {/* Main Headline */}
-            <div className="space-y-2 mb-6">
-              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black text-white tracking-tight leading-[1.1]">
+            <div className="space-y-2 mb-6 relative z-10">
+              <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black text-white tracking-tight leading-[1.1] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
                 {isRtl ? 'أكثر من مجرد تعليم.' : 'More than learning.'}
               </h1>
-              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black tracking-tight leading-[1.1] bg-gradient-to-r from-sky-400 via-blue-400 to-fuchsia-400 bg-clip-text text-transparent">
+              <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black tracking-tight leading-[1.1] bg-gradient-to-r from-sky-400 via-blue-400 to-fuchsia-400 bg-clip-text text-transparent drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
                 {isRtl ? 'إنه مستقبلك.' : "It's your future."}
               </h1>
             </div>
 
             {/* Supporting Subtitle */}
-            <p className="text-sm sm:text-base text-slate-400 max-w-md sm:max-w-lg leading-relaxed mb-10 sm:mb-14">
+            <p className="text-sm sm:text-base text-slate-300 max-w-md sm:max-w-lg leading-relaxed mb-10 sm:mb-14 relative z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               {isRtl 
-                ? 'طوّر مهاراتك، وسّع شبكة علاقاتك، وحقق أهدافك المهنية مع أكاديمية نكستفورا.'
-                : 'Build your skills, grow your network, and achieve your goals with Nexyvora.'}
+                ? 'طوّر مهاراتك، وسّع شبكة علاقاتك، وحقق أهدافك المهنية مع نكستفورا.'
+                : 'Build your skills, grow your network,\nand achieve your goals with Nexyvora.'}
             </p>
 
-            {/* 4 Feature Badges (Horizontal Row Exactly like Image) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl">
+            {/* 4 Feature Badges with Vertical Dividers Exactly like Reference Image */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 max-w-xl divide-y sm:divide-y-0 sm:divide-x rtl:sm:divide-x-reverse divide-white/[0.08] relative z-10">
               
               {/* Feature 1: Expert-Led Courses */}
-              <div className="group flex flex-col items-start gap-2.5 p-3 rounded-2xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.06] hover:border-sky-500/30 hover:-translate-y-1 transition-all duration-300 cursor-default">
-                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-400 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(56,189,248,0.5)] transition-all duration-300">
-                  <GraduationCap className="w-4 h-4" />
+              <div className="group flex flex-col items-start gap-2.5 p-3 first:pl-0 rtl:first:pr-0 cursor-default">
+                <div className="text-sky-400 group-hover:scale-110 transition-transform">
+                  <GraduationCap className="w-5 h-5" />
                 </div>
                 <div className="text-xs font-semibold text-slate-200 leading-snug">
                   <div>{isRtl ? 'دورات' : 'Expert-Led'}</div>
@@ -342,9 +342,9 @@ export default function Auth() {
               </div>
 
               {/* Feature 2: Interactive Learning */}
-              <div className="group flex flex-col items-start gap-2.5 p-3 rounded-2xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.06] hover:border-blue-500/30 hover:-translate-y-1 transition-all duration-300 cursor-default">
-                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(59,130,246,0.5)] transition-all duration-300">
-                  <PlaySquare className="w-4 h-4" />
+              <div className="group flex flex-col items-start gap-2.5 p-3 cursor-default">
+                <div className="text-blue-400 group-hover:scale-110 transition-transform">
+                  <PlaySquare className="w-5 h-5" />
                 </div>
                 <div className="text-xs font-semibold text-slate-200 leading-snug">
                   <div>{isRtl ? 'تعلم' : 'Interactive'}</div>
@@ -353,9 +353,9 @@ export default function Auth() {
               </div>
 
               {/* Feature 3: Global Community */}
-              <div className="group flex flex-col items-start gap-2.5 p-3 rounded-2xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.06] hover:border-indigo-500/30 hover:-translate-y-1 transition-all duration-300 cursor-default">
-                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(99,102,241,0.5)] transition-all duration-300">
-                  <Users className="w-4 h-4" />
+              <div className="group flex flex-col items-start gap-2.5 p-3 cursor-default">
+                <div className="text-indigo-400 group-hover:scale-110 transition-transform">
+                  <Users className="w-5 h-5" />
                 </div>
                 <div className="text-xs font-semibold text-slate-200 leading-snug">
                   <div>{isRtl ? 'مجتمع' : 'Global'}</div>
@@ -364,9 +364,9 @@ export default function Auth() {
               </div>
 
               {/* Feature 4: Real-World Skills */}
-              <div className="group flex flex-col items-start gap-2.5 p-3 rounded-2xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.06] hover:border-fuchsia-500/30 hover:-translate-y-1 transition-all duration-300 cursor-default">
-                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-fuchsia-500/15 border border-fuchsia-500/30 text-fuchsia-400 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(217,70,239,0.5)] transition-all duration-300">
-                  <TrendingUp className="w-4 h-4" />
+              <div className="group flex flex-col items-start gap-2.5 p-3 last:pr-0 rtl:last:pl-0 cursor-default">
+                <div className="text-fuchsia-400 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="w-5 h-5" />
                 </div>
                 <div className="text-xs font-semibold text-slate-200 leading-snug">
                   <div>{isRtl ? 'مهارات' : 'Real-World'}</div>
@@ -682,12 +682,10 @@ export default function Auth() {
                   </span>
                 </div>
 
-                {/* Security Badge Pill */}
-                <div className="flex items-center justify-center pt-1">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] text-[11px] text-slate-400 font-medium shadow-inner">
-                    <Lock className="h-3 w-3 text-sky-400 shrink-0" />
-                    <span>{isRtl ? 'بياناتك مشفرة ومحمية بالكامل' : 'Your data is secure and protected'}</span>
-                  </div>
+                {/* Security Badge Exactly like Reference Image */}
+                <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 font-normal pt-2">
+                  <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <span>{isRtl ? 'بياناتك آمنة ومحمية بالكامل' : 'Your data is secure and protected'}</span>
                 </div>
 
                 {/* Mode Switcher */}
