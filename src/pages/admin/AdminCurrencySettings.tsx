@@ -31,7 +31,10 @@ import {
   Search,
   Building2,
   CreditCard,
-  DollarSign
+  DollarSign,
+  ChevronDown,
+  ChevronUp,
+  Landmark
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -59,9 +62,16 @@ export default function AdminCurrencySettings() {
     bank_transfer_enabled: true,
     stripe_enabled: false,
     paypal_enabled: false,
-    payoneer_enabled: false
+    payoneer_enabled: false,
+    bank_name: '',
+    account_holder: '',
+    account_number: '',
+    iban: '',
+    swift_code: '',
+    bank_instructions_ar: ''
   });
   const [addingSubmitting, setAddingSubmitting] = useState(false);
+  const [expandedBankCountry, setExpandedBankCountry] = useState<string | null>(null);
 
   useEffect(() => {
     loadAll();
@@ -113,7 +123,14 @@ export default function AdminCurrencySettings() {
         paypal_enabled: rule.paypal_enabled ? 1 : 0,
         payoneer_enabled: rule.payoneer_enabled ? 1 : 0,
         bank_transfer_enabled: rule.bank_transfer_enabled ? 1 : 0,
-        is_active: rule.is_active ? 1 : 0
+        is_active: rule.is_active ? 1 : 0,
+        bank_name: rule.bank_name || null,
+        account_holder: rule.account_holder || null,
+        account_number: rule.account_number || null,
+        iban: rule.iban || null,
+        swift_code: rule.swift_code || null,
+        bank_instructions: rule.bank_instructions || null,
+        bank_instructions_ar: rule.bank_instructions_ar || null
       });
       toast.success(isRtl ? `تم حفظ إعدادات ${rule.country_name_ar || rule.country_name} بنجاح` : `Updated ${rule.country_name} settings`);
       // Reload logs to show new entry
@@ -153,7 +170,13 @@ export default function AdminCurrencySettings() {
         bank_transfer_enabled: true,
         stripe_enabled: false,
         paypal_enabled: false,
-        payoneer_enabled: false
+        payoneer_enabled: false,
+        bank_name: '',
+        account_holder: '',
+        account_number: '',
+        iban: '',
+        swift_code: '',
+        bank_instructions_ar: ''
       });
       loadAll();
     } catch (err: any) {
@@ -168,6 +191,11 @@ export default function AdminCurrencySettings() {
       case 'MA': return '🇲🇦';
       case 'DZ': return '🇩🇿';
       case 'TN': return '🇹🇳';
+      case 'AE': return '🇦🇪';
+      case 'SA': return '🇸🇦';
+      case 'QA': return '🇶🇦';
+      case 'KW': return '🇰🇼';
+      case 'EG': return '🇪🇬';
       case 'FR': return '🇫🇷';
       case 'US': return '🇺🇸';
       case 'GLOBAL': return '🌍';
@@ -419,6 +447,24 @@ export default function AdminCurrencySettings() {
                           />
                         </div>
 
+                        {/* Bank Details Toggle Button */}
+                        <div className="w-full sm:w-auto flex justify-end">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setExpandedBankCountry(expandedBankCountry === rule.country_code ? null : rule.country_code)}
+                            className="rounded-xl border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                          >
+                            <Landmark className="h-3.5 w-3.5 mr-1 rtl:ml-1 rtl:mr-0 text-blue-600" />
+                            {isRtl ? 'بيانات البنك المحلي' : 'Local Bank Info'}
+                            {expandedBankCountry === rule.country_code ? (
+                              <ChevronUp className="h-3.5 w-3.5 ml-1 rtl:mr-1 rtl:ml-0" />
+                            ) : (
+                              <ChevronDown className="h-3.5 w-3.5 ml-1 rtl:mr-1 rtl:ml-0" />
+                            )}
+                          </Button>
+                        </div>
+
                         {/* Save Action */}
                         <div className="w-full sm:w-auto flex justify-end">
                           <Button
@@ -434,6 +480,99 @@ export default function AdminCurrencySettings() {
                       </div>
 
                     </div>
+
+                    {/* Expandable Country Bank Details Panel */}
+                    {expandedBankCountry === rule.country_code && (
+                      <div className="mt-5 pt-5 border-t border-slate-200/80 dark:border-slate-800 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                              <Landmark className="h-4 w-4" />
+                            </div>
+                            <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                              {isRtl ? `بيانات الحساب البنكي والتحويل اليدوي (${rule.country_name_ar || rule.country_name})` : `Local Bank & Manual Payment Details (${rule.country_name})`}
+                            </span>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200">
+                            {isRtl ? 'يظهر لمستخدمي هذه الدولة عند الإيداع' : 'Shown to students of this country'}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-bold text-slate-500">
+                              {isRtl ? 'اسم البنك / جهة الدفع' : 'Bank / Institution Name'}
+                            </Label>
+                            <Input
+                              placeholder={isRtl ? 'مثال: بنك المغرب، بريدي موب، الإمارات دبي الوطني' : 'e.g. Attijariwafa Bank, BaridiMob, Emirates NBD'}
+                              value={rule.bank_name || ''}
+                              onChange={(e) => handleRuleChange(rule.country_code, 'bank_name', e.target.value)}
+                              className="text-xs h-9 rounded-xl font-medium"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-bold text-slate-500">
+                              {isRtl ? 'اسم صاحب الحساب (المستفيد)' : 'Account Holder / Beneficiary Name'}
+                            </Label>
+                            <Input
+                              placeholder="e.g. Nextvora Academy LLC"
+                              value={rule.account_holder || ''}
+                              onChange={(e) => handleRuleChange(rule.country_code, 'account_holder', e.target.value)}
+                              className="text-xs h-9 rounded-xl font-medium"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-bold text-slate-500">
+                              {isRtl ? 'رقم الحساب / RIB / RIP' : 'Account Number / RIB / RIP'}
+                            </Label>
+                            <Input
+                              placeholder="001 00600 0001234567 89"
+                              value={rule.account_number || ''}
+                              onChange={(e) => handleRuleChange(rule.country_code, 'account_number', e.target.value)}
+                              className="text-xs h-9 rounded-xl font-mono font-medium"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-bold text-slate-500">
+                              {isRtl ? 'رقم الآيبان الدولي (IBAN)' : 'IBAN'}
+                            </Label>
+                            <Input
+                              placeholder="MA64 0077... or AE07 0260..."
+                              value={rule.iban || ''}
+                              onChange={(e) => handleRuleChange(rule.country_code, 'iban', e.target.value)}
+                              className="text-xs h-9 rounded-xl font-mono font-medium"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-bold text-slate-500">
+                              {isRtl ? 'كود السويفت (SWIFT / BIC)' : 'SWIFT / BIC Code'}
+                            </Label>
+                            <Input
+                              placeholder="e.g. BCMAMAMC, BNALFZAL, EBILAEAD"
+                              value={rule.swift_code || ''}
+                              onChange={(e) => handleRuleChange(rule.country_code, 'swift_code', e.target.value)}
+                              className="text-xs h-9 rounded-xl font-mono uppercase font-medium"
+                            />
+                          </div>
+
+                          <div className="space-y-1 sm:col-span-2 lg:col-span-1">
+                            <Label className="text-[11px] font-bold text-slate-500">
+                              {isRtl ? 'تعليمات التحويل للعميل (بالعربية)' : 'Payment Instructions (Arabic)'}
+                            </Label>
+                            <Input
+                              placeholder={isRtl ? 'يرجى التحويل بالعملة المحلية وإرفاق الوصل...' : 'Transfer in local currency and attach receipt...'}
+                              value={rule.bank_instructions_ar || ''}
+                              onChange={(e) => handleRuleChange(rule.country_code, 'bank_instructions_ar', e.target.value)}
+                              className="text-xs h-9 rounded-xl font-medium"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </Card>
                 );
               })}
@@ -606,6 +745,66 @@ export default function AdminCurrencySettings() {
                   checked={newCountry.usdt_enabled}
                   onCheckedChange={(checked) => setNewCountry({ ...newCountry, usdt_enabled: checked })}
                 />
+              </div>
+
+              {/* Local Bank Details for New Country */}
+              <div className="col-span-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-2">
+                  <Landmark className="h-4 w-4 text-blue-600" />
+                  {isRtl ? 'بيانات البنك والتحويل المحلي (اختياري)' : 'Local Bank Details (Optional)'}
+                </span>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'اسم البنك' : 'Bank Name'}</Label>
+                    <Input
+                      placeholder={isRtl ? 'مثال: التجاري وفا بنك، بريدي موب' : 'e.g. Emirates NBD, Attijariwafa'}
+                      value={newCountry.bank_name}
+                      onChange={(e) => setNewCountry({ ...newCountry, bank_name: e.target.value })}
+                      className="text-xs h-8 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'اسم صاحب الحساب' : 'Account Holder'}</Label>
+                    <Input
+                      placeholder="e.g. Nextvora LLC"
+                      value={newCountry.account_holder}
+                      onChange={(e) => setNewCountry({ ...newCountry, account_holder: e.target.value })}
+                      className="text-xs h-8 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'رقم الحساب / RIP' : 'Account Number / RIP'}</Label>
+                    <Input
+                      placeholder="001 002 0001234567 89"
+                      value={newCountry.account_number}
+                      onChange={(e) => setNewCountry({ ...newCountry, account_number: e.target.value })}
+                      className="text-xs h-8 rounded-lg font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'رقم الآيبان (IBAN)' : 'IBAN'}</Label>
+                    <Input
+                      placeholder="AE07 0260..."
+                      value={newCountry.iban}
+                      onChange={(e) => setNewCountry({ ...newCountry, iban: e.target.value })}
+                      className="text-xs h-8 rounded-lg font-mono"
+                    />
+                  </div>
+
+                  <div className="col-span-2 space-y-1">
+                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'تعليمات التحويل بالعربية' : 'Payment Instructions (AR)'}</Label>
+                    <Input
+                      placeholder={isRtl ? 'يرجى التحويل بالعملة المحلية وإرفاق صورة الوصل...' : 'Transfer in local currency and attach receipt...'}
+                      value={newCountry.bank_instructions_ar}
+                      onChange={(e) => setNewCountry({ ...newCountry, bank_instructions_ar: e.target.value })}
+                      className="text-xs h-8 rounded-lg"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 

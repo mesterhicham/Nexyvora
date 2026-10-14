@@ -51,7 +51,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 export default function StudentWallet() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
-  const { isAlgeria, isMorocco, usdtEnabled, currencyCode, currencySymbol, convertToLocal, formatPrice, formatDualPrice, formatBalance } = useCurrency();
+  const { isAlgeria, isMorocco, hasLocalCurrency, usdRate, usdtEnabled, currencyCode, currencySymbol, convertToLocal, formatPrice, formatDualPrice, formatBalance } = useCurrency();
   const [walletData, setWalletData] = useState<any>(null);
   const [commissions, setCommissions] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
@@ -838,6 +838,14 @@ export default function StudentWallet() {
                   />
                   <span className="absolute left-2.5 top-2 text-slate-400 font-bold text-xs">$</span>
                 </div>
+                {depositAmount && Number(depositAmount) > 0 && hasLocalCurrency && currencyCode !== 'USD' && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[11px] font-bold text-primary">
+                    <span>{isRtl ? 'المبلغ المعادل بالعملة المحلية:' : 'Local Currency Equivalent:'}</span>
+                    <span className="font-extrabold font-mono">
+                      {Math.round(Number(depositAmount) * usdRate).toLocaleString()} {currencyCode}
+                    </span>
+                  </div>
+                )}
                 {/* Quick select chips */}
                 <div className="flex flex-wrap gap-1.5 pt-0.5">
                   {['25', '50', '100', '250', '500'].map((val) => (
@@ -955,7 +963,7 @@ export default function StudentWallet() {
                     )}
                     {selectedDepositMethod.account_number && (
                       <div>
-                        <span className="text-slate-400 block text-[10px]">{t('wallet.iban', isRtl ? 'رقم الحساب / IBAN / RIP:' : 'Account Number / IBAN:')}</span>
+                        <span className="text-slate-400 block text-[10px]">{t('wallet.iban', isRtl ? 'رقم الحساب / RIP / الحساب البنكي:' : 'Account Number / RIP:')}</span>
                         <div className="flex items-center justify-between font-mono font-bold bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 mt-0.5">
                           <span className="text-slate-800 dark:text-slate-200 text-xs truncate mr-2 rtl:ml-2 rtl:mr-0 select-all">{selectedDepositMethod.account_number}</span>
                           <Button 
@@ -971,13 +979,31 @@ export default function StudentWallet() {
                         </div>
                       </div>
                     )}
+                    {selectedDepositMethod.iban && selectedDepositMethod.iban !== selectedDepositMethod.account_number && (
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">{isRtl ? 'رقم الآيبان (IBAN):' : 'IBAN Number:'}</span>
+                        <div className="flex items-center justify-between font-mono font-bold bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 mt-0.5">
+                          <span className="text-slate-800 dark:text-slate-200 text-xs truncate mr-2 rtl:ml-2 rtl:mr-0 select-all">{selectedDepositMethod.iban}</span>
+                          <Button 
+                            type="button" 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-6 px-1.5 text-[10px] gap-1 shrink-0"
+                            onClick={() => copyToClipboard(selectedDepositMethod.iban, 'bank_iban')}
+                          >
+                            {copiedField === 'bank_iban' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                            {t('wallet.copy', isRtl ? 'نسخ' : 'Copy')}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                     {selectedDepositMethod.swift_code && (
                       <div className="text-[10px] text-slate-500">
                         SWIFT / BIC: <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{selectedDepositMethod.swift_code}</span>
                       </div>
                     )}
                     {(selectedDepositMethod.instructions_ar || selectedDepositMethod.instructions) && (
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                      <p className="text-[10px] text-slate-600 dark:text-slate-300 mt-1.5 whitespace-pre-line bg-white/70 dark:bg-slate-900/70 p-2 rounded-lg border border-slate-200 dark:border-slate-700/80 leading-relaxed">
                         {isRtl ? (selectedDepositMethod.instructions_ar || selectedDepositMethod.instructions) : (selectedDepositMethod.instructions || selectedDepositMethod.instructions_ar)}
                       </p>
                     )}
@@ -1266,6 +1292,14 @@ export default function StudentWallet() {
                   />
                   <span className="absolute left-2.5 top-2 text-slate-400 font-bold text-xs">$</span>
                 </div>
+                {withdrawAmount && Number(withdrawAmount) > 0 && hasLocalCurrency && currencyCode !== 'USD' && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                    <span>{isRtl ? 'المبلغ المعادل بالعملة المحلية:' : 'Local Currency Equivalent:'}</span>
+                    <span className="font-extrabold font-mono">
+                      {Math.round(Number(withdrawAmount) * usdRate).toLocaleString()} {currencyCode}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Dynamic Withdrawal Method Picker */}

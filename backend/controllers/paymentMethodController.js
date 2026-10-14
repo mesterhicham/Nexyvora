@@ -287,37 +287,115 @@ exports.getActiveMethodsForStudents = async (req, res) => {
             return true;
         });
 
-        // Mask sensitive server-side keys
-        const safeMethods = filteredRows.map(m => ({
-            id: m.id,
-            name: m.name,
-            name_ar: m.name_ar,
-            type: m.type,
-            provider: m.provider,
-            currency: m.currency,
-            crypto_currency: m.crypto_currency,
-            crypto_network: m.crypto_network,
-            crypto_wallet_address: m.crypto_wallet_address,
-            bank_name: m.bank_name,
-            account_holder: m.account_holder,
-            account_number: m.account_number,
-            swift_code: m.swift_code,
-            instructions: m.instructions,
-            instructions_ar: m.instructions_ar,
-            require_receipt: !!m.require_receipt,
-            public_key: m.public_key, // safe for client-side Stripe Elements / CMI
-            is_sandbox: !!m.is_sandbox,
-            min_deposit: Number(m.min_deposit || 0),
-            max_deposit: Number(m.max_deposit || 0),
-            min_withdrawal: Number(m.min_withdrawal || 0),
-            max_withdrawal: Number(m.max_withdrawal || 0),
-            fee_percent: Number(m.fee_percent || 0),
-            fee_fixed: Number(m.fee_fixed || 0),
-            enabled_for_deposit: !!m.enabled_for_deposit,
-            enabled_for_withdrawal: !!m.enabled_for_withdrawal
-        }));
+        // Mask sensitive server-side keys & inject Country-specific Manual Bank details if configured
+        const safeMethods = filteredRows.map(m => {
+            const isManualBank = (m.type === 'bank_transfer' || m.provider === 'manual');
 
-        res.json({ paymentMethods: safeMethods });
+            // If this is manual bank transfer and country rule has custom bank details, override them dynamically
+            const bankName = (isManualBank && rule.bank_name) ? rule.bank_name : m.bank_name;
+            const accountHolder = (isManualBank && rule.account_holder) ? rule.account_holder : m.account_holder;
+            const accountNumber = (isManualBank && (rule.account_number || rule.iban)) ? (rule.account_number || rule.iban) : m.account_number;
+            const swiftCode = (isManualBank && rule.swift_code) ? rule.swift_code : m.swift_code;
+            const currency = (isManualBank && rule.currency_code) ? rule.currency_code : m.currency;
+            const instructions = (isManualBank && rule.bank_instructions) ? rule.bank_instructions : m.instructions;
+            const instructionsAr = (isManualBank && rule.bank_instructions_ar) ? rule.bank_instructions_ar : m.instructions_ar;
+
+            const nameAr = (isManualBank && rule.country_name_ar) 
+                ? `تحويل بنكي محلي (${rule.country_name_ar} - ${rule.currency_code})`
+                : m.name_ar;
+
+            const name = (isManualBank && rule.country_name)
+                ? `Bank Transfer (${rule.country_name} - ${rule.currency_code})`
+                : m.name;
+
+            return {
+                id: m.id,
+                name,
+                name_ar: nameAr,
+                type: m.type,
+                provider: m.provider,
+                currency,
+                crypto_currency: m.crypto_currency,
+                crypto_network: m.crypto_network,
+                crypto_wallet_address: m.crypto_wallet_address,
+                bank_name: bankName,
+                account_holder: accountHolder,
+                account_number: accountNumber,
+                iban: isManualBank ? (rule.iban || m.iban || accountNumber) : (m.iban || null),
+                swift_code: swiftCode,
+                instructions,
+                instructions_ar: instructionsAr,
+                require_receipt: !!m.require_receipt,
+                public_key: m.public_key, // safe for client-side Stripe Elements / CMI
+                is_sandbox: !!m.is_sandbox,
+                min_deposit: Number(m.min_deposit || 0),
+                max_deposit: Number(m.max_deposit || 0),
+                min_withdrawal: Number(m.min_withdrawal || 0),
+                max_withdrawal: Number(m.max_withdrawal || 0),
+                fee_percent: Number(m.fee_percent || 0),
+                fee_fixed: Number(m.fee_fixed || 0),
+                enabled_for_deposit: !!m.enabled_for_deposit,
+                enabled_for_withdrawal: !!m.enabled_for_withdrawal,
+                country_code: countryCode,
+                currency_symbol: rule.currency_symbol || '$'
+            };
+        });
+
+        // Ensure that if local bank transfer is enabled for this country, it is ALWAYS present in payment methods
+        const hasManualBank = safeMethods.some(m => m.type === 'bank_transfer' || m.provider === 'manual');
+        if (!hasManualBank && rule.bank_transfer_enabled) {
+            safeMethods.unshift({
+                id: 'country-bank-' + (countryCode ? countryCode.toLowerCase() : 'manual'),
+                name: rule.country_name ? `Bank Transfer (${rule.country_name} - ${rule.currency_code})` : 'Bank Transfer',
+                name_ar: rule.country_name_ar ? `تحويل بنكي محلي (${rule.country_name_ar} - ${rule.currency_code})` : 'تحويل بنكي محلي',
+                type: 'bank_transfer',
+                provider: 'manual',
+                currency: rule.currency_code || 'USD',
+                crypto_currency: null,
+                crypto_network: null,
+                crypto_wallet_address: null,
+                bank_name: rule.bank_name || (countryCode === 'DZ' ? 'BaridiMob' : 'Bank Transfer'),
+                account_holder: rule.account_holder || '',
+                account_number: rule.account_number || rule.iban || '',
+                iban: rule.iban || rule.account_number || '',
+                swift_code: rule.swift_code || '',
+                instructions: rule.bank_instructions || '',
+                instructions_ar: rule.bank_instructions_ar || '',
+                require_receipt: true,
+                public_key: null,
+                is_sandbox: false,
+                min_deposit: 0,
+                max_deposit: 100000,
+                min_withdrawal: 0,
+                max_withdrawal: 50000,
+                fee_percent: 0,
+                fee_fixed: 0,
+                enabled_for_deposit: true,
+                enabled_for_withdrawal: true,
+                country_code: countryCode,
+                currency_symbol: rule.currency_symbol || '$'
+            });
+        }
+
+        res.json({ 
+            paymentMethods: safeMethods,
+            detectedCountry: countryCode,
+            rule: {
+                country_code: rule.country_code,
+                country_name: rule.country_name,
+                country_name_ar: rule.country_name_ar,
+                currency_code: rule.currency_code,
+                currency_symbol: rule.currency_symbol,
+                usd_rate: rule.usd_rate,
+                usdt_enabled: rule.usdt_enabled,
+                bank_name: rule.bank_name,
+                account_holder: rule.account_holder,
+                account_number: rule.account_number,
+                iban: rule.iban,
+                swift_code: rule.swift_code,
+                bank_instructions_ar: rule.bank_instructions_ar
+            }
+        });
     } catch (err) {
         console.error('[getActiveMethodsForStudents]', err);
         res.status(500).json({ error: 'Failed to fetch active payment methods' });

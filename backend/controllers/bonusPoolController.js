@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const emailService = require('../services/emailService');
 
 function genUuid() {
     return crypto.randomUUID();
@@ -484,6 +485,18 @@ exports.executePoolDistribution = async (req, res) => {
             }
 
             await connection.commit();
+
+            // Safely dispatch bonus-pool-reward email to each eligible leader in background
+            for (const leader of eligible) {
+                emailService.sendToUser(leader.id, 'bonus-pool-reward', {
+                    pool_name: pool.name_ar || pool.name,
+                    amount: sharePerLeader.toFixed(2),
+                    currency: 'USD',
+                    period: `${month}/${year}`,
+                    date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+                }).catch(e => console.error('[executePoolDistribution] Email error:', e.message));
+            }
+
             return res.json({
                 message: `تم توزيع أرباح الحوض بنجاح على ${eligibleCount} من القادة المؤهلين بقيمة $${sharePerLeader.toFixed(2)} لكل قائد.`,
                 distributionId,

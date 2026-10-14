@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const emailService = require('../services/emailService');
 
 function genUuid() {
     return crypto.randomUUID();
@@ -447,6 +448,30 @@ async function processPackageActivation(connection, { userPackageId, userId, tar
         INSERT INTO notifications (id, user_id, title, content, type, is_read, created_at)
         VALUES (?, ?, 'تم تفعيل باقتك بنجاح!', ?, 'package', 0, CURRENT_TIMESTAMP)
     `, [studentNotifId, userId, `تهانينا! تم تفعيل باقة ${targetPackage.name_ar || targetPackage.name} بنجاح. حسابك الآن مفعل بالكامل وبإمكانك تصفح المنصة والاستفادة من جميع المميزات.`]);
+
+    // Safely dispatch package-purchased email to buyer in background
+    emailService.sendToUser(userId, 'package-purchased', {
+        package_name: targetPackage.name_ar || targetPackage.name,
+        price: Number(saleAmount || targetPackage.price || 0).toFixed(2),
+        currency: 'USD',
+        tier: targetPackage.tier || targetPackage.level || 'Standard',
+        date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        academy_url: '/academy'
+    }).catch(e => console.error('[processPackageActivation:buyer] Email error:', e.message));
+
+    // Safely dispatch commission-earned email to each earning sponsor in background
+    for (const comm of distributedCommissions) {
+        if (comm.recipient_id && comm.amount > 0) {
+            emailService.sendToUser(comm.recipient_id, 'commission-earned', {
+                amount: Number(comm.amount).toFixed(2),
+                currency: 'USD',
+                generation: String(comm.generation || 1),
+                source_user: buyer ? (buyer.name || 'عضو في فريقك') : 'عضو في فريقك',
+                wallet_balance: '---',
+                date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+            }).catch(e => console.error('[processPackageActivation:comm] Email error:', e.message));
+        }
+    }
 
     // 5. Check if direct referrer qualifies for Founder Club (100 seats, $5000 in 30 days)
     const directReferrerId = buyer ? buyer.referrer_id : null;

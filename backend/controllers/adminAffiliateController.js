@@ -2,6 +2,7 @@ const db = require('../config/db');
 const crypto = require('crypto');
 const genUuid = () => crypto.randomUUID();
 const packageController = require('./packageController');
+const emailService = require('../services/emailService');
 
 /**
  * 1. WALLET MANAGEMENT
@@ -256,6 +257,16 @@ exports.approveWithdrawal = async (req, res) => {
         ]);
 
         await connection.commit();
+
+        // Safely dispatch withdrawal-approved email notification
+        emailService.sendToUser(request.user_id, 'withdrawal-approved', {
+            amount: Number(request.amount).toFixed(2),
+            currency: 'USD',
+            payment_method: request.payment_method || 'Bank Transfer',
+            transaction_proof: transactionProof || `WTH-${id.substring(0, 8)}`,
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        }).catch(e => console.error('[approveWithdrawal] Email error:', e.message));
+
         res.json({ message: 'Withdrawal request approved successfully' });
     } catch (err) {
         await connection.rollback();
@@ -317,6 +328,16 @@ exports.rejectWithdrawal = async (req, res) => {
         ]);
 
         await connection.commit();
+
+        // Safely dispatch withdrawal-rejected email notification
+        emailService.sendToUser(request.user_id, 'withdrawal-rejected', {
+            amount: Number(request.amount).toFixed(2),
+            currency: 'USD',
+            reason: reason || 'البيانات البنكية غير مطابقة أو لم يتم اعتماد وسيلة التحويل',
+            refunded_balance: Number(request.amount).toFixed(2),
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        }).catch(e => console.error('[rejectWithdrawal] Email error:', e.message));
+
         res.json({ message: 'Withdrawal rejected and amount refunded to user wallet' });
     } catch (err) {
         if (connection) await connection.rollback();
@@ -550,6 +571,16 @@ exports.approveDeposit = async (req, res) => {
         `, [notifId, trx.user_id, `تمت الموافقة على طلب إيداعك بقيمة $${depositAmount.toFixed(2)} USD وإضافته إلى رصيد محفظتك. رصيدك الحالي: $${newBal.toFixed(2)} USD.`]);
 
         await connection.commit();
+
+        // Safely dispatch deposit-approved email notification
+        emailService.sendToUser(trx.user_id, 'deposit-approved', {
+            amount: depositAmount.toFixed(2),
+            currency: 'USD',
+            transaction_id: id,
+            new_balance: newBal.toFixed(2),
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        }).catch(e => console.error('[approveDeposit] Email error:', e.message));
+
         res.json({ message: 'تم تأكيد طلب الإيداع وشحن رصيد الطالب بنجاح', newBalance: newBal });
     } catch (err) {
         if (connection) await connection.rollback();
@@ -592,6 +623,14 @@ exports.rejectDeposit = async (req, res) => {
             `, [notifId, userPkg.user_id, `تم رفض طلب تفعيل الباقة الخاص بك. السبب: ${reason || 'بيانات التحويل غير مطابقة أو وصل الدفع غير واضح'}. يمكنك إعادة تقديم الطلب ببيانات صحيحة.`]);
 
             await connection.commit();
+
+            // Safely dispatch package-rejected email notification
+            emailService.sendToUser(userPkg.user_id, 'package-rejected', {
+                package_name: 'الباقة المطلوبة',
+                reason: reason || 'بيانات التحويل غير مطابقة أو وصل الدفع غير واضح',
+                date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+            }).catch(e => console.error('[rejectDeposit:package] Email error:', e.message));
+
             return res.json({ message: 'تم رفض طلب تفعيل الباقة وإشعار العضو' });
         }
 
@@ -626,6 +665,16 @@ exports.rejectDeposit = async (req, res) => {
         `, [notifId, trx.user_id, `تم رفض طلب إيداعك بقيمة $${Number(trx.amount).toFixed(2)} USD. السبب: ${reason || 'بيانات التحويل غير مطابقة أو الوصل غير واضح.'}`]);
 
         await connection.commit();
+
+        // Safely dispatch deposit-rejected email notification
+        emailService.sendToUser(trx.user_id, 'deposit-rejected', {
+            amount: Number(trx.amount).toFixed(2),
+            currency: 'USD',
+            reason: reason || 'بيانات التحويل غير مطابقة أو الوصل غير واضح',
+            transaction_id: id,
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        }).catch(e => console.error('[rejectDeposit:deposit] Email error:', e.message));
+
         res.json({ message: 'تم رفض طلب الإيداع وإشعار الطالب' });
     } catch (err) {
         if (connection) await connection.rollback();
@@ -817,6 +866,13 @@ exports.updateKycStatus = async (req, res) => {
             SET kyc_status = ?
             WHERE id = ?
         `, [status, kyc[0].user_id]);
+
+        // Safely dispatch kyc-approved or kyc-rejected email notification
+        const kycTemplateSlug = status === 'verified' ? 'kyc-approved' : 'kyc-rejected';
+        emailService.sendToUser(kyc[0].user_id, kycTemplateSlug, {
+            reason: adminNotes || 'المستندات المرفوعة غير واضحة أو غير مكتملة',
+            dashboard_url: '/profile'
+        }).catch(e => console.error('[updateKycStatus] Email error:', e.message));
 
         res.json({ message: `KYC request ${status === 'verified' ? 'approved' : 'rejected'} successfully` });
     } catch (err) {

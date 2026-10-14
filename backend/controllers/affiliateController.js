@@ -2,6 +2,7 @@ const db = require('../config/db');
 const crypto = require('crypto');
 const currencyService = require('../services/currencyService');
 const nowpaymentsService = require('../services/nowpaymentsService');
+const emailService = require('../services/emailService');
 
 function genUuid() {
     return crypto.randomUUID();
@@ -176,14 +177,15 @@ exports.requestWithdrawal = async (req, res) => {
         return res.status(400).json({ error: 'Payment method and details are required' });
     }
 
-    // Strict security check: DZ users cannot withdraw via crypto or USDT
+    // Strict security check: DZ users or countries with USDT disabled cannot withdraw via crypto or USDT
     const countryCode = await currencyService.detectUserCountry(req);
+    const countryRule = await currencyService.getRuleForCountry(countryCode);
     const isCrypto = (method || '').toLowerCase().includes('usdt') || 
                      (method || '').toLowerCase().includes('crypto') || 
                      (method || '').toLowerCase().includes('nowpayments') ||
                      (details || '').toLowerCase().includes('usdt');
-    if (countryCode === 'DZ' && isCrypto) {
-        return res.status(403).json({ error: 'معاملات USDT والعملات المشفرة غير متاحة في الجزائر' });
+    if ((countryCode === 'DZ' || !countryRule.usdt_enabled) && isCrypto) {
+        return res.status(403).json({ error: 'معاملات USDT والعملات المشفرة غير متاحة في بلدك أو تم حظرها بقرار تنظيمي' });
     }
 
     const connection = await db.getConnection();
@@ -231,6 +233,15 @@ exports.requestWithdrawal = async (req, res) => {
         `, [withdrawalId, userId, withdrawAmount, method, details]);
 
         await connection.commit();
+
+        // Safely dispatch withdrawal-requested email notification
+        emailService.sendToUser(userId, 'withdrawal-requested', {
+            amount: withdrawAmount.toFixed(2),
+            currency: 'USD',
+            payment_method: method,
+            withdrawal_id: withdrawalId,
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        }).catch(e => console.error('[requestWithdrawal] Email error:', e.message));
 
         res.status(201).json({
             message: 'Withdrawal request submitted successfully. It will be reviewed by administration.',
@@ -475,14 +486,15 @@ exports.requestDeposit = async (req, res) => {
         return res.status(400).json({ error: 'يرجى إدخال مبلغ إيداع صحيح أكبر من 0' });
     }
 
-    // Strict security check: DZ users cannot deposit via crypto or USDT
+    // Strict security check: DZ users or countries with USDT disabled cannot deposit via crypto or USDT
     const countryCode = await currencyService.detectUserCountry(req);
+    const countryRule = await currencyService.getRuleForCountry(countryCode);
     const isCrypto = (paymentMethod || '').toLowerCase().includes('usdt') || 
                      (paymentMethod || '').toLowerCase().includes('crypto') || 
                      (paymentMethod || '').toLowerCase().includes('nowpayments') ||
                      (paymentReference || '').toLowerCase().includes('usdt');
-    if (countryCode === 'DZ' && isCrypto) {
-        return res.status(403).json({ error: 'إيداعات USDT والعملات المشفرة غير متاحة في الجزائر' });
+    if ((countryCode === 'DZ' || !countryRule.usdt_enabled) && isCrypto) {
+        return res.status(403).json({ error: 'إيداعات USDT والعملات المشفرة غير متاحة في بلدك أو تم حظرها بقرار تنظيمي' });
     }
 
     const isNowPayments = (paymentMethod || '').toLowerCase().includes('nowpayments');

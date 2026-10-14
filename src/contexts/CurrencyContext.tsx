@@ -17,6 +17,13 @@ export interface CountryCurrencyRule {
   payoneer_enabled: boolean | number;
   bank_transfer_enabled: boolean | number;
   is_active: boolean | number;
+  bank_name?: string | null;
+  account_holder?: string | null;
+  account_number?: string | null;
+  iban?: string | null;
+  swift_code?: string | null;
+  bank_instructions?: string | null;
+  bank_instructions_ar?: string | null;
 }
 
 interface CurrencyContextType {
@@ -96,34 +103,34 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     resolvedCode = 'DZ';
   } else if (userCodeUpper === 'MA' || userCountryLower.includes('morocco') || userCountryLower.includes('maroc') || userCountryLower.includes('المغرب')) {
     resolvedCode = 'MA';
+  } else if (userCodeUpper === 'TN' || userCountryLower.includes('tunisia') || userCountryLower.includes('tunisie') || userCountryLower.includes('تونس')) {
+    resolvedCode = 'TN';
+  } else if (userCodeUpper === 'AE' || userCountryLower.includes('emirates') || userCountryLower.includes('uae') || userCountryLower.includes('الإمارات')) {
+    resolvedCode = 'AE';
+  } else if (userCodeUpper && userCodeUpper.length === 2 && userCodeUpper !== 'GL') {
+    resolvedCode = userCodeUpper;
   } else if (countryCode && countryCode !== 'GLOBAL') {
     resolvedCode = countryCode.toUpperCase();
   } else if (rule?.country_code) {
     resolvedCode = rule.country_code.toUpperCase();
   }
 
-  const isAlgeria = resolvedCode === 'DZ';
-  const isMorocco = resolvedCode === 'MA';
-  const hasLocalCurrency = isAlgeria || isMorocco;
-
-  // Strict logic:
-  // - Algeria: DZD (DA), rate ~ 250, USDT strictly disabled
-  // - Morocco: MAD (DH), rate ~ 10, USDT enabled
-  // - All other countries: USD ($), rate = 1, NO local currency displayed
-  const usdtEnabled = isAlgeria ? false : true;
-  const currencyCode = isAlgeria ? 'DZD' : isMorocco ? 'MAD' : 'USD';
-  const currencySymbol = isAlgeria ? 'DA' : isMorocco ? 'DH' : '$';
-  
   const activeRule = rule || defaultRule;
-  const usdRate = isAlgeria 
-    ? (Number(activeRule.country_code === 'DZ' ? activeRule.usd_rate : 250) || 250)
-    : isMorocco 
-    ? (Number(activeRule.country_code === 'MA' ? activeRule.usd_rate : 10) || 10)
-    : 1;
+
+  const isAlgeria = resolvedCode === 'DZ' || activeRule.country_code === 'DZ';
+  const isMorocco = resolvedCode === 'MA' || activeRule.country_code === 'MA';
+  
+  // Strict security: Algeria has 100% USDT ban
+  const usdtEnabled = isAlgeria ? false : (activeRule.usdt_enabled !== undefined ? !!activeRule.usdt_enabled : true);
+
+  const hasLocalCurrency = resolvedCode !== 'GLOBAL' && (activeRule.local_currency_enabled !== undefined ? !!activeRule.local_currency_enabled : (activeRule.country_code !== 'GLOBAL'));
+  const currencyCode = hasLocalCurrency ? (activeRule.currency_code || 'USD') : 'USD';
+  const currencySymbol = hasLocalCurrency ? (activeRule.currency_symbol || currencyCode) : '$';
+  const usdRate = Number(activeRule.usd_rate) || 1;
 
   const convertToLocal = (usdAmount: number): number => {
     const amt = Number(usdAmount || 0);
-    if (!hasLocalCurrency) {
+    if (!hasLocalCurrency || usdRate <= 0) {
       return amt;
     }
     return Math.round(amt * usdRate);
@@ -131,13 +138,10 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const formatPrice = (usdAmount: number): string => {
     const amt = Number(usdAmount || 0);
-    if (isAlgeria) {
-      return `${Math.round(amt * usdRate).toLocaleString()} DZD`;
+    if (hasLocalCurrency && currencyCode !== 'USD') {
+      const localVal = Math.round(amt * usdRate);
+      return `${localVal.toLocaleString()} ${currencyCode}`;
     }
-    if (isMorocco) {
-      return `${Math.round(amt * usdRate).toLocaleString()} MAD`;
-    }
-    // Rest of world: strictly USD
     return `$${amt.toLocaleString()}`;
   };
 
@@ -146,8 +150,12 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (isAlgeria) {
       return `${Math.round(amt * usdRate).toLocaleString()} DZD`;
     }
-    if (isMorocco) {
-      return `${Math.round(amt * usdRate).toLocaleString()} MAD (≈ ${amt.toLocaleString()} USDT)`;
+    if (hasLocalCurrency && currencyCode !== 'USD') {
+      const localVal = Math.round(amt * usdRate);
+      if (usdtEnabled) {
+        return `${localVal.toLocaleString()} ${currencyCode} (≈ ${amt.toLocaleString()} USDT)`;
+      }
+      return `${localVal.toLocaleString()} ${currencyCode}`;
     }
     return `$${amt.toLocaleString()} USD`;
   };
@@ -156,8 +164,8 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!showValue) {
       return {
         primary: `•••••••• ${currencyCode}`,
-        secondary: isAlgeria ? undefined : (isMorocco ? '•••••••• USDT' : undefined),
-        hasUsdt: !isAlgeria
+        secondary: isAlgeria ? undefined : (usdtEnabled && hasLocalCurrency ? '•••••••• USDT' : undefined),
+        hasUsdt: usdtEnabled
       };
     }
 
@@ -172,20 +180,20 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       };
     }
 
-    // Morocco: Local currency MAD primary, USDT secondary
-    if (isMorocco) {
+    // Local currency countries with USDT enabled (e.g. Morocco, Tunisia, UAE, etc.):
+    if (hasLocalCurrency && currencyCode !== 'USD') {
       return {
-        primary: `${Math.round(amt * usdRate).toLocaleString()} MAD`,
-        secondary: `≈ ${amt.toFixed(2)} USDT`,
-        hasUsdt: true
+        primary: `${Math.round(amt * usdRate).toLocaleString()} ${currencyCode}`,
+        secondary: usdtEnabled ? `≈ ${amt.toFixed(2)} USDT` : undefined,
+        hasUsdt: usdtEnabled
       };
     }
 
-    // Default for all other countries: USD primary, no local currency
+    // Default for all other countries: USD primary
     return {
       primary: `$${amt.toFixed(2)}`,
       secondary: undefined,
-      hasUsdt: true
+      hasUsdt: usdtEnabled
     };
   };
 

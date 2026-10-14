@@ -105,6 +105,25 @@ exports.updateAdminRule = async (req, res) => {
         if (is_active !== undefined) updates.is_active = is_active ? 1 : 0;
         if (sort_order !== undefined) updates.sort_order = parseInt(sort_order, 10);
 
+        // Bank details fields
+        const {
+            bank_name,
+            account_holder,
+            account_number,
+            iban,
+            swift_code,
+            bank_instructions,
+            bank_instructions_ar
+        } = req.body;
+
+        if (bank_name !== undefined) updates.bank_name = bank_name ? bank_name.trim() : null;
+        if (account_holder !== undefined) updates.account_holder = account_holder ? account_holder.trim() : null;
+        if (account_number !== undefined) updates.account_number = account_number ? account_number.trim() : null;
+        if (iban !== undefined) updates.iban = iban ? iban.trim() : null;
+        if (swift_code !== undefined) updates.swift_code = swift_code ? swift_code.trim() : null;
+        if (bank_instructions !== undefined) updates.bank_instructions = bank_instructions ? bank_instructions.trim() : null;
+        if (bank_instructions_ar !== undefined) updates.bank_instructions_ar = bank_instructions_ar ? bank_instructions_ar.trim() : null;
+
         // 2. Perform DB update
         const setClauses = Object.keys(updates).map(k => `${k} = ?`).join(', ');
         const values = [...Object.values(updates), countryCode.toUpperCase()];
@@ -178,7 +197,14 @@ exports.createAdminRule = async (req, res) => {
         payoneer_enabled = 0,
         bank_transfer_enabled = 1,
         is_active = 1,
-        sort_order = 0
+        sort_order = 0,
+        bank_name = null,
+        account_holder = null,
+        account_number = null,
+        iban = null,
+        swift_code = null,
+        bank_instructions = null,
+        bank_instructions_ar = null
     } = req.body;
 
     if (!country_code || !country_name || !currency_code) {
@@ -198,8 +224,9 @@ exports.createAdminRule = async (req, res) => {
                 country_code, country_name, country_name_ar, currency_code, currency_symbol,
                 usd_rate, usdt_rate, usdt_enabled, local_currency_enabled,
                 stripe_enabled, paypal_enabled, payoneer_enabled, bank_transfer_enabled,
-                is_active, sort_order
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                is_active, sort_order, bank_name, account_holder, account_number, iban, swift_code,
+                bank_instructions, bank_instructions_ar
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             code,
             country_name,
@@ -215,7 +242,14 @@ exports.createAdminRule = async (req, res) => {
             payoneer_enabled ? 1 : 0,
             bank_transfer_enabled ? 1 : 0,
             is_active ? 1 : 0,
-            parseInt(sort_order, 10) || 0
+            parseInt(sort_order, 10) || 0,
+            bank_name ? bank_name.trim() : null,
+            account_holder ? account_holder.trim() : null,
+            account_number ? account_number.trim() : null,
+            iban ? iban.trim() : null,
+            swift_code ? swift_code.trim() : null,
+            bank_instructions ? bank_instructions.trim() : null,
+            bank_instructions_ar ? bank_instructions_ar.trim() : null
         ]);
 
         await db.query(`

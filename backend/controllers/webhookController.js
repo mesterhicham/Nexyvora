@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const emailService = require('../services/emailService');
 
 /**
  * Recursively sort object keys alphabetically for official NOWPayments IPN verification
@@ -762,6 +763,15 @@ exports.handleGatewayWebhook = async (req, res) => {
         }
 
         await connection.commit();
+
+        // Safely dispatch deposit-approved email notification in background
+        emailService.sendToUser(internalOrder.user_id, 'deposit-approved', {
+            amount: amountToCredit.toFixed(2),
+            currency: parsed.currency || 'USD',
+            transaction_id: parsed.eventId || internalOrder.id,
+            new_balance: newBal.toFixed(2),
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        }).catch(e => console.error('[handleGatewayWebhook:deposit-approved] Email error:', e.message));
 
         res.status(200).json({
             success: true,

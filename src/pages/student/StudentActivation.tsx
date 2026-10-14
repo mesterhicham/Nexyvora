@@ -41,7 +41,7 @@ export default function StudentActivation() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
-  const { isAlgeria, isMorocco, usdtEnabled, currencyCode, convertToLocal, formatPrice, formatDualPrice } = useCurrency();
+  const { rule, isAlgeria, isMorocco, usdtEnabled, currencyCode, convertToLocal, formatPrice, formatDualPrice } = useCurrency();
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -183,7 +183,7 @@ export default function StudentActivation() {
     }
   };
 
-  // Find crypto and bank details from available methods
+  // Find crypto and bank details from available methods or active country rule
   const cryptoMethod = availableMethods.find((m: any) => m.type === 'nowpayments_crypto' || m.type === 'crypto' || m.crypto_wallet_address) || {
     name: 'USDT (Crypto)',
     crypto_currency: 'USDT (TRC20 / BEP20)',
@@ -192,14 +192,28 @@ export default function StudentActivation() {
     instructions_ar: 'يرجى تحويل مبلغ 30 USDT عبر شبكة (TRC20 أو BEP20) إلى العنوان أعلاه، ثم نسخ رقم المعاملة TxID وإرفاق الوصل أدناه.'
   };
 
-  const bankMethod = availableMethods.find((m: any) => m.type === 'bank_transfer' || m.bank_name) || {
-    name: 'Bank Transfer / BaridiMob',
-    bank_name: 'Nexyvora Global Services',
-    account_number: '00799999000123456789',
-    rib_iban: 'DZ00 0079 9999 0001 2345 6789',
-    account_holder: 'Nexyvora Platform Corp',
-    instructions_ar: 'يرجى تحويل ما يعادل 30 دولار (بالعملة المحلية أو الدولار) إلى الحساب أعلاه، ثم كتابة رقم الحوالة وإرفاق صورة الوصل.'
-  };
+  const localBankFromRule = (rule && (rule.bank_name || rule.account_number)) ? {
+    name: rule.bank_name || (isRtl ? 'تحويل بنكي محلي' : 'Local Bank Transfer'),
+    bank_name: rule.bank_name,
+    account_number: rule.account_number || '',
+    rib_iban: rule.account_number || rule.iban || '',
+    iban: rule.iban || rule.account_number || '',
+    account_holder: rule.account_holder || '',
+    swift_code: rule.swift_code || '',
+    instructions: rule.bank_instructions || '',
+    instructions_ar: rule.bank_instructions_ar || rule.bank_instructions || ''
+  } : null;
+
+  const bankMethod = localBankFromRule 
+    || availableMethods.find((m: any) => m.type === 'bank_transfer' || m.bank_name) 
+    || {
+      name: isRtl ? 'تحويل بنكي محلي' : 'Bank Transfer',
+      bank_name: isAlgeria ? 'BaridiMob' : (isMorocco ? 'Attijariwafa Bank' : 'Local Bank'),
+      account_number: '',
+      rib_iban: '',
+      account_holder: '',
+      instructions_ar: isRtl ? 'يرجى التحويل بالعملة المحلية إلى الحساب أعلاه وإرفاق صورة الوصل.' : 'Please transfer the amount in local currency and attach the receipt.'
+    };
 
   if (loading) {
     return (
@@ -485,8 +499,8 @@ export default function StudentActivation() {
                         <span className="font-bold text-xs sm:text-sm block text-white">
                           {isRtl ? 'تحويل بنكي / يدوي' : 'Bank Transfer'}
                         </span>
-                        <span className="text-[10px] text-slate-400 block font-mono">
-                          RIB / BaridiMob
+                        <span className="text-[10px] text-slate-400 block font-mono truncate max-w-[130px]">
+                          {bankMethod.bank_name || (isAlgeria ? 'BaridiMob / RIP' : (isMorocco ? 'CIH / Attijariwafa' : 'Local Bank'))}
                         </span>
                       </div>
                     </div>
@@ -571,34 +585,67 @@ export default function StudentActivation() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800">
                       <div>
                         <span className="text-slate-400 block text-[10px]">{isRtl ? 'اسم البنك / الجهة:' : 'Bank Name:'}</span>
-                        <span className="font-bold text-white text-xs">{bankMethod.bank_name || 'Nexyvora International'}</span>
+                        <span className="font-bold text-white text-xs">{bankMethod.bank_name || (isAlgeria ? 'BaridiMob' : 'Local Bank')}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 block text-[10px]">{isRtl ? 'اسم صاحب الحساب:' : 'Account Holder:'}</span>
-                        <span className="font-bold text-white text-xs">{bankMethod.account_holder || 'Nexyvora Platform Corp'}</span>
+                        <span className="font-bold text-white text-xs">{bankMethod.account_holder || '—'}</span>
                       </div>
                       <div className="sm:col-span-2 flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
                         <div>
-                          <span className="text-slate-400 block text-[10px]">{isRtl ? 'رقم الحساب / RIB / IBAN:' : 'RIB / IBAN / Account:'}</span>
-                          <span className="font-mono font-bold text-slate-200 text-xs">{bankMethod.rib_iban || bankMethod.account_number || 'DZ00 0079 9999 0001 2345 6789'}</span>
+                          <span className="text-slate-400 block text-[10px]">{isRtl ? 'رقم الحساب / RIP / الحساب البنكي:' : 'Account Number / RIP:'}</span>
+                          <span className="font-mono font-bold text-slate-200 text-xs">{bankMethod.account_number || bankMethod.rib_iban || '—'}</span>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => copyToClipboard(bankMethod.rib_iban || bankMethod.account_number || 'DZ00 0079 9999 0001 2345 6789', 'rib')}
-                          className="h-8 px-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 shrink-0 gap-1 font-bold text-xs"
-                        >
-                          {copiedField === 'rib' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                          <span>{copiedField === 'rib' ? (isRtl ? 'تم!' : 'Copied!') : (isRtl ? 'نسخ' : 'Copy')}</span>
-                        </Button>
+                        {(bankMethod.account_number || bankMethod.rib_iban) && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => copyToClipboard(bankMethod.account_number || bankMethod.rib_iban, 'rib')}
+                            className="h-8 px-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 shrink-0 gap-1 font-bold text-xs"
+                          >
+                            {copiedField === 'rib' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedField === 'rib' ? (isRtl ? 'تم!' : 'Copied!') : (isRtl ? 'نسخ' : 'Copy')}</span>
+                          </Button>
+                        )}
                       </div>
+
+                      {bankMethod.iban && bankMethod.iban !== bankMethod.account_number && (
+                        <div className="sm:col-span-2 flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+                          <div>
+                            <span className="text-slate-400 block text-[10px]">{isRtl ? 'رقم الآيبان الدولي (IBAN):' : 'IBAN Number:'}</span>
+                            <span className="font-mono font-bold text-slate-200 text-xs">{bankMethod.iban}</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => copyToClipboard(bankMethod.iban, 'iban')}
+                            className="h-8 px-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 shrink-0 gap-1 font-bold text-xs"
+                          >
+                            {copiedField === 'iban' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedField === 'iban' ? (isRtl ? 'تم!' : 'Copied!') : (isRtl ? 'نسخ' : 'Copy')}</span>
+                          </Button>
+                        </div>
+                      )}
+
+                      {bankMethod.swift_code && (
+                        <div className="sm:col-span-2 pt-1">
+                          <span className="text-slate-400 block text-[10px]">SWIFT / BIC:</span>
+                          <span className="font-mono font-bold text-slate-200 text-xs">{bankMethod.swift_code}</span>
+                        </div>
+                      )}
                     </div>
 
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
-                      💡 {isRtl 
-                        ? 'قم بتحويل $30 (أو ما يعادلها بالعملة المحلية)، ثم اكتب رقم الحوالة واسم صاحب الحساب وأرفق صورة الوصل أدناه.'
-                        : 'Transfer the equivalent of $30 USD, enter the reference number and sender name, and upload the bank slip.'}
-                    </p>
+                    {(bankMethod.instructions_ar || bankMethod.instructions) ? (
+                      <p className="text-[11px] text-slate-300 bg-slate-900/80 p-3 rounded-xl border border-slate-800 leading-relaxed whitespace-pre-line">
+                        💡 {isRtl ? (bankMethod.instructions_ar || bankMethod.instructions) : (bankMethod.instructions || bankMethod.instructions_ar)}
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-slate-400 leading-relaxed">
+                        💡 {isRtl 
+                          ? `قم بتحويل ${formatDualPrice(30)}، ثم اكتب رقم الحوالة واسم صاحب الحساب وأرفق صورة الوصل أدناه.`
+                          : 'Transfer the equivalent of $30 USD, enter the reference number and sender name, and upload the bank slip.'}
+                      </p>
+                    )}
                   </div>
                 )}
 

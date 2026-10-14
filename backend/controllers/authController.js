@@ -506,8 +506,9 @@ exports.forgotPasswordOtp = async (req, res) => {
                 [otpId, cleanEmail, codeHash]
             );
 
-            await emailService.sendTemplate('registration-otp', {
+            await emailService.sendTemplate('password-reset', {
                 to: cleanEmail,
+                toName: cleanEmail.split('@')[0],
                 variables: {
                     name: cleanEmail.split('@')[0],
                     user_name: cleanEmail.split('@')[0],
@@ -586,6 +587,18 @@ exports.resetPasswordWithOtp = async (req, res) => {
         );
 
         await connection.commit();
+
+        // Safely dispatch password-changed security alert email in background
+        emailService.sendTemplate('password-changed', {
+            to: cleanEmail,
+            toName: cleanEmail.split('@')[0],
+            variables: {
+                name: cleanEmail.split('@')[0],
+                date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                platform_name: 'Nexyvora Platform'
+            }
+        }).catch(e => console.error('[resetPasswordWithOtp] Security alert email dispatch error:', e.message));
+
         res.json({
             success: true,
             message: 'تم تغيير كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول / Password reset successfully. You can now login.'

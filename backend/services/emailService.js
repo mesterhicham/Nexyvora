@@ -5,7 +5,7 @@ const defaultTemplates = require('./defaultTemplates');
 
 class EmailService {
     /**
-     * Get active email settings from database
+     * Get active email settings from database or fallback to environment variables
      */
     async getSettings() {
         try {
@@ -80,11 +80,11 @@ class EmailService {
                 [
                     id,
                     templateId,
-                    recipientEmail,
+                    recipientEmail || 'unknown@recipient.com',
                     recipientName,
                     recipientType,
-                    subject,
-                    bodyHtml,
+                    subject || 'No Subject',
+                    bodyHtml || '',
                     status,
                     errorMessage,
                     status === 'sent' ? new Date() : null
@@ -99,13 +99,31 @@ class EmailService {
      * Send email with SMTP or fallback to logging if disabled
      */
     async sendEmail({ to, toName = null, subject, html, text = null, templateId = null, recipientType = 'member' }) {
-        const settings = await this.getSettings();
-
-        if (!settings || !settings.is_active || !settings.smtp_host) {
-            console.log(`[EmailService] SMTP inactive/not configured. Simulating delivery to ${to} for "${subject}"`);
+        // Validate recipient email address strictly
+        if (!to || typeof to !== 'string' || !to.includes('@') || to.trim().length < 5) {
+            console.warn(`[EmailService] Invalid or missing recipient email: "${to}". Skipping email dispatch.`);
             await this.logEmail({
                 templateId,
-                recipientEmail: to,
+                recipientEmail: to || 'missing_email',
+                recipientName: toName,
+                recipientType,
+                subject: subject || 'No Subject',
+                bodyHtml: html || '',
+                status: 'skipped',
+                errorMessage: 'Invalid or missing recipient email address'
+            });
+            return { success: false, skipped: true, error: 'Invalid or missing recipient email' };
+        }
+
+        const cleanTo = to.trim().toLowerCase();
+        const settings = await this.getSettings();
+
+        // Simulated / development mode if SMTP is inactive or unconfigured
+        if (!settings || !settings.is_active || !settings.smtp_host) {
+            console.log(`[EmailService] SMTP inactive/not configured. Simulating delivery to ${cleanTo} for "${subject}"`);
+            await this.logEmail({
+                templateId,
+                recipientEmail: cleanTo,
                 recipientName: toName,
                 recipientType,
                 subject,
@@ -118,21 +136,25 @@ class EmailService {
 
         try {
             const transporter = this.createTransporter(settings);
+            if (!transporter) {
+                throw new Error('Transporter creation failed: Invalid SMTP configuration');
+            }
+
             const fromAddress = settings.from_name 
                 ? `"${settings.from_name}" <${settings.from_email || settings.smtp_username}>`
                 : (settings.from_email || settings.smtp_username);
 
             const info = await transporter.sendMail({
                 from: fromAddress,
-                to: toName ? `"${toName}" <${to}>` : to,
+                to: toName ? `"${toName}" <${cleanTo}>` : cleanTo,
                 subject,
-                text: text || html.replace(/<[^>]*>?/gm, ''),
+                text: text || (html ? html.replace(/<[^>]*>?/gm, '') : ''),
                 html
             });
 
             await this.logEmail({
                 templateId,
-                recipientEmail: to,
+                recipientEmail: cleanTo,
                 recipientName: toName,
                 recipientType,
                 subject,
@@ -145,7 +167,7 @@ class EmailService {
             console.error('[EmailService] Failed to send email via SMTP:', error.message);
             await this.logEmail({
                 templateId,
-                recipientEmail: to,
+                recipientEmail: cleanTo,
                 recipientName: toName,
                 recipientType,
                 subject,
@@ -163,9 +185,17 @@ class EmailService {
     async sendTemplate(slug, { to, toName = null, variables = {}, recipientType = 'member' }) {
         try {
             let template = null;
+            // First check database templates
             const [templates] = await pool.query('SELECT * FROM email_templates WHERE slug = ? AND is_active = 1 LIMIT 1', [slug]);
             if (templates.length > 0) {
                 template = templates[0];
+                // If template in DB lacks required otp_code for password-reset, fallback to updated builtin template
+                if (slug === 'password-reset' && (!template.body_html || !template.body_html.includes('otp_code'))) {
+                    const builtinDef = defaultTemplates.find(t => t.slug === slug);
+                    if (builtinDef) {
+                        template = { id: template.id, ...builtinDef };
+                    }
+                }
             } else {
                 // Fallback to builtin default templates
                 const def = defaultTemplates.find(t => t.slug === slug);
@@ -179,11 +209,21 @@ class EmailService {
                 return { success: false, error: `Template "${slug}" not found or inactive` };
             }
 
-            let subject = template.subject || 'Notification';
+            let subject = template.subject || 'Nexyvora Notification';
             let html = template.body_html || '';
 
-            // Replace {{variable}} tokens
-            for (const [key, val] of Object.entries(variables)) {
+            // Inject standard default variables if missing and map common aliases
+            const enrichedVars = {
+                platform_name: 'Nexyvora Platform',
+                date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                year: String(new Date().getFullYear()),
+                currency: 'USD',
+                amount: variables.amount || variables.commission_amount || variables.reward_amount || variables.price || '',
+                ...variables
+            };
+
+            // Replace {{variable}} tokens safely
+            for (const [key, val] of Object.entries(enrichedVars)) {
                 const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
                 subject = subject.replace(regex, String(val ?? ''));
                 html = html.replace(regex, String(val ?? ''));
@@ -199,6 +239,105 @@ class EmailService {
             });
         } catch (err) {
             console.error(`[EmailService] Error processing template "${slug}":`, err.message);
+            return { success: false, error: err.message };
+        }
+    }
+
+    /**
+     * Safely send templated email to a registered user by User ID
+     * Fetches user email, name and profile details automatically without throwing errors
+     */
+    async sendToUser(userId, slug, variables = {}, fallbackEmail = null) {
+        if (!userId) {
+            if (fallbackEmail) {
+                return await this.sendTemplate(slug, {
+                    to: fallbackEmail,
+                    toName: variables.name || null,
+                    variables
+                });
+            }
+            return { success: false, error: 'No userId or fallback email provided' };
+        }
+
+        try {
+            const [rows] = await pool.query(`
+                SELECT u.id, u.email, COALESCE(p.full_name, u.email) AS name
+                FROM users u
+                LEFT JOIN profiles p ON u.id = p.id
+                WHERE u.id = ?
+                LIMIT 1
+            `, [userId]);
+
+            if (rows.length === 0 || !rows[0].email) {
+                if (fallbackEmail) {
+                    return await this.sendTemplate(slug, {
+                        to: fallbackEmail,
+                        toName: variables.name || null,
+                        variables
+                    });
+                }
+                console.warn(`[EmailService] User "${userId}" not found or has no email address.`);
+                return { success: false, error: `User "${userId}" not found` };
+            }
+
+            const user = rows[0];
+            const recipientName = variables.name || user.name || user.email.split('@')[0];
+
+            return await this.sendTemplate(slug, {
+                to: user.email,
+                toName: recipientName,
+                variables: {
+                    name: recipientName,
+                    ...variables
+                }
+            });
+        } catch (err) {
+            console.error(`[EmailService] Failed to sendToUser "${userId}" for template "${slug}":`, err.message);
+            return { success: false, error: err.message };
+        }
+    }
+
+    /**
+     * Sync default templates into email_templates table (inserts missing or updates existing)
+     */
+    async syncDatabaseTemplates() {
+        try {
+            for (const t of defaultTemplates) {
+                const [existing] = await pool.query('SELECT id FROM email_templates WHERE slug = ? LIMIT 1', [t.slug]);
+                if (existing.length === 0) {
+                    const id = crypto.randomUUID();
+                    await pool.query(`
+                        INSERT INTO email_templates (id, name, slug, subject, body_html, body_text, variables, is_active)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                    `, [
+                        id,
+                        t.name,
+                        t.slug,
+                        t.subject,
+                        t.body_html,
+                        t.body_text || '',
+                        JSON.stringify(t.variables || [])
+                    ]);
+                } else {
+                    // Update body_html, subject, and variables to ensure templates stay up to date
+                    await pool.query(`
+                        UPDATE email_templates 
+                        SET name = ?, subject = ?, body_html = ?, body_text = ?, variables = ?, is_active = 1
+                        WHERE slug = ?
+                    `, [
+                        t.name,
+                        t.subject,
+                        t.body_html,
+                        t.body_text || '',
+                        JSON.stringify(t.variables || []),
+                        t.slug
+                    ]);
+                }
+            }
+            console.log(`[EmailService] Synced ${defaultTemplates.length} default email templates successfully.`);
+            return { success: true, count: defaultTemplates.length };
+        } catch (err) {
+            console.error('[EmailService] Failed to sync database templates:', err.message);
             return { success: false, error: err.message };
         }
     }
