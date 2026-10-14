@@ -77,7 +77,19 @@ export default function StudentAcademy() {
           description: settingsMap['academy_intro_description'],
           videoUrl: settingsMap['academy_intro_video_url'],
           author: settingsMap['academy_intro_author'],
-          badge: settingsMap['academy_intro_badge']
+          badge: settingsMap['academy_intro_badge'],
+          flowTitle: settingsMap['academy_flow_title'],
+          flowVideoUrl: settingsMap['academy_flow_video_url'],
+          flowBanner: settingsMap['academy_flow_banner'],
+          flowDesc: settingsMap['academy_flow_description'],
+          growTitle: settingsMap['academy_grow_title'],
+          growVideoUrl: settingsMap['academy_grow_video_url'],
+          growBanner: settingsMap['academy_grow_banner'],
+          growDesc: settingsMap['academy_grow_description'],
+          primeTitle: settingsMap['academy_prime_title'],
+          primeVideoUrl: settingsMap['academy_prime_video_url'],
+          primeBanner: settingsMap['academy_prime_banner'],
+          primeDesc: settingsMap['academy_prime_description'],
         });
       }
     } catch (err) {

@@ -26,6 +26,16 @@ export default function AdminAcademy() {
 
   const sections = [
     {
+      title: isRtl ? 'إعدادات وفيديوهات الأكاديمية والباقات' : 'Academy Showcase & Promo Videos',
+      subtitle: isRtl ? 'Promo Videos & Banners' : 'Intro & Package Showcases',
+      description: isRtl 
+        ? 'تغيير وتخصيص الفيديوهات التعريفية، صور الأغلفة، وعناوين باقات الأكاديمية (FLOW, GROW, PRIME).' 
+        : 'Customize introductory videos, banner images, and descriptions for academy packages (FLOW, GROW, PRIME).',
+      icon: Video,
+      color: 'bg-emerald-500/10 text-emerald-600',
+      href: '/admin/platform-settings?tab=academy',
+    },
+    {
       title: isRtl ? 'إدارة الأساتذة والمشرفين' : 'Teacher & Instructor Management',
       subtitle: isRtl ? 'Teachers / Faculty' : 'Teacher Accounts & Permissions',
       description: isRtl 

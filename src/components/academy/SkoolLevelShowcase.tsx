@@ -52,6 +52,18 @@ interface SkoolLevelShowcaseProps {
     videoUrl?: string;
     author?: string;
     badge?: string;
+    flowTitle?: string;
+    flowVideoUrl?: string;
+    flowBanner?: string;
+    flowDesc?: string;
+    growTitle?: string;
+    growVideoUrl?: string;
+    growBanner?: string;
+    growDesc?: string;
+    primeTitle?: string;
+    primeVideoUrl?: string;
+    primeBanner?: string;
+    primeDesc?: string;
   };
 }
 
@@ -197,7 +209,7 @@ export function SkoolLevelShowcase({
       level: 1,
       tag: isRtl ? 'المستوى 1 — الأكثر طلباً للمبتدئين' : 'Level 1 — Most Popular for Beginners',
       tabLabel: isRtl ? '🛒 المستوى 1: FLOW (150$)' : '🛒 Level 1: FLOW ($150)',
-      title: isRtl ? 'FLOW 150 $ — التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي' : 'FLOW $150 — AI E-Commerce & Digital Business',
+      title: adminIntroSettings?.flowTitle || (isRtl ? 'FLOW 150 $ — التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي' : 'FLOW $150 — AI E-Commerce & Digital Business'),
       communityHandle: 'nexyvora.com/flow',
       author: isRtl ? 'مدربو مسار التجارة الإلكترونية · Nexyvora' : 'E-Commerce Instructors · Nexyvora',
       date: isRtl ? 'منهج 2026 المحدث بالذكاء الاصطناعي' : '2026 AI-Updated Curriculum',
@@ -208,12 +220,12 @@ export function SkoolLevelShowcase({
       membersCount: '1,420+',
       onlineCount: '318',
       adminCount: '1 Admin',
-      bannerImage: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=1200&q=80',
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      bannerImage: adminIntroSettings?.flowBanner || 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=1200&q=80',
+      videoUrl: adminIntroSettings?.flowVideoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ',
       mediaList: [
         {
           type: 'video',
-          thumbnail: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=600&q=80',
+          thumbnail: adminIntroSettings?.flowBanner || 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=600&q=80',
           title: isRtl ? 'فيديو معاينة المستوى 1 (FLOW)' : 'Level 1 (FLOW) Preview Video',
           duration: '3:45'
         },
@@ -238,7 +250,7 @@ export function SkoolLevelShowcase({
           title: isRtl ? 'نظام إدارة وتأكيد طلبيات الشحن السريع' : 'Fast Shipping & Order Confirmation'
         }
       ],
-      description: isRtl ? 'مجتمع لتعلم التجارة الإلكترونية بالذكاء الاصطناعي خطوة بخطوة 🚀 وبناء متجرك الرابح بنظام الدفع عند الاستلام COD وإعلانات السوشيال ميديا.' : 'Community to learn AI-powered e-commerce step by step 🚀 Build your profitable store with cash-on-delivery (COD) and social ads.',
+      description: adminIntroSettings?.flowDesc || (isRtl ? 'مجتمع لتعلم التجارة الإلكترونية بالذكاء الاصطناعي خطوة بخطوة 🚀 وبناء متجرك الرابح بنظام الدفع عند الاستلام COD وإعلانات السوشيال ميديا.' : 'Community to learn AI-powered e-commerce step by step 🚀 Build your profitable store with cash-on-delivery (COD) and social ads.'),
       curriculumHighlights: [
         {
           title: isRtl ? '🛍️ إنشاء متجر احترافي فائق السرعة' : '🛍️ Building Ultra-Fast Professional Stores',
@@ -288,7 +300,7 @@ export function SkoolLevelShowcase({
       level: 2,
       tag: isRtl ? 'المستوى 2 — قيمة استثنائية ونمو متسارع' : 'Level 2 — Exceptional Value & Rapid Growth',
       tabLabel: isRtl ? '🤖 المستوى 2: GROW (500$)' : '🤖 Level 2: GROW ($500)',
-      title: isRtl ? 'GROW 500 $ — الذكاء الاصطناعي، الأتمتة ووكلاء AI (AI Automation)' : 'GROW $500 — AI, Automation & AI Agents (AAA)',
+      title: adminIntroSettings?.growTitle || (isRtl ? 'GROW 500 $ — الذكاء الاصطناعي، الأتمتة ووكلاء AI (AI Automation)' : 'GROW $500 — AI, Automation & AI Agents (AAA)'),
       communityHandle: 'nexyvora.com/grow',
       author: isRtl ? 'مهندسو الذكاء الاصطناعي والأتمتة · Nexyvora' : 'AI & Automation Engineers · Nexyvora',
       date: isRtl ? 'منهج وكلاء الذكاء الاصطناعي ونظم n8n' : 'AI Agents & n8n Workflows Curriculum',
@@ -299,12 +311,12 @@ export function SkoolLevelShowcase({
       membersCount: '890+',
       onlineCount: '215',
       adminCount: '1 Admin',
-      bannerImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      bannerImage: adminIntroSettings?.growBanner || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
+      videoUrl: adminIntroSettings?.growVideoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ',
       mediaList: [
         {
           type: 'video',
-          thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80',
+          thumbnail: adminIntroSettings?.growBanner || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80',
           title: isRtl ? 'فيديو معاينة المستوى 2 (GROW)' : 'Level 2 (GROW) Preview Video',
           duration: '4:15'
         },
@@ -329,7 +341,7 @@ export function SkoolLevelShowcase({
           title: isRtl ? 'نموذج عمل وكالة أتمتة الذكاء الاصطناعي (AAA)' : 'AI Automation Agency (AAA) Business Model'
         }
       ],
-      description: isRtl ? 'مجتمع لبناء وتدريب وكلاء الذكاء الاصطناعي (Custom AI Agents) وأنظمة الأتمتة عبر n8n 🚀 وإطلاق وكالة أتمتة AI للشركات.' : 'Community to build custom AI agents and automate business operations with n8n 🚀 Launch your AI Automation Agency (AAA).',
+      description: adminIntroSettings?.growDesc || (isRtl ? 'مجتمع لبناء وتدريب وكلاء الذكاء الاصطناعي (Custom AI Agents) وأنظمة الأتمتة عبر n8n 🚀 وإطلاق وكالة أتمتة AI للشركات.' : 'Community to build custom AI agents and automate business operations with n8n 🚀 Launch your AI Automation Agency (AAA).'),
       curriculumHighlights: [
         {
           title: isRtl ? '🧠 أسس الذكاء الاصطناعي وهندسة الأوامر المتقدمة (Prompt Engineering)' : '🧠 AI Foundations & Advanced Prompt Engineering',
@@ -379,7 +391,7 @@ export function SkoolLevelShowcase({
       level: 3,
       tag: isRtl ? 'المستوى 3 — VIP النخبة وبناء الـ SaaS والمرافقة' : 'Level 3 — Elite VIP, SaaS Incubator & Mentorship',
       tabLabel: isRtl ? '💻 المستوى 3: PRIME (1000$)' : '💻 Level 3: PRIME ($1000)',
-      title: isRtl ? 'PRIME 1000 $ — البرمجة المتقدمة، بناء SaaS والمرافقة الشخصية 1-on-1' : 'PRIME $1000 — Full-Stack SaaS & 1-on-1 Mentorship',
+      title: adminIntroSettings?.primeTitle || (isRtl ? 'PRIME 1000 $ — البرمجة المتقدمة، بناء SaaS والمرافقة الشخصية 1-on-1' : 'PRIME $1000 — Full-Stack SaaS & 1-on-1 Mentorship'),
       communityHandle: 'nexyvora.com/prime',
       author: isRtl ? 'كبار المطورين ورواد الأعمال المؤسسين · Nexyvora' : 'Senior Developers & Founders · Nexyvora',
       date: isRtl ? 'برنامج بناء المشاريع البرمجية والمرافقة الفردية' : 'Software Incubation & Dedicated Mentorship',
@@ -390,12 +402,12 @@ export function SkoolLevelShowcase({
       membersCount: '340+',
       onlineCount: '94',
       adminCount: '1 Admin',
-      bannerImage: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80',
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      bannerImage: adminIntroSettings?.primeBanner || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80',
+      videoUrl: adminIntroSettings?.primeVideoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ',
       mediaList: [
         {
           type: 'video',
-          thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80',
+          thumbnail: adminIntroSettings?.primeBanner || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80',
           title: isRtl ? 'فيديو معاينة المستوى 3 (PRIME)' : 'Level 3 (PRIME) Preview Video',
           duration: '5:10'
         },

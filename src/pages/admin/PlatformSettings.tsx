@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -80,6 +81,8 @@ function hslToHex(hslStr: string): string {
 export default function PlatformSettings() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'branding';
   const { data: settings, isLoading } = usePlatformSettings();
   const updateSetting = useUpdatePlatformSetting();
   
@@ -274,7 +277,7 @@ export default function PlatformSettings() {
         breadcrumbs={[{ label: t('nav.dashboard'), href: '/admin' }, { label: t('admin.platformSettings') }]}
       />
 
-      <Tabs defaultValue="branding" className="space-y-6">
+      <Tabs value={currentTab} onValueChange={(val) => setSearchParams({ tab: val })} className="space-y-6">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="branding" className="flex items-center gap-2">
             <Image className="h-4 w-4" />
@@ -1557,6 +1560,297 @@ export default function PlatformSettings() {
                       >
                         <Save className="h-4 w-4" />
                         {isRtl ? 'حفظ نص الشرح' : 'Save Orientation Text'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Level 1: FLOW ($150) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5 text-blue-500" />
+                  {isRtl ? 'المستوى 1: باقة FLOW (150$) — فيديو وصور وتعريف الباقة' : 'Level 1: FLOW ($150) — Video, Images & Description'}
+                </CardTitle>
+                <CardDescription>
+                  {isRtl ? 'تخصيص فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة FLOW في الأكاديمية.' : 'Customize preview video, banner image, and description for FLOW package in Academy.'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{isRtl ? "عنوان الباقة الترويجي" : "Package Promo Title"}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={getValue('academy_flow_title')}
+                      onChange={(e) => handleChange('academy_flow_title', e.target.value)}
+                      placeholder={isRtl ? "FLOW 150 $ — التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي" : "FLOW $150 — AI E-Commerce & Digital Business"}
+                    />
+                    <Button 
+                      onClick={() => handleSave('academy_flow_title')} 
+                      disabled={!hasChanges('academy_flow_title') || updateSetting.isPending}
+                      size="icon"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{isRtl ? "رابط فيديو معاينة الباقة (YouTube Embed URL أو رابط مباشر)" : "Video Embed URL (YouTube embed or direct link)"}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={getValue('academy_flow_video_url')}
+                      onChange={(e) => handleChange('academy_flow_video_url', e.target.value)}
+                      placeholder="https://www.youtube.com/embed/..."
+                      dir="ltr"
+                    />
+                    <Button 
+                      onClick={() => handleSave('academy_flow_video_url')} 
+                      disabled={!hasChanges('academy_flow_video_url') || updateSetting.isPending}
+                      size="icon"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{isRtl ? "رابط صورة الغلاف / البانر (Banner Image URL)" : "Banner Image URL"}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={getValue('academy_flow_banner')}
+                      onChange={(e) => handleChange('academy_flow_banner', e.target.value)}
+                      placeholder="https://..."
+                      dir="ltr"
+                    />
+                    <Button 
+                      onClick={() => handleSave('academy_flow_banner')} 
+                      disabled={!hasChanges('academy_flow_banner') || updateSetting.isPending}
+                      size="icon"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {getValue('academy_flow_banner') && (
+                    <div className="mt-2 rounded-lg overflow-hidden border max-w-xs h-32">
+                      <img src={getValue('academy_flow_banner')} alt="FLOW Banner Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{isRtl ? "نص الوصف الترويجي للباقة" : "Package Description"}</Label>
+                  <div className="space-y-2">
+                    <Textarea
+                      rows={3}
+                      value={getValue('academy_flow_description')}
+                      onChange={(e) => handleChange('academy_flow_description', e.target.value)}
+                      placeholder={isRtl ? "مجتمع لتعلم التجارة الإلكترونية بالذكاء الاصطناعي خطوة بخطوة..." : "Community to learn AI-powered e-commerce step by step..."}
+                    />
+                    <div className="flex justify-end">
+                      <Button 
+                        onClick={() => handleSave('academy_flow_description')} 
+                        disabled={!hasChanges('academy_flow_description') || updateSetting.isPending}
+                        className="gap-2"
+                      >
+                        <Save className="h-4 w-4" />
+                        {isRtl ? 'حفظ وصف باقة FLOW' : 'Save FLOW Description'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Level 2: GROW ($500) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5 text-purple-500" />
+                  {isRtl ? 'المستوى 2: باقة GROW (500$) — فيديو وصور وتعريف الباقة' : 'Level 2: GROW ($500) — Video, Images & Description'}
+                </CardTitle>
+                <CardDescription>
+                  {isRtl ? 'تخصيص فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة GROW في الأكاديمية.' : 'Customize preview video, banner image, and description for GROW package in Academy.'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{isRtl ? "عنوان الباقة الترويجي" : "Package Promo Title"}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={getValue('academy_grow_title')}
+                      onChange={(e) => handleChange('academy_grow_title', e.target.value)}
+                      placeholder={isRtl ? "GROW 500 $ — الذكاء الاصطناعي، الأتمتة ووكلاء AI (AI Automation)" : "GROW $500 — AI, Automation & AI Agents (AAA)"}
+                    />
+                    <Button 
+                      onClick={() => handleSave('academy_grow_title')} 
+                      disabled={!hasChanges('academy_grow_title') || updateSetting.isPending}
+                      size="icon"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{isRtl ? "رابط فيديو معاينة الباقة (YouTube Embed URL أو رابط مباشر)" : "Video Embed URL (YouTube embed or direct link)"}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={getValue('academy_grow_video_url')}
+                      onChange={(e) => handleChange('academy_grow_video_url', e.target.value)}
+                      placeholder="https://www.youtube.com/embed/..."
+                      dir="ltr"
+                    />
+                    <Button 
+                      onClick={() => handleSave('academy_grow_video_url')} 
+                      disabled={!hasChanges('academy_grow_video_url') || updateSetting.isPending}
+                      size="icon"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{isRtl ? "رابط صورة الغلاف / البانر (Banner Image URL)" : "Banner Image URL"}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={getValue('academy_grow_banner')}
+                      onChange={(e) => handleChange('academy_grow_banner', e.target.value)}
+                      placeholder="https://..."
+                      dir="ltr"
+                    />
+                    <Button 
+                      onClick={() => handleSave('academy_grow_banner')} 
+                      disabled={!hasChanges('academy_grow_banner') || updateSetting.isPending}
+                      size="icon"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {getValue('academy_grow_banner') && (
+                    <div className="mt-2 rounded-lg overflow-hidden border max-w-xs h-32">
+                      <img src={getValue('academy_grow_banner')} alt="GROW Banner Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{isRtl ? "نص الوصف الترويجي للباقة" : "Package Description"}</Label>
+                  <div className="space-y-2">
+                    <Textarea
+                      rows={3}
+                      value={getValue('academy_grow_description')}
+                      onChange={(e) => handleChange('academy_grow_description', e.target.value)}
+                      placeholder={isRtl ? "مجتمع لبناء وتدريب وكلاء الذكاء الاصطناعي (Custom AI Agents)..." : "Community to build custom AI agents and automate operations..."}
+                    />
+                    <div className="flex justify-end">
+                      <Button 
+                        onClick={() => handleSave('academy_grow_description')} 
+                        disabled={!hasChanges('academy_grow_description') || updateSetting.isPending}
+                        className="gap-2"
+                      >
+                        <Save className="h-4 w-4" />
+                        {isRtl ? 'حفظ وصف باقة GROW' : 'Save GROW Description'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Level 3: PRIME ($1000) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5 text-amber-500" />
+                  {isRtl ? 'المستوى 3: باقة PRIME (1000$) — فيديو وصور وتعريف الباقة' : 'Level 3: PRIME ($1000) — Video, Images & Description'}
+                </CardTitle>
+                <CardDescription>
+                  {isRtl ? 'تخصيص فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة PRIME في الأكاديمية.' : 'Customize preview video, banner image, and description for PRIME package in Academy.'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{isRtl ? "عنوان الباقة الترويجي" : "Package Promo Title"}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={getValue('academy_prime_title')}
+                      onChange={(e) => handleChange('academy_prime_title', e.target.value)}
+                      placeholder={isRtl ? "PRIME 1000 $ — البرمجة المتقدمة، بناء SaaS والمرافقة الشخصية 1-on-1" : "PRIME $1000 — Full-Stack SaaS & 1-on-1 Mentorship"}
+                    />
+                    <Button 
+                      onClick={() => handleSave('academy_prime_title')} 
+                      disabled={!hasChanges('academy_prime_title') || updateSetting.isPending}
+                      size="icon"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{isRtl ? "رابط فيديو معاينة الباقة (YouTube Embed URL أو رابط مباشر)" : "Video Embed URL (YouTube embed or direct link)"}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={getValue('academy_prime_video_url')}
+                      onChange={(e) => handleChange('academy_prime_video_url', e.target.value)}
+                      placeholder="https://www.youtube.com/embed/..."
+                      dir="ltr"
+                    />
+                    <Button 
+                      onClick={() => handleSave('academy_prime_video_url')} 
+                      disabled={!hasChanges('academy_prime_video_url') || updateSetting.isPending}
+                      size="icon"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{isRtl ? "رابط صورة الغلاف / البانر (Banner Image URL)" : "Banner Image URL"}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={getValue('academy_prime_banner')}
+                      onChange={(e) => handleChange('academy_prime_banner', e.target.value)}
+                      placeholder="https://..."
+                      dir="ltr"
+                    />
+                    <Button 
+                      onClick={() => handleSave('academy_prime_banner')} 
+                      disabled={!hasChanges('academy_prime_banner') || updateSetting.isPending}
+                      size="icon"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {getValue('academy_prime_banner') && (
+                    <div className="mt-2 rounded-lg overflow-hidden border max-w-xs h-32">
+                      <img src={getValue('academy_prime_banner')} alt="PRIME Banner Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{isRtl ? "نص الوصف الترويجي للباقة" : "Package Description"}</Label>
+                  <div className="space-y-2">
+                    <Textarea
+                      rows={3}
+                      value={getValue('academy_prime_description')}
+                      onChange={(e) => handleChange('academy_prime_description', e.target.value)}
+                      placeholder={isRtl ? "مجتمع النخبة لتطوير البرمجيات الكاملة وتطبيقات SaaS المربحة..." : "Elite community to build scalable web applications..."}
+                    />
+                    <div className="flex justify-end">
+                      <Button 
+                        onClick={() => handleSave('academy_prime_description')} 
+                        disabled={!hasChanges('academy_prime_description') || updateSetting.isPending}
+                        className="gap-2"
+                      >
+                        <Save className="h-4 w-4" />
+                        {isRtl ? 'حفظ وصف باقة PRIME' : 'Save PRIME Description'}
                       </Button>
                     </div>
                   </div>
