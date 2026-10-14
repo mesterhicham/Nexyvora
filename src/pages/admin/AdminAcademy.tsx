@@ -26,6 +26,16 @@ export default function AdminAcademy() {
 
   const sections = [
     {
+      title: isRtl ? 'إدارة الأساتذة والمشرفين' : 'Teacher & Instructor Management',
+      subtitle: isRtl ? 'Teachers / Faculty' : 'Teacher Accounts & Permissions',
+      description: isRtl 
+        ? 'إنشاء حسابات الأساتذة وتحديد تخصصاتهم، بياناتهم، ومتابعة نشاطهم وصلاحياتهم.' 
+        : 'Create teacher accounts, define their specialties, contact info, and academic permissions.',
+      icon: GraduationCap,
+      color: 'bg-blue-500/10 text-blue-600',
+      href: '/admin/teachers',
+    },
+    {
       title: isRtl ? 'إدارة الطلاب والمستخدمين' : 'Student & User Management',
       subtitle: isRtl ? 'Student Management' : 'Accounts & Academy Status',
       description: isRtl 

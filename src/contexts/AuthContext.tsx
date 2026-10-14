@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: profileData.id,
         email: profileData.email,
         full_name: profileData.full_name,
-        role: storedUser.role || null,
+        role: profileData.role || storedUser.role || null,
         country: profileData.country,
         country_code: profileData.country_code
       };

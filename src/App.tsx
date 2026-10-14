@@ -166,7 +166,13 @@ function RequireRole({ allowedRoles }: { allowedRoles: string[] }) {
 
 function DashboardRedirect() {
   const { user, role, loading } = useAuth();
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#070913] flex flex-col items-center justify-center text-white p-6">
+        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4" />
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/auth" replace />;
   if (role === 'admin') return <Navigate to="/admin" replace />;
   if (role === 'teacher') return <Navigate to="/teacher" replace />;

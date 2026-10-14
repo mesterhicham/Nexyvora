@@ -63,9 +63,6 @@ export default function Auth() {
   });
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'student' | 'teacher'>('student');
-  const [specialty, setSpecialty] = useState('');
-  const [experience, setExperience] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('Morocco');
   const [whatsappNumber, setWhatsappNumber] = useState('');
@@ -79,8 +76,6 @@ export default function Auth() {
     city?: string;
     country?: string;
     whatsapp?: string;
-    specialty?: string;
-    experience?: string;
   }>({});
 
   // Auto redirect if already authenticated
@@ -118,11 +113,6 @@ export default function Auth() {
       if (!whatsappNumber.trim()) {
         newErrors.whatsapp = isRtl ? 'رقم الواتساب مطلوب للتواصل' : 'WhatsApp number is required';
       }
-      
-      if (selectedRole === 'teacher') {
-        if (!specialty.trim()) newErrors.specialty = isRtl ? 'التخصص الأكاديمي مطلوب' : 'Specialty is required';
-        if (!experience.trim()) newErrors.experience = isRtl ? 'وصف الخبرة مطلوب' : 'Experience description is required';
-      }
     }
 
     setErrors(newErrors);
@@ -159,9 +149,9 @@ export default function Auth() {
           city.trim(), 
           country, 
           whatsappNumber.trim(), 
-          selectedRole, 
-          specialty.trim(), 
-          experience.trim(), 
+          'student', 
+          undefined, 
+          undefined, 
           referralCode.trim()
         );
         if (error) {
@@ -440,67 +430,6 @@ export default function Auth() {
                       </div>
                       {errors.whatsapp && <p className="text-[11px] text-rose-400">{errors.whatsapp}</p>}
                     </div>
-
-                    {/* Role Selection */}
-                    <div className="space-y-1 text-left rtl:text-right">
-                      <Label className="text-xs font-medium text-slate-300">
-                        {isRtl ? 'نوع الحساب' : 'Account Type'}
-                      </Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRole('student')}
-                          className={`flex items-center justify-center gap-2 p-2 rounded-xl border text-xs font-semibold transition-all ${
-                            selectedRole === 'student'
-                              ? 'bg-blue-600/20 border-blue-500 text-white'
-                              : 'bg-[#070b18]/60 border-slate-800 text-slate-400'
-                          }`}
-                        >
-                          <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
-                          <span>{isRtl ? 'طالب' : 'Student'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRole('teacher')}
-                          className={`flex items-center justify-center gap-2 p-2 rounded-xl border text-xs font-semibold transition-all ${
-                            selectedRole === 'teacher'
-                              ? 'bg-purple-600/20 border-purple-500 text-white'
-                              : 'bg-[#070b18]/60 border-slate-800 text-slate-400'
-                          }`}
-                        >
-                          <BookOpen className="w-3.5 h-3.5 text-purple-400" />
-                          <span>{isRtl ? 'أستاذ' : 'Instructor'}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Teacher specific */}
-                    {selectedRole === 'teacher' && (
-                      <div className="space-y-2.5 p-3 rounded-xl bg-purple-950/20 border border-purple-500/30">
-                        <div className="space-y-1">
-                          <Label className="text-xs text-purple-200">
-                            {isRtl ? 'التخصص الأكاديمي' : 'Specialty'} <span className="text-rose-400">*</span>
-                          </Label>
-                          <Input
-                            placeholder={isRtl ? 'التخصص الأكاديمي' : 'Academic Domain'}
-                            value={specialty}
-                            onChange={(e) => setSpecialty(e.target.value)}
-                            className="h-9 bg-[#070b18]/80 border-purple-500/40 text-white rounded-lg text-xs"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-purple-200">
-                            {isRtl ? 'الخبرة الأكاديمية' : 'Experience'} <span className="text-rose-400">*</span>
-                          </Label>
-                          <Input
-                            placeholder={isRtl ? 'سنوات الخبرة' : 'Experience Summary'}
-                            value={experience}
-                            onChange={(e) => setExperience(e.target.value)}
-                            className="h-9 bg-[#070b18]/80 border-purple-500/40 text-white rounded-lg text-xs"
-                          />
-                        </div>
-                      </div>
-                    )}
 
                   </div>
                 )}

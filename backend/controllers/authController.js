@@ -8,10 +8,17 @@ const emailService = require('../services/emailService');
  * Register user (Atomic Transaction)
  */
 exports.register = async (req, res) => {
-    const { email, password, fullName, city, country, whatsappNumber, role, specialty, experience, referralCode, ref } = req.body;
+    const { email, password, fullName, city, country, whatsappNumber, role, referralCode, ref } = req.body;
     
-    // Validate role: only allow student or teacher self-registration
-    const assignedRole = (role === 'teacher' || role === 'student') ? role : 'student';
+    // Security Protection: Block any attempt to register teacher or admin accounts publicly
+    if (role && (role.toLowerCase() === 'teacher' || role.toLowerCase() === 'instructor' || role.toLowerCase() === 'admin')) {
+        return res.status(403).json({ 
+            error: 'Instructor and Administrator accounts cannot be created via public registration. They must be provisioned directly by an administrator.' 
+        });
+    }
+
+    // Role is strictly enforced by the server
+    const assignedRole = 'student';
 
     if (!email || !password || !fullName) {
         return res.status(400).json({ error: 'Email, password, and full name are required.' });
@@ -81,18 +88,11 @@ exports.register = async (req, res) => {
             [crypto.randomUUID(), userId, assignedRole]
         );
 
-        // 5. Role-specific record creation
-        if (assignedRole === 'teacher') {
-            await connection.query(
-                'INSERT INTO teachers (id, user_id, specialty, experience, status) VALUES (?, ?, ?, ?, ?)',
-                [crypto.randomUUID(), userId, specialty || '', experience || '', 'pending']
-            );
-        } else {
-            await connection.query(
-                'INSERT INTO students (id, user_id, status) VALUES (?, ?, ?)',
-                [crypto.randomUUID(), userId, 'active']
-            );
-        }
+        // 5. Public sign-up creates student record exclusively
+        await connection.query(
+            'INSERT INTO students (id, user_id, status) VALUES (?, ?, ?)',
+            [crypto.randomUUID(), userId, 'active']
+        );
 
         await connection.commit();
 
