@@ -301,14 +301,14 @@ export default function Auth() {
       {/* ========================================================= */}
       {/* CENTERED MAIN CONTAINER                                   */}
       {/* ========================================================= */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-3 sm:py-6 max-w-7xl mx-auto w-full my-auto">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-4 sm:py-6 max-w-7xl mx-auto w-full">
         
         {/* Centered Brand Emblem (Logo + Title above the Card) */}
-        <div className="text-center mb-4 sm:mb-5 flex flex-col items-center animate-in fade-in duration-500">
+        <div className="text-center mb-4 sm:mb-6 flex flex-col items-center animate-in fade-in duration-500">
           <img 
             src="/logo-icon.png" 
             alt="Nexyvora" 
-            className="h-12 w-12 sm:h-14 sm:w-14 object-contain drop-shadow-[0_0_24px_rgba(99,102,241,0.65)] mb-2"
+            className="h-14 w-14 sm:h-16 sm:w-16 object-contain drop-shadow-[0_0_28px_rgba(99,102,241,0.65)] mb-2.5"
             onError={(e) => {
               (e.target as HTMLImageElement).src = '/logo.png';
             }}
