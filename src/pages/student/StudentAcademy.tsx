@@ -76,6 +76,7 @@ export default function StudentAcademy() {
           title: settingsMap['academy_intro_title'],
           description: settingsMap['academy_intro_description'],
           videoUrl: settingsMap['academy_intro_video_url'],
+          introBanner: settingsMap['academy_intro_banner'],
           author: settingsMap['academy_intro_author'],
           badge: settingsMap['academy_intro_badge'],
           flowTitle: settingsMap['academy_flow_title'],

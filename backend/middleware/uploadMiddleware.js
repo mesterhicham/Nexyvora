@@ -55,7 +55,7 @@ const fileFilter = (req, file, cb) => {
     const allowedExts = [
         'jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'jfif', 'pjpeg', 'pjp', 'avif',
         'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt',
-        'webm', 'mp3', 'wav', 'ogg', 'mp4', 'mov'
+        'webm', 'mp3', 'wav', 'ogg', 'mp4', 'mov', 'm4v', 'mkv', 'avi'
     ];
 
     if (!allowedExts.includes(ext)) {
@@ -71,7 +71,9 @@ const fileFilter = (req, file, cb) => {
                   file.mimetype.includes('excel') ||
                   file.mimetype.includes('presentation') ||
                   file.mimetype.includes('text/');
-    const isMedia = file.mimetype.startsWith('audio/') || file.mimetype.startsWith('video/');
+    const isMedia = file.mimetype.startsWith('audio/') || 
+                    file.mimetype.startsWith('video/') ||
+                    (file.mimetype === 'application/octet-stream' && ['mp4', 'mov', 'webm', 'mkv', 'm4v', 'avi'].includes(ext));
 
     if (!isImage && !isDoc && !isMedia) {
         return cb(new Error(`MIME type ${file.mimetype} is not permitted.`));
@@ -82,7 +84,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 15 * 1024 * 1024 }, // 15MB limit
+    limits: { fileSize: 300 * 1024 * 1024 }, // 300MB limit for HD videos and assets
     fileFilter: fileFilter
 });
 

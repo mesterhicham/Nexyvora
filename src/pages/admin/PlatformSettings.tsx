@@ -78,6 +78,45 @@ function hslToHex(hslStr: string): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
+// Helpers for media URL formatting and playback
+const isDirectVideoUrl = (url?: string) => {
+  if (!url) return false;
+  const clean = url.split('?')[0].toLowerCase();
+  return (
+    clean.endsWith('.mp4') ||
+    clean.endsWith('.webm') ||
+    clean.endsWith('.mov') ||
+    clean.endsWith('.mkv') ||
+    clean.endsWith('.avi') ||
+    clean.includes('/uploads/')
+  );
+};
+
+const formatVideoEmbedUrl = (url?: string) => {
+  if (!url) return '';
+  const clean = url.trim();
+  const shortsMatch = clean.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/);
+  if (shortsMatch) {
+    return `https://www.youtube.com/embed/${shortsMatch[1]}`;
+  }
+  const watchMatch = clean.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+  if (watchMatch) {
+    return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  }
+  const youtuMatch = clean.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (youtuMatch) {
+    return `https://www.youtube.com/embed/${youtuMatch[1]}`;
+  }
+  if (clean.includes('youtube.com/embed/')) {
+    return clean;
+  }
+  const vimeoMatch = clean.match(/vimeo\.com\/([0-9]+)/);
+  if (vimeoMatch && !clean.includes('player.vimeo.com')) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+  return clean;
+};
+
 export default function PlatformSettings() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
@@ -93,6 +132,53 @@ export default function PlatformSettings() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
+
+  // Dynamic media uploads state for Academy & Levels
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+
+  const handleMediaUpload = async (key: string, file: File, type: 'video' | 'image') => {
+    const isVideo = type === 'video';
+    const maxSize = isVideo ? 250 * 1024 * 1024 : 15 * 1024 * 1024; // 250MB for video, 15MB for images
+
+    if (file.size > maxSize) {
+      toast.error(
+        isRtl
+          ? `حجم الملف كبير جداً! الحد الأقصى هو ${isVideo ? '250 ميجابايت' : '15 ميجابايت'}`
+          : `File too large! Maximum limit is ${isVideo ? '250MB' : '15MB'}`
+      );
+      return;
+    }
+
+    setUploadingField(key);
+    setUploadProgress(prev => ({ ...prev, [key]: 0 }));
+
+    try {
+      const res = await uploadService.uploadFile(file, (percent) => {
+        setUploadProgress(prev => ({ ...prev, [key]: percent }));
+      });
+
+      if (res && res.url) {
+        handleChange(key, res.url);
+        await updateSetting.mutateAsync({ key, value: res.url });
+        setEditedValues(prev => {
+          const copy = { ...prev };
+          delete copy[key];
+          return copy;
+        });
+        toast.success(
+          isRtl
+            ? `تم رفع وحفظ ${isVideo ? 'الفيديو' : 'الصورة'} بنجاح!`
+            : `${isVideo ? 'Video' : 'Image'} uploaded and saved successfully!`
+        );
+      }
+    } catch (err: any) {
+      console.error(`[Upload Error] ${key}:`, err);
+      toast.error(err.response?.data?.error || err.message || (isRtl ? 'فشل في رفع الملف' : 'Upload failed'));
+    } finally {
+      setUploadingField(null);
+    }
+  };
 
   const handleChange = (key: string, value: string) => {
     setEditedValues(prev => ({ ...prev, [key]: value }));
@@ -247,6 +333,209 @@ export default function PlatformSettings() {
 
   const hasChanges = (key: string) => {
     return key in editedValues && editedValues[key] !== settings?.map[key]?.value;
+  };
+
+  const MediaUploadField = ({
+    settingKey,
+    label,
+    type,
+    placeholder,
+    helpText,
+    icon: IconComponent
+  }: {
+    settingKey: string;
+    label: string;
+    type: 'video' | 'image';
+    placeholder?: string;
+    helpText?: string;
+    icon?: any;
+  }) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const currentValue = getValue(settingKey);
+    const isVideo = type === 'video';
+    const isUploading = uploadingField === settingKey;
+    const progress = uploadProgress[settingKey] || 0;
+
+    return (
+      <div className="space-y-2.5 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
+        <div className="flex items-center justify-between">
+          <Label className="flex items-center gap-1.5 font-bold text-sm text-slate-800 dark:text-slate-200">
+            {IconComponent && <IconComponent className={`h-4 w-4 ${isVideo ? 'text-blue-500' : 'text-purple-500'}`} />}
+            {label}
+          </Label>
+          <span className="text-[11px] font-mono text-muted-foreground px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800">
+            {isVideo ? 'MP4, WebM, MOV, YouTube' : 'PNG, JPG, WebP'}
+          </span>
+        </div>
+
+        {/* Hidden file input */}
+        <input
+          type="file"
+          ref={inputRef}
+          className="hidden"
+          accept={isVideo ? "video/mp4,video/webm,video/quicktime,video/x-matroska,video/*" : "image/*"}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              handleMediaUpload(settingKey, file, type);
+              e.target.value = '';
+            }
+          }}
+        />
+
+        {/* Action / Input Bar */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Input
+              value={currentValue}
+              onChange={(e) => handleChange(settingKey, e.target.value)}
+              placeholder={placeholder || (isVideo ? "https://www.youtube.com/embed/... أو ارفع ملف فيديو" : "https://... أو ارفع ملف صورة")}
+              dir="ltr"
+              className="font-mono text-xs md:text-sm"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Upload Button */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => inputRef.current?.click()}
+              disabled={isUploading || updateSetting.isPending}
+              className="gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 whitespace-nowrap"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{progress}%</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  <span>{isRtl ? (isVideo ? 'رفع فيديو' : 'رفع صورة') : (isVideo ? 'Upload Video' : 'Upload Image')}</span>
+                </>
+              )}
+            </Button>
+
+            {/* Save Manual Edit Button */}
+            <Button
+              type="button"
+              onClick={() => handleSave(settingKey)}
+              disabled={!hasChanges(settingKey) || updateSetting.isPending || isUploading}
+              size="icon"
+              title={isRtl ? 'حفظ الرابط' : 'Save Link'}
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+
+            {/* Clear Button */}
+            {currentValue && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  handleChange(settingKey, '');
+                  await updateSetting.mutateAsync({ key: settingKey, value: '' });
+                  setEditedValues(prev => {
+                    const copy = { ...prev };
+                    delete copy[settingKey];
+                    return copy;
+                  });
+                  toast.info(isRtl ? 'تم تفريغ الحقل وحفظ التغيير' : 'Field cleared and saved');
+                }}
+                disabled={isUploading || updateSetting.isPending}
+                className="text-muted-foreground hover:text-destructive"
+                title={isRtl ? 'تفريغ' : 'Clear'}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Upload Progress Bar */}
+        {isUploading && (
+          <div className="space-y-1.5 p-2.5 rounded-lg border border-primary/30 bg-primary/5 animate-pulse">
+            <div className="flex items-center justify-between text-xs font-semibold text-primary">
+              <span className="flex items-center gap-1.5">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                {isRtl ? 'جاري رفع الملف إلى السيرفر... يرجى الانتظار' : 'Uploading file to server... please wait'}
+              </span>
+              <span>{progress}%</span>
+            </div>
+            <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+              <div 
+                className="bg-primary h-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Help text */}
+        {helpText && (
+          <p className="text-xs text-muted-foreground">
+            {helpText}
+          </p>
+        )}
+
+        {/* Live Media Preview Box */}
+        {currentValue && !isUploading && (
+          <div className="pt-1">
+            {isVideo ? (
+              <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950 max-w-md shadow-sm">
+                <div className="relative aspect-video w-full flex items-center justify-center bg-black">
+                  {isDirectVideoUrl(currentValue) ? (
+                    <video
+                      src={currentValue}
+                      controls
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <iframe
+                      src={formatVideoEmbedUrl(currentValue)}
+                      title={label}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  )}
+                </div>
+                <div className="p-2 bg-slate-900/90 text-slate-300 text-xs flex items-center justify-between">
+                  <span className="truncate max-w-[220px]" dir="ltr">{currentValue}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium">
+                    {isDirectVideoUrl(currentValue) 
+                      ? (isRtl ? '✓ ملف فيديو مرفوع' : '✓ Uploaded Video File') 
+                      : (isRtl ? '✓ رابط فيديو مضمن' : '✓ Embedded Video Link')}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900/40 max-w-sm shadow-sm group">
+                <img
+                  src={currentValue}
+                  alt={label}
+                  className="w-full h-36 object-cover"
+                />
+                <div className="p-2 bg-slate-900/90 text-slate-300 text-xs flex items-center justify-between">
+                  <span className="truncate max-w-[200px]" dir="ltr">{currentValue}</span>
+                  <a
+                    href={currentValue}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline flex items-center gap-1 font-medium"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    {isRtl ? 'معاينة بالحجم الكامل' : 'Full Preview'}
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -1454,6 +1743,7 @@ export default function PlatformSettings() {
 
         <TabsContent value="academy">
           <div className="space-y-6">
+            {/* Introductory Video Post (Post 1) */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1461,7 +1751,7 @@ export default function PlatformSettings() {
                   {isRtl ? 'إعدادات الفيديو التعريفي بالمشروع (البوسط 1 في الأكاديمية)' : 'Project Intro Video Settings (Academy Post 1)'}
                 </CardTitle>
                 <CardDescription>
-                  {isRtl ? 'هذا البوسط يظهر في بداية صفحة الأكاديمية للطلاب الجدد والأعضاء قبل شراء الباقات لشرح فكرة ورؤية المشروع.' : 'This post appears at top of Academy page for new members explaining project vision.'}
+                  {isRtl ? 'هذا البوسط يظهر في بداية صفحة الأكاديمية للطلاب الجدد والأعضاء لشرح فكرة ورؤية المشروع مع إمكانية رفع الفيديو وصورة الغلاف مباشرة.' : 'This post appears at top of Academy page for new members explaining project vision with direct file upload.'}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -1477,33 +1767,32 @@ export default function PlatformSettings() {
                       onClick={() => handleSave('academy_intro_title')} 
                       disabled={!hasChanges('academy_intro_title') || updateSetting.isPending}
                       size="icon"
+                      title={isRtl ? 'حفظ العنوان' : 'Save Title'}
                     >
                       <Save className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>{isRtl ? "رابط الفيديو التعريفي (YouTube Embed URL أو رابط فيديو مباشر)" : "Intro Video Embed URL (YouTube or direct link)"}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={getValue('academy_intro_video_url')}
-                      onChange={(e) => handleChange('academy_intro_video_url', e.target.value)}
-                      placeholder="https://www.youtube.com/embed/..."
-                      dir="ltr"
-                    />
-                    <Button 
-                      onClick={() => handleSave('academy_intro_video_url')} 
-                      disabled={!hasChanges('academy_intro_video_url') || updateSetting.isPending}
-                      size="icon"
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {isRtl ? 'مثال لرابط التضمين من يوتيوب: https://www.youtube.com/embed/YOUR_VIDEO_ID' : 'Example YouTube embed URL: https://www.youtube.com/embed/YOUR_VIDEO_ID'}
-                  </p>
-                </div>
+                {/* Intro Video Field with Upload & Link */}
+                <MediaUploadField
+                  settingKey="academy_intro_video_url"
+                  label={isRtl ? "فيديو مقدمة ورؤية المشروع التعريفي" : "Introductory Project Video"}
+                  type="video"
+                  icon={Video}
+                  placeholder="https://www.youtube.com/embed/... أو انقر رفع فيديو"
+                  helpText={isRtl ? "يمكنك رفع فيديو MP4 أو WebM مباشرة من جهازك (حتى 250MB) أو وضع رابط YouTube/Vimeo." : "Upload an MP4/WebM video file directly (up to 250MB) or paste a YouTube/Vimeo embed URL."}
+                />
+
+                {/* Intro Banner Image Field with Upload & Link */}
+                <MediaUploadField
+                  settingKey="academy_intro_banner"
+                  label={isRtl ? "صورة غلاف / بانر الفيديو التعريفي" : "Intro Video Cover Banner"}
+                  type="image"
+                  icon={Image}
+                  placeholder="https://... أو انقر رفع صورة"
+                  helpText={isRtl ? "صورة الغلاف التي تظهر كواجهة قبل تشغيل الفيديو التعريفي وفي شريط المعاينة." : "Cover banner displayed as the preview before playing the intro video."}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -1575,10 +1864,10 @@ export default function PlatformSettings() {
                   {isRtl ? 'المستوى 1: باقة FLOW (150$) — فيديو وصور وتعريف الباقة' : 'Level 1: FLOW ($150) — Video, Images & Description'}
                 </CardTitle>
                 <CardDescription>
-                  {isRtl ? 'تخصيص فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة FLOW في الأكاديمية.' : 'Customize preview video, banner image, and description for FLOW package in Academy.'}
+                  {isRtl ? 'تخصيص ورفع فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة FLOW في الأكاديمية.' : 'Customize & upload preview video, banner image, and description for FLOW package in Academy.'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-5">
                 <div className="space-y-2">
                   <Label>{isRtl ? "عنوان الباقة الترويجي" : "Package Promo Title"}</Label>
                   <div className="flex gap-2">
@@ -1597,48 +1886,25 @@ export default function PlatformSettings() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>{isRtl ? "رابط فيديو معاينة الباقة (YouTube Embed URL أو رابط مباشر)" : "Video Embed URL (YouTube embed or direct link)"}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={getValue('academy_flow_video_url')}
-                      onChange={(e) => handleChange('academy_flow_video_url', e.target.value)}
-                      placeholder="https://www.youtube.com/embed/..."
-                      dir="ltr"
-                    />
-                    <Button 
-                      onClick={() => handleSave('academy_flow_video_url')} 
-                      disabled={!hasChanges('academy_flow_video_url') || updateSetting.isPending}
-                      size="icon"
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                {/* FLOW Video Field */}
+                <MediaUploadField
+                  settingKey="academy_flow_video_url"
+                  label={isRtl ? "فيديو معاينة وشرح باقة FLOW" : "FLOW Preview Video"}
+                  type="video"
+                  icon={Video}
+                  placeholder="https://www.youtube.com/embed/... أو انقر رفع فيديو"
+                  helpText={isRtl ? "يمكنك رفع فيديو تعريفي لباقة 150$ أو وضع رابط مباشر/يوتيوب." : "Upload direct video or paste YouTube/Vimeo embed URL."}
+                />
 
-                <div className="space-y-2">
-                  <Label>{isRtl ? "رابط صورة الغلاف / البانر (Banner Image URL)" : "Banner Image URL"}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={getValue('academy_flow_banner')}
-                      onChange={(e) => handleChange('academy_flow_banner', e.target.value)}
-                      placeholder="https://..."
-                      dir="ltr"
-                    />
-                    <Button 
-                      onClick={() => handleSave('academy_flow_banner')} 
-                      disabled={!hasChanges('academy_flow_banner') || updateSetting.isPending}
-                      size="icon"
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {getValue('academy_flow_banner') && (
-                    <div className="mt-2 rounded-lg overflow-hidden border max-w-xs h-32">
-                      <img src={getValue('academy_flow_banner')} alt="FLOW Banner Preview" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                </div>
+                {/* FLOW Banner Image Field */}
+                <MediaUploadField
+                  settingKey="academy_flow_banner"
+                  label={isRtl ? "صورة غلاف / بانر باقة FLOW" : "FLOW Banner Image"}
+                  type="image"
+                  icon={Image}
+                  placeholder="https://... أو انقر رفع صورة"
+                  helpText={isRtl ? "صورة الغلاف المعروضة في بطاقة باقة FLOW وشريط الوسائط." : "Banner image displayed in FLOW package showcase."}
+                />
 
                 <div className="space-y-2">
                   <Label>{isRtl ? "نص الوصف الترويجي للباقة" : "Package Description"}</Label>
@@ -1672,10 +1938,10 @@ export default function PlatformSettings() {
                   {isRtl ? 'المستوى 2: باقة GROW (500$) — فيديو وصور وتعريف الباقة' : 'Level 2: GROW ($500) — Video, Images & Description'}
                 </CardTitle>
                 <CardDescription>
-                  {isRtl ? 'تخصيص فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة GROW في الأكاديمية.' : 'Customize preview video, banner image, and description for GROW package in Academy.'}
+                  {isRtl ? 'تخصيص ورفع فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة GROW في الأكاديمية.' : 'Customize & upload preview video, banner image, and description for GROW package in Academy.'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-5">
                 <div className="space-y-2">
                   <Label>{isRtl ? "عنوان الباقة الترويجي" : "Package Promo Title"}</Label>
                   <div className="flex gap-2">
@@ -1694,48 +1960,25 @@ export default function PlatformSettings() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>{isRtl ? "رابط فيديو معاينة الباقة (YouTube Embed URL أو رابط مباشر)" : "Video Embed URL (YouTube embed or direct link)"}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={getValue('academy_grow_video_url')}
-                      onChange={(e) => handleChange('academy_grow_video_url', e.target.value)}
-                      placeholder="https://www.youtube.com/embed/..."
-                      dir="ltr"
-                    />
-                    <Button 
-                      onClick={() => handleSave('academy_grow_video_url')} 
-                      disabled={!hasChanges('academy_grow_video_url') || updateSetting.isPending}
-                      size="icon"
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                {/* GROW Video Field */}
+                <MediaUploadField
+                  settingKey="academy_grow_video_url"
+                  label={isRtl ? "فيديو معاينة وشرح باقة GROW" : "GROW Preview Video"}
+                  type="video"
+                  icon={Video}
+                  placeholder="https://www.youtube.com/embed/... أو انقر رفع فيديو"
+                  helpText={isRtl ? "يمكنك رفع فيديو تعريفي لباقة 500$ أو وضع رابط مباشر/يوتيوب." : "Upload direct video or paste YouTube/Vimeo embed URL."}
+                />
 
-                <div className="space-y-2">
-                  <Label>{isRtl ? "رابط صورة الغلاف / البانر (Banner Image URL)" : "Banner Image URL"}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={getValue('academy_grow_banner')}
-                      onChange={(e) => handleChange('academy_grow_banner', e.target.value)}
-                      placeholder="https://..."
-                      dir="ltr"
-                    />
-                    <Button 
-                      onClick={() => handleSave('academy_grow_banner')} 
-                      disabled={!hasChanges('academy_grow_banner') || updateSetting.isPending}
-                      size="icon"
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {getValue('academy_grow_banner') && (
-                    <div className="mt-2 rounded-lg overflow-hidden border max-w-xs h-32">
-                      <img src={getValue('academy_grow_banner')} alt="GROW Banner Preview" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                </div>
+                {/* GROW Banner Image Field */}
+                <MediaUploadField
+                  settingKey="academy_grow_banner"
+                  label={isRtl ? "صورة غلاف / بانر باقة GROW" : "GROW Banner Image"}
+                  type="image"
+                  icon={Image}
+                  placeholder="https://... أو انقر رفع صورة"
+                  helpText={isRtl ? "صورة الغلاف المعروضة في بطاقة باقة GROW وشريط الوسائط." : "Banner image displayed in GROW package showcase."}
+                />
 
                 <div className="space-y-2">
                   <Label>{isRtl ? "نص الوصف الترويجي للباقة" : "Package Description"}</Label>
@@ -1769,10 +2012,10 @@ export default function PlatformSettings() {
                   {isRtl ? 'المستوى 3: باقة PRIME (1000$) — فيديو وصور وتعريف الباقة' : 'Level 3: PRIME ($1000) — Video, Images & Description'}
                 </CardTitle>
                 <CardDescription>
-                  {isRtl ? 'تخصيص فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة PRIME في الأكاديمية.' : 'Customize preview video, banner image, and description for PRIME package in Academy.'}
+                  {isRtl ? 'تخصيص ورفع فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة PRIME في الأكاديمية.' : 'Customize & upload preview video, banner image, and description for PRIME package in Academy.'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-5">
                 <div className="space-y-2">
                   <Label>{isRtl ? "عنوان الباقة الترويجي" : "Package Promo Title"}</Label>
                   <div className="flex gap-2">
@@ -1791,48 +2034,25 @@ export default function PlatformSettings() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>{isRtl ? "رابط فيديو معاينة الباقة (YouTube Embed URL أو رابط مباشر)" : "Video Embed URL (YouTube embed or direct link)"}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={getValue('academy_prime_video_url')}
-                      onChange={(e) => handleChange('academy_prime_video_url', e.target.value)}
-                      placeholder="https://www.youtube.com/embed/..."
-                      dir="ltr"
-                    />
-                    <Button 
-                      onClick={() => handleSave('academy_prime_video_url')} 
-                      disabled={!hasChanges('academy_prime_video_url') || updateSetting.isPending}
-                      size="icon"
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                {/* PRIME Video Field */}
+                <MediaUploadField
+                  settingKey="academy_prime_video_url"
+                  label={isRtl ? "فيديو معاينة وشرح باقة PRIME" : "PRIME Preview Video"}
+                  type="video"
+                  icon={Video}
+                  placeholder="https://www.youtube.com/embed/... أو انقر رفع فيديو"
+                  helpText={isRtl ? "يمكنك رفع فيديو تعريفي لباقة 1000$ أو وضع رابط مباشر/يوتيوب." : "Upload direct video or paste YouTube/Vimeo embed URL."}
+                />
 
-                <div className="space-y-2">
-                  <Label>{isRtl ? "رابط صورة الغلاف / البانر (Banner Image URL)" : "Banner Image URL"}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={getValue('academy_prime_banner')}
-                      onChange={(e) => handleChange('academy_prime_banner', e.target.value)}
-                      placeholder="https://..."
-                      dir="ltr"
-                    />
-                    <Button 
-                      onClick={() => handleSave('academy_prime_banner')} 
-                      disabled={!hasChanges('academy_prime_banner') || updateSetting.isPending}
-                      size="icon"
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {getValue('academy_prime_banner') && (
-                    <div className="mt-2 rounded-lg overflow-hidden border max-w-xs h-32">
-                      <img src={getValue('academy_prime_banner')} alt="PRIME Banner Preview" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                </div>
+                {/* PRIME Banner Image Field */}
+                <MediaUploadField
+                  settingKey="academy_prime_banner"
+                  label={isRtl ? "صورة غلاف / بانر باقة PRIME" : "PRIME Banner Image"}
+                  type="image"
+                  icon={Image}
+                  placeholder="https://... أو انقر رفع صورة"
+                  helpText={isRtl ? "صورة الغلاف المعروضة في بطاقة باقة PRIME وشريط الوسائط." : "Banner image displayed in PRIME package showcase."}
+                />
 
                 <div className="space-y-2">
                   <Label>{isRtl ? "نص الوصف الترويجي للباقة" : "Package Description"}</Label>

@@ -77,6 +77,50 @@ export function SkoolLevelShowcase({
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+// Helpers for media URL formatting and playback
+const isDirectVideoUrl = (url?: string) => {
+  if (!url) return false;
+  const clean = url.split('?')[0].toLowerCase();
+  return (
+    clean.endsWith('.mp4') ||
+    clean.endsWith('.webm') ||
+    clean.endsWith('.mov') ||
+    clean.endsWith('.mkv') ||
+    clean.endsWith('.avi') ||
+    clean.includes('/uploads/')
+  );
+};
+
+const formatVideoEmbedUrl = (url?: string) => {
+  if (!url) return '';
+  const clean = url.trim();
+  // YouTube Shorts: https://youtube.com/shorts/VIDEO_ID
+  const shortsMatch = clean.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/);
+  if (shortsMatch) {
+    return `https://www.youtube.com/embed/${shortsMatch[1]}?autoplay=1`;
+  }
+  // Standard YouTube watch: https://www.youtube.com/watch?v=VIDEO_ID
+  const watchMatch = clean.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+  if (watchMatch) {
+    return `https://www.youtube.com/embed/${watchMatch[1]}?autoplay=1`;
+  }
+  // Short youtu.be: https://youtu.be/VIDEO_ID
+  const youtuMatch = clean.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (youtuMatch) {
+    return `https://www.youtube.com/embed/${youtuMatch[1]}?autoplay=1`;
+  }
+  // Already embed
+  if (clean.includes('youtube.com/embed/')) {
+    return clean.includes('?') ? `${clean}&autoplay=1` : `${clean}?autoplay=1`;
+  }
+  // Vimeo
+  const vimeoMatch = clean.match(/vimeo\.com\/([0-9]+)/);
+  if (vimeoMatch && !clean.includes('player.vimeo.com')) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
+  }
+  return clean.includes('?') ? `${clean}&autoplay=1` : `${clean}?autoplay=1`;
+};
+
   // Active Post Tab: 0 = Intro, 1 = FLOW, 2 = GROW, 3 = PRIME
   const [activeTab, setActiveTab] = useState<number>(0);
 
@@ -156,12 +200,12 @@ export function SkoolLevelShowcase({
       membersCount: '2,850+',
       onlineCount: '412',
       adminCount: '1 Admin',
-      bannerImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
+      bannerImage: adminIntroSettings?.introBanner || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
       videoUrl: adminIntroSettings?.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ',
       mediaList: [
         {
           type: 'video',
-          thumbnail: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80',
+          thumbnail: adminIntroSettings?.introBanner || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80',
           title: isRtl ? 'الفيديو التعريفي الرئيسي' : 'Main Project Video',
           duration: '4:20'
         },
@@ -602,13 +646,22 @@ export function SkoolLevelShowcase({
             {isVideoActive ? (
               <div className="relative aspect-video w-full bg-slate-950 flex items-center justify-center overflow-hidden">
                 {playingVideo[activeTab] ? (
-                  <iframe
-                    src={`${currentPost.videoUrl}?autoplay=1`}
-                    title={currentPost.title}
-                    className="w-full h-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+                  isDirectVideoUrl(currentPost.videoUrl) ? (
+                    <video
+                      src={currentPost.videoUrl}
+                      controls
+                      autoPlay
+                      className="w-full h-full object-contain bg-black"
+                    />
+                  ) : (
+                    <iframe
+                      src={formatVideoEmbedUrl(currentPost.videoUrl)}
+                      title={currentPost.title}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  )
                 ) : (
                   <div 
                     className="relative w-full h-full flex items-center justify-center cursor-pointer select-none"

@@ -12,9 +12,12 @@ exports.uploadFile = (req, res) => {
                       req.path?.includes('private') || 
                       req.path?.includes('secure');
 
+    const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    const host = req.get('host');
+
     const fileUrl = isPrivate 
-        ? `${req.protocol}://${req.get('host')}/api/upload/secure/${req.file.filename}`
-        : `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        ? `${proto}://${host}/api/upload/secure/${req.file.filename}`
+        : `${proto}://${host}/uploads/${req.file.filename}`;
 
     res.json({
         message: 'File uploaded successfully',
