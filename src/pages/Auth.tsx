@@ -28,10 +28,6 @@ import {
   Briefcase, 
   BookOpen, 
   Sparkles, 
-  GraduationCap,
-  PlaySquare,
-  Users,
-  TrendingUp,
   ShieldCheck,
   CheckCircle2
 } from 'lucide-react';
@@ -207,51 +203,74 @@ export default function Auth() {
       {/* ========================================================= */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         
-        {/* Luminous 3D Ribbon Loop Image at bottom-left corner */}
+        {/* Top-Left Neon Wave */}
         <img
           src="/auth-bg-wave.jpg"
-          alt="3D Neon Wave"
-          className={`absolute -bottom-16 sm:-bottom-24 select-none object-cover sm:object-contain object-left-bottom pointer-events-none opacity-80 transition-opacity duration-1000 ${
-            isRtl 
-              ? '-right-16 lg:right-0 w-[550px] lg:w-[800px] max-w-none transform scale-x-[-1]' 
-              : '-left-16 lg:left-0 w-[550px] lg:w-[800px] max-w-none'
-          }`}
+          alt=""
+          className="absolute -top-28 -left-28 sm:-top-40 sm:-left-40 w-[450px] sm:w-[650px] max-w-none select-none object-contain pointer-events-none opacity-70 transform rotate-180 -scale-x-100"
+        />
+
+        {/* Bottom-Right Neon Wave */}
+        <img
+          src="/auth-bg-wave.jpg"
+          alt=""
+          className="absolute -bottom-28 -right-28 sm:-bottom-40 sm:-right-40 w-[500px] sm:w-[750px] max-w-none select-none object-contain pointer-events-none opacity-70"
         />
 
         {/* Ambient Cosmic Radial Glows */}
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[160px] pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-[450px] h-[450px] bg-cyan-500/10 rounded-full blur-[150px] pointer-events-none" />
-        <div className="absolute top-1/3 right-10 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[160px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-[450px] h-[450px] bg-cyan-500/10 rounded-full blur-[150px] pointer-events-none" />
 
-        {/* Delicate Cosmic Orbit Path with Lens Flare Node */}
+        {/* Delicate Cosmic Orbit Path with Celestial Glowing Nodes */}
         <svg 
-          className="absolute w-[1600px] h-[1000px] -left-[300px] top-[5%] opacity-30 pointer-events-none" 
+          className="absolute inset-0 w-full h-full pointer-events-none opacity-35" 
           viewBox="0 0 1600 1000" 
           fill="none"
         >
+          {/* Top-Right Orbit Arc */}
           <ellipse 
-            cx="750" 
-            cy="480" 
-            rx="700" 
-            ry="420" 
-            stroke="url(#cosmicOrbitGradient)" 
+            cx="1300" 
+            cy="200" 
+            rx="600" 
+            ry="380" 
+            stroke="url(#topOrbitGradient)" 
+            strokeWidth="1.2" 
+            strokeDasharray="4 6" 
+          />
+          {/* Bottom-Left Orbit Arc */}
+          <ellipse 
+            cx="300" 
+            cy="800" 
+            rx="600" 
+            ry="380" 
+            stroke="url(#bottomOrbitGradient)" 
             strokeWidth="1.2" 
             strokeDasharray="4 6" 
           />
           <defs>
-            <linearGradient id="cosmicOrbitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.6" />
+            <linearGradient id="topOrbitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0" />
               <stop offset="50%" stopColor="#818cf8" stopOpacity="0.8" />
-              <stop offset="85%" stopColor="#c084fc" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+              <stop offset="100%" stopColor="#c084fc" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="bottomOrbitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#c084fc" stopOpacity="0" />
+              <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
             </linearGradient>
           </defs>
         </svg>
 
-        {/* Cosmic Glowing Node Point */}
-        <div className="absolute left-[47%] top-[31%] -translate-x-1/2 -translate-y-1/2 pointer-events-none hidden sm:block">
-          <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_12px_#38bdf8,0_0_24px_#818cf8,0_0_40px_#c084fc]" />
-          <div className="absolute -inset-3 bg-indigo-500/25 rounded-full blur-xs" />
+        {/* Top-Right Glowing Celestial Node */}
+        <div className="absolute right-[12%] top-[18%] -translate-x-1/2 -translate-y-1/2 pointer-events-none hidden sm:block">
+          <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_12px_#818cf8,0_0_24px_#38bdf8,0_0_36px_#c084fc]" />
+          <div className="absolute -inset-2.5 bg-indigo-500/25 rounded-full blur-xs" />
+        </div>
+
+        {/* Bottom-Left Glowing Celestial Node */}
+        <div className="absolute left-[13%] bottom-[20%] -translate-x-1/2 -translate-y-1/2 pointer-events-none hidden sm:block">
+          <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_12px_#38bdf8,0_0_24px_#818cf8,0_0_36px_#c084fc]" />
+          <div className="absolute -inset-2.5 bg-cyan-500/25 rounded-full blur-xs" />
         </div>
       </div>
 
@@ -280,151 +299,68 @@ export default function Auth() {
       </header>
 
       {/* ========================================================= */}
-      {/* MAIN TWO-COLUMN CONTAINER                                 */}
+      {/* CENTERED MAIN CONTAINER                                   */}
       {/* ========================================================= */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-4 sm:px-10 lg:px-12 max-w-7xl mx-auto w-full">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-6 sm:px-6 max-w-7xl mx-auto w-full my-auto">
+        
+        {/* Centered Brand Emblem (Logo + Title above the Card) */}
+        <div className="text-center mb-6 sm:mb-8 flex flex-col items-center animate-in fade-in duration-500">
+          <img 
+            src="/logo-icon.png" 
+            alt="Nexyvora" 
+            className="h-16 w-16 sm:h-20 sm:w-20 object-contain drop-shadow-[0_0_28px_rgba(99,102,241,0.65)] mb-3"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/logo.png';
+            }}
+          />
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            Nexyvora
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 font-medium tracking-wide mt-1">
+            Academy Platform
+          </p>
+        </div>
 
-          {/* ===================================================== */}
-          {/* LEFT COLUMN: BRAND HERO & VALUE PROPOSITION           */}
-          {/* ===================================================== */}
-          <div className="lg:col-span-7 flex flex-col justify-center text-left rtl:text-right">
-            
-            {/* Nexyvora Brand Header */}
-            <div className="flex items-center gap-3.5 mb-8 sm:mb-12">
-              <img 
-                src="/logo-icon.png" 
-                alt="Nexyvora Logo" 
-                className="h-12 w-12 sm:h-14 sm:w-14 object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.45)]"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/logo.png';
-                }}
-              />
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none">
-                  Nexyvora
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-400 font-medium tracking-wide mt-1">
-                  Academy Platform
-                </p>
-              </div>
+        {/* Centered Floating Glass Card */}
+        <div className="relative w-full max-w-[460px] rounded-[32px] sm:rounded-[36px] bg-[#0c1224]/85 backdrop-blur-2xl border border-white/[0.1] shadow-[0_24px_80px_rgba(0,0,0,0.9),0_0_40px_rgba(37,99,235,0.12),inset_0_1px_0_rgba(255,255,255,0.15)] p-7 sm:p-9 transition-all duration-300">
+          
+          {/* Subtle ambient aura behind the card */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-purple-600/20 rounded-[38px] blur-2xl opacity-70 -z-10 pointer-events-none" />
+
+          {/* User Avatar Badge Pill (inside card top) */}
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-[0_0_24px_rgba(99,102,241,0.5)] border border-white/20">
+              <User className="w-6 h-6" />
             </div>
-
-            {/* Main Headline */}
-            <div className="space-y-2 mb-6 relative z-10">
-              <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black text-white tracking-tight leading-[1.1] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
-                {isRtl ? 'أكثر من مجرد تعليم.' : 'More than learning.'}
-              </h1>
-              <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black tracking-tight leading-[1.1] bg-gradient-to-r from-sky-400 via-blue-400 to-fuchsia-400 bg-clip-text text-transparent drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
-                {isRtl ? 'إنه مستقبلك.' : "It's your future."}
-              </h1>
-            </div>
-
-            {/* Supporting Subtitle */}
-            <p className="text-sm sm:text-base text-slate-300 max-w-md sm:max-w-lg leading-relaxed mb-10 sm:mb-14 relative z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-              {isRtl 
-                ? 'طوّر مهاراتك، وسّع شبكة علاقاتك، وحقق أهدافك المهنية مع نكستفورا.'
-                : 'Build your skills, grow your network,\nand achieve your goals with Nexyvora.'}
-            </p>
-
-            {/* 4 Feature Badges with Vertical Dividers Exactly like Reference Image */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 max-w-xl divide-y sm:divide-y-0 sm:divide-x rtl:sm:divide-x-reverse divide-white/[0.08] relative z-10">
-              
-              {/* Feature 1: Expert-Led Courses */}
-              <div className="group flex flex-col items-start gap-2.5 p-3 first:pl-0 rtl:first:pr-0 cursor-default">
-                <div className="text-sky-400 group-hover:scale-110 transition-transform">
-                  <GraduationCap className="w-5 h-5" />
-                </div>
-                <div className="text-xs font-semibold text-slate-200 leading-snug">
-                  <div>{isRtl ? 'دورات' : 'Expert-Led'}</div>
-                  <div className="text-slate-400 font-normal">{isRtl ? 'بإشراف خبراء' : 'Courses'}</div>
-                </div>
-              </div>
-
-              {/* Feature 2: Interactive Learning */}
-              <div className="group flex flex-col items-start gap-2.5 p-3 cursor-default">
-                <div className="text-blue-400 group-hover:scale-110 transition-transform">
-                  <PlaySquare className="w-5 h-5" />
-                </div>
-                <div className="text-xs font-semibold text-slate-200 leading-snug">
-                  <div>{isRtl ? 'تعلم' : 'Interactive'}</div>
-                  <div className="text-slate-400 font-normal">{isRtl ? 'عملي تفاعلي' : 'Learning'}</div>
-                </div>
-              </div>
-
-              {/* Feature 3: Global Community */}
-              <div className="group flex flex-col items-start gap-2.5 p-3 cursor-default">
-                <div className="text-indigo-400 group-hover:scale-110 transition-transform">
-                  <Users className="w-5 h-5" />
-                </div>
-                <div className="text-xs font-semibold text-slate-200 leading-snug">
-                  <div>{isRtl ? 'مجتمع' : 'Global'}</div>
-                  <div className="text-slate-400 font-normal">{isRtl ? 'طلابي عالمي' : 'Community'}</div>
-                </div>
-              </div>
-
-              {/* Feature 4: Real-World Skills */}
-              <div className="group flex flex-col items-start gap-2.5 p-3 last:pr-0 rtl:last:pl-0 cursor-default">
-                <div className="text-fuchsia-400 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-5 h-5" />
-                </div>
-                <div className="text-xs font-semibold text-slate-200 leading-snug">
-                  <div>{isRtl ? 'مهارات' : 'Real-World'}</div>
-                  <div className="text-slate-400 font-normal">{isRtl ? 'سوق العمل' : 'Skills'}</div>
-                </div>
-              </div>
-
-            </div>
-
           </div>
 
-          {/* ===================================================== */}
-          {/* RIGHT COLUMN: THE FLOATING GLASS LOGIN CARD           */}
-          {/* ===================================================== */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end w-full">
-            <div className="relative w-full max-w-[440px] rounded-[30px] sm:rounded-[36px] bg-[#0c1224]/85 backdrop-blur-2xl border border-white/[0.1] shadow-[0_24px_80px_rgba(0,0,0,0.9),0_0_40px_rgba(37,99,235,0.12),inset_0_1px_0_rgba(255,255,255,0.15)] p-7 sm:p-9 transition-all duration-300">
-              
-              {/* Subtle ambient aura behind the card */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-purple-600/20 rounded-[38px] blur-xl opacity-60 -z-10 pointer-events-none" />
-              
-              {/* Card Header Brand Emblem */}
-              <div className="text-center mb-6">
-                <img 
-                  src="/logo-icon.png" 
-                  alt="Nexyvora" 
-                  className="h-11 w-11 object-contain mx-auto mb-2 drop-shadow-[0_0_16px_rgba(99,102,241,0.5)]"
-                />
-                <h3 className="text-xl font-bold text-white tracking-tight">Nexyvora</h3>
-                <p className="text-xs text-slate-400 font-medium tracking-wide">Academy Platform</p>
+          {/* Card Welcome Title & Subtitle */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl sm:text-[26px] font-black text-white tracking-tight">
+              {isLogin 
+                ? (isRtl ? 'مرحباً بعودتك' : 'Welcome back')
+                : (isRtl ? 'إنشاء حساب جديد' : 'Create your account')}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-sm mx-auto">
+              {isLogin
+                ? (isRtl ? 'سجّل الدخول إلى حسابك وتابع مسيرتك التعليمية' : 'Sign in to your account and continue your journey')
+                : (isRtl ? 'انضم إلى منصة نكستفورا وابدأ رحلتك التعليمية' : 'Join Nexyvora platform and start your journey')}
+            </p>
+          </div>
+
+          {/* Referral Banner (If Referred in Signup Mode) */}
+          {!isLogin && referralCode && (
+            <div className="mb-4 p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs font-medium text-indigo-300 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 shrink-0 text-indigo-400" />
+              <div className="truncate">
+                <span>{isRtl ? 'كود الإحالة: ' : 'Referral Code: '}</span>
+                <span className="font-mono font-bold text-white">{referralCode}</span>
               </div>
+            </div>
+          )}
 
-              {/* Card Welcome Title & Subtitle */}
-              <div className="text-left rtl:text-right mb-6">
-                <h2 className="text-2xl sm:text-[26px] font-black text-white tracking-tight">
-                  {isLogin 
-                    ? (isRtl ? 'مرحباً بعودتك' : 'Welcome back')
-                    : (isRtl ? 'إنشاء حساب جديد' : 'Create your account')}
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  {isLogin
-                    ? (isRtl ? 'سجّل الدخول إلى حسابك وتابع مسيرتك التعليمية' : 'Sign in to your account and continue your journey')
-                    : (isRtl ? 'انضم إلى منصة نكستفورا وابدأ رحلتك التعليمية' : 'Join Nexyvora platform and start your journey')}
-                </p>
-              </div>
-
-              {/* Referral Banner (If Referred in Signup Mode) */}
-              {!isLogin && referralCode && (
-                <div className="mb-4 p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs font-medium text-indigo-300 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 shrink-0 text-indigo-400" />
-                  <div className="truncate">
-                    <span>{isRtl ? 'كود الإحالة: ' : 'Referral Code: '}</span>
-                    <span className="font-mono font-bold text-white">{referralCode}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Authentication Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Authentication Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
                 
                 {/* SIGN UP ADDITIONAL FIELDS (Only when isLogin is false) */}
                 {!isLogin && (
@@ -684,7 +620,7 @@ export default function Auth() {
 
                 {/* Security Badge Exactly like Reference Image */}
                 <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 font-normal pt-2">
-                  <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <ShieldCheck className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                   <span>{isRtl ? 'بياناتك آمنة ومحمية بالكامل' : 'Your data is secure and protected'}</span>
                 </div>
 
@@ -720,10 +656,7 @@ export default function Auth() {
               </form>
 
             </div>
-          </div>
-
-        </div>
-      </main>
+          </main>
 
       {/* ========================================================= */}
       {/* MICRO FOOTER / LEGAL                                      */}
