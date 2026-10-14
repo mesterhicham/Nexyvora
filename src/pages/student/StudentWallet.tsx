@@ -43,7 +43,9 @@ import {
   Image as ImageIcon,
   FileCheck,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck,
+  RefreshCw
 } from 'lucide-react';
 import { toast } from "sonner";
 import { useCurrency } from '@/contexts/CurrencyContext';
