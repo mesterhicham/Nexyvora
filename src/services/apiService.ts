@@ -263,6 +263,8 @@ export const adminIpnLogService = {
         api.get(`/admin/ipn-logs/${id}`).then(res => res.data),
     triggerRenewal: (id: string) => 
         api.post(`/admin/ipn-logs/${id}/renew`).then(res => res.data),
+    testConnection: () => 
+        api.get('/admin/ipn-logs/test-connection').then(res => res.data),
 };
 
 export const adminAffiliateService = {

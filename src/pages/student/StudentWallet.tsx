@@ -80,10 +80,74 @@ export default function StudentWallet() {
   const [submittingDeposit, setSubmittingDeposit] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [activePaymentOrder, setActivePaymentOrder] = useState<any>(null);
+  const [orderTimeLeft, setOrderTimeLeft] = useState<number>(20 * 60);
+  const [isCheckingPayment, setIsCheckingPayment] = useState<boolean>(false);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  // Live 20-minute countdown timer and auto-refresh for active payment order
+  useEffect(() => {
+    if (!activePaymentOrder) return;
+
+    const expiryTime = activePaymentOrder.nextRenewalAt 
+      ? new Date(activePaymentOrder.nextRenewalAt).getTime() 
+      : Date.now() + 20 * 60 * 1000;
+
+    const updateTimer = () => {
+      const remaining = Math.max(0, Math.floor((expiryTime - Date.now()) / 1000));
+      setOrderTimeLeft(remaining);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    // Auto-poll wallet balance every 7 seconds to detect blockchain confirmation immediately
+    const pollInterval = setInterval(async () => {
+      try {
+        const walletRes = await affiliateService.getWallet();
+        if (walletRes?.wallet?.balance !== undefined && walletData?.wallet?.balance !== undefined) {
+          if (Number(walletRes.wallet.balance) > Number(walletData.wallet.balance)) {
+            toast.success(isRtl ? '🎉 تم استلام التحويل وشحن رصيدك بنجاح!' : 'Deposit received and balance credited!');
+            loadData();
+            setActivePaymentOrder(null);
+            setIsDepositOpen(false);
+          }
+        }
+      } catch (err) {}
+    }, 7000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(pollInterval);
+    };
+  }, [activePaymentOrder, walletData]);
+
+  const handleCheckActivePayment = async () => {
+    if (!activePaymentOrder) return;
+    try {
+      setIsCheckingPayment(true);
+      const res = await affiliateService.getDeposits();
+      const match = (res.deposits || []).find((d: any) => 
+        d.id === activePaymentOrder.orderId || 
+        d.reference_id?.includes(activePaymentOrder.paymentId) ||
+        (d.activeAttempt && d.activeAttempt.provider_payment_id === activePaymentOrder.paymentId)
+      );
+      if (match && match.status === 'completed') {
+        toast.success(isRtl ? '🎉 تم تأكيد المعاملة وإضافة الرصيد بنجاح!' : 'Transaction confirmed and credited!');
+        loadData();
+        setActivePaymentOrder(null);
+        setIsDepositOpen(false);
+      } else {
+        toast.info(isRtl ? 'المعاملة قيد التدقيق على شبكة البلوكشين. سيتم شحن رصيدك تلقائياً فور وصول التحويل.' : 'Transaction is being monitored on the blockchain. Your wallet will be credited automatically.');
+      }
+    } catch (e) {
+      toast.error(isRtl ? 'فشل فحص الحالة' : 'Failed to check status');
+    } finally {
+      setIsCheckingPayment(false);
+    }
+  };
 
   const fillDetailsFromSettings = (method: string, settings: any) => {
     if (!settings) return '';
@@ -700,6 +764,27 @@ export default function StudentWallet() {
                             </td>
                             <td className="p-4 font-mono text-[11px] text-slate-500">
                               <div>{dep.reference_id || meta.paymentReference || '—'}</div>
+                              {meta.active_pay_address && dep.status === 'pending' && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActivePaymentOrder({
+                                      orderId: dep.id,
+                                      paymentId: meta.active_payment_id || dep.reference_id,
+                                      payAddress: meta.active_pay_address,
+                                      payAmount: meta.active_pay_amount || dep.amount,
+                                      payCurrency: meta.active_pay_currency || 'USDT',
+                                      network: meta.active_network || 'BSC',
+                                      nextRenewalAt: meta.next_renewal_at
+                                    });
+                                    setIsDepositOpen(true);
+                                  }}
+                                  className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline font-bold mt-1 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800"
+                                >
+                                  <Coins className="h-3 w-3 text-emerald-500" />
+                                  <span>{isRtl ? 'عرض محفظة الإيداع' : 'View Dedicated Wallet'}</span>
+                                </button>
+                              )}
                               {meta.receiptUrl && (
                                 <a
                                   href={meta.receiptUrl}
@@ -911,41 +996,37 @@ export default function StudentWallet() {
                 </div>
 
                 {selectedDepositMethod?.type === 'nowpayments_crypto' && (
-                  <div className="space-y-2">
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
-                        <span>{t('wallet.cryptoAddress', isRtl ? 'عنوان المحفظة (USDT BEP20):' : 'Wallet Address (USDT BEP20):')}</span>
+                  <div className="space-y-2.5 p-3 rounded-xl bg-gradient-to-br from-amber-500/10 via-emerald-500/5 to-transparent border border-amber-500/20">
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-xs">
+                      <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
+                      <span>{isRtl ? 'نظام الإيداع الآمن بمحفظة مخصصة (NOWPayments)' : 'Secure Dedicated Wallet Deposit (NOWPayments)'}</span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {isRtl 
+                        ? 'عند النقر على زر المتابعة بالأسفل، سيقوم النظام تلقائياً بإنشاء محفظة رقمية فريدة ومخصصة لمعاملتك صالحة لمدة 20 دقيقة، مع الشحن التلقائي الفوري فور تأكيد البلوكشين.'
+                        : 'Clicking confirm will generate a unique, dedicated cryptocurrency wallet for your transaction valid for 20 minutes, with instant automatic settlement upon blockchain confirmation.'}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                      <div className="p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-[10px]">
+                        <span className="text-slate-400 block font-medium">{isRtl ? 'الشبكة المدعومة:' : 'Supported Network:'}</span>
                         <span className="font-bold text-emerald-600 dark:text-emerald-400">BNB Smart Chain (BEP20)</span>
                       </div>
-                      <div className="flex items-center justify-between font-mono font-bold bg-white dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <span className="text-emerald-600 dark:text-emerald-400 break-all text-[11px] leading-tight mr-1 rtl:ml-1 rtl:mr-0 select-all">
-                          {selectedDepositMethod.crypto_wallet_address || '0x1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B'}
-                        </span>
-                        <Button 
-                          type="button" 
-                          size="sm" 
-                          variant="ghost" 
-                          className="h-6 px-1.5 text-[10px] gap-1 shrink-0 hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
-                          onClick={() => copyToClipboard(selectedDepositMethod.crypto_wallet_address || '0x1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B', 'crypto_address')}
-                        >
-                          {copiedField === 'crypto_address' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                          {t('wallet.copy', isRtl ? 'نسخ' : 'Copy')}
-                        </Button>
+                      <div className="p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-[10px]">
+                        <span className="text-slate-400 block font-medium">{isRtl ? 'صلاحية التعيير:' : 'Renewal Cycle:'}</span>
+                        <span className="font-bold text-amber-600 dark:text-amber-400">20 {isRtl ? 'دقيقة لكل عنوان' : 'Minutes per address'}</span>
                       </div>
                     </div>
-                    <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-700 dark:text-amber-400 flex items-start gap-1.5">
-                      <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+
+                    <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[10px] text-blue-700 dark:text-blue-300 flex items-start gap-1.5">
+                      <ShieldCheck className="h-3.5 w-3.5 shrink-0 mt-0.5 text-blue-500" />
                       <span>
                         {isRtl 
-                          ? 'تنبيه: أرسل عملة USDT عبر شبكة BEP20 (BNB Smart Chain) فقط. إرسال عملات أخرى أو عبر شبكات مختلفة قد يؤدي لفقدان الأموال نهائياً.'
-                          : 'Notice: Send USDT on BEP20 (BNB Smart Chain) network only. Sending via other networks will cause permanent fund loss.'}
+                          ? 'حماية كاملة: يتم تسجيل جميع محاولات الإيداع في سجل المعاملات، وتظل العناوين السابقة صالحة ومربوطة بحسابك حتى بعد التجديد.'
+                          : 'Full security: All deposit attempts are audited, and previous addresses remain valid and linked to your account even after renewal.'}
                       </span>
                     </div>
-                    {(selectedDepositMethod.instructions_ar || selectedDepositMethod.instructions) && (
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        {isRtl ? (selectedDepositMethod.instructions_ar || selectedDepositMethod.instructions) : (selectedDepositMethod.instructions || selectedDepositMethod.instructions_ar)}
-                      </p>
-                    )}
                   </div>
                 )}
 
@@ -1038,54 +1119,111 @@ export default function StudentWallet() {
 
               {/* Active Payment Order View (When NOWPayments order is created) */}
               {activePaymentOrder ? (
-                <div className="space-y-3 p-3.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                  <div className="flex items-center justify-between text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                    <span className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                      {isRtl ? 'تم تجهيز عنوان الدفع بنجاح' : 'Payment Order Ready'}
-                    </span>
-                    <Badge variant="outline" className="font-mono text-[10px] bg-white dark:bg-slate-900 border-emerald-300">
-                      ID: {activePaymentOrder.paymentId}
+                <div className="space-y-3.5 p-4 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-slate-50 to-emerald-50/40 dark:from-emerald-950/40 dark:via-slate-900 dark:to-emerald-950/20 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+                  {/* Header & Status */}
+                  <div className="flex items-center justify-between pb-2 border-b border-emerald-100 dark:border-emerald-900/60">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                      </span>
+                      <span className="text-xs font-black text-emerald-800 dark:text-emerald-300">
+                        {isRtl ? 'محفظة الإيداع المخصصة جاهزة' : 'Dedicated Wallet Ready'}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="font-mono text-[10px] bg-white dark:bg-slate-900 border-emerald-300 dark:border-emerald-700 font-bold">
+                      #{activePaymentOrder.paymentId}
                     </Badge>
                   </div>
 
-                  <div>
-                    <span className="text-[10px] text-slate-500 block mb-1">
-                      {isRtl ? 'أرسل المبلغ التالي بالضبط:' : 'Exact Amount to Send:'}
-                    </span>
-                    <div className="text-base font-black font-mono text-slate-900 dark:text-white">
-                      {activePaymentOrder.payAmount} {activePaymentOrder.payCurrency} <span className="text-xs font-normal text-slate-500">({activePaymentOrder.network?.toUpperCase() || 'BSC'})</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] text-slate-500 block mb-1">
-                      {isRtl ? 'عنوان الإيداع المخصص لك:' : 'Your Dedicated Deposit Address:'}
-                    </span>
-                    <div className="flex items-center justify-between font-mono font-bold bg-white dark:bg-slate-900 p-2 rounded-xl border border-emerald-200 dark:border-emerald-800 text-[11px]">
-                      <span className="text-emerald-600 dark:text-emerald-400 break-all select-all mr-1 rtl:ml-1 rtl:mr-0">
-                        {activePaymentOrder.payAddress}
+                  {/* 20-Minute Live Countdown Timer */}
+                  <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-900/40 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1.5">
+                        <Clock className={`h-3.5 w-3.5 ${orderTimeLeft < 300 ? 'text-rose-500 animate-pulse' : 'text-amber-500'}`} />
+                        {isRtl ? 'الوقت المتبقي لصلاحية هذا العنوان:' : 'Address Validity Remaining:'}
                       </span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 px-1.5 text-[10px] gap-1 shrink-0"
-                        onClick={() => copyToClipboard(activePaymentOrder.payAddress, 'nowpay_address')}
-                      >
-                        {copiedField === 'nowpay_address' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                        {t('wallet.copy', isRtl ? 'نسخ' : 'Copy')}
-                      </Button>
+                      <span className={`font-mono text-sm font-black ${
+                        orderTimeLeft < 300 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+                      }`}>
+                        {Math.floor(orderTimeLeft / 60)}:{(orderTimeLeft % 60).toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-1000 ${
+                          orderTimeLeft < 300 ? 'bg-rose-500' : 'bg-emerald-500'
+                        }`}
+                        style={{ width: `${Math.min(100, Math.max(0, (orderTimeLeft / (20 * 60)) * 100))}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-400 leading-tight">
+                      {isRtl 
+                        ? 'يتم تعيير وتجديد العنوان تلقائياً كل 20 دقيقة. جميع العناوين المخصصة لك تظل صالحة ومربوطة بحسابك حتى بعد التجديد.'
+                        : 'The address renews automatically every 20 minutes. All addresses previously generated for your session remain valid and safely credited.'}
+                    </p>
+                  </div>
+
+                  {/* Amount to Send */}
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                    <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold block mb-0.5">
+                      {isRtl ? 'المبلغ المطلوب إرساله بالضبط:' : 'Exact Amount to Send:'}
+                    </span>
+                    <div className="text-xl sm:text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 tracking-tight">
+                      {activePaymentOrder.payAmount} <span className="text-xs uppercase">{activePaymentOrder.payCurrency || 'USDT'}</span>
+                    </div>
+                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-emerald-600/15 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                      BNB Smart Chain ({activePaymentOrder.network?.toUpperCase() || 'BEP20'})
+                    </span>
+                  </div>
+
+                  {/* Dynamic QR Code & Wallet Address */}
+                  <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                      {/* QR Code */}
+                      <div className="p-1.5 rounded-xl bg-white border border-slate-100 shadow-xs shrink-0">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(activePaymentOrder.payAddress)}`}
+                          alt="USDT QR Code"
+                          className="w-24 h-24 sm:w-20 sm:h-20 object-contain rounded-lg"
+                        />
+                      </div>
+
+                      {/* Address details */}
+                      <div className="flex-1 w-full space-y-1.5 text-center sm:text-left sm:rtl:text-right">
+                        <span className="text-[10px] text-slate-400 block font-medium">
+                          {isRtl ? 'عنوان محفظة الإيداع المخصصة لك:' : 'Your Dedicated Deposit Address:'}
+                        </span>
+                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/80 font-mono text-[11px] font-bold text-slate-800 dark:text-slate-200 break-all select-all border border-slate-200 dark:border-slate-700">
+                          {activePaymentOrder.payAddress}
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => copyToClipboard(activePaymentOrder.payAddress, 'nowpay_address')}
+                          className="w-full sm:w-auto h-7 px-3 text-xs gap-1.5 font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+                        >
+                          {copiedField === 'nowpay_address' ? <Check className="h-3.5 w-3.5 text-white" /> : <Copy className="h-3.5 w-3.5" />}
+                          {copiedField === 'nowpay_address' ? (isRtl ? 'تم نسخ العنوان!' : 'Copied!') : (isRtl ? 'نسخ العنوان' : 'Copy Address')}
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-700 dark:text-amber-400 flex items-start gap-1.5">
-                    <Clock className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" />
-                    <span>
-                      {isRtl 
-                        ? 'ملاحظة: يتم تجديد عنوان وطلب الدفع تلقائياً كل 20 دقيقة إذا لم يتم التحويل. العناوين السابقة تظل صالحة ومعتمدة للتسوية التلقائية فور تأكيد الشبكة.'
-                        : 'Notice: Payment request renews automatically every 20 minutes if unpaid. Previous addresses remain valid and linked for settlement upon blockchain confirmation.'}
-                    </span>
+                  {/* Checking Status Button & Notice */}
+                  <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCheckActivePayment}
+                      disabled={isCheckingPayment}
+                      className="w-full text-xs font-bold gap-1.5 rounded-xl h-8 border-emerald-300 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${isCheckingPayment ? 'animate-spin' : ''}`} />
+                      {isRtl ? 'فحص حالة الدفع الآن' : 'Check Payment Status'}
+                    </Button>
                   </div>
                 </div>
               ) : (

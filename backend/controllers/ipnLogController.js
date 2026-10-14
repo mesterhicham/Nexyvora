@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const renewalWorker = require('../workers/paymentRenewalWorker');
+const nowpaymentsService = require('../services/nowpaymentsService');
 
 /**
  * Sanitize metadata to never leak API keys, secrets, or server environment details
@@ -278,5 +279,46 @@ exports.triggerManualRenewal = async (req, res) => {
     } catch (err) {
         console.error('[triggerManualRenewal]', err);
         res.status(500).json({ error: 'Failed to trigger payment renewal' });
+    }
+};
+
+/**
+ * Test NOWPayments API connectivity and API key validity
+ */
+exports.testNowPaymentsConnection = async (req, res) => {
+    try {
+        const config = await nowpaymentsService.getConfig();
+        const statusRes = await fetch(`${config.baseUrl}/status`, { signal: AbortSignal.timeout(8000) });
+        const statusData = await statusRes.json().catch(() => ({}));
+
+        const currRes = await fetch(`${config.baseUrl}/currencies`, {
+            headers: { 'x-api-key': config.apiKey },
+            signal: AbortSignal.timeout(8000)
+        });
+        const currData = await currRes.json().catch(() => ({}));
+
+        if (!currRes.ok) {
+            return res.status(currRes.status).json({
+                success: false,
+                gatewayStatus: statusData.message || 'online',
+                error: currData.message || 'Invalid API key or unauthorized',
+                code: currData.code || 'INVALID_API_KEY',
+                isSandbox: config.isSandbox,
+                baseUrl: config.baseUrl
+            });
+        }
+
+        res.json({
+            success: true,
+            gatewayStatus: statusData.message || 'OK',
+            currenciesCount: currData.currencies?.length || 0,
+            isSandbox: config.isSandbox,
+            baseUrl: config.baseUrl,
+            defaultPayCurrency: config.defaultPayCurrency,
+            webhookSecretConfigured: Boolean(config.webhookSecret)
+        });
+    } catch (err) {
+        console.error('[testNowPaymentsConnection]', err);
+        res.status(500).json({ success: false, error: err.message });
     }
 };

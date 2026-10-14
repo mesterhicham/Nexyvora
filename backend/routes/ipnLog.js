@@ -7,6 +7,7 @@ router.use(auth);
 router.use(authorize('admin'));
 
 // Admin IPN Logs endpoints
+router.get('/test-connection', ipnLogController.testNowPaymentsConnection);
 router.get('/', ipnLogController.getAdminIpnLogs);
 router.get('/:id', ipnLogController.getAdminIpnLogDetail);
 router.post('/:id/renew', ipnLogController.triggerManualRenewal);

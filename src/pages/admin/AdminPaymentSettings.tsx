@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { adminPaymentService } from '@/services/apiService';
+import { adminPaymentService, adminIpnLogService } from '@/services/apiService';
 import { toast } from 'sonner';
 import {
   CreditCard,
@@ -47,7 +47,9 @@ import {
   Layers,
   Sparkles,
   Percent,
-  DollarSign
+  DollarSign,
+  Activity,
+  RefreshCw
 } from 'lucide-react';
 
 interface PaymentMethod {
@@ -136,6 +138,26 @@ export default function AdminPaymentSettings() {
   };
 
   const [formData, setFormData] = useState(initialForm);
+  const [testingApi, setTestingApi] = useState(false);
+  const [apiTestResult, setApiTestResult] = useState<any | null>(null);
+
+  const handleTestNowPayments = async () => {
+    try {
+      setTestingApi(true);
+      setApiTestResult(null);
+      const res = await adminIpnLogService.testConnection();
+      setApiTestResult(res);
+      if (res.success && res.api_status?.status === 'OK') {
+        toast.success(isRtl ? 'تم الاتصال ببوابة NOWPayments بنجاح! 🚀' : 'NOWPayments API connected successfully!');
+      } else {
+        toast.warning(isRtl ? 'فحص الاتصال: تم استقبال رد مع تحذير' : 'Connection check completed with warnings');
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || (isRtl ? 'فشل فحص الاتصال' : 'Connection check failed'));
+    } finally {
+      setTestingApi(false);
+    }
+  };
 
   useEffect(() => {
     fetchMethods();
@@ -854,6 +876,49 @@ export default function AdminPaymentSettings() {
                         className="rounded-xl text-xs font-mono"
                       />
                     </div>
+                  </div>
+
+                  {/* Test Connection Button & Status */}
+                  <div className="pt-2 border-t border-amber-500/20 flex flex-col gap-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {isRtl
+                          ? 'يقوم النظام بإنشاء محفظة فريدة لكل إيداع وتغييرها تلقائياً بعد 20 دقيقة.'
+                          : 'The system creates a unique wallet for each deposit and renews it every 20 minutes.'}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleTestNowPayments}
+                        disabled={testingApi}
+                        className="rounded-xl text-xs font-bold gap-1.5 border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${testingApi ? 'animate-spin' : ''}`} />
+                        <span>{isRtl ? (testingApi ? 'جارٍ الفحص...' : 'فحص الاتصال بالبوابة') : (testingApi ? 'Checking...' : 'Test Gateway Connection')}</span>
+                      </Button>
+                    </div>
+
+                    {apiTestResult && (
+                      <div className={`p-3 rounded-xl border text-xs space-y-1.5 ${
+                        apiTestResult.success && apiTestResult.api_status?.status === 'OK'
+                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
+                          : 'bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300'
+                      }`}>
+                        <div className="flex items-center justify-between font-bold">
+                          <span className="flex items-center gap-1.5">
+                            <Activity className="h-4 w-4" />
+                            {isRtl ? 'حالة البوابة:' : 'Gateway Status:'} {apiTestResult.api_status?.message || apiTestResult.api_status?.status || (apiTestResult.success ? 'متصل' : 'تحذير')}
+                          </span>
+                          <Badge variant="outline" className="text-[10px]">
+                            {apiTestResult.mode === 'live' ? '⚡ مباشر (Live API)' : '🛡️ وضع المحاكاة الآمن'}
+                          </Badge>
+                        </div>
+                        <div className="text-[11px] opacity-90">
+                          {isRtl ? 'مفتاح API:' : 'API Key:'} {apiTestResult.is_configured?.has_api_key ? '✅ متوفر' : '⚠️ غير مسجل'} | {isRtl ? 'مفتاح IPN:' : 'IPN Secret:'} {apiTestResult.is_configured?.has_ipn_secret ? '✅ متوفر' : '⚠️ غير مسجل'}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
