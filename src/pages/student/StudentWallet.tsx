@@ -48,12 +48,36 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { toast } from "sonner";
+import { useAuth } from '@/contexts/AuthContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 export default function StudentWallet() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
-  const { isAlgeria, isMorocco, hasLocalCurrency, usdRate, usdtEnabled, currencyCode, currencySymbol, convertToLocal, formatPrice, formatDualPrice, formatBalance } = useCurrency();
+  const { user } = useAuth();
+  const { 
+    isAlgeria: ctxIsAlgeria, 
+    isMorocco, 
+    hasLocalCurrency: ctxHasLocalCurrency, 
+    usdRate: ctxUsdRate, 
+    usdtEnabled, 
+    currencyCode: ctxCurrencyCode, 
+    currencySymbol, 
+    convertToLocal, 
+    formatPrice, 
+    formatDualPrice, 
+    formatBalance 
+  } = useCurrency();
+
+  // Bulletproof Algeria Detection: check user profile and currency context
+  const userCountryLower = (user?.country || '').toLowerCase().trim();
+  const userCountryCode = (user?.country_code || '').toUpperCase().trim();
+  const isAlgeria = ctxIsAlgeria || userCountryCode === 'DZ' || userCountryLower.includes('algeria') || userCountryLower.includes('algérie') || userCountryLower.includes('الجزائر');
+  
+  // Rate for Algeria (fallback to 220 if not loaded)
+  const usdRate = isAlgeria ? (ctxUsdRate > 1 ? ctxUsdRate : 220) : ctxUsdRate;
+  const currencyCode = isAlgeria ? 'DZD' : ctxCurrencyCode;
+  const hasLocalCurrency = isAlgeria ? true : ctxHasLocalCurrency;
   const [walletData, setWalletData] = useState<any>(null);
   const [commissions, setCommissions] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
@@ -300,7 +324,7 @@ export default function StudentWallet() {
     const minWithdrawal = selectedWithdrawMethod?.min_withdrawal || walletData?.minWithdrawal || 50;
 
     const minWithdrawalText = isAlgeria 
-      ? `${convertToLocal(minWithdrawal).toLocaleString()} DZD` 
+      ? `${(minWithdrawal * usdRate).toLocaleString()} DZD (≈ $${minWithdrawal} USD)` 
       : isMorocco 
         ? `${convertToLocal(minWithdrawal).toLocaleString()} MAD (${minWithdrawal} USDT)`
         : `$${minWithdrawal} USD`;
@@ -459,9 +483,16 @@ export default function StudentWallet() {
           {/* Big Amount */}
           <div className="text-center mt-2 mb-6">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
-              {formatBalance(wallet.balance || 0, showBalance).primary}
+              {isAlgeria
+                ? (showBalance ? `${(Math.round(Number(wallet.balance || 0) * usdRate)).toLocaleString()} DZD` : '•••••• DZD')
+                : formatBalance(wallet.balance || 0, showBalance).primary}
             </h2>
-            {formatBalance(wallet.balance || 0, showBalance).secondary && (
+            {isAlgeria ? (
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 mt-2.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs sm:text-sm font-bold text-white shadow-xs">
+                <span>{showBalance ? `≈ $${Number(wallet.balance || 0).toFixed(2)} USD` : '•••••• USD'}</span>
+                <span className="text-[11px] text-blue-100/80 font-normal">({isRtl ? `1$ = ${usdRate} دج` : `1 USD = ${usdRate} DZD`})</span>
+              </div>
+            ) : formatBalance(wallet.balance || 0, showBalance).secondary && (
               <p className="text-[11px] sm:text-xs text-blue-100/75 mt-1 font-medium">
                 {formatBalance(wallet.balance || 0, showBalance).secondary}
               </p>
@@ -510,7 +541,7 @@ export default function StudentWallet() {
             <div className="mt-2">
               <span className="text-2xl font-black text-amber-500">
                 {isAlgeria 
-                  ? convertToLocal(wallet.pendingBalance || 0).toLocaleString() 
+                  ? (Math.round(Number(wallet.pendingBalance || 0) * usdRate)).toLocaleString() 
                   : isMorocco
                     ? convertToLocal(wallet.pendingBalance || 0).toLocaleString()
                     : `$${Number(wallet.pendingBalance || 0).toFixed(2)}`}
@@ -518,6 +549,11 @@ export default function StudentWallet() {
               <span className="text-xs text-slate-400 font-medium ml-1">
                 {isAlgeria ? 'DZD' : isMorocco ? 'MAD' : 'USD'}
               </span>
+              {isAlgeria && (
+                <div className="text-[11px] font-bold text-amber-500/80 mt-0.5">
+                  ≈ ${Number(wallet.pendingBalance || 0).toFixed(2)} USD
+                </div>
+              )}
             </div>
             <p className="text-[10px] text-slate-400 mt-0.5">
               {t('wallet.pendingDesc', isRtl ? 'يتحول لمتاح بعد انتهاء فترة الأمان' : 'Unlocks after clearance period')}
@@ -534,7 +570,7 @@ export default function StudentWallet() {
             <div className="mt-2">
               <span className="text-2xl font-black text-slate-900 dark:text-white">
                 {isAlgeria 
-                  ? convertToLocal(wallet.totalEarned || 0).toLocaleString() 
+                  ? (Math.round(Number(wallet.totalEarned || 0) * usdRate)).toLocaleString() 
                   : isMorocco
                     ? convertToLocal(wallet.totalEarned || 0).toLocaleString()
                     : `$${Number(wallet.totalEarned || 0).toFixed(2)}`}
@@ -542,6 +578,11 @@ export default function StudentWallet() {
               <span className="text-xs text-slate-400 font-medium ml-1">
                 {isAlgeria ? 'DZD' : isMorocco ? 'MAD' : 'USD'}
               </span>
+              {isAlgeria && (
+                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                  ≈ ${Number(wallet.totalEarned || 0).toFixed(2)} USD
+                </div>
+              )}
             </div>
             <p className="text-[10px] text-slate-400 mt-0.5">
               {t('wallet.totalEarnedDesc', isRtl ? 'مجموع عمولات أجيال الفريق' : 'Team generations commission total')}
@@ -558,7 +599,7 @@ export default function StudentWallet() {
             <div className="mt-2">
               <span className="text-2xl font-black text-slate-900 dark:text-white">
                 {isAlgeria 
-                  ? convertToLocal(wallet.totalWithdrawn || 0).toLocaleString() 
+                  ? (Math.round(Number(wallet.totalWithdrawn || 0) * usdRate)).toLocaleString() 
                   : isMorocco
                     ? convertToLocal(wallet.totalWithdrawn || 0).toLocaleString()
                     : `$${Number(wallet.totalWithdrawn || 0).toFixed(2)}`}
@@ -566,6 +607,11 @@ export default function StudentWallet() {
               <span className="text-xs text-slate-400 font-medium ml-1">
                 {isAlgeria ? 'DZD' : isMorocco ? 'MAD' : 'USD'}
               </span>
+              {isAlgeria && (
+                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                  ≈ ${Number(wallet.totalWithdrawn || 0).toFixed(2)} USD
+                </div>
+              )}
             </div>
             <p className="text-[10px] text-slate-400 mt-0.5">
               {t('wallet.totalWithdrawnDesc', isRtl ? 'تم سحبها وتحويلها بنجاح' : 'Successfully withdrawn & processed')}
@@ -583,23 +629,47 @@ export default function StudentWallet() {
 
           {/* Quick Coin View Row */}
           {isAlgeria ? (
-            <div className="p-4 rounded-[22px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-xs shadow-xs">
-                  DA
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Asset 1: DZD */}
+              <div className="p-4 rounded-[22px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-xs shadow-xs">
+                    DA
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">DZD</h4>
+                    <p className="text-[10px] text-slate-400">{isRtl ? 'الدينار الجزائري' : 'Algerian Dinar'}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">DZD</h4>
-                  <p className="text-[10px] text-slate-400">{isRtl ? 'الدينار الجزائري' : 'Algerian Dinar'}</p>
+                <div className="text-right rtl:text-left">
+                  <p className="text-sm font-black text-slate-900 dark:text-white">
+                    {(Math.round(Number(wallet.balance || 0) * usdRate)).toLocaleString()} DZD
+                  </p>
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                    {isRtl ? 'الرصيد بالدينار (متاح)' : 'Available Balance (DZD)'}
+                  </p>
                 </div>
               </div>
-              <div className="text-right rtl:text-left">
-                <p className="text-sm font-black text-slate-900 dark:text-white">
-                  {convertToLocal(wallet.balance || 0).toLocaleString()} DZD
-                </p>
-                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                  {isRtl ? 'الرصيد المتاح' : 'Available Balance'}
-                </p>
+
+              {/* Asset 2: USD */}
+              <div className="p-4 rounded-[22px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
+                    $
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">USD</h4>
+                    <p className="text-[10px] text-slate-400">{isRtl ? 'الدولار الأمريكي' : 'US Dollar'}</p>
+                  </div>
+                </div>
+                <div className="text-right rtl:text-left">
+                  <p className="text-sm font-black text-slate-900 dark:text-white">
+                    ${Number(wallet.balance || 0).toFixed(2)} USD
+                  </p>
+                  <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
+                    {isRtl ? 'الرصيد المعادل بالدولار' : 'USD Equivalent'}
+                  </p>
+                </div>
               </div>
             </div>
           ) : isMorocco ? (
@@ -707,7 +777,12 @@ export default function StudentWallet() {
                             {comm.rate_percentage}%
                           </td>
                           <td className="p-4 font-black text-emerald-600 dark:text-emerald-400 text-sm font-mono">
-                            +${comm.commission_amount} USD
+                            <div>+${comm.commission_amount} USD</div>
+                            {isAlgeria && (
+                              <div className="text-[10px] font-medium text-slate-400 mt-0.5">
+                                ≈ {(Math.round(Number(comm.commission_amount) * usdRate)).toLocaleString()} DZD
+                              </div>
+                            )}
                           </td>
                           <td className="p-4">
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
@@ -755,7 +830,12 @@ export default function StudentWallet() {
                               {new Date(dep.created_at).toLocaleDateString(dateLocale)}
                             </td>
                             <td className="p-4 font-black text-sm text-emerald-600 dark:text-emerald-400 font-mono">
-                              ${Number(dep.amount).toFixed(2)} USD
+                              <div>${Number(dep.amount).toFixed(2)} USD</div>
+                              {isAlgeria && (
+                                <div className="text-[10px] font-medium text-slate-400 mt-0.5">
+                                  ≈ {(Math.round(Number(dep.amount) * usdRate)).toLocaleString()} DZD
+                                </div>
+                              )}
                             </td>
                             <td className="p-4 font-bold text-slate-700 dark:text-slate-300">
                               {meta.paymentMethod === 'baridimob' ? 'BaridiMob / CCP' :
@@ -853,7 +933,12 @@ export default function StudentWallet() {
                             {new Date(w.created_at).toLocaleDateString(dateLocale)}
                           </td>
                           <td className="p-4 font-bold text-sm text-slate-900 dark:text-white font-mono">
-                            ${w.amount} USD
+                            <div>${w.amount} USD</div>
+                            {isAlgeria && (
+                              <div className="text-[10px] font-medium text-slate-400 mt-0.5">
+                                ≈ {(Math.round(Number(w.amount) * usdRate)).toLocaleString()} DZD
+                              </div>
+                            )}
                           </td>
                           <td className="p-4 uppercase font-semibold text-slate-600 dark:text-slate-300">
                             {w.payment_method.replace('_', ' ')}
@@ -912,7 +997,10 @@ export default function StudentWallet() {
                   <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
                     {t('wallet.amount', isRtl ? 'المبلغ ($ USD)' : 'Amount ($ USD)')}
                   </Label>
-                  <span className="text-[10px] text-slate-400 font-medium">{isRtl ? 'الحد الأدنى $10' : 'Minimum $10'}</span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {isRtl ? 'الحد الأدنى' : 'Minimum'}{' '}
+                    {isAlgeria ? `$10 (${(10 * usdRate).toLocaleString()} دج)` : '$10'}
+                  </span>
                 </div>
                 <div className="relative">
                   <Input
@@ -925,30 +1013,60 @@ export default function StudentWallet() {
                   />
                   <span className="absolute left-2.5 top-2 text-slate-400 font-bold text-xs">$</span>
                 </div>
-                {depositAmount && Number(depositAmount) > 0 && hasLocalCurrency && currencyCode !== 'USD' && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[11px] font-bold text-primary">
-                    <span>{isRtl ? 'المبلغ المعادل بالعملة المحلية:' : 'Local Currency Equivalent:'}</span>
-                    <span className="font-extrabold font-mono">
-                      {Math.round(Number(depositAmount) * usdRate).toLocaleString()} {currencyCode}
-                    </span>
+                {/* Live Dual Currency Conversion Card */}
+                {isAlgeria && depositAmount && Number(depositAmount) > 0 ? (
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-transparent border border-emerald-500/20 space-y-1.5 shadow-xs">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-600 dark:text-slate-300 font-medium">
+                        {isRtl ? 'المبلغ بالدينار الجزائري (المطلوب تحويله):' : 'Amount in Algerian Dinar (To Pay):'}
+                      </span>
+                      <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                        {(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} DZD
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-emerald-500/10">
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">
+                        {isRtl ? 'الرصيد المضاف لحسابك بالدولار:' : 'Credited to your Wallet:'}
+                      </span>
+                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 font-mono">
+                        ${Number(depositAmount).toFixed(2)} USD
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                      <span>{isRtl ? 'سعر الصرف المعتمد للمنصة:' : 'Official Platform Rate:'}</span>
+                      <span className="font-bold text-slate-600 dark:text-slate-300">1 USD = {usdRate} DZD</span>
+                    </div>
                   </div>
+                ) : (
+                  depositAmount && Number(depositAmount) > 0 && hasLocalCurrency && currencyCode !== 'USD' && (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[11px] font-bold text-primary">
+                      <span>{isRtl ? 'المبلغ المعادل بالعملة المحلية:' : 'Local Currency Equivalent:'}</span>
+                      <span className="font-extrabold font-mono">
+                        {Math.round(Number(depositAmount) * usdRate).toLocaleString()} {currencyCode}
+                      </span>
+                    </div>
+                  )
                 )}
-                {/* Quick select chips */}
+                {/* Quick select chips with DZD equivalents for Algeria */}
                 <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {['25', '50', '100', '250', '500'].map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setDepositAmount(val)}
-                      className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition-all ${
-                        depositAmount === val 
-                          ? 'bg-primary text-white shadow-xs scale-105' 
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                      }`}
-                    >
-                      +${val}
-                    </button>
-                  ))}
+                  {['25', '50', '100', '250', '500'].map((val) => {
+                    const dzdVal = isAlgeria ? (Number(val) * usdRate).toLocaleString() : null;
+                    return (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setDepositAmount(val)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
+                          depositAmount === val 
+                            ? 'bg-primary text-white shadow-xs scale-105' 
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                        }`}
+                      >
+                        <span>+${val}</span>
+                        {dzdVal && <span className="opacity-80 font-normal">({dzdVal} {isRtl ? 'دج' : 'DA'})</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1034,6 +1152,21 @@ export default function StudentWallet() {
 
                 {selectedDepositMethod?.type === 'bank_transfer' && (
                   <div className="space-y-1.5">
+                    {isAlgeria && depositAmount && Number(depositAmount) > 0 && (
+                      <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-800 dark:text-amber-300 space-y-1">
+                        <div className="flex items-center justify-between font-bold">
+                          <span>{isRtl ? 'المبلغ المطلوب إرساله (BaridiMob / البنك):' : 'Amount to transfer via BaridiMob:'}</span>
+                          <span className="text-sm font-black text-amber-700 dark:text-amber-400 font-mono">
+                            {(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} DZD
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                          {isRtl 
+                            ? `سيتم شحن حسابك بمبلغ $${Number(depositAmount).toFixed(2)} USD تلقائياً فور مراجعة وصل التحويل.` 
+                            : `Your account will be credited with $${Number(depositAmount).toFixed(2)} USD automatically once receipt is verified.`}
+                        </p>
+                      </div>
+                    )}
                     {selectedDepositMethod.bank_name && (
                       <div className="text-[10px] text-slate-500">
                         {t('wallet.bankName', isRtl ? 'البنك' : 'Bank')}: <span className="font-bold text-slate-800 dark:text-slate-200">{selectedDepositMethod.bank_name}</span>
@@ -1381,6 +1514,10 @@ export default function StudentWallet() {
                   {submittingDeposit ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
                   {selectedDepositMethod?.type === 'nowpayments_crypto'
                     ? (isRtl ? 'إنشاء طلب دفع عبر NOWPayments' : 'Create NOWPayments Order')
+                    : isAlgeria && depositAmount && Number(depositAmount) > 0
+                    ? (isRtl 
+                        ? `تأكيد الشحن: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} دج ($${Number(depositAmount).toFixed(2)})`
+                        : `Confirm Deposit: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} DZD ($${Number(depositAmount).toFixed(2)} USD)`)
                     : (isRtl ? 'تأكيد إرسال طلب الشحن' : 'Confirm Deposit Request')}
                 </Button>
               )}
@@ -1401,9 +1538,18 @@ export default function StudentWallet() {
                   <DialogTitle className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight">
                     {t('wallet.withdrawModalTitle', isRtl ? 'طلب سحب أرباح' : 'Request Profit Payout')}
                   </DialogTitle>
-                  <DialogDescription className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                  <DialogDescription className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-1.5">
                     <span>{t('wallet.availableBalance', isRtl ? 'الرصيد المتاح' : 'Available Balance')}:</span>
-                    <span className="font-extrabold text-emerald-600 font-mono">${Number(wallet.balance || 0).toFixed(2)} USD</span>
+                    {isAlgeria ? (
+                      <span className="font-extrabold text-emerald-600 font-mono">
+                        {(Math.round(Number(wallet.balance || 0) * usdRate)).toLocaleString()} DZD
+                        <span className="text-slate-400 text-[10px] font-normal ml-1 rtl:mr-1">
+                          (≈ ${Number(wallet.balance || 0).toFixed(2)} USD)
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="font-extrabold text-emerald-600 font-mono">${Number(wallet.balance || 0).toFixed(2)} USD</span>
+                    )}
                   </DialogDescription>
                 </div>
               </div>
@@ -1417,7 +1563,10 @@ export default function StudentWallet() {
                     {t('wallet.withdrawAmount', isRtl ? 'المبلغ المراد سحبه ($ USD)' : 'Withdraw Amount ($ USD)')}
                   </Label>
                   <span className="text-[10px] text-slate-400 font-medium">
-                    {t('wallet.minWithdrawalNotice', isRtl ? 'الحد الأدنى' : 'Minimum')} ${selectedWithdrawMethod?.min_withdrawal || minWithdraw}
+                    {t('wallet.minWithdrawalNotice', isRtl ? 'الحد الأدنى' : 'Minimum')}{' '}
+                    {isAlgeria 
+                      ? `$${selectedWithdrawMethod?.min_withdrawal || minWithdraw} (${((selectedWithdrawMethod?.min_withdrawal || minWithdraw) * usdRate).toLocaleString()} DZD)`
+                      : `$${selectedWithdrawMethod?.min_withdrawal || minWithdraw}`}
                   </span>
                 </div>
                 <div className="relative">
@@ -1432,13 +1581,39 @@ export default function StudentWallet() {
                   />
                   <span className="absolute left-2.5 top-2 text-slate-400 font-bold text-xs">$</span>
                 </div>
-                {withdrawAmount && Number(withdrawAmount) > 0 && hasLocalCurrency && currencyCode !== 'USD' && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                    <span>{isRtl ? 'المبلغ المعادل بالعملة المحلية:' : 'Local Currency Equivalent:'}</span>
-                    <span className="font-extrabold font-mono">
-                      {Math.round(Number(withdrawAmount) * usdRate).toLocaleString()} {currencyCode}
-                    </span>
+                {/* Live Dual Currency Conversion Card for Algeria */}
+                {isAlgeria && withdrawAmount && Number(withdrawAmount) > 0 ? (
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-transparent border border-emerald-500/20 space-y-1.5 shadow-xs">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-600 dark:text-slate-300 font-medium">
+                        {isRtl ? 'المبلغ الذي ستستلمه بالدينار (BaridiMob / البنك):' : 'Payout in Algerian Dinar:'}
+                      </span>
+                      <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                        {(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} DZD
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-emerald-500/10">
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">
+                        {isRtl ? 'المبلغ المخصوم من رصيدك بالدولار:' : 'Deducted from Wallet:'}
+                      </span>
+                      <span className="text-xs font-bold text-rose-500 font-mono">
+                        -${Number(withdrawAmount).toFixed(2)} USD
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                      <span>{isRtl ? 'سعر الصرف المعتمد:' : 'Exchange Rate:'}</span>
+                      <span className="font-bold text-slate-600 dark:text-slate-300">1 USD = {usdRate} DZD</span>
+                    </div>
                   </div>
+                ) : (
+                  withdrawAmount && Number(withdrawAmount) > 0 && hasLocalCurrency && currencyCode !== 'USD' && (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <span>{isRtl ? 'المبلغ المعادل بالعملة المحلية:' : 'Local Currency Equivalent:'}</span>
+                      <span className="font-extrabold font-mono">
+                        {Math.round(Number(withdrawAmount) * usdRate).toLocaleString()} {currencyCode}
+                      </span>
+                    </div>
+                  )
                 )}
               </div>
 
@@ -1526,7 +1701,11 @@ export default function StudentWallet() {
                 className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 sm:h-9 px-4 shadow-sm"
               >
                 {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
-                {t('wallet.submitWithdraw', isRtl ? 'إرسال طلب السحب' : 'Submit Withdrawal Request')}
+                {isAlgeria && withdrawAmount && Number(withdrawAmount) > 0
+                  ? (isRtl 
+                      ? `سحب ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} دج ($${Number(withdrawAmount).toFixed(2)})` 
+                      : `Withdraw ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} DZD ($${Number(withdrawAmount).toFixed(2)})`)
+                  : t('wallet.submitWithdraw', isRtl ? 'إرسال طلب السحب' : 'Submit Withdrawal Request')}
               </Button>
             </div>
           </DialogContent>

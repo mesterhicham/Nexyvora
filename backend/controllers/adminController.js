@@ -449,7 +449,8 @@ exports.impersonateUser = async (req, res) => {
     const { id } = req.params;
     try {
         const [users] = await db.query(
-            `SELECT u.id, u.email, u.role, u.username, u.token_version, u.affiliate_code, p.full_name, p.avatar_url 
+            `SELECT u.id, u.email, u.role, u.username, u.token_version, u.affiliate_code, 
+                    p.full_name, p.avatar_url, p.country, p.country_code, p.city, p.whatsapp_number 
              FROM users u 
              LEFT JOIN profiles p ON u.id = p.id 
              WHERE u.id = ?`, 

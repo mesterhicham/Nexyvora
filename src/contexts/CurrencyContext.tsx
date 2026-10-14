@@ -148,14 +148,15 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const formatDualPrice = (usdAmount: number): string => {
     const amt = Number(usdAmount || 0);
     if (isAlgeria) {
-      return `${Math.round(amt * usdRate).toLocaleString()} DZD`;
+      const localVal = Math.round(amt * usdRate);
+      return `${localVal.toLocaleString()} DZD (≈ $${amt.toFixed(2)} USD)`;
     }
     if (hasLocalCurrency && currencyCode !== 'USD') {
       const localVal = Math.round(amt * usdRate);
       if (usdtEnabled) {
         return `${localVal.toLocaleString()} ${currencyCode} (≈ ${amt.toLocaleString()} USDT)`;
       }
-      return `${localVal.toLocaleString()} ${currencyCode}`;
+      return `${localVal.toLocaleString()} ${currencyCode} (≈ $${amt.toFixed(2)} USD)`;
     }
     return `$${amt.toLocaleString()} USD`;
   };
@@ -164,18 +165,19 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!showValue) {
       return {
         primary: `•••••••• ${currencyCode}`,
-        secondary: isAlgeria ? undefined : (usdtEnabled && hasLocalCurrency ? '•••••••• USDT' : undefined),
+        secondary: isAlgeria ? '•••••••• USD' : (usdtEnabled && hasLocalCurrency ? '•••••••• USDT' : undefined),
         hasUsdt: usdtEnabled
       };
     }
 
     const amt = Number(usdAmount || 0);
 
-    // Strict Algeria: DZD only, NO USDT or USD
+    // Algeria: DZD primary + USD secondary equivalent (both DZD and USD)
     if (isAlgeria) {
+      const localVal = Math.round(amt * usdRate);
       return {
-        primary: `${Math.round(amt * usdRate).toLocaleString()} DZD`,
-        secondary: undefined,
+        primary: `${localVal.toLocaleString()} DZD`,
+        secondary: `≈ $${amt.toFixed(2)} USD`,
         hasUsdt: false
       };
     }
@@ -184,7 +186,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (hasLocalCurrency && currencyCode !== 'USD') {
       return {
         primary: `${Math.round(amt * usdRate).toLocaleString()} ${currencyCode}`,
-        secondary: usdtEnabled ? `≈ ${amt.toFixed(2)} USDT` : undefined,
+        secondary: usdtEnabled ? `≈ ${amt.toFixed(2)} USDT` : `≈ $${amt.toFixed(2)} USD`,
         hasUsdt: usdtEnabled
       };
     }

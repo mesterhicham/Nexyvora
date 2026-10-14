@@ -154,6 +154,12 @@ exports.login = async (req, res) => {
             { expiresIn: '1d' }
         );
 
+        const [profiles] = await db.query(
+            'SELECT full_name, city, country, country_code, whatsapp_number, avatar_url FROM profiles WHERE id = ?',
+            [user.id]
+        );
+        const prof = profiles[0] || {};
+
         res.json({
             token,
             user: {
@@ -161,7 +167,13 @@ exports.login = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 affiliateCode: user.affiliate_code,
-                referrerId: user.referrer_id
+                referrerId: user.referrer_id,
+                full_name: prof.full_name || '',
+                city: prof.city || '',
+                country: prof.country || '',
+                country_code: prof.country_code || '',
+                whatsappNumber: prof.whatsapp_number || '',
+                avatar_url: prof.avatar_url || ''
             }
         });
     } catch (err) {
