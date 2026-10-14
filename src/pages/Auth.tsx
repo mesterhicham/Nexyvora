@@ -277,7 +277,7 @@ export default function Auth() {
       {/* ========================================================= */}
       {/* TOP FLOATING NAVIGATION BAR                               */}
       {/* ========================================================= */}
-      <header className="relative z-20 flex items-center justify-between px-6 py-5 sm:px-12 max-w-7xl mx-auto w-full">
+      <header className="relative z-20 flex items-center justify-between px-6 py-3 sm:py-4 sm:px-12 max-w-7xl mx-auto w-full">
         <Link 
           to="/" 
           className="group inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-white transition-colors"
@@ -293,7 +293,7 @@ export default function Auth() {
         <div className="flex items-center gap-3">
           <LanguageSwitcher 
             variant="default" 
-            className="h-9 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-all text-xs" 
+            className="h-8 px-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-all text-xs" 
           />
         </div>
       </header>
@@ -301,47 +301,47 @@ export default function Auth() {
       {/* ========================================================= */}
       {/* CENTERED MAIN CONTAINER                                   */}
       {/* ========================================================= */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-6 sm:px-6 max-w-7xl mx-auto w-full my-auto">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-3 sm:py-6 max-w-7xl mx-auto w-full my-auto">
         
         {/* Centered Brand Emblem (Logo + Title above the Card) */}
-        <div className="text-center mb-6 sm:mb-8 flex flex-col items-center animate-in fade-in duration-500">
+        <div className="text-center mb-4 sm:mb-5 flex flex-col items-center animate-in fade-in duration-500">
           <img 
             src="/logo-icon.png" 
             alt="Nexyvora" 
-            className="h-16 w-16 sm:h-20 sm:w-20 object-contain drop-shadow-[0_0_28px_rgba(99,102,241,0.65)] mb-3"
+            className="h-12 w-12 sm:h-14 sm:w-14 object-contain drop-shadow-[0_0_24px_rgba(99,102,241,0.65)] mb-2"
             onError={(e) => {
               (e.target as HTMLImageElement).src = '/logo.png';
             }}
           />
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none">
             Nexyvora
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 font-medium tracking-wide mt-1">
+          <p className="text-xs text-slate-400 font-medium tracking-wide mt-1">
             Academy Platform
           </p>
         </div>
 
         {/* Centered Floating Glass Card */}
-        <div className="relative w-full max-w-[460px] rounded-[32px] sm:rounded-[36px] bg-[#0c1224]/85 backdrop-blur-2xl border border-white/[0.1] shadow-[0_24px_80px_rgba(0,0,0,0.9),0_0_40px_rgba(37,99,235,0.12),inset_0_1px_0_rgba(255,255,255,0.15)] p-7 sm:p-9 transition-all duration-300">
+        <div className="relative w-full max-w-[450px] rounded-[30px] sm:rounded-[34px] bg-[#0c1224]/85 backdrop-blur-2xl border border-white/[0.1] shadow-[0_24px_80px_rgba(0,0,0,0.9),0_0_40px_rgba(37,99,235,0.12),inset_0_1px_0_rgba(255,255,255,0.15)] p-6 sm:p-8 transition-all duration-300">
           
           {/* Subtle ambient aura behind the card */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-purple-600/20 rounded-[38px] blur-2xl opacity-70 -z-10 pointer-events-none" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-purple-600/20 rounded-[36px] blur-2xl opacity-70 -z-10 pointer-events-none" />
 
           {/* User Avatar Badge Pill (inside card top) */}
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-[0_0_24px_rgba(99,102,241,0.5)] border border-white/20">
-              <User className="w-6 h-6" />
+          <div className="flex justify-center mb-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-white/20">
+              <User className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card Welcome Title & Subtitle */}
-          <div className="text-center mb-6">
-            <h2 className="text-2xl sm:text-[26px] font-black text-white tracking-tight">
+          <div className="text-center mb-5">
+            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               {isLogin 
                 ? (isRtl ? 'مرحباً بعودتك' : 'Welcome back')
                 : (isRtl ? 'إنشاء حساب جديد' : 'Create your account')}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
               {isLogin
                 ? (isRtl ? 'سجّل الدخول إلى حسابك وتابع مسيرتك التعليمية' : 'Sign in to your account and continue your journey')
                 : (isRtl ? 'انضم إلى منصة نكستفورا وابدأ رحلتك التعليمية' : 'Join Nexyvora platform and start your journey')}
