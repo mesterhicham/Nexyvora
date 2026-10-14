@@ -328,47 +328,47 @@ export default function Auth() {
             </p>
 
             {/* 4 Feature Badges (Horizontal Row Exactly like Image) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-4 max-w-xl">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl">
               
               {/* Feature 1: Expert-Led Courses */}
-              <div className="flex flex-col items-start gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
+              <div className="group flex flex-col items-start gap-2.5 p-3 rounded-2xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.06] hover:border-sky-500/30 hover:-translate-y-1 transition-all duration-300 cursor-default">
+                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-400 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(56,189,248,0.5)] transition-all duration-300">
                   <GraduationCap className="w-4 h-4" />
                 </div>
-                <div className="text-xs font-semibold text-slate-300 leading-snug">
+                <div className="text-xs font-semibold text-slate-200 leading-snug">
                   <div>{isRtl ? 'دورات' : 'Expert-Led'}</div>
                   <div className="text-slate-400 font-normal">{isRtl ? 'بإشراف خبراء' : 'Courses'}</div>
                 </div>
               </div>
 
               {/* Feature 2: Interactive Learning */}
-              <div className="flex flex-col items-start gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
+              <div className="group flex flex-col items-start gap-2.5 p-3 rounded-2xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.06] hover:border-blue-500/30 hover:-translate-y-1 transition-all duration-300 cursor-default">
+                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(59,130,246,0.5)] transition-all duration-300">
                   <PlaySquare className="w-4 h-4" />
                 </div>
-                <div className="text-xs font-semibold text-slate-300 leading-snug">
+                <div className="text-xs font-semibold text-slate-200 leading-snug">
                   <div>{isRtl ? 'تعلم' : 'Interactive'}</div>
                   <div className="text-slate-400 font-normal">{isRtl ? 'عملي تفاعلي' : 'Learning'}</div>
                 </div>
               </div>
 
               {/* Feature 3: Global Community */}
-              <div className="flex flex-col items-start gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+              <div className="group flex flex-col items-start gap-2.5 p-3 rounded-2xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.06] hover:border-indigo-500/30 hover:-translate-y-1 transition-all duration-300 cursor-default">
+                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(99,102,241,0.5)] transition-all duration-300">
                   <Users className="w-4 h-4" />
                 </div>
-                <div className="text-xs font-semibold text-slate-300 leading-snug">
+                <div className="text-xs font-semibold text-slate-200 leading-snug">
                   <div>{isRtl ? 'مجتمع' : 'Global'}</div>
                   <div className="text-slate-400 font-normal">{isRtl ? 'طلابي عالمي' : 'Community'}</div>
                 </div>
               </div>
 
               {/* Feature 4: Real-World Skills */}
-              <div className="flex flex-col items-start gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-400">
+              <div className="group flex flex-col items-start gap-2.5 p-3 rounded-2xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.06] hover:border-fuchsia-500/30 hover:-translate-y-1 transition-all duration-300 cursor-default">
+                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-fuchsia-500/15 border border-fuchsia-500/30 text-fuchsia-400 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(217,70,239,0.5)] transition-all duration-300">
                   <TrendingUp className="w-4 h-4" />
                 </div>
-                <div className="text-xs font-semibold text-slate-300 leading-snug">
+                <div className="text-xs font-semibold text-slate-200 leading-snug">
                   <div>{isRtl ? 'مهارات' : 'Real-World'}</div>
                   <div className="text-slate-400 font-normal">{isRtl ? 'سوق العمل' : 'Skills'}</div>
                 </div>
@@ -382,7 +382,10 @@ export default function Auth() {
           {/* RIGHT COLUMN: THE FLOATING GLASS LOGIN CARD           */}
           {/* ===================================================== */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end w-full">
-            <div className="relative w-full max-w-[440px] rounded-[30px] sm:rounded-[36px] bg-[#0c1224]/85 backdrop-blur-2xl border border-white/[0.08] shadow-[0_24px_70px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.08)] p-7 sm:p-9 transition-all duration-300">
+            <div className="relative w-full max-w-[440px] rounded-[30px] sm:rounded-[36px] bg-[#0c1224]/85 backdrop-blur-2xl border border-white/[0.1] shadow-[0_24px_80px_rgba(0,0,0,0.9),0_0_40px_rgba(37,99,235,0.12),inset_0_1px_0_rgba(255,255,255,0.15)] p-7 sm:p-9 transition-all duration-300">
+              
+              {/* Subtle ambient aura behind the card */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-purple-600/20 rounded-[38px] blur-xl opacity-60 -z-10 pointer-events-none" />
               
               {/* Card Header Brand Emblem */}
               <div className="text-center mb-6">
@@ -432,14 +435,14 @@ export default function Auth() {
                       <Label htmlFor="fullName" className="text-xs font-medium text-slate-300">
                         {isRtl ? 'الاسم الكامل' : 'Full Name'} <span className="text-rose-400">*</span>
                       </Label>
-                      <div className="relative">
-                        <User className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <div className="relative group">
+                        <User className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                         <Input
                           id="fullName"
                           placeholder={isRtl ? 'أدخل اسمك الكامل' : 'Enter your full name'}
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
-                          className="h-11 pl-10 rtl:pl-4 rtl:pr-10 bg-[#070b18]/80 border-slate-800 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500"
+                          className="h-11 pl-10 rtl:pl-4 rtl:pr-10 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all"
                         />
                       </div>
                       {errors.fullName && <p className="text-[11px] text-rose-400">{errors.fullName}</p>}
@@ -452,7 +455,7 @@ export default function Auth() {
                           {isRtl ? 'الدولة' : 'Country'} <span className="text-rose-400">*</span>
                         </Label>
                         <Select value={country} onValueChange={setCountry}>
-                          <SelectTrigger className="h-11 bg-[#070b18]/80 border-slate-800 text-white rounded-xl text-sm focus:border-blue-500">
+                          <SelectTrigger className="h-11 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all">
                             <SelectValue placeholder={isRtl ? 'اختر الدولة' : 'Select country'} />
                           </SelectTrigger>
                           <SelectContent className="max-h-60 bg-slate-900 border-slate-700 text-white">
@@ -469,14 +472,14 @@ export default function Auth() {
                         <Label htmlFor="city" className="text-xs font-medium text-slate-300">
                           {isRtl ? 'المدينة' : 'City'} <span className="text-rose-400">*</span>
                         </Label>
-                        <div className="relative">
-                          <MapPin className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <div className="relative group">
+                          <MapPin className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                           <Input
                             id="city"
                             placeholder={isRtl ? 'المدينة' : 'City'}
                             value={city}
                             onChange={(e) => setCity(e.target.value)}
-                            className="h-11 pl-10 rtl:pl-4 rtl:pr-10 bg-[#070b18]/80 border-slate-800 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500"
+                            className="h-11 pl-10 rtl:pl-4 rtl:pr-10 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all"
                           />
                         </div>
                         {errors.city && <p className="text-[11px] text-rose-400">{errors.city}</p>}
@@ -488,15 +491,15 @@ export default function Auth() {
                       <Label htmlFor="whatsapp" className="text-xs font-medium text-slate-300">
                         {isRtl ? 'رقم الواتساب للتواصل' : 'WhatsApp Number'} <span className="text-rose-400">*</span>
                       </Label>
-                      <div className="relative">
-                        <MessageCircle className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-400" />
+                      <div className="relative group">
+                        <MessageCircle className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-400 group-focus-within:text-emerald-300 transition-colors pointer-events-none" />
                         <Input
                           id="whatsapp"
                           type="tel"
                           placeholder="+212 600 000 000"
                           value={whatsappNumber}
                           onChange={(e) => setWhatsappNumber(e.target.value)}
-                          className="h-11 pl-10 rtl:pl-4 rtl:pr-10 bg-[#070b18]/80 border-slate-800 text-white placeholder:text-slate-500 rounded-xl text-sm font-mono focus:border-blue-500"
+                          className="h-11 pl-10 rtl:pl-4 rtl:pr-10 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white placeholder:text-slate-500 rounded-xl text-sm font-mono focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all"
                         />
                       </div>
                       {errors.whatsapp && <p className="text-[11px] text-rose-400">{errors.whatsapp}</p>}
@@ -571,8 +574,8 @@ export default function Auth() {
                   <Label htmlFor="email" className="text-xs font-medium text-slate-300">
                     {isRtl ? 'البريد الإلكتروني' : 'Email Address'}
                   </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <div className="relative group">
+                    <Mail className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                     <Input
                       id="email"
                       type="email"
@@ -580,7 +583,7 @@ export default function Auth() {
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className={`h-11 sm:h-12 pl-10 pr-4 rtl:pl-4 rtl:pr-10 bg-[#070b18]/80 border-slate-800 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all ${
+                      className={`h-11 sm:h-12 pl-10 pr-4 rtl:pl-4 rtl:pr-10 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all ${
                         errors.email ? 'border-rose-500/80 focus:border-rose-500' : ''
                       }`}
                       required
@@ -594,8 +597,8 @@ export default function Auth() {
                   <Label htmlFor="password" className="text-xs font-medium text-slate-300">
                     {isRtl ? 'كلمة المرور' : 'Password'}
                   </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <div className="relative group">
+                    <Lock className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
@@ -603,7 +606,7 @@ export default function Auth() {
                       placeholder={isRtl ? 'أدخل كلمة المرور' : 'Enter your password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className={`h-11 sm:h-12 pl-10 pr-10 rtl:pl-10 rtl:pr-10 bg-[#070b18]/80 border-slate-800 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all ${
+                      className={`h-11 sm:h-12 pl-10 pr-10 rtl:pl-10 rtl:pr-10 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all ${
                         errors.password ? 'border-rose-500/80 focus:border-rose-500' : ''
                       }`}
                       required
@@ -611,7 +614,7 @@ export default function Auth() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 rtl:right-auto rtl:left-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1 rounded-md transition-colors cursor-pointer"
+                      className="absolute right-3.5 rtl:right-auto rtl:left-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -645,24 +648,25 @@ export default function Auth() {
                   </div>
                 )}
 
-                {/* Primary Button (Blue-to-Purple Gradient matching the image) */}
+                {/* Primary Button (Blue-to-Purple Gradient matching the image with shimmer sheen) */}
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#9333EA] hover:from-[#1D4ED8] hover:to-[#7E22CE] text-white font-bold text-sm shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                  className="group relative w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#9333EA] hover:from-[#1D4ED8] hover:via-[#4338CA] hover:to-[#7E22CE] text-white font-bold text-sm shadow-[0_4px_24px_rgba(99,102,241,0.45),0_1px_2px_rgba(0,0,0,0.5)] hover:shadow-[0_8px_32px_rgba(99,102,241,0.65)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2 overflow-hidden"
                 >
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
                   {loading ? (
-                    <div className="flex items-center gap-2">
+                    <div className="relative z-10 flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span>{isRtl ? 'جاري التحقق...' : 'Processing...'}</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
+                    <div className="relative z-10 flex items-center gap-2">
                       <span>{isLogin ? (isRtl ? 'تسجيل الدخول' : 'Log In') : (isRtl ? 'إنشاء الحساب' : 'Sign Up')}</span>
                       {isRtl ? (
-                        <ArrowLeft className="h-4 w-4" />
+                        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                       ) : (
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                       )}
                     </div>
                   )}
@@ -678,10 +682,12 @@ export default function Auth() {
                   </span>
                 </div>
 
-                {/* Security Badge */}
-                <div className="text-center text-xs text-slate-400 flex items-center justify-center gap-1.5 pt-1">
-                  <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <span>{isRtl ? 'بياناتك آمنة ومحمية بالكامل' : 'Your data is secure and protected'}</span>
+                {/* Security Badge Pill */}
+                <div className="flex items-center justify-center pt-1">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] text-[11px] text-slate-400 font-medium shadow-inner">
+                    <Lock className="h-3 w-3 text-sky-400 shrink-0" />
+                    <span>{isRtl ? 'بياناتك مشفرة ومحمية بالكامل' : 'Your data is secure and protected'}</span>
+                  </div>
                 </div>
 
                 {/* Mode Switcher */}
