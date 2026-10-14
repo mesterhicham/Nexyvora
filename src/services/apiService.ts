@@ -13,6 +13,8 @@ export const authService = {
         api.post('/auth/forgot-password-otp', { email }).then(res => res.data),
     resetPasswordWithOtp: (email: string, code: string, newPassword: string) => 
         api.post('/auth/reset-password-otp', { email, code, newPassword }).then(res => res.data),
+    validateReferralCode: (code: string) => 
+        api.get(`/auth/validate-referral/${encodeURIComponent(code)}`).then(res => res.data),
 };
 
 export const userService = {

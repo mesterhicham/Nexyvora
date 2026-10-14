@@ -29,7 +29,10 @@ import {
   BookOpen, 
   Sparkles, 
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  Users,
+  Share2,
+  AlertCircle
 } from 'lucide-react';
 import { z } from 'zod';
 
@@ -76,7 +79,61 @@ export default function Auth() {
     city?: string;
     country?: string;
     whatsapp?: string;
+    referralCode?: string;
   }>({});
+
+  // Referral code live verification
+  const [validatingRef, setValidatingRef] = useState(false);
+  const [sponsorInfo, setSponsorInfo] = useState<{
+    valid: boolean;
+    affiliateCode?: string;
+    sponsorName?: string;
+    error?: string;
+  } | null>(null);
+
+  // Debounced referral code check
+  useEffect(() => {
+    if (isLogin) return;
+    const trimmed = referralCode.trim();
+    if (!trimmed) {
+      setSponsorInfo(null);
+      setValidatingRef(false);
+      return;
+    }
+
+    setValidatingRef(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await authService.validateReferralCode(trimmed);
+        if (res && res.valid) {
+          setSponsorInfo({
+            valid: true,
+            affiliateCode: res.affiliateCode,
+            sponsorName: res.sponsorName
+          });
+          setErrors(prev => {
+            const next = { ...prev };
+            delete next.referralCode;
+            return next;
+          });
+        } else {
+          setSponsorInfo({
+            valid: false,
+            error: res?.error || (isRtl ? 'كود الإحالة غير صالح أو غير موجود' : 'Invalid or inactive referral code')
+          });
+        }
+      } catch (err: any) {
+        setSponsorInfo({
+          valid: false,
+          error: err?.response?.data?.error || (isRtl ? 'كود الإحالة غير مسجل في النظام' : 'Referral code not found')
+        });
+      } finally {
+        setValidatingRef(false);
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [referralCode, isLogin, isRtl]);
 
   // Auto redirect if already authenticated
   useEffect(() => {
@@ -112,6 +169,11 @@ export default function Auth() {
       if (!country) newErrors.country = isRtl ? 'الدولة مطلوبة' : 'Country is required';
       if (!whatsappNumber.trim()) {
         newErrors.whatsapp = isRtl ? 'رقم الواتساب مطلوب للتواصل' : 'WhatsApp number is required';
+      }
+      if (!referralCode.trim()) {
+        newErrors.referralCode = isRtl ? 'كود الإحالة إجباري للتسجيل في المنصة' : 'Referral code is mandatory for registration';
+      } else if (sponsorInfo && !sponsorInfo.valid) {
+        newErrors.referralCode = sponsorInfo.error || (isRtl ? 'كود الإحالة المدخل غير صحيح' : 'Invalid referral code');
       }
     }
 
@@ -338,17 +400,6 @@ export default function Auth() {
             </p>
           </div>
 
-          {/* Referral Banner (If Referred in Signup Mode) */}
-          {!isLogin && referralCode && (
-            <div className="mb-4 p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs font-medium text-indigo-300 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 shrink-0 text-indigo-400" />
-              <div className="truncate">
-                <span>{isRtl ? 'كود الإحالة: ' : 'Referral Code: '}</span>
-                <span className="font-mono font-bold text-white">{referralCode}</span>
-              </div>
-            </div>
-          )}
-
           {/* Authentication Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
                 
@@ -429,6 +480,83 @@ export default function Auth() {
                         />
                       </div>
                       {errors.whatsapp && <p className="text-[11px] text-rose-400">{errors.whatsapp}</p>}
+                    </div>
+
+                    {/* Referral Code (Mandatory / إجباري) */}
+                    <div className="space-y-1.5 text-left rtl:text-right p-3 rounded-2xl bg-gradient-to-br from-indigo-950/40 via-purple-950/20 to-[#070b18]/80 border border-indigo-500/25 shadow-[0_0_20px_rgba(99,102,241,0.08)]">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="referralCode" className="text-xs font-bold text-indigo-200 flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-indigo-400" />
+                          <span>{isRtl ? 'كود الإحالة' : 'Referral Code'}</span>
+                          <span className="text-rose-400 font-bold">*</span>
+                        </Label>
+                        <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300">
+                          {isRtl ? 'إجباري' : 'Mandatory'}
+                        </span>
+                      </div>
+
+                      <div className="relative group">
+                        <Share2 className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 group-focus-within:text-indigo-300 transition-colors pointer-events-none" />
+                        <Input
+                          id="referralCode"
+                          placeholder={isRtl ? 'أدخل كود الإحالة (مثال: NV123456)' : 'Enter referral code (e.g. NV123456)'}
+                          value={referralCode}
+                          onChange={(e) => {
+                            const val = e.target.value.trim().toUpperCase();
+                            setReferralCode(val);
+                          }}
+                          className={`h-11 pl-10 pr-10 rtl:pl-10 rtl:pr-10 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-indigo-500/40 text-white placeholder:text-slate-500 rounded-xl text-sm font-mono tracking-wider focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 transition-all ${
+                            sponsorInfo?.valid 
+                              ? 'border-emerald-500/60 text-emerald-300 focus:border-emerald-500' 
+                              : errors.referralCode || (sponsorInfo && !sponsorInfo.valid)
+                              ? 'border-rose-500/60 focus:border-rose-500' 
+                              : ''
+                          }`}
+                        />
+                        <div className="absolute right-3.5 rtl:right-auto rtl:left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                          {validatingRef && (
+                            <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
+                          )}
+                          {!validatingRef && sponsorInfo?.valid && (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                          )}
+                          {!validatingRef && referralCode && sponsorInfo && !sponsorInfo.valid && (
+                            <AlertCircle className="h-4 w-4 text-rose-400" />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Verified Sponsor Info Pill */}
+                      {sponsorInfo?.valid && (
+                        <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs animate-in fade-in duration-200">
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                          <span className="truncate">
+                            {isRtl ? 'المحيل المعتمد:' : 'Verified Sponsor:'}{' '}
+                            <strong className="text-white font-semibold">{sponsorInfo.sponsorName}</strong>
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Error or hint */}
+                      {errors.referralCode && (
+                        <p className="text-[11px] text-rose-400 flex items-center gap-1 font-medium">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{errors.referralCode}</span>
+                        </p>
+                      )}
+                      {!errors.referralCode && sponsorInfo && !sponsorInfo.valid && (
+                        <p className="text-[11px] text-rose-400 flex items-center gap-1 font-medium">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{sponsorInfo.error}</span>
+                        </p>
+                      )}
+                      {!referralCode && !errors.referralCode && (
+                        <p className="text-[10px] text-slate-400">
+                          {isRtl 
+                            ? 'يجب إدخال كود إحالة صالح للانضمام إلى منصة Nexyvora.' 
+                            : 'A valid referral code is required to register on Nexyvora.'}
+                        </p>
+                      )}
                     </div>
 
                   </div>

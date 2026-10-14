@@ -6,6 +6,7 @@ const { auth, optionalAuth } = require('../middleware/authMiddleware');
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/change-password', auth, authController.changePassword);
+router.get('/validate-referral/:code', authController.validateReferralCode);
 
 // First Admin Setup
 router.get('/check-admin', authController.checkAdminExists);

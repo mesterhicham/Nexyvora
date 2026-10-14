@@ -39,15 +39,24 @@ exports.register = async (req, res) => {
             return res.status(400).json({ error: 'Email already exists' });
         }
 
-        // Check referral code (if provided)
-        let referrerId = null;
+        // Check referral code (MANDATORY)
         const codeToCheck = (referralCode || ref || '').trim();
-        if (codeToCheck) {
-            const [referrer] = await connection.query('SELECT id FROM users WHERE affiliate_code = ?', [codeToCheck]);
-            if (referrer.length > 0) {
-                referrerId = referrer[0].id;
-            }
+        if (!codeToCheck) {
+            await connection.rollback();
+            return res.status(400).json({ 
+                error: 'كود الإحالة (Referral Code) إجباري للتسجيل في المنصة.' 
+            });
         }
+
+        let referrerId = null;
+        const [referrer] = await connection.query('SELECT id, status FROM users WHERE affiliate_code = ?', [codeToCheck]);
+        if (referrer.length === 0) {
+            await connection.rollback();
+            return res.status(400).json({ 
+                error: 'كود الإحالة المدخل غير صحيح أو غير مسجل في النظام. يرجى إدخال كود إحالة صالح.' 
+            });
+        }
+        referrerId = referrer[0].id;
 
         const hashedPassword = await bcrypt.hash(password, 12);
         const userId = crypto.randomUUID();
@@ -609,5 +618,42 @@ exports.resetPasswordWithOtp = async (req, res) => {
         res.status(500).json({ error: 'Failed to reset password' });
     } finally {
         connection.release();
+    }
+};
+
+/**
+ * Validate referral code in real-time
+ */
+exports.validateReferralCode = async (req, res) => {
+    try {
+        const { code } = req.params;
+        const cleanCode = (code || '').trim();
+        if (!cleanCode) {
+            return res.status(400).json({ valid: false, error: 'كود الإحالة مطلوب' });
+        }
+
+        const [rows] = await db.query(
+            `SELECT u.id, u.affiliate_code, p.full_name, u.email, u.status 
+             FROM users u 
+             LEFT JOIN profiles p ON p.id = u.id 
+             WHERE u.affiliate_code = ?`,
+            [cleanCode]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ valid: false, error: 'كود الإحالة غير موجود أو غير صالح' });
+        }
+
+        const sponsor = rows[0];
+        const sponsorName = sponsor.full_name || sponsor.email.split('@')[0];
+
+        return res.json({
+            valid: true,
+            affiliateCode: sponsor.affiliate_code,
+            sponsorName
+        });
+    } catch (err) {
+        console.error('[Validate Referral Error]:', err.message);
+        return res.status(500).json({ valid: false, error: 'حدث خطأ أثناء فحص كود الإحالة' });
     }
 };
