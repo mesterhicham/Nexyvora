@@ -142,7 +142,7 @@ async function resetMembers() {
             // Clean commissions
             try {
                 const [commRes] = await connection.query(
-                    `DELETE FROM commissions WHERE user_id != ? OR from_user_id != ?`,
+                    `DELETE FROM commissions WHERE recipient_id != ? OR source_user_id != ?`,
                     [adminId, adminId]
                 );
                 if (commRes.affectedRows > 0) {
@@ -155,7 +155,7 @@ async function resetMembers() {
             // Clean verification OTPs for non-admin emails
             try {
                 const [otpRes] = await connection.query(
-                    `DELETE FROM verification_otps WHERE email != ?`,
+                    `DELETE FROM verification_otps WHERE identifier != ?`,
                     [adminEmail]
                 );
                 if (otpRes.affectedRows > 0) {
@@ -163,6 +163,32 @@ async function resetMembers() {
                 }
             } catch (err) {
                 console.log(`  - Note on [verification_otps]: ${err.message}`);
+            }
+
+            // Clean formation enrollments
+            try {
+                const [feRes] = await connection.query(
+                    `DELETE FROM formation_enrollments WHERE student_id != ?`,
+                    [adminId]
+                );
+                if (feRes.affectedRows > 0) {
+                    console.log(`  - Cleaned ${feRes.affectedRows} records from [formation_enrollments]`);
+                }
+            } catch (err) {
+                console.log(`  - Note on [formation_enrollments]: ${err.message}`);
+            }
+
+            // Clean community posts
+            try {
+                const [cpRes] = await connection.query(
+                    `DELETE FROM community_posts WHERE user_id != ?`,
+                    [adminId]
+                );
+                if (cpRes.affectedRows > 0) {
+                    console.log(`  - Cleaned ${cpRes.affectedRows} records from [community_posts]`);
+                }
+            } catch (err) {
+                console.log(`  - Note on [community_posts]: ${err.message}`);
             }
 
             // 5. Finally delete users from users table
