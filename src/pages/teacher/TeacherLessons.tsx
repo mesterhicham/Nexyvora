@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -173,7 +174,7 @@ export default function TeacherLessons() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => openContentDialog(lesson)}
-                        title={isRtl ? 'إدارة المحتوى' : 'Manage Content'}
+                        title={tr("إدارة المحتوى", "Manage Content")}
                       >
                         <FolderOpen className="h-4 w-4 text-orange-500" />
                       </Button>
@@ -181,7 +182,7 @@ export default function TeacherLessons() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => openAttendanceDialog(lesson)}
-                        title={isRtl ? 'تتبع الحضور' : 'Track Attendance'}
+                        title={tr("تتبع الحضور", "Track Attendance")}
                       >
                         <Users className="h-4 w-4 text-primary" />
                       </Button>

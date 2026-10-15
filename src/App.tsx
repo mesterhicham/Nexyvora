@@ -11,6 +11,7 @@ import { InstallModal } from "@/components/pwa/InstallModal";
 import { MobileInstallBanner } from "@/components/pwa/MobileInstallBanner";
 import { ImpersonationBanner } from "@/components/layout/ImpersonationBanner";
 import { SEOHead } from "@/components/SEOHead";
+import { tr } from "@/utils/tr";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Auth from "./pages/Auth";
@@ -134,7 +135,9 @@ function RequireActiveMembership() {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-6">
         <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-xs font-bold text-slate-400">جاري التحقق من تفعيل الحساب...</p>
+        <p className="text-xs font-bold text-slate-400">
+          {tr('جاري التحقق من تفعيل الحساب...', 'Checking account activation...', 'Vérification de l\'activation du compte...')}
+        </p>
       </div>
     );
   }

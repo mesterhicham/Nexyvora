@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { 
   ShieldCheck, 
@@ -17,26 +18,26 @@ export function WhyChooseUsSection() {
     {
       icon: ShieldCheck,
       iconColor: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 dark:text-indigo-400',
-      title: t('landing.whyChooseUs.feat1Title') || (isRtl ? 'تكوينات عالية الجودة' : 'Formation de qualité'),
-      desc: t('landing.whyChooseUs.feat1Desc') || (isRtl ? 'محتويات دقيقة ومصممة بعناية على أيدي نخبة من الخبراء في كل مجال.' : 'Contenus créés par des experts dans chaque domaine.'),
+      title: t('landing.whyChooseUs.feat1Title') || (tr("تكوينات عالية الجودة", "Formation de qualité")),
+      desc: t('landing.whyChooseUs.feat1Desc') || (tr("محتويات دقيقة ومصممة بعناية على أيدي نخبة من الخبراء في كل مجال.", "Contenus créés par des experts dans chaque domaine.")),
     },
     {
       icon: Users,
       iconColor: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60 dark:text-purple-400',
-      title: t('landing.whyChooseUs.feat2Title') || (isRtl ? 'مواكبة وتأطير فردي' : 'Accompagnement personnalisé'),
-      desc: t('landing.whyChooseUs.feat2Desc') || (isRtl ? 'مدربون وموجهون محترفون يستمعون إليك ويرافقونك في كل خطوة.' : 'Des coachs et mentors à votre écoute à chaque étape.'),
+      title: t('landing.whyChooseUs.feat2Title') || (tr("مواكبة وتأطير فردي", "Accompagnement personnalisé")),
+      desc: t('landing.whyChooseUs.feat2Desc') || (tr("مدربون وموجهون محترفون يستمعون إليك ويرافقونك في كل خطوة.", "Des coachs et mentors à votre écoute à chaque étape.")),
     },
     {
       icon: Cloud,
       iconColor: 'text-blue-600 bg-blue-50 dark:bg-blue-950/60 dark:text-blue-400',
-      title: t('landing.whyChooseUs.feat3Title') || (isRtl ? 'ولوج مدى الحياة' : 'Accès à vie'),
-      desc: t('landing.whyChooseUs.feat3Desc') || (isRtl ? 'راجع تكويناتك ومحاضراتك في أي وقت تريده ودون أي قيود زمنية.' : 'Revenez sur vos formations quand vous le souhaitez.'),
+      title: t('landing.whyChooseUs.feat3Title') || (tr("ولوج مدى الحياة", "Accès à vie")),
+      desc: t('landing.whyChooseUs.feat3Desc') || (tr("راجع تكويناتك ومحاضراتك في أي وقت تريده ودون أي قيود زمنية.", "Revenez sur vos formations quand vous le souhaitez.")),
     },
     {
       icon: Gem,
       iconColor: 'text-violet-600 bg-violet-50 dark:bg-violet-950/60 dark:text-violet-400',
-      title: t('landing.whyChooseUs.feat4Title') || (isRtl ? 'فرص دخل متنامية' : 'Opportunités de revenus'),
-      desc: t('landing.whyChooseUs.feat4Desc') || (isRtl ? 'ابنِ حريتك واستقلالك المالي من خلال نظام التسويق الشبكي المتطور.' : 'Bâtissez votre liberté financière grâce au marketing de réseau.'),
+      title: t('landing.whyChooseUs.feat4Title') || (tr("فرص دخل متنامية", "Opportunités de revenus")),
+      desc: t('landing.whyChooseUs.feat4Desc') || (tr("ابنِ حريتك واستقلالك المالي من خلال نظام التسويق الشبكي المتطور.", "Bâtissez votre liberté financière grâce au marketing de réseau.")),
     },
   ];
 
@@ -53,13 +54,11 @@ export function WhyChooseUsSection() {
             </p>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15]">
-              {t('landing.whyChooseUs.title') || (isRtl ? 'تجربة استثنائية وشاملة للنجاح' : 'Une expérience unique et complète')}
+              {t('landing.whyChooseUs.title') || (tr("تجربة استثنائية وشاملة للنجاح", "Une expérience unique et complète"))}
             </h2>
 
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
-              {t('landing.whyChooseUs.subtitle') || (isRtl 
-                ? 'في Nexyvora، نؤمن بطاقتك وقدراتك. لذلك نقدم لك أكثر من مجرد تدريب عادي: إنها فرصة حقيقية لإحداث نقلة نوعية في حياتك.'
-                : "Chez Nexyvora, nous croyons en votre potentiel. C'est pourquoi nous vous offrons bien plus qu'une formation : une véritable opportunité de changer votre vie.")}
+              {t('landing.whyChooseUs.subtitle') || (tr("في Nexyvora، نؤمن بطاقتك وقدراتك. لذلك نقدم لك أكثر من مجرد تدريب عادي: إنها فرصة حقيقية لإحداث نقلة نوعية في حياتك.", "Chez Nexyvora, nous croyons en votre potentiel. C'est pourquoi nous vous offrons bien plus qu'une formation : une véritable opportunité de changer votre vie."))}
             </p>
 
             <div className="pt-2">
@@ -67,7 +66,7 @@ export function WhyChooseUsSection() {
                 to="/auth"
                 className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm sm:text-base shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/35 hover:-translate-y-0.5 transition-all duration-200"
               >
-                <span>{t('landing.whyChooseUs.cta') || (isRtl ? 'انضم إلى Nexyvora' : 'Rejoindre Nexyvora')}</span>
+                <span>{t('landing.whyChooseUs.cta') || (tr("انضم إلى Nexyvora", "Rejoindre Nexyvora"))}</span>
                 {isRtl ? (
                   <ArrowLeft className="w-4 h-4" />
                 ) : (

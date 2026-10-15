@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useNews, useRecordNewsView } from '@/hooks/useAdminFeatures';
@@ -43,13 +44,13 @@ export default function StudentNewsCenter() {
   const recordView = useRecordNewsView();
 
   const categories = [
-    { id: 'all', label: isRtl ? 'الأحدث' : 'Latest', icon: Sparkles },
-    { id: 'news', label: isRtl ? 'أخبار' : 'News', icon: Newspaper },
-    { id: 'article', label: isRtl ? 'مقالات' : 'Articles', icon: FileText },
-    { id: 'video', label: isRtl ? 'فيديوهات' : 'Videos', icon: Video },
-    { id: 'image', label: isRtl ? 'صور' : 'Images', icon: ImageIcon },
-    { id: 'pdf', label: isRtl ? 'ملفات PDF' : 'PDF', icon: FileSpreadsheet },
-    { id: 'featured', label: isRtl ? 'المميز' : 'Featured', icon: Star },
+    { id: 'all', label: tr("الأحدث", "Latest"), icon: Sparkles },
+    { id: 'news', label: tr("أخبار", "News"), icon: Newspaper },
+    { id: 'article', label: tr("مقالات", "Articles"), icon: FileText },
+    { id: 'video', label: tr("فيديوهات", "Videos"), icon: Video },
+    { id: 'image', label: tr("صور", "Images"), icon: ImageIcon },
+    { id: 'pdf', label: tr("ملفات PDF", "PDF"), icon: FileSpreadsheet },
+    { id: 'featured', label: tr("المميز", "Featured"), icon: Star },
   ];
 
   // Filter content
@@ -82,13 +83,13 @@ export default function StudentNewsCenter() {
     navigator.clipboard.writeText(fullText);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2500);
-    toast.success(isRtl ? 'تم نسخ النص إلى الحافظة بنجاح!' : 'Text copied to clipboard!');
+    toast.success(tr("تم نسخ النص إلى الحافظة بنجاح!", "Text copied to clipboard!"));
   };
 
   const handleDownload = async (url: string, filename?: string) => {
     if (!url) return;
     try {
-      toast.info(isRtl ? 'جاري بدء التحميل...' : 'Starting download...');
+      toast.info(tr("جاري بدء التحميل...", "Starting download..."));
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
@@ -99,7 +100,7 @@ export default function StudentNewsCenter() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
-      toast.success(isRtl ? 'تم تحميل الملف بنجاح!' : 'File downloaded successfully!');
+      toast.success(tr("تم تحميل الملف بنجاح!", "File downloaded successfully!"));
     } catch {
       window.open(url, '_blank');
     }
@@ -114,7 +115,7 @@ export default function StudentNewsCenter() {
       }).catch(() => {});
     } else {
       navigator.clipboard.writeText(`${window.location.origin}/student/news#${item.id}`);
-      toast.success(isRtl ? 'تم نسخ رابط الخبر!' : 'Link copied to clipboard!');
+      toast.success(tr("تم نسخ رابط الخبر!", "Link copied to clipboard!"));
     }
   };
 
@@ -123,17 +124,17 @@ export default function StudentNewsCenter() {
     switch (t) {
       case 'video':
       case 'videos':
-        return <Badge className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800 gap-1"><Video className="w-3 h-3" /> {isRtl ? 'فيديو' : 'Video'}</Badge>;
+        return <Badge className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800 gap-1"><Video className="w-3 h-3" /> {tr("فيديو", "Video")}</Badge>;
       case 'image':
       case 'images':
-        return <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 gap-1"><ImageIcon className="w-3 h-3" /> {isRtl ? 'صورة' : 'Image'}</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 gap-1"><ImageIcon className="w-3 h-3" /> {tr("صورة", "Image")}</Badge>;
       case 'pdf':
-        return <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800 gap-1"><FileSpreadsheet className="w-3 h-3" /> {isRtl ? 'ملف PDF' : 'PDF'}</Badge>;
+        return <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800 gap-1"><FileSpreadsheet className="w-3 h-3" /> {tr("ملف PDF", "PDF")}</Badge>;
       case 'article':
       case 'articles':
-        return <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 gap-1"><FileText className="w-3 h-3" /> {isRtl ? 'مقال' : 'Article'}</Badge>;
+        return <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 gap-1"><FileText className="w-3 h-3" /> {tr("مقال", "Article")}</Badge>;
       default:
-        return <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 gap-1"><Newspaper className="w-3 h-3" /> {isRtl ? 'خبر' : 'News'}</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 gap-1"><Newspaper className="w-3 h-3" /> {tr("خبر", "News")}</Badge>;
     }
   };
 
@@ -147,12 +148,10 @@ export default function StudentNewsCenter() {
               <span className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
                 <Newspaper className="w-6 h-6 stroke-[2.2]" />
               </span>
-              <span>{isRtl ? 'مركز الأخبار والمحتوى' : 'News Center'}</span>
+              <span>{tr("مركز الأخبار والمحتوى", "News Center")}</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {isRtl 
-                ? 'تابع كافة المستجدات، الإعلانات، المقالات، والوسائط القابلة للتحميل المنشورة من قبل الإدارة.' 
-                : 'Explore platform announcements, downloadable media, videos, and articles.'}
+              {tr("تابع كافة المستجدات، الإعلانات، المقالات، والوسائط القابلة للتحميل المنشورة من قبل الإدارة.", "Explore platform announcements, downloadable media, videos, and articles.")}
             </p>
           </div>
 
@@ -161,7 +160,7 @@ export default function StudentNewsCenter() {
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input 
               type="text"
-              placeholder={isRtl ? 'بحث في المستجدات...' : 'Search news & content...'}
+              placeholder={tr("بحث في المستجدات...", "Search news & content...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="ps-9 rounded-2xl h-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs shadow-xs"
@@ -213,12 +212,10 @@ export default function StudentNewsCenter() {
               <Newspaper className="w-10 h-10 stroke-[1.4]" />
             </div>
             <h3 className="text-base sm:text-lg font-bold text-slate-700 dark:text-slate-300">
-              {isRtl ? 'لا يوجد محتوى متاح حالياً' : 'No content available'}
+              {tr("لا يوجد محتوى متاح حالياً", "No content available")}
             </h3>
             <p className="text-xs text-slate-400 max-w-sm mt-1">
-              {isRtl 
-                ? 'لم يتم نشر أي مستجدات أو مواد في هذا التصنيف بعد. تفقد الأقسام الأخرى أو عد لاحقاً.' 
-                : 'There are no updates or assets available in this category right now.'}
+              {tr("لم يتم نشر أي مستجدات أو مواد في هذا التصنيف بعد. تفقد الأقسام الأخرى أو عد لاحقاً.", "There are no updates or assets available in this category right now.")}
             </p>
           </div>
         ) : (
@@ -260,7 +257,7 @@ export default function StudentNewsCenter() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-end p-3">
                               <span className="text-[11px] text-white flex items-center gap-1 font-semibold">
-                                <ExternalLink className="w-3 h-3" /> {isRtl ? 'عرض الصورة بالحجم الكامل' : 'Open full image'}
+                                <ExternalLink className="w-3 h-3" /> {tr("عرض الصورة بالحجم الكامل", "Open full image")}
                               </span>
                             </div>
                           </div>
@@ -287,7 +284,7 @@ export default function StudentNewsCenter() {
                                 rel="noreferrer"
                                 className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold hover:underline inline-flex items-center gap-1 mt-1"
                               >
-                                {isRtl ? 'معاينة المستند' : 'Preview Document'} <ExternalLink className="w-2.5 h-2.5" />
+                                {tr("معاينة المستند", "Preview Document")} <ExternalLink className="w-2.5 h-2.5" />
                               </a>
                             </div>
                           </div>
@@ -317,7 +314,7 @@ export default function StudentNewsCenter() {
                           {getTypeBadge(item.type)}
                           {isFeatured && (
                             <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800 gap-1">
-                              <Star className="w-3 h-3 fill-amber-500" /> {isRtl ? 'مميز' : 'Featured'}
+                              <Star className="w-3 h-3 fill-amber-500" /> {tr("مميز", "Featured")}
                             </Badge>
                           )}
                         </div>
@@ -367,12 +364,12 @@ export default function StudentNewsCenter() {
                         {copiedId === item.id ? (
                           <>
                             <Check className="w-3.5 h-3.5 text-emerald-500" />
-                            <span>{isRtl ? 'تم النسخ' : 'Copied'}</span>
+                            <span>{tr("تم النسخ", "Copied")}</span>
                           </>
                         ) : (
                           <>
                             <Copy className="w-3.5 h-3.5 text-slate-500" />
-                            <span>{isRtl ? 'نسخ النص' : 'Copy Text'}</span>
+                            <span>{tr("نسخ النص", "Copy Text")}</span>
                           </>
                         )}
                       </Button>
@@ -384,10 +381,10 @@ export default function StudentNewsCenter() {
                           size="sm"
                           onClick={() => handleDownload(item.media_url, item.media_name)}
                           className="h-9 px-3 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white gap-1.5 shadow-sm shadow-blue-500/20"
-                          title={isRtl ? 'تحميل الملف أو الوسائط' : 'Download asset'}
+                          title={tr("تحميل الملف أو الوسائط", "Download asset")}
                         >
                           <Download className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">{isRtl ? 'تنزيل' : 'Download'}</span>
+                          <span className="hidden sm:inline">{tr("تنزيل", "Download")}</span>
                         </Button>
                       )}
 
@@ -397,7 +394,7 @@ export default function StudentNewsCenter() {
                         size="sm"
                         onClick={() => handleShare(item)}
                         className="h-9 w-9 p-0 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
-                        title={isRtl ? 'مشاركة' : 'Share'}
+                        title={tr("مشاركة", "Share")}
                       >
                         <Share2 className="w-3.5 h-3.5" />
                       </Button>

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { 
   GraduationCap, 
@@ -17,10 +18,8 @@ export function ProgramsSection() {
   const programs = [
     {
       id: 'online-training',
-      title: t('landing.programs.card1Title') || (isRtl ? 'تكوين عبر الإنترنت' : 'Formation en ligne'),
-      desc: t('landing.programs.card1Desc') || (isRtl 
-        ? 'الوصول إلى وحدات تعليمية تفاعلية شاملة، وفق وتيرتك الخاصة، ومن أي مكان في العالم.'
-        : "Accédez à des modules de formation complets et interactifs, à votre rythme, depuis n'importe où."),
+      title: t('landing.programs.card1Title') || (tr("تكوين عبر الإنترنت", "Formation en ligne")),
+      desc: t('landing.programs.card1Desc') || (tr("الوصول إلى وحدات تعليمية تفاعلية شاملة، وفق وتيرتك الخاصة، ومن أي مكان في العالم.", "Accédez à des modules de formation complets et interactifs, à votre rythme, depuis n'importe où.")),
       image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
       icon: GraduationCap,
       badgeColor: 'bg-indigo-600 text-white shadow-indigo-600/30',
@@ -28,10 +27,8 @@ export function ProgramsSection() {
     },
     {
       id: 'network-marketing',
-      title: t('landing.programs.card2Title') || (isRtl ? 'التسويق الشبكي' : 'Marketing de réseau'),
-      desc: t('landing.programs.card2Desc') || (isRtl 
-        ? 'تعلم كيفية بناء فريقك وتحقيق مداخيل مستدامة ومتنامية بفضل نظامنا المدروس.'
-        : 'Apprenez à construire votre équipe et à générer des revenus durables grâce à notre système.'),
+      title: t('landing.programs.card2Title') || (tr("التسويق الشبكي", "Marketing de réseau")),
+      desc: t('landing.programs.card2Desc') || (tr("تعلم كيفية بناء فريقك وتحقيق مداخيل مستدامة ومتنامية بفضل نظامنا المدروس.", "Apprenez à construire votre équipe et à générer des revenus durables grâce à notre système.")),
       image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=600&q=80',
       icon: Users,
       badgeColor: 'bg-blue-600 text-white shadow-blue-600/30',
@@ -39,10 +36,8 @@ export function ProgramsSection() {
     },
     {
       id: 'personal-development',
-      title: t('landing.programs.card3Title') || (isRtl ? 'التطوير الذاتي والشخصي' : 'Développement personnel'),
-      desc: t('landing.programs.card3Desc') || (isRtl 
-        ? 'عزز ثقتك بنفسك، طور مهاراتك القيادية واكتسب عقلية رواد الأعمال الناجحين.'
-        : 'Renforcez votre confiance, vos compétences et votre mentalité de gagnant.'),
+      title: t('landing.programs.card3Title') || (tr("التطوير الذاتي والشخصي", "Développement personnel")),
+      desc: t('landing.programs.card3Desc') || (tr("عزز ثقتك بنفسك، طور مهاراتك القيادية واكتسب عقلية رواد الأعمال الناجحين.", "Renforcez votre confiance, vos compétences et votre mentalité de gagnant.")),
       image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=600&q=80',
       icon: TrendingUp,
       badgeColor: 'bg-emerald-600 text-white shadow-emerald-600/30',
@@ -50,10 +45,8 @@ export function ProgramsSection() {
     },
     {
       id: 'tools-resources',
-      title: t('landing.programs.card4Title') || (isRtl ? 'الأدوات والموارد' : 'Outils & Ressources'),
-      desc: t('landing.programs.card4Desc') || (isRtl 
-        ? 'استفد من أحدث الأدوات التكنولوجية، والمحتويات الحصرية، والمواكبة المستمرة.'
-        : "Bénéficiez d'outils modernes, de supports exclusifs et d'un accompagnement constant."),
+      title: t('landing.programs.card4Title') || (tr("الأدوات والموارد", "Outils & Ressources")),
+      desc: t('landing.programs.card4Desc') || (tr("استفد من أحدث الأدوات التكنولوجية، والمحتويات الحصرية، والمواكبة المستمرة.", "Bénéficiez d'outils modernes, de supports exclusifs et d'un accompagnement constant.")),
       image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80',
       icon: Briefcase,
       badgeColor: 'bg-amber-500 text-white shadow-amber-500/30',
@@ -61,10 +54,8 @@ export function ProgramsSection() {
     },
     {
       id: 'global-community',
-      title: t('landing.programs.card5Title') || (isRtl ? 'مجتمع دولي متصل' : 'Une communauté internationale'),
-      desc: t('landing.programs.card5Desc') || (isRtl 
-        ? 'تواصل، تعلم، وتطور مع آلاف الأعضاء الطموحين من مختلف أنحاء العالم.'
-        : 'Échangez, apprenez et évoluez avec des milliers de membres dans le monde entier.'),
+      title: t('landing.programs.card5Title') || (tr("مجتمع دولي متصل", "Une communauté internationale")),
+      desc: t('landing.programs.card5Desc') || (tr("تواصل، تعلم، وتطور مع آلاف الأعضاء الطموحين من مختلف أنحاء العالم.", "Échangez, apprenez et évoluez avec des milliers de membres dans le monde entier.")),
       image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=80',
       icon: Share2,
       badgeColor: 'bg-purple-600 text-white shadow-purple-600/30',
@@ -83,12 +74,10 @@ export function ProgramsSection() {
               {t('landing.programs.tag') || 'NOS PROGRAMMES'}
             </p>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {t('landing.programs.title') || (isRtl ? 'تكوينات مصممة لتحقيق كافة أهدافك' : 'Des formations pour tous vos objectifs')}
+              {t('landing.programs.title') || (tr("تكوينات مصممة لتحقيق كافة أهدافك", "Des formations pour tous vos objectifs"))}
             </h2>
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
-              {t('landing.programs.subtitle') || (isRtl 
-                ? 'سواء كنت ترغب في تطوير مهاراتك، تحقيق مداخيل مالية، أو بناء استقلالك المالي، تقدم لك Nexyvora برامج متطورة تلائم طموحاتك ومستواك.'
-                : 'Que vous souhaitiez développer vos compétences, générer des revenus ou bâtir votre indépendance financière, Nexyvora vous propose des programmes adaptés à votre niveau et à vos ambitions.')}
+              {t('landing.programs.subtitle') || (tr("سواء كنت ترغب في تطوير مهاراتك، تحقيق مداخيل مالية، أو بناء استقلالك المالي، تقدم لك Nexyvora برامج متطورة تلائم طموحاتك ومستواك.", "Que vous souhaitiez développer vos compétences, générer des revenus ou bâtir votre indépendance financière, Nexyvora vous propose des programmes adaptés à votre niveau et à vos ambitions."))}
             </p>
           </div>
 
@@ -96,7 +85,7 @@ export function ProgramsSection() {
             to="/auth"
             className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors group shrink-0"
           >
-            <span>{t('landing.programs.viewAll') || (isRtl ? 'عرض جميع البرامج' : 'Voir tous les programmes')}</span>
+            <span>{t('landing.programs.viewAll') || (tr("عرض جميع البرامج", "Voir tous les programmes"))}</span>
             {isRtl ? (
               <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
             ) : (
@@ -144,7 +133,7 @@ export function ProgramsSection() {
                     to={prog.link}
                     className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors group-hover:translate-x-1 rtl:group-hover:-translate-x-1"
                   >
-                    <span>{t('landing.programs.learnMore') || (isRtl ? 'اعرف المزيد' : 'En savoir plus')}</span>
+                    <span>{t('landing.programs.learnMore') || (tr("اعرف المزيد", "En savoir plus"))}</span>
                     {isRtl ? (
                       <ArrowLeft className="w-3.5 h-3.5" />
                     ) : (

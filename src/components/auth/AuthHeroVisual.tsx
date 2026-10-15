@@ -1,4 +1,5 @@
 import React from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { PlatformLogo } from '@/components/PlatformLogo';
 import { 
@@ -98,15 +99,13 @@ export function AuthHeroVisual({ compact = false }: AuthHeroVisualProps) {
         {/* Center Headline */}
         <div className="relative z-10">
           <h2 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug">
-            {isRtl ? 'رحلتك التعليمية ' : 'Your Learning Journey '}
+            {tr("رحلتك التعليمية ", "Your Learning Journey ")}
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
-              {isRtl ? 'تبدأ من هنا.' : 'Starts Here.'}
+              {tr("تبدأ من هنا.", "Starts Here.")}
             </span>
           </h2>
           <p className="text-[11px] text-slate-300/80 line-clamp-1 mt-0.5">
-            {isRtl 
-              ? 'بوابتك الشاملة للأكاديمية والمقررات والمجتمع التعليمي.'
-              : 'Access your academy, courses, progress and community.'}
+            {tr("بوابتك الشاملة للأكاديمية والمقررات والمجتمع التعليمي.", "Access your academy, courses, progress and community.")}
           </p>
         </div>
 

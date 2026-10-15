@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -103,98 +104,82 @@ export default function StudentAcademy() {
   const academicSections = [
     {
       id: 'formations',
-      title: isRtl ? 'الدورات التكوينية (Formations)' : 'Training Courses',
+      title: tr("الدورات التكوينية (Formations)", "Training Courses"),
       titleEn: isRtl ? 'Training Courses' : 'الدورات التكوينية',
-      description: isRtl 
-        ? 'استكشف واشترك في الدورات التدريبية المتاحة وتتبع تقدمك في كل دورة.' 
-        : 'Explore and enroll in available training courses and track your progress.',
+      description: tr("استكشف واشترك في الدورات التدريبية المتاحة وتتبع تقدمك في كل دورة.", "Explore and enroll in available training courses and track your progress."),
       icon: BookOpen,
       to: '/student/formations',
-      badge: isRtl ? 'التعليم الذاتي' : 'Self-Paced',
+      badge: tr("التعليم الذاتي", "Self-Paced"),
       color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
     },
     {
       id: 'courses',
-      title: isRtl ? 'المقررات الأكاديمية' : 'Academic Courses',
+      title: tr("المقررات الأكاديمية", "Academic Courses"),
       titleEn: isRtl ? 'Academic Courses' : 'المقررات الأكاديمية',
-      description: isRtl 
-        ? 'المقررات الدراسية التابعة لدفعتك وتخصصك الأكاديمي الحالي.' 
-        : 'Curriculum courses related to your cohort and current academic track.',
+      description: tr("المقررات الدراسية التابعة لدفعتك وتخصصك الأكاديمي الحالي.", "Curriculum courses related to your cohort and current academic track."),
       icon: GraduationCap,
       to: '/student/courses',
-      badge: isRtl ? 'المنهج' : 'Curriculum',
+      badge: tr("المنهج", "Curriculum"),
       color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800'
     },
     {
       id: 'lessons',
-      title: isRtl ? 'الدروس والمحاضرات' : 'Lessons & Lectures',
+      title: tr("الدروس والمحاضرات", "Lessons & Lectures"),
       titleEn: isRtl ? 'Lessons & Lectures' : 'الدروس والمحاضرات',
-      description: isRtl 
-        ? 'جدول المحاضرات اليومية والمحتوى الدراسي وملفات الشرح.' 
-        : 'Daily lecture schedule, educational materials, and study resources.',
+      description: tr("جدول المحاضرات اليومية والمحتوى الدراسي وملفات الشرح.", "Daily lecture schedule, educational materials, and study resources."),
       icon: FileText,
       to: '/student/lessons',
-      badge: isRtl ? 'المحاضرات' : 'Lectures',
+      badge: tr("المحاضرات", "Lectures"),
       color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
     },
     {
       id: 'assignments',
-      title: isRtl ? 'التكليفات والواجبات' : 'Assignments & Projects',
+      title: tr("التكليفات والواجبات", "Assignments & Projects"),
       titleEn: isRtl ? 'Assignments & Projects' : 'التكليفات والواجبات',
-      description: isRtl 
-        ? 'تسليم الواجبات والمشاريع المطلوبة ومتابعة تصحيح الأساتذة.' 
-        : 'Submit homework and projects, and track instructor grading.',
+      description: tr("تسليم الواجبات والمشاريع المطلوبة ومتابعة تصحيح الأساتذة.", "Submit homework and projects, and track instructor grading."),
       icon: ClipboardList,
       to: '/student/assignments',
-      badge: isRtl ? 'التقييم' : 'Assessment',
+      badge: tr("التقييم", "Assessment"),
       color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800'
     },
     {
       id: 'attendance',
-      title: isRtl ? 'الحضور والغياب' : 'Attendance Record',
+      title: tr("الحضور والغياب", "Attendance Record"),
       titleEn: isRtl ? 'Attendance Record' : 'الحضور والغياب',
-      description: isRtl 
-        ? 'سجل حضور الحصص المباشرة ونسب الالتزام بالحضور.' 
-        : 'Live session attendance records and commitment percentage.',
+      description: tr("سجل حضور الحصص المباشرة ونسب الالتزام بالحضور.", "Live session attendance records and commitment percentage."),
       icon: CheckSquare,
       to: '/student/attendance',
-      badge: isRtl ? 'الانضباط' : 'Discipline',
+      badge: tr("الانضباط", "Discipline"),
       color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800'
     },
     {
       id: 'grades',
-      title: isRtl ? 'الدرجات والنتائج' : 'Grades & Results',
+      title: tr("الدرجات والنتائج", "Grades & Results"),
       titleEn: isRtl ? 'Grades & Results' : 'الدرجات والنتائج',
-      description: isRtl 
-        ? 'كشف النقاط لجميع الاختبارات والمحاولات والتقييمات الفصلية.' 
-        : 'Transcripts and scores for all quizzes, exams, and assessments.',
+      description: tr("كشف النقاط لجميع الاختبارات والمحاولات والتقييمات الفصلية.", "Transcripts and scores for all quizzes, exams, and assessments."),
       icon: BarChart3,
       to: '/student/grades',
-      badge: isRtl ? 'النتائج' : 'Scores',
+      badge: tr("النتائج", "Scores"),
       color: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800'
     },
     {
       id: 'meetings',
-      title: isRtl ? 'الاجتماعات المباشرة (Zoom)' : 'Live Zoom Meetings',
+      title: tr("الاجتماعات المباشرة (Zoom)", "Live Zoom Meetings"),
       titleEn: isRtl ? 'Live Classes' : 'اللقاءات المباشرة',
-      description: isRtl 
-        ? 'انضم إلى الحصص المباشرة والورش التفاعلية مع الأساتذة.' 
-        : 'Join interactive live sessions, workshops, and coaching calls.',
+      description: tr("انضم إلى الحصص المباشرة والورش التفاعلية مع الأساتذة.", "Join interactive live sessions, workshops, and coaching calls."),
       icon: Video,
       to: '/student/meetings',
-      badge: isRtl ? 'بث حي' : 'Live Stream',
+      badge: tr("بث حي", "Live Stream"),
       color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800'
     },
     {
       id: 'diploma',
-      title: isRtl ? 'الشهادات والدبلومات' : 'Diplomas & Certificates',
+      title: tr("الشهادات والدبلومات", "Diplomas & Certificates"),
       titleEn: isRtl ? 'Diplomas & Certifications' : 'الشهادات المعتمدة',
-      description: isRtl 
-        ? 'استعراض وتحميل شهادات التخرج الرسمية الموثقة برمز QR.' 
-        : 'View and download official QR-verified completion certificates.',
+      description: tr("استعراض وتحميل شهادات التخرج الرسمية الموثقة برمز QR.", "View and download official QR-verified completion certificates."),
       icon: Award,
       to: '/student/diploma',
-      badge: isRtl ? 'الاعتماد' : 'Certification',
+      badge: tr("الاعتماد", "Certification"),
       color: 'bg-amber-500/10 text-amber-500 dark:text-amber-400 border-amber-200 dark:border-amber-800'
     }
   ];
@@ -213,7 +198,7 @@ export default function StudentAcademy() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="text-xs font-semibold">{isRtl ? 'جاري تحميل بيانات الأكاديمية والمستويات...' : 'Loading academy data & levels...'}</span>
+            <span className="text-xs font-semibold">{tr("جاري تحميل بيانات الأكاديمية والمستويات...", "Loading academy data & levels...")}</span>
           </div>
         ) : (
           <>
@@ -226,22 +211,22 @@ export default function StudentAcademy() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-black text-slate-900 dark:text-white">
-                      {isRtl ? 'أكاديمية Nexyvora التعليمية' : 'Nexyvora Academy'}
+                      {tr("أكاديمية Nexyvora التعليمية", "Nexyvora Academy")}
                     </span>
                     {hasActiveLevelPackage ? (
                       <Badge className="bg-emerald-500 text-white text-[11px] font-bold">
-                        {(isRtl ? (myPackage.package_name_ar || myPackage.package_name) : (myPackage.package_name || myPackage.package_name_ar))} ({isRtl ? 'المستوى' : 'Level'} {Number(myPackage.level) - 1})
+                        {(isRtl ? (myPackage.package_name_ar || myPackage.package_name) : (myPackage.package_name || myPackage.package_name_ar))} ({tr("المستوى", "Level")} {Number(myPackage.level) - 1})
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="border-amber-400 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
-                        {myPackage ? (isRtl ? 'عضوية CORE — اختر باقتك' : 'CORE Membership — Choose package') : (isRtl ? 'عضو مسجل — بانتظار تفعيل الباقة' : 'Registered Member — Pending activation')}
+                        {myPackage ? (tr("عضوية CORE — اختر باقتك", "CORE Membership — Choose package")) : (tr("عضو مسجل — بانتظار تفعيل الباقة", "Registered Member — Pending activation"))}
                       </Badge>
                     )}
                   </div>
                   {expiresAtFormatted && (
                     <span className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
                       <Clock className="h-3 w-3 text-emerald-500" />
-                      {isRtl ? 'الاشتراك السنوي نشط حتى:' : 'Annual subscription active until:'} <strong className="text-slate-600 dark:text-slate-300">{expiresAtFormatted}</strong> ({isRtl ? 'تجديد تلقائي' : 'auto-renew'})
+                      {tr("الاشتراك السنوي نشط حتى:", "Annual subscription active until:")} <strong className="text-slate-600 dark:text-slate-300">{expiresAtFormatted}</strong> ({tr("تجديد تلقائي", "auto-renew")})
                     </span>
                   )}
                 </div>
@@ -259,7 +244,7 @@ export default function StudentAcademy() {
                   }`}
                 >
                   <Sparkles className="h-4 w-4 text-amber-500" />
-                  <span>{isRtl ? 'معرض المستويات (Skool Showcase)' : 'Levels Showcase (Skool)'}</span>
+                  <span>{tr("معرض المستويات (Skool Showcase)", "Levels Showcase (Skool)")}</span>
                 </button>
 
                 <button
@@ -272,7 +257,7 @@ export default function StudentAcademy() {
                   }`}
                 >
                   <Layers className="h-4 w-4 text-primary" />
-                  <span>{isRtl ? 'الأقسام والمقررات الدراسية' : 'Curriculum & Sections'}</span>
+                  <span>{tr("الأقسام والمقررات الدراسية", "Curriculum & Sections")}</span>
                   {hasActiveLevelPackage && (
                     <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   )}
@@ -301,12 +286,10 @@ export default function StudentAcademy() {
                       </div>
                       <div>
                         <h4 className="font-bold text-sm md:text-base text-amber-900 dark:text-amber-200">
-                          {isRtl ? 'لم يتم تفعيل باقة دراسية بعد في حسابك' : 'No study package activated on your account yet'}
+                          {tr("لم يتم تفعيل باقة دراسية بعد في حسابك", "No study package activated on your account yet")}
                         </h4>
                         <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                          {isRtl 
-                            ? 'اختر أحد مستويات الأكاديمية (FLOW أو GROW أو PRIME) للاشتراك السنوي وفتح كافة المقررات والدروس والشهادات فوراً.' 
-                            : 'Choose one of the Academy tiers (FLOW, GROW, PRIME) for annual subscription and instant access.'}
+                          {tr("اختر أحد مستويات الأكاديمية (FLOW أو GROW أو PRIME) للاشتراك السنوي وفتح كافة المقررات والدروس والشهادات فوراً.", "Choose one of the Academy tiers (FLOW, GROW, PRIME) for annual subscription and instant access.")}
                         </p>
                       </div>
                     </div>
@@ -315,7 +298,7 @@ export default function StudentAcademy() {
                       className="w-full md:w-auto text-xs font-bold rounded-2xl bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/25 shrink-0"
                     >
                       <Sparkles className="h-4 w-4 ml-1.5" />
-                      {isRtl ? 'استعراض معرض المستويات بنمط Skool' : 'Explore Skool Levels Showcase'}
+                      {tr("استعراض معرض المستويات بنمط Skool", "Explore Skool Levels Showcase")}
                     </Button>
                   </div>
                 )}
@@ -348,7 +331,7 @@ export default function StudentAcademy() {
                               {sec.description}
                             </p>
                             <div className="flex items-center text-xs font-semibold text-primary gap-1 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">
-                              <span>{isRtl ? 'دخول القسم' : 'Enter Section'}</span>
+                              <span>{tr("دخول القسم", "Enter Section")}</span>
                               <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
                             </div>
                           </CardContent>

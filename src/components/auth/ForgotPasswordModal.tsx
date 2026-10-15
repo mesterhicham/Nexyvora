@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -35,17 +36,17 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error(isRtl ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Please enter a valid email address');
+      toast.error(tr("يرجى إدخال بريد إلكتروني صحيح", "Please enter a valid email address"));
       return;
     }
 
     setLoading(true);
     try {
       const res = await authService.forgotPasswordOtp(email.trim());
-      toast.success(res?.message || (isRtl ? 'تم إرسال كود التحقق إلى بريدك الإلكتروني' : 'Verification code sent to your email'));
+      toast.success(res?.message || (tr("تم إرسال كود التحقق إلى بريدك الإلكتروني", "Verification code sent to your email")));
       setStep('verify');
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || (isRtl ? 'فشل إرسال كود التحقق' : 'Failed to send verification code');
+      const msg = err.response?.data?.error || err.message || (tr("فشل إرسال كود التحقق", "Failed to send verification code"));
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -56,9 +57,9 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
     setResending(true);
     try {
       const res = await authService.forgotPasswordOtp(email.trim());
-      toast.success(res?.message || (isRtl ? 'تمت إعادة إرسال كود التحقق بنجاح' : 'Verification code resent successfully'));
+      toast.success(res?.message || (tr("تمت إعادة إرسال كود التحقق بنجاح", "Verification code resent successfully")));
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || (isRtl ? 'فشل إعادة الإرسال' : 'Failed to resend code');
+      const msg = err.response?.data?.error || err.message || (tr("فشل إعادة الإرسال", "Failed to resend code"));
       toast.error(msg);
     } finally {
       setResending(false);
@@ -68,25 +69,25 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpCode.trim() || otpCode.trim().length < 6) {
-      toast.error(isRtl ? 'يرجى إدخال كود التحقق المكون من 6 أرقام' : 'Please enter the 6-digit verification code');
+      toast.error(tr("يرجى إدخال كود التحقق المكون من 6 أرقام", "Please enter the 6-digit verification code"));
       return;
     }
     if (!newPassword || newPassword.length < 8) {
-      toast.error(isRtl ? 'كلمة المرور يجب أن لا تقل عن 8 أحرف' : 'Password must be at least 8 characters');
+      toast.error(tr("كلمة المرور يجب أن لا تقل عن 8 أحرف", "Password must be at least 8 characters"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error(isRtl ? 'كلمتا المرور غير متطابقتين' : 'Passwords do not match');
+      toast.error(tr("كلمتا المرور غير متطابقتين", "Passwords do not match"));
       return;
     }
 
     setLoading(true);
     try {
       const res = await authService.resetPasswordWithOtp(email.trim(), otpCode.trim(), newPassword);
-      toast.success(res?.message || (isRtl ? 'تم تغيير كلمة المرور بنجاح!' : 'Password reset successfully!'));
+      toast.success(res?.message || (tr("تم تغيير كلمة المرور بنجاح!", "Password reset successfully!")));
       setStep('success');
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || (isRtl ? 'فشل إعادة تعيين كلمة المرور' : 'Failed to reset password');
+      const msg = err.response?.data?.error || err.message || (tr("فشل إعادة تعيين كلمة المرور", "Failed to reset password"));
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -109,18 +110,12 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
             <KeyRound className="w-6 h-6" />
           </div>
           <DialogTitle className="text-xl font-bold text-white tracking-tight">
-            {isRtl ? 'استعادة كلمة المرور عبر البريد' : 'Reset Password via Email'}
+            {tr("استعادة كلمة المرور عبر البريد", "Reset Password via Email")}
           </DialogTitle>
           <DialogDescription className="text-sm text-slate-400 leading-relaxed">
-            {step === 'request' && (isRtl 
-              ? 'أدخل بريدك الإلكتروني المسجل وسنرسل لك رمز تحقق (OTP) فوري لتعيين كلمة مرور جديدة.'
-              : 'Enter your registered email and we will send a 6-digit verification OTP code.')}
-            {step === 'verify' && (isRtl
-              ? `أدخل رمز التحقق (OTP) المرسل إلى ${email}، ثم عيّن كلمة المرور الجديدة.`
-              : `Enter the verification code sent to ${email} and choose a new password.`)}
-            {step === 'success' && (isRtl
-              ? 'تم تحديث كلمة المرور الخاصة بحسابك بنجاح.'
-              : 'Your password has been updated successfully.')}
+            {step === 'request' && (tr("أدخل بريدك الإلكتروني المسجل وسنرسل لك رمز تحقق (OTP) فوري لتعيين كلمة مرور جديدة.", "Enter your registered email and we will send a 6-digit verification OTP code."))}
+            {step === 'verify' && (tr("أدخل رمز التحقق (OTP) المرسل إلى ${email}، ثم عيّن كلمة المرور الجديدة.", "Enter the verification code sent to ${email} and choose a new password."))}
+            {step === 'success' && (tr("تم تحديث كلمة المرور الخاصة بحسابك بنجاح.", "Your password has been updated successfully."))}
           </DialogDescription>
         </DialogHeader>
 
@@ -131,26 +126,24 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
             </div>
             <div>
               <h4 className="text-base font-bold text-white">
-                {isRtl ? 'تم تحديث كلمة المرور بنجاح!' : 'Password Reset Successfully!'}
+                {tr("تم تحديث كلمة المرور بنجاح!", "Password Reset Successfully!")}
               </h4>
               <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-                {isRtl 
-                  ? 'يمكنك الآن تسجيل الدخول إلى حسابك بأمان باستخدام كلمة المرور الجديدة.'
-                  : 'You can now sign in securely using your new password.'}
+                {tr("يمكنك الآن تسجيل الدخول إلى حسابك بأمان باستخدام كلمة المرور الجديدة.", "You can now sign in securely using your new password.")}
               </p>
             </div>
             <Button
               onClick={handleClose}
               className="w-full h-11 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-sm transition-all shadow-md shadow-purple-600/30"
             >
-              {isRtl ? 'العودة لتسجيل الدخول' : 'Proceed to Sign In'}
+              {tr("العودة لتسجيل الدخول", "Proceed to Sign In")}
             </Button>
           </div>
         ) : step === 'verify' ? (
           <form onSubmit={handleResetPassword} className="space-y-4 mt-2">
             <div className="space-y-2 text-left rtl:text-right">
               <Label className="text-xs font-semibold text-slate-300">
-                {isRtl ? 'رمز التحقق (OTP - 6 أرقام)' : 'Verification Code (6 Digits)'}
+                {tr("رمز التحقق (OTP - 6 أرقام)", "Verification Code (6 Digits)")}
               </Label>
               <div className="relative">
                 <ShieldCheck className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
@@ -168,7 +161,7 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
 
             <div className="space-y-2 text-left rtl:text-right">
               <Label className="text-xs font-semibold text-slate-300">
-                {isRtl ? 'كلمة المرور الجديدة' : 'New Password'}
+                {tr("كلمة المرور الجديدة", "New Password")}
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -185,7 +178,7 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
 
             <div className="space-y-2 text-left rtl:text-right">
               <Label className="text-xs font-semibold text-slate-300">
-                {isRtl ? 'تأكيد كلمة المرور' : 'Confirm Password'}
+                {tr("تأكيد كلمة المرور", "Confirm Password")}
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -206,7 +199,7 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
                 onClick={() => setStep('request')}
                 className="text-slate-400 hover:text-white transition-colors"
               >
-                {isRtl ? '← تغيير البريد' : '← Change Email'}
+                {tr("← تغيير البريد", "← Change Email")}
               </button>
               <button
                 type="button"
@@ -215,7 +208,7 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
                 className="text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors"
               >
                 {resending && <RefreshCw className="h-3 w-3 animate-spin" />}
-                <span>{isRtl ? 'إعادة إرسال الرمز' : 'Resend Code'}</span>
+                <span>{tr("إعادة إرسال الرمز", "Resend Code")}</span>
               </button>
             </div>
 
@@ -228,7 +221,7 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <span>{isRtl ? 'تأكيد وتغيير كلمة المرور' : 'Reset Password'}</span>
+                  <span>{tr("تأكيد وتغيير كلمة المرور", "Reset Password")}</span>
                   {isRtl ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                 </>
               )}
@@ -238,7 +231,7 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
           <form onSubmit={handleRequestOtp} className="space-y-4 mt-2">
             <div className="space-y-2 text-left rtl:text-right">
               <Label htmlFor="reset-email" className="text-xs font-semibold text-slate-300">
-                {isRtl ? 'البريد الإلكتروني' : 'Email Address'}
+                {tr("البريد الإلكتروني", "Email Address")}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -263,7 +256,7 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <span>{isRtl ? 'إرسال رمز التحقق (OTP)' : 'Send Verification OTP'}</span>
+                  <span>{tr("إرسال رمز التحقق (OTP)", "Send Verification OTP")}</span>
                   {isRtl ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                 </>
               )}
@@ -271,7 +264,7 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
 
             <div className="pt-2 text-center border-t border-white/[0.08]">
               <p className="text-xs text-slate-400">
-                {isRtl ? 'تحتاج إلى مساعدة فورية؟' : 'Need urgent help?'}
+                {tr("تحتاج إلى مساعدة فورية؟", "Need urgent help?")}
               </p>
               <a
                 href="https://wa.me/212600000000"
@@ -280,7 +273,7 @@ export function ForgotPasswordModal({ open, onOpenChange, defaultEmail = '' }: F
                 className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-medium mt-1 transition-colors"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
-                <span>{isRtl ? 'تواصل مع الدعم عبر واتساب' : 'Contact Support via WhatsApp'}</span>
+                <span>{tr("تواصل مع الدعم عبر واتساب", "Contact Support via WhatsApp")}</span>
               </a>
             </div>
           </form>

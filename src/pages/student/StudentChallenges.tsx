@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
@@ -89,7 +90,7 @@ export default function StudentChallenges() {
       setChallenges(chalRes.challenges || []);
       setAffiliateCode(teamRes.affiliateCode || '');
     } catch (err) {
-      toast.error(isRtl ? 'فشل في تحميل التحديات' : 'Failed to load challenges');
+      toast.error(tr("فشل في تحميل التحديات", "Failed to load challenges"));
     } finally {
       setLoading(false);
     }
@@ -100,7 +101,7 @@ export default function StudentChallenges() {
     navigator.clipboard.writeText(link);
     setCopiedId(challengeId);
     setTimeout(() => setCopiedId(null), 2500);
-    toast.success(isRtl ? 'تم نسخ رابط الإحالة بنجاح! شاركه مع فريقك لإنجاز التحدي.' : 'Referral link copied! Share with your team to complete challenge.');
+    toast.success(tr("تم نسخ رابط الإحالة بنجاح! شاركه مع فريقك لإنجاز التحدي.", "Referral link copied! Share with your team to complete challenge."));
   };
 
   const getRewardIcon = (type: string) => {
@@ -144,16 +145,16 @@ export default function StudentChallenges() {
         {loading ? (
           <div className="text-center py-24">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
-            <p className="text-sm text-slate-400 mt-4">{isRtl ? 'جاري تحميل التحديات...' : 'Loading challenges...'}</p>
+            <p className="text-sm text-slate-400 mt-4">{tr("جاري تحميل التحديات...", "Loading challenges...")}</p>
           </div>
         ) : challenges.length === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 p-8">
             <Trophy className="h-12 w-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">
-              {isRtl ? 'لا توجد تحديات نشطة حالياً' : 'No active challenges at the moment'}
+              {tr("لا توجد تحديات نشطة حالياً", "No active challenges at the moment")}
             </h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
-              {isRtl ? 'ترقبوا إطلاق حملات وتحديات جديدة قريباً من إدارة الأكاديمية.' : 'Stay tuned for upcoming performance and leadership campaigns.'}
+              {tr("ترقبوا إطلاق حملات وتحديات جديدة قريباً من إدارة الأكاديمية.", "Stay tuned for upcoming performance and leadership campaigns.")}
             </p>
           </div>
         ) : (
@@ -189,7 +190,7 @@ export default function StudentChallenges() {
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold">
                           <Flame className="h-3.5 w-3.5 text-orange-400" />
                           {c.daysLeft === 0
-                            ? (isRtl ? 'منتهي اليوم' : 'Ends today')
+                            ? (tr("منتهي اليوم", "Ends today"))
                             : `${c.daysLeft} ${isRtl ? 'يوم متبقي' : t('challenges.daysRemaining', 'days left')}`}
                         </span>
 
@@ -200,7 +201,7 @@ export default function StudentChallenges() {
                               : 'bg-primary text-white'
                           }`}
                         >
-                          {c.isCompleted ? (isRtl ? 'تم الإنجاز 🎉' : 'Completed 🎉') : (isRtl ? 'تحدي نشط' : 'Active')}
+                          {c.isCompleted ? (tr("تم الإنجاز 🎉", "Completed 🎉")) : (tr("تحدي نشط", "Active"))}
                         </Badge>
                       </div>
 
@@ -209,9 +210,9 @@ export default function StudentChallenges() {
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/95 text-white text-xs font-black backdrop-blur-md shadow-md max-w-full">
                           <RewardIcon className="h-4 w-4 shrink-0" />
                           <span className="truncate">
-                            {c.reward_type === 'TRAVEL' && (isRtl ? 'رحلة سياحية: ' : 'Travel: ')}
-                            {c.reward_type === 'CASH' && (isRtl ? 'مكافأة كاش: ' : 'Cash: ')}
-                            {c.reward_type === 'BADGE' && (isRtl ? 'شارة شرفية: ' : 'Badge: ')}
+                            {c.reward_type === 'TRAVEL' && (tr("رحلة سياحية: ", "Travel: "))}
+                            {c.reward_type === 'CASH' && (tr("مكافأة كاش: ", "Cash: "))}
+                            {c.reward_type === 'BADGE' && (tr("شارة شرفية: ", "Badge: "))}
                             {rewardTitle || (c.reward_amount > 0 ? `$${c.reward_amount} USD` : '')}
                           </span>
                         </div>
@@ -234,14 +235,14 @@ export default function StudentChallenges() {
                       <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2 text-xs">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider block">
-                            {isRtl ? 'شروط ومتطلبات التأهل:' : 'Qualification Rules:'}
+                            {tr("شروط ومتطلبات التأهل:", "Qualification Rules:")}
                           </span>
                           <button
                             onClick={() => setSelectedChallenge(c)}
                             className="text-[11px] font-bold text-primary hover:underline flex items-center gap-0.5"
                           >
                             <Info className="h-3 w-3" />
-                            <span>{isRtl ? 'التفاصيل' : 'Rules'}</span>
+                            <span>{tr("التفاصيل", "Rules")}</span>
                           </button>
                         </div>
 
@@ -250,7 +251,7 @@ export default function StudentChallenges() {
                             <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                               <Target className="h-3.5 w-3.5 text-primary shrink-0" />
                               <span>
-                                {isRtl ? 'المبيعات:' : 'Sales:'} <strong>{c.target_sales}</strong>
+                                {tr("المبيعات:", "Sales:")} <strong>{c.target_sales}</strong>
                               </span>
                             </div>
                           )}
@@ -259,7 +260,7 @@ export default function StudentChallenges() {
                             <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                               <DollarSign className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                               <span>
-                                {isRtl ? 'حجم المبيعات:' : 'Revenue:'} <strong>${Number(c.target_revenue).toFixed(0)}</strong>
+                                {tr("حجم المبيعات:", "Revenue:")} <strong>${Number(c.target_revenue).toFixed(0)}</strong>
                               </span>
                             </div>
                           )}
@@ -268,7 +269,7 @@ export default function StudentChallenges() {
                             <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                               <Users className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
                               <span>
-                                {isRtl ? 'مباشرين:' : 'Directs:'} <strong>{c.required_directs} ({c.directs_type})</strong>
+                                {tr("مباشرين:", "Directs:")} <strong>{c.required_directs} ({c.directs_type})</strong>
                               </span>
                             </div>
                           )}
@@ -276,7 +277,7 @@ export default function StudentChallenges() {
                           <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                             <Percent className="h-3.5 w-3.5 text-amber-600 shrink-0" />
                             <span>
-                              {isRtl ? 'سقف الساق:' : 'Leg Limit:'} <strong>{c.leg_limit_percent}%</strong>
+                              {tr("سقف الساق:", "Leg Limit:")} <strong>{c.leg_limit_percent}%</strong>
                             </span>
                           </div>
                         </div>
@@ -297,7 +298,7 @@ export default function StudentChallenges() {
                       {c.isCompleted && (
                         <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 border border-emerald-500/20">
                           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                          <span>{isRtl ? 'تهانينا! لقد حققت شروط هذا التحدي بنجاح!' : 'Congratulations! You completed this challenge!'}</span>
+                          <span>{tr("تهانينا! لقد حققت شروط هذا التحدي بنجاح!", "Congratulations! You completed this challenge!")}</span>
                         </div>
                       )}
                     </div>
@@ -312,12 +313,12 @@ export default function StudentChallenges() {
                       {copiedId === c.id ? (
                         <>
                           <Check className="h-4 w-4 text-emerald-400" />
-                          <span>{isRtl ? 'تم نسخ الرابط!' : 'Link Copied!'}</span>
+                          <span>{tr("تم نسخ الرابط!", "Link Copied!")}</span>
                         </>
                       ) : (
                         <>
                           <Share2 className="h-3.5 w-3.5" />
-                          <span>{isRtl ? 'مشاركة رابط الإحالة لإنجاز التحدي' : 'Share link to complete challenge'}</span>
+                          <span>{tr("مشاركة رابط الإحالة لإنجاز التحدي", "Share link to complete challenge")}</span>
                           <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
                         </>
                       )}
@@ -340,7 +341,7 @@ export default function StudentChallenges() {
                 </span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-400">
-                {isRtl ? 'شروط وقواعد التأهل الرسمية للتحدي' : 'Official qualification rules and terms'}
+                {tr("شروط وقواعد التأهل الرسمية للتحدي", "Official qualification rules and terms")}
               </DialogDescription>
             </DialogHeader>
 
@@ -353,7 +354,7 @@ export default function StudentChallenges() {
                 )}
 
                 <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-300">
-                  <span className="font-bold block text-[11px] mb-1">{isRtl ? 'المكافأة المستحقة:' : 'Reward:'}</span>
+                  <span className="font-bold block text-[11px] mb-1">{tr("المكافأة المستحقة:", "Reward:")}</span>
                   <p className="font-black text-sm">
                     {isRtl
                       ? (selectedChallenge.reward_title_ar || selectedChallenge.reward_title || `$${selectedChallenge.reward_amount} USD`)
@@ -362,35 +363,35 @@ export default function StudentChallenges() {
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2">
-                  <span className="font-bold text-slate-700 dark:text-slate-300 block">{isRtl ? 'الشروط التفصيلية:' : 'Detailed Criteria:'}</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-300 block">{tr("الشروط التفصيلية:", "Detailed Criteria:")}</span>
                   <ul className="space-y-1.5 list-disc list-inside text-slate-600 dark:text-slate-400 leading-relaxed">
                     {selectedChallenge.target_sales > 0 && (
                       <li>
-                        {isRtl ? 'تحقيق عدد مبيعات مباشرة لا يقل عن: ' : 'Achieve direct sales of at least: '}
+                        {tr("تحقيق عدد مبيعات مباشرة لا يقل عن: ", "Achieve direct sales of at least: ")}
                         <strong>{selectedChallenge.target_sales}</strong>
                       </li>
                     )}
                     {Number(selectedChallenge.target_revenue) > 0 && (
                       <li>
-                        {isRtl ? 'تحقيق حجم مبيعات فريق إجمالي: ' : 'Generate total team volume of: '}
+                        {tr("تحقيق حجم مبيعات فريق إجمالي: ", "Generate total team volume of: ")}
                         <strong>${Number(selectedChallenge.target_revenue).toFixed(2)} USD</strong>
                       </li>
                     )}
                     {selectedChallenge.required_directs > 0 && (
                       <li>
-                        {isRtl ? 'تسجيل مباشرين مؤهلين: ' : 'Enrolled direct members: '}
+                        {tr("تسجيل مباشرين مؤهلين: ", "Enrolled direct members: ")}
                         <strong>{selectedChallenge.required_directs} ({selectedChallenge.directs_type})</strong>
                       </li>
                     )}
                     <li>
-                      {isRtl ? 'تطبيق قاعدة سقف الفريق (Max Leg Limit): ' : 'Max leg volume limit applies: '}
+                      {tr("تطبيق قاعدة سقف الفريق (Max Leg Limit): ", "Max leg volume limit applies: ")}
                       <strong>{selectedChallenge.leg_limit_percent}%</strong>{' '}
-                      {isRtl ? 'من خط الفريق الواحد كحد أقصى.' : 'maximum from any single team line.'}
+                      {tr("من خط الفريق الواحد كحد أقصى.", "maximum from any single team line.")}
                     </li>
                     <li>
-                      {isRtl ? 'فترة التحدي سارية من: ' : 'Active challenge period from: '}
+                      {tr("فترة التحدي سارية من: ", "Active challenge period from: ")}
                       <strong>{selectedChallenge.start_date.split('T')[0]}</strong>{' '}
-                      {isRtl ? 'إلى' : 'to'}{' '}
+                      {tr("إلى", "to")}{' '}
                       <strong>{selectedChallenge.end_date.split('T')[0]}</strong>
                     </li>
                   </ul>
@@ -403,7 +404,7 @@ export default function StudentChallenges() {
                 onClick={() => setSelectedChallenge(null)}
                 className="w-full rounded-xl text-xs font-bold bg-primary text-white"
               >
-                {isRtl ? 'إغلاق' : 'Close'}
+                {tr("إغلاق", "Close")}
               </Button>
             </DialogFooter>
           </DialogContent>

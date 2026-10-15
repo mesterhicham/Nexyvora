@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -738,7 +739,7 @@ export default function AdminBonusPools() {
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">{t('bonusPools.poolNameAr', 'Pool Name (Arabic) *')}</Label>
               <Input
-                placeholder={isRtl ? 'مثال: حوض قيادة الماس الشهري' : 'e.g. Monthly Diamond Leadership Pool'}
+                placeholder={tr("مثال: حوض قيادة الماس الشهري", "e.g. Monthly Diamond Leadership Pool")}
                 value={createForm.name_ar}
                 onChange={(e) => setCreateForm({ ...createForm, name_ar: e.target.value })}
                 required

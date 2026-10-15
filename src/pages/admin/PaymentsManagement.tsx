@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -1230,7 +1231,7 @@ export default function PaymentsManagement() {
               <div>
                 <Label className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
                   <Receipt className="h-3.5 w-3.5 text-primary" />
-                  <span>{isRtl ? 'وصل الأداء' : 'Payment Receipt'}</span>
+                  <span>{tr("وصل الأداء", "Payment Receipt")}</span>
                 </Label>
                 <div 
                   className="border rounded-lg overflow-hidden bg-muted/20 p-2 cursor-pointer max-w-[240px] group relative hover:border-primary transition-colors"
@@ -1243,7 +1244,7 @@ export default function PaymentsManagement() {
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg text-white text-xs font-semibold gap-1">
                     <Eye className="w-3.5 h-3.5" />
-                    <span>{isRtl ? 'تكبير الصورة' : 'Zoom Image'}</span>
+                    <span>{tr("تكبير الصورة", "Zoom Image")}</span>
                   </div>
                 </div>
               </div>
@@ -1331,7 +1332,7 @@ export default function PaymentsManagement() {
               <div className="border-t border-border pt-4">
                 <Label className="text-sm font-semibold flex items-center gap-1.5 mb-2.5">
                   <Receipt className="h-4 w-4 text-primary" />
-                  <span>{isRtl ? 'وصل الأداء' : 'Proof of Payment'}</span>
+                  <span>{tr("وصل الأداء", "Proof of Payment")}</span>
                 </Label>
                 {selectedPayment.receipt_url ? (
                   <div className="space-y-3">
@@ -1346,7 +1347,7 @@ export default function PaymentsManagement() {
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl text-white text-xs font-semibold gap-1.5 backdrop-blur-[1px]">
                         <Eye className="w-4 h-4" />
-                        <span>{isRtl ? 'انقر لتكبير الصورة' : 'Click to enlarge image'}</span>
+                        <span>{tr("انقر لتكبير الصورة", "Click to enlarge image")}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1358,7 +1359,7 @@ export default function PaymentsManagement() {
                         onClick={() => setReceiptModalUrl(selectedPayment.receipt_url)}
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>{isRtl ? 'معاينة مكبرة' : 'Preview Zoom'}</span>
+                        <span>{tr("معاينة مكبرة", "Preview Zoom")}</span>
                       </Button>
                       <a
                         href={selectedPayment.receipt_url}
@@ -1367,13 +1368,13 @@ export default function PaymentsManagement() {
                         className="inline-flex items-center gap-1 text-xs text-primary hover:underline h-8 px-2"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
-                        <span>{isRtl ? 'فتح في نافذة جديدة' : 'Open in new tab'}</span>
+                        <span>{tr("فتح في نافذة جديدة", "Open in new tab")}</span>
                       </a>
                     </div>
                   </div>
                 ) : (
                   <div className="p-4 border border-dashed rounded-xl text-center text-xs text-muted-foreground bg-muted/10">
-                    {isRtl ? 'لا يوجد وصل أداء مرفق مع هذه الدفعة' : 'No receipt image attached'}
+                    {tr("لا يوجد وصل أداء مرفق مع هذه الدفعة", "No receipt image attached")}
                   </div>
                 )}
               </div>

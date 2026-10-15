@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
@@ -122,13 +123,13 @@ export default function NewsManagement() {
   };
 
   const tabs: { id: AdminTabType; label: string }[] = [
-    { id: 'all', label: isRtl ? `الكل (${getTabCount('all')})` : `All (${getTabCount('all')})` },
-    { id: 'news', label: isRtl ? `أخبار (${getTabCount('news')})` : `News (${getTabCount('news')})` },
-    { id: 'articles', label: isRtl ? `مقالات (${getTabCount('articles')})` : `Articles (${getTabCount('articles')})` },
-    { id: 'video', label: isRtl ? `فيديو (${getTabCount('video')})` : `Video (${getTabCount('video')})` },
-    { id: 'images', label: isRtl ? `صور (${getTabCount('images')})` : `Images (${getTabCount('images')})` },
+    { id: 'all', label: tr("الكل (${getTabCount('all')})", "All (${getTabCount('all')})") },
+    { id: 'news', label: tr("أخبار (${getTabCount('news')})", "News (${getTabCount('news')})") },
+    { id: 'articles', label: tr("مقالات (${getTabCount('articles')})", "Articles (${getTabCount('articles')})") },
+    { id: 'video', label: tr("فيديو (${getTabCount('video')})", "Video (${getTabCount('video')})") },
+    { id: 'images', label: tr("صور (${getTabCount('images')})", "Images (${getTabCount('images')})") },
     { id: 'pdf', label: isRtl ? `PDF (${getTabCount('pdf')})` : `PDF (${getTabCount('pdf')})` },
-    { id: 'presentations', label: isRtl ? `عروض (${getTabCount('presentations')})` : `Presentations (${getTabCount('presentations')})` },
+    { id: 'presentations', label: tr("عروض (${getTabCount('presentations')})", "Presentations (${getTabCount('presentations')})") },
   ];
 
   // Filtered items based on activeTab & search
@@ -213,7 +214,7 @@ export default function NewsManagement() {
         media_type: file.type,
         type: detectedType,
       }));
-      toast.success(isRtl ? 'تم رفع الملف بنجاح!' : 'File uploaded successfully!');
+      toast.success(tr("تم رفع الملف بنجاح!", "File uploaded successfully!"));
     } catch (err: any) {
       toast.error(err.message || 'Failed to upload file');
     } finally {
@@ -223,7 +224,7 @@ export default function NewsManagement() {
 
   const handleSubmit = async () => {
     if (!formData.title.trim() || !formData.content.trim()) {
-      toast.error(isRtl ? 'يرجى إدخال عنوان ومحتوى للخبر' : 'Please provide title and content');
+      toast.error(tr("يرجى إدخال عنوان ومحتوى للخبر", "Please provide title and content"));
       return;
     }
 
@@ -252,7 +253,7 @@ export default function NewsManagement() {
         ...item,
         is_published: !item.is_published,
       });
-      toast.success(isRtl ? 'تم تحديث حالة النشر' : 'Publication status updated');
+      toast.success(tr("تم تحديث حالة النشر", "Publication status updated"));
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -291,10 +292,10 @@ export default function NewsManagement() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                {isRtl ? 'مركز الأخبار والمحتوى' : 'News & Content Center'}
+                {tr("مركز الأخبار والمحتوى", "News & Content Center")}
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">
-                {isRtl ? 'إدارة ونشر الأخبار، المقالات، الفيديوهات، الصور وملفات الـ PDF للأعضاء' : 'Manage published news, articles, media, and downloadable documents'}
+                {tr("إدارة ونشر الأخبار، المقالات، الفيديوهات، الصور وملفات الـ PDF للأعضاء", "Manage published news, articles, media, and downloadable documents")}
               </p>
             </div>
           </div>
@@ -304,7 +305,7 @@ export default function NewsManagement() {
             className="rounded-2xl h-11 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs gap-2 shadow-md shadow-blue-500/25"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>{isRtl ? '+ محتوى جديد' : '+ New Content'}</span>
+            <span>{tr("+ محتوى جديد", "+ New Content")}</span>
           </Button>
         </div>
 
@@ -336,7 +337,7 @@ export default function NewsManagement() {
               <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 type="text"
-                placeholder={isRtl ? 'بحث في العناوين...' : 'Search address/title...'}
+                placeholder={tr("بحث في العناوين...", "Search address/title...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="ps-9 rounded-xl h-9 bg-slate-50 dark:bg-slate-800 border-none text-xs"
@@ -355,10 +356,10 @@ export default function NewsManagement() {
             /* EMPTY STATE (مطابق لعبارة No Content في الصورة) */
             <div className="py-20 flex flex-col items-center justify-center text-center">
               <p className="text-slate-400 dark:text-slate-500 font-bold text-sm tracking-wide">
-                {isRtl ? 'لا يوجد محتوى' : 'No Content'}
+                {tr("لا يوجد محتوى", "No Content")}
               </p>
               <p className="text-xs text-slate-300 dark:text-slate-600 mt-1 max-w-xs">
-                {isRtl ? 'انقر على زر + محتوى جديد لإضافة أول منشور أو وسائط' : 'Click "+ New Content" above to add your first post or document.'}
+                {tr("انقر على زر + محتوى جديد لإضافة أول منشور أو وسائط", "Click \"+ New Content\" above to add your first post or document.")}
               </p>
             </div>
           ) : (
@@ -366,12 +367,12 @@ export default function NewsManagement() {
               <table className="w-full text-start">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="py-3 px-4 text-start">{isRtl ? 'العنوان (Address)' : 'Address'}</th>
-                    <th className="py-3 px-4 text-start">{isRtl ? 'النوع' : 'Type'}</th>
-                    <th className="py-3 px-4 text-center">{isRtl ? 'المشاهدات' : 'Views'}</th>
-                    <th className="py-3 px-4 text-center">{isRtl ? 'الحالة' : 'Status'}</th>
-                    <th className="py-3 px-4 text-start">{isRtl ? 'التاريخ' : 'Date'}</th>
-                    <th className="py-3 px-4 text-end">{isRtl ? 'الإجراءات' : 'Actions'}</th>
+                    <th className="py-3 px-4 text-start">{tr("العنوان (Address)", "Address")}</th>
+                    <th className="py-3 px-4 text-start">{tr("النوع", "Type")}</th>
+                    <th className="py-3 px-4 text-center">{tr("المشاهدات", "Views")}</th>
+                    <th className="py-3 px-4 text-center">{tr("الحالة", "Status")}</th>
+                    <th className="py-3 px-4 text-start">{tr("التاريخ", "Date")}</th>
+                    <th className="py-3 px-4 text-end">{tr("الإجراءات", "Actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
@@ -427,15 +428,15 @@ export default function NewsManagement() {
                           <button
                             onClick={() => togglePublishStatus(item)}
                             className="inline-flex items-center gap-1 cursor-pointer"
-                            title={isRtl ? 'تبديل حالة النشر' : 'Toggle publish'}
+                            title={tr("تبديل حالة النشر", "Toggle publish")}
                           >
                             {item.is_published ? (
                               <Badge className="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 border-emerald-200 text-[11px] font-bold">
-                                {isRtl ? 'منشور' : 'Published'}
+                                {tr("منشور", "Published")}
                               </Badge>
                             ) : (
                               <Badge className="bg-slate-100 text-slate-500 dark:bg-slate-800 border-slate-200 text-[11px] font-bold">
-                                {isRtl ? 'مسودة' : 'Draft'}
+                                {tr("مسودة", "Draft")}
                               </Badge>
                             )}
                           </button>
@@ -459,7 +460,7 @@ export default function NewsManagement() {
                               size="sm"
                               onClick={() => setPreviewItem(item)}
                               className="h-8 w-8 p-0 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                              title={isRtl ? 'معاينة' : 'Preview'}
+                              title={tr("معاينة", "Preview")}
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -470,7 +471,7 @@ export default function NewsManagement() {
                               size="sm"
                               onClick={() => openEditModal(item)}
                               className="h-8 w-8 p-0 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-                              title={isRtl ? 'تعديل' : 'Edit'}
+                              title={tr("تعديل", "Edit")}
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
@@ -481,7 +482,7 @@ export default function NewsManagement() {
                               size="sm"
                               onClick={() => setDeleteId(item.id)}
                               className="h-8 w-8 p-0 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                              title={isRtl ? 'حذف' : 'Delete'}
+                              title={tr("حذف", "Delete")}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -504,14 +505,12 @@ export default function NewsManagement() {
                 <Newspaper className="w-5 h-5 text-blue-600" />
                 <span>
                   {editingItem 
-                    ? (isRtl ? 'تعديل المحتوى' : 'Edit Content') 
-                    : (isRtl ? 'إضافة محتوى جديد' : 'New Content')}
+                    ? (tr("تعديل المحتوى", "Edit Content")) 
+                    : (tr("إضافة محتوى جديد", "New Content"))}
                 </span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                {isRtl 
-                  ? 'املأ بيانات المنشور وحدد نوع الوسائط والمرفقات المتاحة للتحميل من قبل الأعضاء.' 
-                  : 'Specify details, category, and attach downloadable assets or media for members.'}
+                {tr("املأ بيانات المنشور وحدد نوع الوسائط والمرفقات المتاحة للتحميل من قبل الأعضاء.", "Specify details, category, and attach downloadable assets or media for members.")}
               </DialogDescription>
             </DialogHeader>
 
@@ -519,12 +518,12 @@ export default function NewsManagement() {
               {/* TITLE */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {isRtl ? 'العنوان الرئيسي' : 'Title / Address'} *
+                  {tr("العنوان الرئيسي", "Title / Address")} *
                 </Label>
                 <Input
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder={isRtl ? 'أدخل عنوان الخبر أو المحتوى...' : 'Enter headline or title...'}
+                  placeholder={tr("أدخل عنوان الخبر أو المحتوى...", "Enter headline or title...")}
                   className="rounded-xl h-10 text-xs"
                 />
               </div>
@@ -534,7 +533,7 @@ export default function NewsManagement() {
                 {/* Type */}
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {isRtl ? 'نوع المحتوى' : 'Content Type'}
+                    {tr("نوع المحتوى", "Content Type")}
                   </Label>
                   <Select
                     value={formData.type}
@@ -544,12 +543,12 @@ export default function NewsManagement() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="news">{isRtl ? 'أخبار (News)' : 'News'}</SelectItem>
-                      <SelectItem value="article">{isRtl ? 'مقال (Article)' : 'Article'}</SelectItem>
-                      <SelectItem value="video">{isRtl ? 'فيديو (Video)' : 'Video'}</SelectItem>
-                      <SelectItem value="image">{isRtl ? 'صورة (Image)' : 'Image'}</SelectItem>
-                      <SelectItem value="pdf">{isRtl ? 'ملف PDF' : 'PDF Document'}</SelectItem>
-                      <SelectItem value="presentation">{isRtl ? 'عرض تقديمي' : 'Presentation'}</SelectItem>
+                      <SelectItem value="news">{tr("أخبار (News)", "News")}</SelectItem>
+                      <SelectItem value="article">{tr("مقال (Article)", "Article")}</SelectItem>
+                      <SelectItem value="video">{tr("فيديو (Video)", "Video")}</SelectItem>
+                      <SelectItem value="image">{tr("صورة (Image)", "Image")}</SelectItem>
+                      <SelectItem value="pdf">{tr("ملف PDF", "PDF Document")}</SelectItem>
+                      <SelectItem value="presentation">{tr("عرض تقديمي", "Presentation")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -557,7 +556,7 @@ export default function NewsManagement() {
                 {/* Target Audience */}
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {isRtl ? 'الجمهور المستهدف' : 'Target Audience'}
+                    {tr("الجمهور المستهدف", "Target Audience")}
                   </Label>
                   <Select
                     value={formData.target_audience}
@@ -567,9 +566,9 @@ export default function NewsManagement() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">{isRtl ? 'الجميع (All)' : 'All'}</SelectItem>
-                      <SelectItem value="students">{isRtl ? 'الطلاب / الأعضاء' : 'Students / Members'}</SelectItem>
-                      <SelectItem value="teachers">{isRtl ? 'الأساتذة' : 'Teachers'}</SelectItem>
+                      <SelectItem value="all">{tr("الجميع (All)", "All")}</SelectItem>
+                      <SelectItem value="students">{tr("الطلاب / الأعضاء", "Students / Members")}</SelectItem>
+                      <SelectItem value="teachers">{tr("الأساتذة", "Teachers")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -577,7 +576,7 @@ export default function NewsManagement() {
                 {/* Priority */}
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {isRtl ? 'الأولوية' : 'Priority'}
+                    {tr("الأولوية", "Priority")}
                   </Label>
                   <Select
                     value={formData.priority}
@@ -587,10 +586,10 @@ export default function NewsManagement() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">{isRtl ? 'عادي (Normal)' : 'Normal'}</SelectItem>
-                      <SelectItem value="medium">{isRtl ? 'متوسط (Medium)' : 'Medium'}</SelectItem>
-                      <SelectItem value="high">{isRtl ? 'هام (High)' : 'High'}</SelectItem>
-                      <SelectItem value="urgent">{isRtl ? 'عاجل (Urgent)' : 'Urgent'}</SelectItem>
+                      <SelectItem value="low">{tr("عادي (Normal)", "Normal")}</SelectItem>
+                      <SelectItem value="medium">{tr("متوسط (Medium)", "Medium")}</SelectItem>
+                      <SelectItem value="high">{tr("هام (High)", "High")}</SelectItem>
+                      <SelectItem value="urgent">{tr("عاجل (Urgent)", "Urgent")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -599,12 +598,12 @@ export default function NewsManagement() {
               {/* CONTENT BODY */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {isRtl ? 'نص المحتوى / التفاصيل' : 'Content Body'} *
+                  {tr("نص المحتوى / التفاصيل", "Content Body")} *
                 </Label>
                 <Textarea
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder={isRtl ? 'اكتب تفاصيل الخبر أو المقال هنا...' : 'Write the content text here...'}
+                  placeholder={tr("اكتب تفاصيل الخبر أو المقال هنا...", "Write the content text here...")}
                   rows={4}
                   className="rounded-xl text-xs"
                 />
@@ -613,14 +612,14 @@ export default function NewsManagement() {
               {/* MEDIA ATTACHMENT SECTION (Upload or URL) */}
               <div className="space-y-2 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700">
                 <Label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
-                  <span>{isRtl ? 'المرفقات والوسائط (صور، فيديو، PDF)' : 'Attachment & Media (Image, Video, PDF)'}</span>
+                  <span>{tr("المرفقات والوسائط (صور، فيديو، PDF)", "Attachment & Media (Image, Video, PDF)")}</span>
                   {formData.media_url && (
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, media_url: '', media_name: '', media_size: 0, media_type: '' })}
                       className="text-[11px] text-rose-500 hover:underline flex items-center gap-1"
                     >
-                      <X className="w-3 h-3" /> {isRtl ? 'إزالة الملف' : 'Remove'}
+                      <X className="w-3 h-3" /> {tr("إزالة الملف", "Remove")}
                     </button>
                   )}
                 </Label>
@@ -629,7 +628,7 @@ export default function NewsManagement() {
                 <div className="flex flex-col sm:flex-row items-center gap-3">
                   <label className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 cursor-pointer hover:border-blue-500 transition-colors text-xs font-semibold text-slate-600 dark:text-slate-300">
                     <Upload className="w-4 h-4 text-blue-600" />
-                    <span>{isUploading ? (isRtl ? 'جاري الرفع...' : 'Uploading...') : (isRtl ? 'اختر ملفاً لرفعه من جهازك' : 'Choose file to upload')}</span>
+                    <span>{isUploading ? (tr("جاري الرفع...", "Uploading...")) : (tr("اختر ملفاً لرفعه من جهازك", "Choose file to upload"))}</span>
                     <input
                       type="file"
                       className="hidden"
@@ -638,7 +637,7 @@ export default function NewsManagement() {
                     />
                   </label>
 
-                  <span className="text-[11px] text-slate-400">{isRtl ? 'أو أدخل رابطاً' : 'or enter URL'}</span>
+                  <span className="text-[11px] text-slate-400">{tr("أو أدخل رابطاً", "or enter URL")}</span>
 
                   {/* External URL */}
                   <div className="flex-1 w-full relative">
@@ -680,10 +679,10 @@ export default function NewsManagement() {
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
                   <div className="space-y-0.5">
                     <Label className="text-xs font-bold text-slate-900 dark:text-white">
-                      {isRtl ? 'نشر المحتوى فوراً' : 'Publish Immediately'}
+                      {tr("نشر المحتوى فوراً", "Publish Immediately")}
                     </Label>
                     <p className="text-[10px] text-slate-400">
-                      {isRtl ? 'يظهر مباشرة في لوحة تحكم الأعضاء' : 'Visible to users on News Center'}
+                      {tr("يظهر مباشرة في لوحة تحكم الأعضاء", "Visible to users on News Center")}
                     </p>
                   </div>
                   <Switch
@@ -696,10 +695,10 @@ export default function NewsManagement() {
                   <div className="space-y-0.5">
                     <Label className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
                       <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                      <span>{isRtl ? 'تمييز في تبويب (المميز)' : 'Mark as Featured'}</span>
+                      <span>{tr("تمييز في تبويب (المميز)", "Mark as Featured")}</span>
                     </Label>
                     <p className="text-[10px] text-amber-700/70 dark:text-amber-400/70">
-                      {isRtl ? 'يظهر بشارة مميز وفي مقدمة التبويبات' : 'Highlighted with a special badge'}
+                      {tr("يظهر بشارة مميز وفي مقدمة التبويبات", "Highlighted with a special badge")}
                     </p>
                   </div>
                   <Switch
@@ -716,14 +715,14 @@ export default function NewsManagement() {
                 onClick={() => setIsFormOpen(false)}
                 className="rounded-xl h-10 text-xs font-bold"
               >
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={isUploading}
                 className="rounded-xl h-10 px-5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20"
               >
-                {editingItem ? (isRtl ? 'حفظ التعديلات' : 'Save Changes') : (isRtl ? 'نشر المحتوى' : 'Publish Content')}
+                {editingItem ? (tr("حفظ التعديلات", "Save Changes")) : (tr("نشر المحتوى", "Publish Content"))}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -737,7 +736,7 @@ export default function NewsManagement() {
                 {previewItem && getTypeBadge(previewItem.type)}
                 {previewItem?.is_featured && (
                   <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 text-xs gap-1">
-                    <Star className="w-3 h-3 fill-amber-500" /> {isRtl ? 'مميز' : 'Featured'}
+                    <Star className="w-3 h-3 fill-amber-500" /> {tr("مميز", "Featured")}
                   </Badge>
                 )}
               </div>
@@ -770,7 +769,7 @@ export default function NewsManagement() {
                           className="h-8 rounded-xl text-xs"
                         >
                           <Download className="w-3.5 h-3.5 mr-1 rtl:mr-0 rtl:ml-1" />
-                          {isRtl ? 'تنزيل' : 'Download'}
+                          {tr("تنزيل", "Download")}
                         </Button>
                       </div>
                     )}
@@ -784,7 +783,7 @@ export default function NewsManagement() {
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
                   <span>{new Date(previewItem.created_at || Date.now()).toLocaleDateString()}</span>
                   <span className="flex items-center gap-1 font-bold text-slate-600 dark:text-slate-400">
-                    <Eye className="w-3.5 h-3.5" /> {previewItem.views_count || 0} {isRtl ? 'مشاهدة' : 'Views'}
+                    <Eye className="w-3.5 h-3.5" /> {previewItem.views_count || 0} {tr("مشاهدة", "Views")}
                   </span>
                 </div>
               </div>
@@ -797,19 +796,19 @@ export default function NewsManagement() {
           <AlertDialogContent className="rounded-3xl">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-base font-bold">
-                {isRtl ? 'هل أنت متأكد من حذف هذا المحتوى؟' : 'Are you sure you want to delete this content?'}
+                {tr("هل أنت متأكد من حذف هذا المحتوى؟", "Are you sure you want to delete this content?")}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-xs text-slate-500">
-                {isRtl ? 'سيتم حذف هذا المنشور ومرفقاته نهائياً ولن يتمكن الأعضاء من الوصول إليه.' : 'This action cannot be undone. Members will no longer be able to access it.'}
+                {tr("سيتم حذف هذا المنشور ومرفقاته نهائياً ولن يتمكن الأعضاء من الوصول إليه.", "This action cannot be undone. Members will no longer be able to access it.")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="rounded-xl text-xs">{isRtl ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+              <AlertDialogCancel className="rounded-xl text-xs">{tr("إلغاء", "Cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
                 className="rounded-xl text-xs bg-rose-600 hover:bg-rose-700 text-white"
               >
-                {isRtl ? 'حذف نهائياً' : 'Delete'}
+                {tr("حذف نهائياً", "Delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useStudentDetails, useCohorts } from '@/hooks/useDashboardData';
@@ -139,7 +140,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
     score: rawPlacementTest.score,
     total_points: rawPlacementTest.total_points ?? rawPlacementTest.totalPoints ?? 100,
     percentage: rawPlacementTest.percentage ?? (rawPlacementTest.total_points ? Math.round((rawPlacementTest.score / rawPlacementTest.total_points) * 100) : 0),
-    level: data?.level || rawPlacementTest.level || ((rawPlacementTest.score && rawPlacementTest.score >= 80) ? (isRtl ? 'متقدم (Advanced)' : 'Advanced') : (rawPlacementTest.score && rawPlacementTest.score >= 50) ? (isRtl ? 'متوسط (Intermediate)' : 'Intermediate') : (isRtl ? 'مبتدئ (Beginner)' : 'Beginner')),
+    level: data?.level || rawPlacementTest.level || ((rawPlacementTest.score && rawPlacementTest.score >= 80) ? (tr("متقدم (Advanced)", "Advanced")) : (rawPlacementTest.score && rawPlacementTest.score >= 50) ? (tr("متوسط (Intermediate)", "Intermediate")) : (tr("مبتدئ (Beginner)", "Beginner"))),
     assigned_program_name: rawPlacementTest.assigned_program_name || rawPlacementTest.program_name
   } : (data?.level ? { level: data.level, score: null, total_points: null, percentage: 0 } : null);
 
@@ -203,7 +204,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
     const numAmount = parseFloat(paymentForm.amount);
     if (isNaN(numAmount) || numAmount <= 0) {
-      toast.error(isRtl ? 'يرجى إدخال مبلغ صحيح' : 'Please enter a valid amount');
+      toast.error(tr("يرجى إدخال مبلغ صحيح", "Please enter a valid amount"));
       return;
     }
 
@@ -237,7 +238,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
       const result = await impersonate.mutateAsync(studentId);
       if (result?.token && result?.user) {
         impersonateUser(result.token, result.user);
-        toast.success(`${isRtl ? 'تم تسجيل الدخول بنجاح كطالب' : 'Logged in as student'}: ${result.user.full_name || result.user.email}`);
+        toast.success(`${tr("تم تسجيل الدخول بنجاح كطالب", "Logged in as student")}: ${result.user.full_name || result.user.email}`);
         onOpenChange(false);
         navigate('/student');
       }
@@ -248,7 +249,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
   // Level badge helper
   const getLevelBadge = (level: string | null) => {
-    if (!level) return <Badge variant="outline" className="text-muted-foreground">{isRtl ? 'لم يُحدَّد' : 'Not specified'}</Badge>;
+    if (!level) return <Badge variant="outline" className="text-muted-foreground">{tr("لم يُحدَّد", "Not specified")}</Badge>;
     if (level.includes('متقدم') || level.toLowerCase().includes('advanced')) {
       return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium">{level}</Badge>;
     }
@@ -270,7 +271,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
             <div>
               <div className="flex items-center gap-3 flex-wrap">
                 <DialogTitle className="text-2xl font-black tracking-tight text-foreground">
-                  {student?.full_name || (isRtl ? 'ملف الطالب' : 'Student Profile')}
+                  {student?.full_name || (tr("ملف الطالب", "Student Profile"))}
                 </DialogTitle>
                 {student && (
                   <StatusBadge 
@@ -310,7 +311,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
               ) : (
                 <LogIn className="w-4 h-4 rtl:rotate-180" />
               )}
-              <span>{isRtl ? 'تسجيل الدخول كطالب' : 'Login as Student'}</span>
+              <span>{tr("تسجيل الدخول كطالب", "Login as Student")}</span>
             </Button>
           </div>
         </div>
@@ -318,7 +319,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
         {isLoading ? (
           <div className="p-16 flex flex-col items-center justify-center gap-3 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm">{isRtl ? 'جاري تحميل بيانات الطالب الشاملة...' : 'Loading comprehensive student profile...'}</p>
+            <p className="text-sm">{tr("جاري تحميل بيانات الطالب الشاملة...", "Loading comprehensive student profile...")}</p>
           </div>
         ) : (
           <div className="p-6">
@@ -326,22 +327,22 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
               <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full bg-secondary/50 p-1 rounded-xl h-auto gap-1">
                 <TabsTrigger value="overview" className="rounded-lg py-2.5 gap-2 text-xs md:text-sm font-semibold">
                   <Award className="w-4 h-4 text-primary" />
-                  <span>{isRtl ? 'نظرة عامة والمستوى' : 'Overview & Level'}</span>
+                  <span>{tr("نظرة عامة والمستوى", "Overview & Level")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="edit-profile" className="rounded-lg py-2.5 gap-2 text-xs md:text-sm font-semibold">
                   <Edit3 className="w-4 h-4 text-blue-500" />
-                  <span>{isRtl ? 'تعديل بيانات الطالب' : 'Edit Profile'}</span>
+                  <span>{tr("تعديل بيانات الطالب", "Edit Profile")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="financials" className="rounded-lg py-2.5 gap-2 text-xs md:text-sm font-semibold">
                   <DollarSign className="w-4 h-4 text-emerald-500" />
-                  <span>{isRtl ? 'الوضع المالي والدفعات' : 'Financials & Payments'}</span>
+                  <span>{tr("الوضع المالي والدفعات", "Financials & Payments")}</span>
                   {financials && financials.remaining_balance > 0 && (
                     <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="academic" className="rounded-lg py-2.5 gap-2 text-xs md:text-sm font-semibold">
                   <BookOpen className="w-4 h-4 text-purple-500" />
-                  <span>{isRtl ? 'التقدم والحضور' : 'Progress & Attendance'}</span>
+                  <span>{tr("التقدم والحضور", "Progress & Attendance")}</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -353,21 +354,21 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                   <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/80 to-purple-50/60 dark:from-indigo-950/30 dark:to-purple-950/20 border border-indigo-200/60 dark:border-indigo-800/40 relative overflow-hidden">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">
-                        {isRtl ? 'المستوى الأكاديمي الحالي' : 'Current Academic Level'}
+                        {tr("المستوى الأكاديمي الحالي", "Current Academic Level")}
                       </span>
                       <GraduationCap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div className="mt-3">
                       <div className="text-xl font-black text-foreground flex items-center gap-2">
-                        {placementTest?.level ? getLevelBadge(placementTest.level) : (isRtl ? 'لم يخضع للاختبار' : 'Not tested yet')}
+                        {placementTest?.level ? getLevelBadge(placementTest.level) : (tr("لم يخضع للاختبار", "Not tested yet"))}
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
                         {placementTest?.score !== null && placementTest?.score !== undefined ? (
                           <>
-                            {isRtl ? 'الدرجة:' : 'Score:'} <span className="font-bold text-foreground">{placementTest.score} / {placementTest.total_points}</span> ({placementTest.percentage}%)
+                            {tr("الدرجة:", "Score:")} <span className="font-bold text-foreground">{placementTest.score} / {placementTest.total_points}</span> ({placementTest.percentage}%)
                           </>
                         ) : (
-                          isRtl ? 'يمكن للطالب إجراء اختبار تحديد المستوى لتحديد مستواه' : 'Student can take placement test to determine level'
+                          tr("يمكن للطالب إجراء اختبار تحديد المستوى لتحديد مستواه", "Student can take placement test to determine level")
                         )}
                       </p>
                       {placementTest?.percentage !== undefined && (
@@ -380,7 +381,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                   <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/60 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200/60 dark:border-emerald-800/40 relative overflow-hidden">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                        {isRtl ? 'المتبقي من الرسوم' : 'Remaining Balance'}
+                        {tr("المتبقي من الرسوم", "Remaining Balance")}
                       </span>
                       <Receipt className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
@@ -393,8 +394,8 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                         ) : '$0.00'}
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                        <span>{isRtl ? 'المدفوع:' : 'Paid:'} ${financials?.total_paid?.toLocaleString() || 0}</span>
-                        <span>{isRtl ? 'الإجمالي:' : 'Total:'} ${financials?.program_price?.toLocaleString() || 0}</span>
+                        <span>{tr("المدفوع:", "Paid:")} ${financials?.total_paid?.toLocaleString() || 0}</span>
+                        <span>{tr("الإجمالي:", "Total:")} ${financials?.program_price?.toLocaleString() || 0}</span>
                       </div>
                       <Progress 
                         value={financials && financials.program_price > 0 ? (financials.total_paid / financials.program_price) * 100 : 0} 
@@ -407,19 +408,19 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                   <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50/80 to-cyan-50/60 dark:from-blue-950/30 dark:to-cyan-950/20 border border-blue-200/60 dark:border-blue-800/40 relative overflow-hidden">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">
-                        {isRtl ? 'نسبة الحضور والتفاعل' : 'Attendance & Engagement'}
+                        {tr("نسبة الحضور والتفاعل", "Attendance & Engagement")}
                       </span>
                       <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="mt-3">
                       <div className="text-2xl font-black text-foreground flex items-center gap-2">
                         <span>{attendance?.attendance_rate ?? 0}%</span>
-                        <span className="text-xs font-normal text-muted-foreground">{isRtl ? 'معدل الحضور' : 'Rate'}</span>
+                        <span className="text-xs font-normal text-muted-foreground">{tr("معدل الحضور", "Rate")}</span>
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                        <span>{isRtl ? 'حاضر:' : 'Present:'} {attendance?.present_count ?? 0}</span>
-                        <span>{isRtl ? 'غائب:' : 'Absent:'} {attendance?.absent_count ?? 0}</span>
-                        <span>{isRtl ? 'متأخر:' : 'Late:'} {attendance?.late_count ?? 0}</span>
+                        <span>{tr("حاضر:", "Present:")} {attendance?.present_count ?? 0}</span>
+                        <span>{tr("غائب:", "Absent:")} {attendance?.absent_count ?? 0}</span>
+                        <span>{tr("متأخر:", "Late:")} {attendance?.late_count ?? 0}</span>
                       </div>
                       <Progress value={attendance?.attendance_rate ?? 0} className="h-2 mt-3 bg-blue-200/50 dark:bg-blue-900/50" />
                     </div>
@@ -432,20 +433,20 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                   <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
                     <h3 className="font-bold text-base flex items-center gap-2 text-foreground">
                       <User className="w-4 h-4 text-primary" />
-                      <span>{isRtl ? 'المعلومات الشخصية والتواصل' : 'Personal & Contact Information'}</span>
+                      <span>{tr("المعلومات الشخصية والتواصل", "Personal & Contact Information")}</span>
                     </h3>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                       <div className="p-3 bg-secondary/30 rounded-xl">
-                        <span className="text-xs text-muted-foreground block">{isRtl ? 'البريد الإلكتروني' : 'Email'}</span>
+                        <span className="text-xs text-muted-foreground block">{tr("البريد الإلكتروني", "Email")}</span>
                         <span className="font-semibold text-foreground break-all">{student?.email || '-'}</span>
                       </div>
                       <div className="p-3 bg-secondary/30 rounded-xl">
-                        <span className="text-xs text-muted-foreground block">{isRtl ? 'رقم الهاتف' : 'Phone'}</span>
+                        <span className="text-xs text-muted-foreground block">{tr("رقم الهاتف", "Phone")}</span>
                         <span className="font-semibold text-foreground">{student?.phone || '-'}</span>
                       </div>
                       <div className="p-3 bg-secondary/30 rounded-xl">
-                        <span className="text-xs text-muted-foreground block">{isRtl ? 'رقم الواتساب' : 'WhatsApp'}</span>
+                        <span className="text-xs text-muted-foreground block">{tr("رقم الواتساب", "WhatsApp")}</span>
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-foreground">{student?.whatsapp_number || '-'}</span>
                           {student?.whatsapp_number && (
@@ -454,7 +455,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                               target="_blank" 
                               rel="noreferrer"
                               className="text-emerald-600 hover:text-emerald-700"
-                              title={isRtl ? 'مراسلة عبر واتساب' : 'Chat via WhatsApp'}
+                              title={tr("مراسلة عبر واتساب", "Chat via WhatsApp")}
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
                             </a>
@@ -462,19 +463,19 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                         </div>
                       </div>
                       <div className="p-3 bg-secondary/30 rounded-xl">
-                        <span className="text-xs text-muted-foreground block">{isRtl ? 'الدولة والمدينة' : 'Country & City'}</span>
+                        <span className="text-xs text-muted-foreground block">{tr("الدولة والمدينة", "Country & City")}</span>
                         <span className="font-semibold text-foreground">
                           {student?.country || ''}{student?.city ? ` - ${student.city}` : '-'}
                         </span>
                       </div>
                       <div className="p-3 bg-secondary/30 rounded-xl">
-                        <span className="text-xs text-muted-foreground block">{isRtl ? 'تاريخ الميلاد' : 'Date of Birth'}</span>
+                        <span className="text-xs text-muted-foreground block">{tr("تاريخ الميلاد", "Date of Birth")}</span>
                         <span className="font-semibold text-foreground">
                           {student?.date_of_birth ? student.date_of_birth.substring(0, 10) : '-'}
                         </span>
                       </div>
                       <div className="p-3 bg-secondary/30 rounded-xl">
-                        <span className="text-xs text-muted-foreground block">{isRtl ? 'تاريخ التسجيل' : 'Enrollment Date'}</span>
+                        <span className="text-xs text-muted-foreground block">{tr("تاريخ التسجيل", "Enrollment Date")}</span>
                         <span className="font-semibold text-foreground">
                           {student?.enrollment_date ? student.enrollment_date.substring(0, 10) : '-'}
                         </span>
@@ -483,14 +484,14 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
                     {student?.address && (
                       <div className="p-3 bg-secondary/30 rounded-xl text-sm">
-                        <span className="text-xs text-muted-foreground block">{isRtl ? 'العنوان الكامل' : 'Full Address'}</span>
+                        <span className="text-xs text-muted-foreground block">{tr("العنوان الكامل", "Full Address")}</span>
                         <span className="text-foreground">{student.address}</span>
                       </div>
                     )}
 
                     {student?.bio && (
                       <div className="p-3 bg-secondary/30 rounded-xl text-sm">
-                        <span className="text-xs text-muted-foreground block">{isRtl ? 'نبذة عن الطالب' : 'Bio / Notes'}</span>
+                        <span className="text-xs text-muted-foreground block">{tr("نبذة عن الطالب", "Bio / Notes")}</span>
                         <p className="text-muted-foreground mt-1 whitespace-pre-wrap">{student.bio}</p>
                       </div>
                     )}
@@ -500,32 +501,32 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                   <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
                     <h3 className="font-bold text-base flex items-center gap-2 text-foreground">
                       <GraduationCap className="w-4 h-4 text-primary" />
-                      <span>{isRtl ? 'المسار التعليمي والبرنامج' : 'Academic Program & Cohort'}</span>
+                      <span>{tr("المسار التعليمي والبرنامج", "Academic Program & Cohort")}</span>
                     </h3>
 
                     <div className="space-y-3">
                       <div className="p-3.5 bg-secondary/30 rounded-xl flex items-center justify-between">
                         <div>
-                          <span className="text-xs text-muted-foreground block">{isRtl ? 'البرنامج الرئيسي' : 'Main Program'}</span>
-                          <span className="font-bold text-foreground">{student?.program_name || (isRtl ? 'غير محدد' : 'Not specified')}</span>
+                          <span className="text-xs text-muted-foreground block">{tr("البرنامج الرئيسي", "Main Program")}</span>
+                          <span className="font-bold text-foreground">{student?.program_name || (tr("غير محدد", "Not specified"))}</span>
                         </div>
                         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                          {student?.program_name ? (isRtl ? 'مسجل' : 'Enrolled') : (isRtl ? 'غير مسجل' : 'Not Enrolled')}
+                          {student?.program_name ? (tr("مسجل", "Enrolled")) : (tr("غير مسجل", "Not Enrolled"))}
                         </Badge>
                       </div>
 
                       <div className="p-3.5 bg-secondary/30 rounded-xl flex items-center justify-between">
                         <div>
-                          <span className="text-xs text-muted-foreground block">{isRtl ? 'التخصص الأكاديمي' : 'Specialty'}</span>
-                          <span className="font-semibold text-foreground">{student?.specialty_name || (isRtl ? 'غير محدد' : 'Not specified')}</span>
+                          <span className="text-xs text-muted-foreground block">{tr("التخصص الأكاديمي", "Specialty")}</span>
+                          <span className="font-semibold text-foreground">{student?.specialty_name || (tr("غير محدد", "Not specified"))}</span>
                         </div>
                         <Layers className="w-4 h-4 text-muted-foreground" />
                       </div>
 
                       <div className="p-3.5 bg-secondary/30 rounded-xl flex items-center justify-between">
                         <div>
-                          <span className="text-xs text-muted-foreground block">{isRtl ? 'الفوج الدراسي (Cohort)' : 'Study Cohort'}</span>
-                          <span className="font-semibold text-foreground">{student?.cohort_name || (isRtl ? 'غير ملحق بفوج' : 'No cohort assigned')}</span>
+                          <span className="text-xs text-muted-foreground block">{tr("الفوج الدراسي (Cohort)", "Study Cohort")}</span>
+                          <span className="font-semibold text-foreground">{student?.cohort_name || (tr("غير ملحق بفوج", "No cohort assigned"))}</span>
                         </div>
                         <BookOpen className="w-4 h-4 text-muted-foreground" />
                       </div>
@@ -533,7 +534,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                       {/* Enrolled Formations */}
                       {formations.length > 0 && (
                         <div className="pt-2">
-                          <span className="text-xs font-semibold text-muted-foreground block mb-2">{isRtl ? 'الدورات التكوينية الإضافية:' : 'Additional Formations:'}</span>
+                          <span className="text-xs font-semibold text-muted-foreground block mb-2">{tr("الدورات التكوينية الإضافية:", "Additional Formations:")}</span>
                           <div className="flex flex-wrap gap-2">
                             {formations.map((f: any) => (
                               <Badge key={f.id} variant="secondary" className="px-3 py-1 bg-secondary text-xs">
@@ -553,26 +554,26 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                 <form onSubmit={handleProfileSubmit} className="space-y-6">
                   <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
                     <div>
-                      <h3 className="text-lg font-bold text-foreground">{isRtl ? 'تعديل بيانات الطالب الشخصية والأكاديمية' : 'Edit Student Personal & Academic Details'}</h3>
-                      <p className="text-xs text-muted-foreground">{isRtl ? 'يمكن للمدير تعديل كافة بيانات الطالب وتحديث الفوج والحالة وتاريخ التسجيل' : 'Admin can update student profile, assign cohort, status, and enrollment date'}</p>
+                      <h3 className="text-lg font-bold text-foreground">{tr("تعديل بيانات الطالب الشخصية والأكاديمية", "Edit Student Personal & Academic Details")}</h3>
+                      <p className="text-xs text-muted-foreground">{tr("يمكن للمدير تعديل كافة بيانات الطالب وتحديث الفوج والحالة وتاريخ التسجيل", "Admin can update student profile, assign cohort, status, and enrollment date")}</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Full Name */}
                       <div className="space-y-2">
-                        <Label htmlFor="fullName">{isRtl ? 'الاسم الكامل *' : 'Full Name *'}</Label>
+                        <Label htmlFor="fullName">{tr("الاسم الكامل *", "Full Name *")}</Label>
                         <Input
                           id="fullName"
                           value={formData.fullName}
                           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                           required
-                          placeholder={isRtl ? 'الاسم الكامل للطالب' : 'Student Full Name'}
+                          placeholder={tr("الاسم الكامل للطالب", "Student Full Name")}
                         />
                       </div>
 
                       {/* Email (Readonly for safety) */}
                       <div className="space-y-2">
-                        <Label>{isRtl ? 'البريد الإلكتروني (حساب الدخول)' : 'Email (Login Account)'}</Label>
+                        <Label>{tr("البريد الإلكتروني (حساب الدخول)", "Email (Login Account)")}</Label>
                         <Input
                           value={student?.email || ''}
                           disabled
@@ -582,7 +583,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
                       {/* Phone Number */}
                       <div className="space-y-2">
-                        <Label htmlFor="phone">{isRtl ? 'رقم الهاتف' : 'Phone Number'}</Label>
+                        <Label htmlFor="phone">{tr("رقم الهاتف", "Phone Number")}</Label>
                         <Input
                           id="phone"
                           value={formData.phone}
@@ -593,7 +594,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
                       {/* WhatsApp Number */}
                       <div className="space-y-2">
-                        <Label htmlFor="whatsappNumber">{isRtl ? 'رقم الواتساب *' : 'WhatsApp Number *'}</Label>
+                        <Label htmlFor="whatsappNumber">{tr("رقم الواتساب *", "WhatsApp Number *")}</Label>
                         <Input
                           id="whatsappNumber"
                           value={formData.whatsappNumber}
@@ -604,13 +605,13 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
                       {/* Country */}
                       <div className="space-y-2">
-                        <Label htmlFor="country">{isRtl ? 'الدولة' : 'Country'}</Label>
+                        <Label htmlFor="country">{tr("الدولة", "Country")}</Label>
                         <Select
                           value={formData.country}
                           onValueChange={(val) => setFormData({ ...formData, country: val })}
                         >
                           <SelectTrigger id="country">
-                            <SelectValue placeholder={isRtl ? 'اختر الدولة' : 'Select Country'} />
+                            <SelectValue placeholder={tr("اختر الدولة", "Select Country")} />
                           </SelectTrigger>
                           <SelectContent className="max-h-60">
                             {COUNTRIES.map((c) => (
@@ -624,27 +625,27 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
                       {/* City */}
                       <div className="space-y-2">
-                        <Label htmlFor="city">{isRtl ? 'المدينة' : 'City'}</Label>
+                        <Label htmlFor="city">{tr("المدينة", "City")}</Label>
                         <Input
                           id="city"
                           value={formData.city}
                           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          placeholder={isRtl ? 'المدينة' : 'City'}
+                          placeholder={tr("المدينة", "City")}
                         />
                       </div>
 
                       {/* Cohort Selection */}
                       <div className="space-y-2">
-                        <Label htmlFor="cohort">{isRtl ? 'الفوج الدراسي (Cohort)' : 'Study Cohort'}</Label>
+                        <Label htmlFor="cohort">{tr("الفوج الدراسي (Cohort)", "Study Cohort")}</Label>
                         <Select
                           value={formData.cohort_id || 'none'}
                           onValueChange={(val) => setFormData({ ...formData, cohort_id: val === 'none' ? '' : val })}
                         >
                           <SelectTrigger id="cohort">
-                            <SelectValue placeholder={isRtl ? 'اختر الفوج' : 'Select Cohort'} />
+                            <SelectValue placeholder={tr("اختر الفوج", "Select Cohort")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">{isRtl ? 'بدون فوج' : 'No Cohort'}</SelectItem>
+                            <SelectItem value="none">{tr("بدون فوج", "No Cohort")}</SelectItem>
                             {cohorts?.map((c) => (
                               <SelectItem key={c.id} value={c.id}>
                                 {c.name} {c.specialty?.name ? `(${c.specialty.name})` : ''}
@@ -656,26 +657,26 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
                       {/* Academic Status */}
                       <div className="space-y-2">
-                        <Label htmlFor="status">{isRtl ? 'الحالة الأكاديمية' : 'Academic Status'}</Label>
+                        <Label htmlFor="status">{tr("الحالة الأكاديمية", "Academic Status")}</Label>
                         <Select
                           value={formData.status}
                           onValueChange={(val) => setFormData({ ...formData, status: val })}
                         >
                           <SelectTrigger id="status">
-                            <SelectValue placeholder={isRtl ? 'اختر الحالة' : 'Select Status'} />
+                            <SelectValue placeholder={tr("اختر الحالة", "Select Status")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active">{isRtl ? 'نشط (Active)' : 'Active'}</SelectItem>
-                            <SelectItem value="inactive">{isRtl ? 'غير نشط (Inactive)' : 'Inactive'}</SelectItem>
-                            <SelectItem value="suspended">{isRtl ? 'معلّق (Suspended)' : 'Suspended'}</SelectItem>
-                            <SelectItem value="graduated">{isRtl ? 'متخرّج (Graduated)' : 'Graduated'}</SelectItem>
+                            <SelectItem value="active">{tr("نشط (Active)", "Active")}</SelectItem>
+                            <SelectItem value="inactive">{tr("غير نشط (Inactive)", "Inactive")}</SelectItem>
+                            <SelectItem value="suspended">{tr("معلّق (Suspended)", "Suspended")}</SelectItem>
+                            <SelectItem value="graduated">{tr("متخرّج (Graduated)", "Graduated")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       {/* Enrollment Date */}
                       <div className="space-y-2">
-                        <Label htmlFor="enrollmentDate">{isRtl ? 'تاريخ التسجيل' : 'Enrollment Date'}</Label>
+                        <Label htmlFor="enrollmentDate">{tr("تاريخ التسجيل", "Enrollment Date")}</Label>
                         <Input
                           id="enrollmentDate"
                           type="date"
@@ -686,7 +687,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
                       {/* Date of Birth */}
                       <div className="space-y-2">
-                        <Label htmlFor="dateOfBirth">{isRtl ? 'تاريخ الميلاد' : 'Date of Birth'}</Label>
+                        <Label htmlFor="dateOfBirth">{tr("تاريخ الميلاد", "Date of Birth")}</Label>
                         <Input
                           id="dateOfBirth"
                           type="date"
@@ -698,24 +699,24 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
 
                     {/* Address */}
                     <div className="space-y-2">
-                      <Label htmlFor="address">{isRtl ? 'العنوان الكامل' : 'Full Address'}</Label>
+                      <Label htmlFor="address">{tr("العنوان الكامل", "Full Address")}</Label>
                       <Input
                         id="address"
                         value={formData.address}
                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        placeholder={isRtl ? 'العنوان البريدي أو السكني' : 'Residential or postal address'}
+                        placeholder={tr("العنوان البريدي أو السكني", "Residential or postal address")}
                       />
                     </div>
 
                     {/* Bio / Admin Notes */}
                     <div className="space-y-2">
-                      <Label htmlFor="bio">{isRtl ? 'نبذة وملاحظات عن الطالب' : 'Bio and Admin Notes'}</Label>
+                      <Label htmlFor="bio">{tr("نبذة وملاحظات عن الطالب", "Bio and Admin Notes")}</Label>
                       <Textarea
                         id="bio"
                         rows={3}
                         value={formData.bio}
                         onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                        placeholder={isRtl ? 'أي تفاصيل أو ملاحظات خاصة بالطالب...' : 'Any notes or special instructions regarding this student...'}
+                        placeholder={tr("أي تفاصيل أو ملاحظات خاصة بالطالب...", "Any notes or special instructions regarding this student...")}
                       />
                     </div>
 
@@ -730,7 +731,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                         ) : (
                           <Check className="w-4 h-4" />
                         )}
-                        <span>{isRtl ? 'حفظ التعديلات' : 'Save Changes'}</span>
+                        <span>{tr("حفظ التعديلات", "Save Changes")}</span>
                       </Button>
                     </div>
                   </div>
@@ -742,20 +743,20 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                 {/* Financial Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-card border border-border p-5 rounded-2xl">
-                    <span className="text-xs text-muted-foreground block font-medium">{isRtl ? 'إجمالي تكلفة البرنامج المقررة' : 'Total Assigned Tuition Fee'}</span>
+                    <span className="text-xs text-muted-foreground block font-medium">{tr("إجمالي تكلفة البرنامج المقررة", "Total Assigned Tuition Fee")}</span>
                     <div className="text-2xl font-black text-foreground mt-2">
                       ${financials?.program_price?.toLocaleString() ?? '1,000'} {financials?.currency || 'USD'}
                     </div>
-                    <span className="text-xs text-muted-foreground mt-1 block">{isRtl ? 'سعر البرنامج المخصص للطالب' : 'Assigned program fee for student'}</span>
+                    <span className="text-xs text-muted-foreground mt-1 block">{tr("سعر البرنامج المخصص للطالب", "Assigned program fee for student")}</span>
                   </div>
 
                   <div className="bg-card border border-border p-5 rounded-2xl">
-                    <span className="text-xs text-emerald-600 dark:text-emerald-400 block font-medium">{isRtl ? 'إجمالي الدفعات المسددة' : 'Total Paid Amount'}</span>
+                    <span className="text-xs text-emerald-600 dark:text-emerald-400 block font-medium">{tr("إجمالي الدفعات المسددة", "Total Paid Amount")}</span>
                     <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2">
                       ${financials?.total_paid?.toLocaleString() ?? '0'} {financials?.currency || 'USD'}
                     </div>
                     <span className="text-xs text-muted-foreground mt-1 block">
-                      {isRtl ? `عدد الدفعات: ${financials?.payments_count ?? 0} دفعة` : `Payments: ${financials?.payments_count ?? 0}`}
+                      {tr("عدد الدفعات: ${financials?.payments_count ?? 0} دفعة", "Payments: ${financials?.payments_count ?? 0}")}
                     </span>
                   </div>
 
@@ -765,13 +766,13 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                       : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200'
                   }`}>
                     <span className="text-xs font-bold block uppercase tracking-wider">
-                      {isRtl ? 'المبلغ المتبقي الواجب أداؤه' : 'Remaining Balance Due'}
+                      {tr("المبلغ المتبقي الواجب أداؤه", "Remaining Balance Due")}
                     </span>
                     <div className="text-2xl font-black mt-2">
                       ${financials?.remaining_balance?.toLocaleString() ?? '0'} {financials?.currency || 'USD'}
                     </div>
                     <span className="text-xs mt-1 block opacity-80">
-                      {(financials?.remaining_balance ?? 0) === 0 ? (isRtl ? 'تم سداد كامل المستحقات بنجاح ✓' : 'Fully paid ✓') : (isRtl ? 'متبقي على ذمة الطالب' : 'Outstanding balance')}
+                      {(financials?.remaining_balance ?? 0) === 0 ? (tr("تم سداد كامل المستحقات بنجاح ✓", "Fully paid ✓")) : (tr("متبقي على ذمة الطالب", "Outstanding balance"))}
                     </span>
                   </div>
                 </div>
@@ -782,9 +783,9 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                     <div>
                       <h3 className="font-bold text-base text-foreground flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-primary" />
-                        <span>{isRtl ? 'سجل الدفعات المالية للطالب' : 'Student Payment History'}</span>
+                        <span>{tr("سجل الدفعات المالية للطالب", "Student Payment History")}</span>
                       </h3>
-                      <p className="text-xs text-muted-foreground">{isRtl ? 'تفاصيل كافة المبالغ المحولة وسندات الدفع الخاصة بالطالب' : 'All transferred amounts and receipts recorded for student'}</p>
+                      <p className="text-xs text-muted-foreground">{tr("تفاصيل كافة المبالغ المحولة وسندات الدفع الخاصة بالطالب", "All transferred amounts and receipts recorded for student")}</p>
                     </div>
 
                     <Button
@@ -792,7 +793,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                       className="bg-primary hover:bg-primary/90 text-white gap-2 font-semibold text-xs h-9 rounded-xl shadow-sm"
                     >
                       <Plus className="w-4 h-4" />
-                      <span>{isRtl ? 'تسجيل دفعة جديدة' : 'Record New Payment'}</span>
+                      <span>{tr("تسجيل دفعة جديدة", "Record New Payment")}</span>
                     </Button>
                   </div>
 
@@ -802,7 +803,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                       <div className="flex items-center justify-between border-b border-border/50 pb-2">
                         <span className="font-bold text-sm text-foreground flex items-center gap-2">
                           <DollarSign className="w-4 h-4 text-emerald-500" />
-                          <span>{isRtl ? 'تسجيل دفعة مالية جديدة باسم الطالب' : 'Record New Payment for Student'}</span>
+                          <span>{tr("تسجيل دفعة مالية جديدة باسم الطالب", "Record New Payment for Student")}</span>
                         </span>
                         <Button
                           type="button"
@@ -811,13 +812,13 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                           onClick={() => setIsAddingPayment(false)}
                           className="h-7 text-xs text-muted-foreground hover:text-foreground"
                         >
-                          {isRtl ? 'إلغاء' : 'Cancel'}
+                          {tr("إلغاء", "Cancel")}
                         </Button>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                         <div className="space-y-1">
-                          <Label htmlFor="payAmount" className="text-xs">{isRtl ? 'المبلغ *' : 'Amount *'}</Label>
+                          <Label htmlFor="payAmount" className="text-xs">{tr("المبلغ *", "Amount *")}</Label>
                           <Input
                             id="payAmount"
                             type="number"
@@ -832,44 +833,44 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                         </div>
 
                         <div className="space-y-1">
-                          <Label htmlFor="payCurrency" className="text-xs">{isRtl ? 'العملة' : 'Currency'}</Label>
+                          <Label htmlFor="payCurrency" className="text-xs">{tr("العملة", "Currency")}</Label>
                           <Select
                             value={paymentForm.currency}
                             onValueChange={(val) => setPaymentForm({ ...paymentForm, currency: val })}
                           >
                             <SelectTrigger id="payCurrency" className="h-9 text-sm">
-                              <SelectValue placeholder={isRtl ? 'العملة' : 'Currency'} />
+                              <SelectValue placeholder={tr("العملة", "Currency")} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="USD">USD ($)</SelectItem>
                               <SelectItem value="EUR">EUR (€)</SelectItem>
-                              <SelectItem value="MAD">{isRtl ? 'MAD (درهم)' : 'MAD (Dirham)'}</SelectItem>
-                              <SelectItem value="SAR">{isRtl ? 'SAR (ريال)' : 'SAR (Riyal)'}</SelectItem>
+                              <SelectItem value="MAD">{tr("MAD (درهم)", "MAD (Dirham)")}</SelectItem>
+                              <SelectItem value="SAR">{tr("SAR (ريال)", "SAR (Riyal)")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="space-y-1">
-                          <Label htmlFor="payMethod" className="text-xs">{isRtl ? 'طريقة الدفع' : 'Payment Method'}</Label>
+                          <Label htmlFor="payMethod" className="text-xs">{tr("طريقة الدفع", "Payment Method")}</Label>
                           <Select
                             value={paymentForm.payment_method}
                             onValueChange={(val) => setPaymentForm({ ...paymentForm, payment_method: val })}
                           >
                             <SelectTrigger id="payMethod" className="h-9 text-sm">
-                              <SelectValue placeholder={isRtl ? 'طريقة الدفع' : 'Payment Method'} />
+                              <SelectValue placeholder={tr("طريقة الدفع", "Payment Method")} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="bank_transfer">{isRtl ? 'تحويل بنكي (Bank Transfer)' : 'Bank Transfer'}</SelectItem>
-                              <SelectItem value="cash">{isRtl ? 'نقداً (Cash)' : 'Cash'}</SelectItem>
-                              <SelectItem value="stripe">{isRtl ? 'بطاقة بنكية (Stripe)' : 'Credit Card (Stripe)'}</SelectItem>
+                              <SelectItem value="bank_transfer">{tr("تحويل بنكي (Bank Transfer)", "Bank Transfer")}</SelectItem>
+                              <SelectItem value="cash">{tr("نقداً (Cash)", "Cash")}</SelectItem>
+                              <SelectItem value="stripe">{tr("بطاقة بنكية (Stripe)", "Credit Card (Stripe)")}</SelectItem>
                               <SelectItem value="paypal">PayPal</SelectItem>
-                              <SelectItem value="other">{isRtl ? 'أخرى' : 'Other'}</SelectItem>
+                              <SelectItem value="other">{tr("أخرى", "Other")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="space-y-1">
-                          <Label htmlFor="payRef" className="text-xs">{isRtl ? 'رقم المرجع / الإيصال' : 'Reference Number'}</Label>
+                          <Label htmlFor="payRef" className="text-xs">{tr("رقم المرجع / الإيصال", "Reference Number")}</Label>
                           <Input
                             id="payRef"
                             placeholder="e.g. TXN-99824"
@@ -881,10 +882,10 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                       </div>
 
                       <div className="space-y-1">
-                        <Label htmlFor="payNotes" className="text-xs">{isRtl ? 'ملاحظات على الدفعة (اختياري)' : 'Notes (Optional)'}</Label>
+                        <Label htmlFor="payNotes" className="text-xs">{tr("ملاحظات على الدفعة (اختياري)", "Notes (Optional)")}</Label>
                         <Input
                           id="payNotes"
-                          placeholder={isRtl ? 'ملاحظات توثيقية إضافية للدفعة...' : 'Additional payment notes...'}
+                          placeholder={tr("ملاحظات توثيقية إضافية للدفعة...", "Additional payment notes...")}
                           value={paymentForm.notes}
                           onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
                           className="h-9 text-sm"
@@ -899,7 +900,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                           onClick={() => setIsAddingPayment(false)}
                           className="text-xs h-8"
                         >
-                          {isRtl ? 'إلغاء' : 'Cancel'}
+                          {tr("إلغاء", "Cancel")}
                         </Button>
                         <Button
                           type="submit"
@@ -912,7 +913,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                           ) : (
                             <Check className="w-3.5 h-3.5" />
                           )}
-                          <span>{isRtl ? 'تأكيد تسجيل الدفعة' : 'Confirm Payment Entry'}</span>
+                          <span>{tr("تأكيد تسجيل الدفعة", "Confirm Payment Entry")}</span>
                         </Button>
                       </div>
                     </form>
@@ -923,20 +924,20 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                     <table className={`w-full text-sm ${isRtl ? 'text-right' : 'text-left'}`}>
                       <thead className="bg-secondary/40 text-xs text-muted-foreground border-b border-border">
                         <tr>
-                          <th className="p-3">{isRtl ? 'التاريخ' : 'Date'}</th>
-                          <th className="p-3">{isRtl ? 'المبلغ' : 'Amount'}</th>
-                          <th className="p-3">{isRtl ? 'طريقة الدفع' : 'Method'}</th>
-                          <th className="p-3">{isRtl ? 'رقم المرجع' : 'Reference'}</th>
-                          <th className="p-3">{isRtl ? 'الحالة' : 'Status'}</th>
-                          <th className="p-3">{isRtl ? 'الوصل المرفوع' : 'Receipt'}</th>
-                          <th className="p-3">{isRtl ? 'ملاحظات' : 'Notes'}</th>
+                          <th className="p-3">{tr("التاريخ", "Date")}</th>
+                          <th className="p-3">{tr("المبلغ", "Amount")}</th>
+                          <th className="p-3">{tr("طريقة الدفع", "Method")}</th>
+                          <th className="p-3">{tr("رقم المرجع", "Reference")}</th>
+                          <th className="p-3">{tr("الحالة", "Status")}</th>
+                          <th className="p-3">{tr("الوصل المرفوع", "Receipt")}</th>
+                          <th className="p-3">{tr("ملاحظات", "Notes")}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
                         {!financials?.payments || financials.payments.length === 0 ? (
                           <tr>
                             <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                              {isRtl ? 'لا توجد دفعات مسجلة لهذا الطالب حتى الآن' : 'No payment records found for this student'}
+                              {tr("لا توجد دفعات مسجلة لهذا الطالب حتى الآن", "No payment records found for this student")}
                             </td>
                           </tr>
                         ) : (
@@ -950,7 +951,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                               </td>
                               <td className="p-3 text-muted-foreground text-xs">
                                 <Badge variant="outline" className="text-xs font-normal">
-                                  {p.payment_method || (isRtl ? 'تحويل' : 'Transfer')}
+                                  {p.payment_method || (tr("تحويل", "Transfer"))}
                                 </Badge>
                               </td>
                               <td className="p-3 text-xs text-muted-foreground font-mono">
@@ -962,7 +963,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                                     ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' 
                                     : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                                 }>
-                                  {p.status === 'approved' ? (isRtl ? 'مقبولة' : 'Approved') : p.status}
+                                  {p.status === 'approved' ? (tr("مقبولة", "Approved")) : p.status}
                                 </Badge>
                               </td>
                               <td className="p-3 text-xs">
@@ -974,7 +975,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                                     className="text-primary hover:underline flex items-center gap-1 font-medium bg-primary/10 px-2 py-1 rounded w-fit"
                                   >
                                     <ExternalLink className="w-3 h-3" />
-                                    <span>{isRtl ? 'عرض الوصل' : 'View Receipt'}</span>
+                                    <span>{tr("عرض الوصل", "View Receipt")}</span>
                                   </a>
                                 ) : (
                                   <span className="text-muted-foreground">-</span>
@@ -998,12 +999,12 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                 <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
                   <h3 className="font-bold text-base text-foreground flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-primary" />
-                    <span>{isRtl ? `المواد والوحدات الدراسية المقررة للفوج (${cohortModules.length})` : `Cohort Modules & Curriculum (${cohortModules.length})`}</span>
+                    <span>{tr("المواد والوحدات الدراسية المقررة للفوج (${cohortModules.length})", "Cohort Modules & Curriculum (${cohortModules.length})")}</span>
                   </h3>
 
                   {cohortModules.length === 0 ? (
                     <p className="text-sm text-muted-foreground p-4 text-center bg-secondary/20 rounded-xl">
-                      {isRtl ? 'لا توجد وحدات دراسية مضافة لهذا الفوج حالياً' : 'No modules currently added for this cohort'}
+                      {tr("لا توجد وحدات دراسية مضافة لهذا الفوج حالياً", "No modules currently added for this cohort")}
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -1013,7 +1014,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                             <span className="text-xs font-mono font-bold text-primary">{mod.code || 'MOD'}</span>
                             {mod.credits && (
                               <Badge variant="outline" className="text-[10px]">
-                                {mod.credits} {isRtl ? 'وحدات' : 'credits'}
+                                {mod.credits} {tr("وحدات", "credits")}
                               </Badge>
                             )}
                           </div>
@@ -1033,12 +1034,12 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                     <div>
                       <h3 className="font-bold text-base text-foreground flex items-center gap-2">
                         <Clock className="w-4 h-4 text-blue-500" />
-                        <span>{isRtl ? `سجل الحضور والغياب في الدروس (${attendance?.history?.length ?? 0})` : `Lesson Attendance Log (${attendance?.history?.length ?? 0})`}</span>
+                        <span>{tr("سجل الحضور والغياب في الدروس (${attendance?.history?.length ?? 0})", "Lesson Attendance Log (${attendance?.history?.length ?? 0})")}</span>
                       </h3>
-                      <p className="text-xs text-muted-foreground">{isRtl ? 'تفاصيل حضور الطالب للحصص المباشرة والدروس' : 'Attendance record for live sessions and lessons'}</p>
+                      <p className="text-xs text-muted-foreground">{tr("تفاصيل حضور الطالب للحصص المباشرة والدروس", "Attendance record for live sessions and lessons")}</p>
                     </div>
                     <Badge variant="outline" className="font-bold text-blue-600 border-blue-200">
-                      {isRtl ? `نسبة الحضور: ${attendance?.attendance_rate ?? 0}%` : `Attendance Rate: ${attendance?.attendance_rate ?? 0}%`}
+                      {tr("نسبة الحضور: ${attendance?.attendance_rate ?? 0}%", "Attendance Rate: ${attendance?.attendance_rate ?? 0}%")}
                     </Badge>
                   </div>
 
@@ -1046,24 +1047,24 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                     <table className={`w-full text-sm ${isRtl ? 'text-right' : 'text-left'}`}>
                       <thead className="bg-secondary/40 text-xs text-muted-foreground sticky top-0 border-b border-border">
                         <tr>
-                          <th className="p-3">{isRtl ? 'الدرس' : 'Lesson'}</th>
-                          <th className="p-3">{isRtl ? 'التاريخ' : 'Date'}</th>
-                          <th className="p-3">{isRtl ? 'الحالة' : 'Status'}</th>
-                          <th className="p-3">{isRtl ? 'ملاحظات' : 'Notes'}</th>
+                          <th className="p-3">{tr("الدرس", "Lesson")}</th>
+                          <th className="p-3">{tr("التاريخ", "Date")}</th>
+                          <th className="p-3">{tr("الحالة", "Status")}</th>
+                          <th className="p-3">{tr("ملاحظات", "Notes")}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
                         {!attendance?.history || attendance.history.length === 0 ? (
                           <tr>
                             <td colSpan={4} className="p-6 text-center text-muted-foreground">
-                              {isRtl ? 'لا توجد سجلات حضور مسجلة لهذا الطالب حتى الآن' : 'No attendance records registered yet'}
+                              {tr("لا توجد سجلات حضور مسجلة لهذا الطالب حتى الآن", "No attendance records registered yet")}
                             </td>
                           </tr>
                         ) : (
                           attendance.history.map((att: any) => (
                             <tr key={att.id} className="hover:bg-secondary/20 transition-colors">
                               <td className="p-3 font-semibold text-foreground">
-                                {att.lesson_title || (isRtl ? 'درس بدون عنوان' : 'Untitled Lesson')}
+                                {att.lesson_title || (tr("درس بدون عنوان", "Untitled Lesson"))}
                               </td>
                               <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
                                 {att.lesson_date ? att.lesson_date.substring(0, 10) : '-'}
@@ -1072,19 +1073,19 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                                 {att.status === 'present' && (
                                   <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 gap-1">
                                     <CheckCircle2 className="w-3 h-3" />
-                                    <span>{isRtl ? 'حاضر' : 'Present'}</span>
+                                    <span>{tr("حاضر", "Present")}</span>
                                   </Badge>
                                 )}
                                 {att.status === 'absent' && (
                                   <Badge className="bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 gap-1">
                                     <XCircle className="w-3 h-3" />
-                                    <span>{isRtl ? 'غائب' : 'Absent'}</span>
+                                    <span>{tr("غائب", "Absent")}</span>
                                   </Badge>
                                 )}
                                 {att.status === 'late' && (
                                   <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 gap-1">
                                     <Clock className="w-3 h-3" />
-                                    <span>{isRtl ? 'متأخر' : 'Late'}</span>
+                                    <span>{tr("متأخر", "Late")}</span>
                                   </Badge>
                                 )}
                               </td>
@@ -1105,13 +1106,13 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                     <div>
                       <h3 className="font-bold text-base text-foreground flex items-center gap-2">
                         <FileText className="w-4 h-4 text-purple-500" />
-                        <span>{isRtl ? `تسليم المهام والواجبات (${assignments?.submissions?.length ?? 0})` : `Assignment Submissions (${assignments?.submissions?.length ?? 0})`}</span>
+                        <span>{tr("تسليم المهام والواجبات (${assignments?.submissions?.length ?? 0})", "Assignment Submissions (${assignments?.submissions?.length ?? 0})")}</span>
                       </h3>
-                      <p className="text-xs text-muted-foreground">{isRtl ? 'الواجبات المسلمة من الطالب مع النقط وملاحظات الأستاذ' : 'Assignments submitted by student with grades and feedback'}</p>
+                      <p className="text-xs text-muted-foreground">{tr("الواجبات المسلمة من الطالب مع النقط وملاحظات الأستاذ", "Assignments submitted by student with grades and feedback")}</p>
                     </div>
                     {assignments?.average_grade !== null && assignments?.average_grade !== undefined && (
                       <Badge variant="outline" className="font-bold text-purple-600 border-purple-200">
-                        {isRtl ? `معدل الدرجات: ${assignments.average_grade}%` : `Average Grade: ${assignments.average_grade}%`}
+                        {tr("معدل الدرجات: ${assignments.average_grade}%", "Average Grade: ${assignments.average_grade}%")}
                       </Badge>
                     )}
                   </div>
@@ -1120,25 +1121,25 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                     <table className={`w-full text-sm ${isRtl ? 'text-right' : 'text-left'}`}>
                       <thead className="bg-secondary/40 text-xs text-muted-foreground sticky top-0 border-b border-border">
                         <tr>
-                          <th className="p-3">{isRtl ? 'المهمة / الواجب' : 'Assignment'}</th>
-                          <th className="p-3">{isRtl ? 'تاريخ التسليم' : 'Submitted At'}</th>
-                          <th className="p-3">{isRtl ? 'الدرجة' : 'Grade'}</th>
-                          <th className="p-3">{isRtl ? 'ملاحظات الأستاذ' : 'Feedback'}</th>
-                          <th className="p-3">{isRtl ? 'الملف' : 'File'}</th>
+                          <th className="p-3">{tr("المهمة / الواجب", "Assignment")}</th>
+                          <th className="p-3">{tr("تاريخ التسليم", "Submitted At")}</th>
+                          <th className="p-3">{tr("الدرجة", "Grade")}</th>
+                          <th className="p-3">{tr("ملاحظات الأستاذ", "Feedback")}</th>
+                          <th className="p-3">{tr("الملف", "File")}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
                         {!assignments?.submissions || assignments.submissions.length === 0 ? (
                           <tr>
                             <td colSpan={5} className="p-6 text-center text-muted-foreground">
-                              {isRtl ? 'لم يقم الطالب بتسليم أي مهام حتى الآن' : 'No assignments submitted yet'}
+                              {tr("لم يقم الطالب بتسليم أي مهام حتى الآن", "No assignments submitted yet")}
                             </td>
                           </tr>
                         ) : (
                           assignments.submissions.map((sub: any) => (
                             <tr key={sub.id} className="hover:bg-secondary/20 transition-colors">
                               <td className="p-3 font-semibold text-foreground">
-                                {sub.assignment_title || (isRtl ? 'واجب' : 'Assignment')}
+                                {sub.assignment_title || (tr("واجب", "Assignment"))}
                               </td>
                               <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
                                 {sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString(isRtl ? 'ar-MA' : 'en-US') : '-'}
@@ -1150,7 +1151,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                                   </Badge>
                                 ) : (
                                   <Badge variant="outline" className="text-muted-foreground">
-                                    {isRtl ? 'قيد التصحيح' : 'Grading in progress'}
+                                    {tr("قيد التصحيح", "Grading in progress")}
                                   </Badge>
                                 )}
                               </td>
@@ -1166,7 +1167,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                                     className="text-primary hover:underline flex items-center gap-1"
                                   >
                                     <ExternalLink className="w-3 h-3" />
-                                    <span>{isRtl ? 'تحميل' : 'Download'}</span>
+                                    <span>{tr("تحميل", "Download")}</span>
                                   </a>
                                 ) : '-'}
                               </td>

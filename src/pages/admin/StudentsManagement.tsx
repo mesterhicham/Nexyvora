@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -400,7 +401,7 @@ export default function StudentsManagement() {
                           onClick={() => openEditModal(student)}
                         >
                           <Edit className="h-3.5 w-3.5" />
-                          <span>{isRtl ? 'تعديل والملف الشامل' : 'Edit & Full Profile'}</span>
+                          <span>{tr("تعديل والملف الشامل", "Edit & Full Profile")}</span>
                         </Button>
                         <Button 
                           variant="ghost" 
@@ -524,7 +525,7 @@ export default function StudentsManagement() {
                 id="add-fullName"
                 value={addFormData.fullName}
                 onChange={(e) => setAddFormData({ ...addFormData, fullName: e.target.value })}
-                placeholder={isRtl ? 'e.g. أحمد محمد' : 'e.g. John Doe'}
+                placeholder={tr("e.g. أحمد محمد", "e.g. John Doe")}
               />
               {addFormErrors.fullName && <p className="text-xs text-destructive">{addFormErrors.fullName}</p>}
             </div>

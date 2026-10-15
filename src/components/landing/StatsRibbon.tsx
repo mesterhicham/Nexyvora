@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { tr } from '@/utils/tr';
 import { Users, GraduationCap, Globe, Star } from 'lucide-react';
 
 export function StatsRibbon() {
@@ -10,29 +11,29 @@ export function StatsRibbon() {
       icon: Users,
       iconBg: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400',
       value: t('landing.stats.membersVal') || '+ 50 000',
-      label: t('landing.stats.membersLabel') || (isRtl ? 'عضو نشط' : 'Membres actifs'),
-      desc: t('landing.stats.membersDesc') || (isRtl ? 'انضم إلى مجتمع ديناميكي ملهم' : 'Rejoignez une communauté dynamique'),
+      label: t('landing.stats.membersLabel') || (tr("عضو نشط", "Membres actifs")),
+      desc: t('landing.stats.membersDesc') || (tr("انضم إلى مجتمع ديناميكي ملهم", "Rejoignez une communauté dynamique")),
     },
     {
       icon: GraduationCap,
       iconBg: 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400',
       value: t('landing.stats.formationsVal') || '+ 100',
-      label: t('landing.stats.formationsLabel') || (isRtl ? 'تكوين متاح' : 'Formations disponibles'),
-      desc: t('landing.stats.formationsDesc') || (isRtl ? 'من المبتدئ إلى الخبير المتقدم' : "Du débutant à l'expert"),
+      label: t('landing.stats.formationsLabel') || (tr("تكوين متاح", "Formations disponibles")),
+      desc: t('landing.stats.formationsDesc') || (tr("من المبتدئ إلى الخبير المتقدم", "Du débutant à l'expert")),
     },
     {
       icon: Globe,
       iconBg: 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',
       value: t('landing.stats.countriesVal') || '+ 20',
-      label: t('landing.stats.countriesLabel') || (isRtl ? 'دولة' : 'Pays'),
-      desc: t('landing.stats.countriesDesc') || (isRtl ? 'فرصة عالمية بلا حدود' : 'Une opportunité mondiale'),
+      label: t('landing.stats.countriesLabel') || (tr("دولة", "Pays")),
+      desc: t('landing.stats.countriesDesc') || (tr("فرصة عالمية بلا حدود", "Une opportunité mondiale")),
     },
     {
       icon: Star,
       iconBg: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
       value: t('landing.stats.ratingVal') || '4.9/5',
-      label: t('landing.stats.ratingLabel') || (isRtl ? 'رضا الأعضاء' : 'Satisfaction des membres'),
-      desc: t('landing.stats.ratingDesc') || (isRtl ? 'بناءً على 10,000+ تقييم' : 'Basé sur 10.000+ avis'),
+      label: t('landing.stats.ratingLabel') || (tr("رضا الأعضاء", "Satisfaction des membres")),
+      desc: t('landing.stats.ratingDesc') || (tr("بناءً على 10,000+ تقييم", "Basé sur 10.000+ avis")),
     },
   ];
 

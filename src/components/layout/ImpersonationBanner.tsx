@@ -1,4 +1,5 @@
 import React from 'react';
+import { tr } from '@/utils/tr';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,11 +20,11 @@ export function ImpersonationBanner() {
   const handleReturnToAdmin = () => {
     stopImpersonation();
     queryClient.clear();
-    toast.success(isRtl ? 'تمت العودة إلى حساب المدير بنجاح' : 'Returned to admin account successfully');
+    toast.success(tr("تمت العودة إلى حساب المدير بنجاح", "Returned to admin account successfully"));
     navigate('/admin/users');
   };
 
-  const studentName = user?.full_name || user?.email || (isRtl ? 'الطالب' : 'Student');
+  const studentName = user?.full_name || user?.email || (tr("الطالب", "Student"));
 
   return (
     <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500 text-white px-4 py-2.5 shadow-md flex items-center justify-between gap-3 text-sm z-50 relative font-medium">
@@ -32,8 +33,8 @@ export function ImpersonationBanner() {
           <ShieldAlert className="w-4 h-4 text-white animate-pulse" />
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="font-bold">{isRtl ? 'وضع المحاكاة:' : 'Impersonation Mode:'}</span>
-          <span>{isRtl ? 'أنت تتصفح الحساب بصفتك' : 'You are viewing as'}</span>
+          <span className="font-bold">{tr("وضع المحاكاة:", "Impersonation Mode:")}</span>
+          <span>{tr("أنت تتصفح الحساب بصفتك", "You are viewing as")}</span>
           <span className="bg-black/20 px-2 py-0.5 rounded text-xs font-semibold flex items-center gap-1">
             <UserCheck className="w-3 h-3" />
             {studentName}
@@ -47,7 +48,7 @@ export function ImpersonationBanner() {
         onClick={handleReturnToAdmin}
         className="bg-white text-amber-800 hover:bg-amber-50 font-bold shadow-sm shrink-0 flex items-center gap-1.5 h-8 text-xs rounded-lg"
       >
-        <span>{isRtl ? 'العودة لحساب المدير' : 'Return to Admin'}</span>
+        <span>{tr("العودة لحساب المدير", "Return to Admin")}</span>
         <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
       </Button>
     </div>

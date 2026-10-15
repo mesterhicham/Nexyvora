@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { Star, ArrowRight, ArrowLeft } from 'lucide-react';
 
@@ -51,17 +52,15 @@ export function TestimonialAndCtaBanner() {
               {/* Quote & Author Details */}
               <div className="space-y-2">
                 <p className="text-sm sm:text-base text-slate-100 font-medium leading-relaxed italic">
-                  "{t('landing.banner.quote') || (isRtl 
-                    ? 'لقد مكنتني Nexyvora من اكتساب مهارات احترافية جديدة وتحقيق أولى مداخيلي المالية. اليوم، أنا أبني مستقبلي بالشكل الذي أردته دائماً!'
-                    : "Nexyvora m'a permis d'acquérir de nouvelles compétences et de générer mes premiers revenus. Aujourd'hui, je construis la vie que je veux !")}"
+                  "{t('landing.banner.quote') || (tr("لقد مكنتني Nexyvora من اكتساب مهارات احترافية جديدة وتحقيق أولى مداخيلي المالية. اليوم، أنا أبني مستقبلي بالشكل الذي أردته دائماً!", "Nexyvora m'a permis d'acquérir de nouvelles compétences et de générer mes premiers revenus. Aujourd'hui, je construis la vie que je veux !"))}"
                 </p>
 
                 <div>
                   <p className="text-xs sm:text-sm font-bold text-white">
-                    {t('landing.banner.authorName') || (isRtl ? 'كريم العمراني' : 'Karim El Amrani')}
+                    {t('landing.banner.authorName') || (tr("كريم العمراني", "Karim El Amrani"))}
                   </p>
                   <p className="text-[11px] sm:text-xs text-indigo-200/80">
-                    {t('landing.banner.authorRole') || (isRtl ? 'عضو في Nexyvora منذ 6 أشهر' : 'Membre Nexyvora depuis 6 mois')}
+                    {t('landing.banner.authorRole') || (tr("عضو في Nexyvora منذ 6 أشهر", "Membre Nexyvora depuis 6 mois"))}
                   </p>
                 </div>
 
@@ -82,17 +81,15 @@ export function TestimonialAndCtaBanner() {
             {/* Right: Final CTA (6 cols) */}
             <div className="lg:col-span-6 space-y-4 text-center sm:text-left rtl:sm:text-right">
               <p className="text-xs font-bold tracking-wider text-indigo-300 uppercase">
-                {t('landing.banner.ctaTag') || (isRtl ? 'جاهز لخوض غمار هذه التجربة؟' : "PRÊT À REJOINDRE L'AVENTURE ?")}
+                {t('landing.banner.ctaTag') || (tr("جاهز لخوض غمار هذه التجربة؟", "PRÊT À REJOINDRE L'AVENTURE ?"))}
               </p>
 
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-                {t('landing.banner.ctaTitle') || (isRtl ? 'مستقبلك الواعد يبدأ الآن' : 'Votre futur commence maintenant')}
+                {t('landing.banner.ctaTitle') || (tr("مستقبلك الواعد يبدأ الآن", "Votre futur commence maintenant"))}
               </h2>
 
               <p className="text-xs sm:text-sm text-slate-300 max-w-lg leading-relaxed">
-                {t('landing.banner.ctaSubtitle') || (isRtl 
-                  ? 'سجل اليوم وافتح أبواب الوصول إلى كافة برامجنا وفرصنا الاستثنائية.'
-                  : 'Inscrivez-vous dès aujourd’hui et accédez à toutes nos formations et opportunités.')}
+                {t('landing.banner.ctaSubtitle') || (tr("سجل اليوم وافتح أبواب الوصول إلى كافة برامجنا وفرصنا الاستثنائية.", "Inscrivez-vous dès aujourd’hui et accédez à toutes nos formations et opportunités."))}
               </p>
 
               <div className="pt-2">
@@ -100,7 +97,7 @@ export function TestimonialAndCtaBanner() {
                   to="/auth"
                   className="inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-full bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm shadow-xl shadow-black/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 group"
                 >
-                  <span>{t('landing.banner.ctaButton') || (isRtl ? 'سجل الآن وابدأ رحلتك' : "S'inscrire maintenant")}</span>
+                  <span>{t('landing.banner.ctaButton') || (tr("سجل الآن وابدأ رحلتك", "S'inscrire maintenant"))}</span>
                   {isRtl ? (
                     <ArrowLeft className="w-4 h-4 text-slate-900 transition-transform group-hover:-translate-x-1" />
                   ) : (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
@@ -212,7 +213,7 @@ function VisualTreeNode({
               onToggleExpand(node.id);
             }}
             className="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-blue-600 hover:border-blue-500 flex items-center justify-center text-xs font-black shadow-xs transition-all active:scale-90 z-10"
-            title={isExpanded ? (isRtl ? 'طي الأبناء' : 'Collapse Children') : (isRtl ? 'توسيع الأبناء' : 'Expand Children')}
+            title={isExpanded ? (tr("طي الأبناء", "Collapse Children")) : (tr("توسيع الأبناء", "Expand Children"))}
           >
             {isExpanded ? (
               <Minus className="h-3 w-3 stroke-[3]" />
@@ -324,7 +325,7 @@ export default function AdminTeamTree() {
       setAllUsers(res.allUsers || []);
       setTotalUsersCount(res.totalUsers || 0);
     } catch (err) {
-      toast.error(isRtl ? 'فشل تحميل شجرة الشبكة' : 'Failed to load network tree');
+      toast.error(tr("فشل تحميل شجرة الشبكة", "Failed to load network tree"));
     } finally {
       setLoading(false);
     }
@@ -423,7 +424,7 @@ export default function AdminTeamTree() {
     }
     setAll(masterPlatformRoot);
     setExpandedMap(newMap);
-    toast.success(isRtl ? 'تم توسيع جميع الفروع' : 'All branches expanded');
+    toast.success(tr("تم توسيع جميع الفروع", "All branches expanded"));
   };
 
   const handleCollapseAll = () => {
@@ -436,7 +437,7 @@ export default function AdminTeamTree() {
     // keep root expanded so its direct children are visible
     newMap[currentRootNode.id] = true;
     setExpandedMap(newMap);
-    toast.info(isRtl ? 'تم طي جميع الفروع' : 'All branches collapsed');
+    toast.info(tr("تم طي جميع الفروع", "All branches collapsed"));
   };
 
   // Canvas Mouse Pan Handlers
@@ -480,7 +481,7 @@ export default function AdminTeamTree() {
     navigator.clipboard.writeText(code);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
-    toast.success(isRtl ? 'تم نسخ الكود بنجاح' : 'Code copied successfully');
+    toast.success(tr("تم نسخ الكود بنجاح", "Code copied successfully"));
   };
 
   return (
@@ -523,7 +524,7 @@ export default function AdminTeamTree() {
             <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                  <span>{isRtl ? '(Admin Tree Inspector) إدارة تصفح شجرة الأعضاء' : 'Admin Tree Inspector - Member Network Tree'}</span>
+                  <span>{tr("(Admin Tree Inspector) إدارة تصفح شجرة الأعضاء", "Admin Tree Inspector - Member Network Tree")}</span>
                 </h3>
 
                 {inspectedNodeId !== 'platform-root' && (
@@ -536,7 +537,7 @@ export default function AdminTeamTree() {
                     }}
                     className="h-7 text-xs rounded-xl border-purple-200 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40"
                   >
-                    {isRtl ? 'العودة لجذر المنصة (Nexyvora Root)' : 'Return to Platform Root (Nexyvora Root)'}
+                    {tr("العودة لجذر المنصة (Nexyvora Root)", "Return to Platform Root (Nexyvora Root)")}
                   </Button>
                 )}
               </div>
@@ -551,7 +552,7 @@ export default function AdminTeamTree() {
                     setIsInspectorSearchOpen(true);
                   }}
                   onFocus={() => setIsInspectorSearchOpen(true)}
-                  placeholder={isRtl ? '... ابحث عن اسم المستخدم، الاسم، أو البريد الإلكتروني للعضو' : 'Search by username, full name, or email...'}
+                  placeholder={tr("... ابحث عن اسم المستخدم، الاسم، أو البريد الإلكتروني للعضو", "Search by username, full name, or email...")}
                   className="ltr:pl-10 rtl:pr-10 rounded-xl text-xs bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
                 />
 
@@ -565,7 +566,7 @@ export default function AdminTeamTree() {
                           setInspectedNodeId(user.id);
                           setIsInspectorSearchOpen(false);
                           setInspectorSearch('');
-                          toast.success(isRtl ? `تم التبديل لتصفح شجرة: ${user.name}` : `Switched to tree of: ${user.name}`);
+                          toast.success(tr("تم التبديل لتصفح شجرة: ${user.name}", "Switched to tree of: ${user.name}"));
                         }}
                         className="p-3 hover:bg-purple-50/60 dark:hover:bg-slate-800/60 cursor-pointer flex items-center justify-between text-xs transition-colors"
                       >
@@ -591,7 +592,7 @@ export default function AdminTeamTree() {
 
               {/* Current Browsing Status */}
               <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap">
-                <span>{isRtl ? 'تصفح شجرة العضو حالياً:' : 'Currently inspecting member tree:'}</span>
+                <span>{tr("تصفح شجرة العضو حالياً:", "Currently inspecting member tree:")}</span>
                 <span className="font-bold text-purple-600 dark:text-purple-400">
                   {currentRootNode.name}
                 </span>
@@ -697,7 +698,7 @@ export default function AdminTeamTree() {
                 onClick={handleExpandAll}
                 className="h-7 text-[11px] rounded-lg px-2 text-slate-600 dark:text-slate-300"
               >
-                {isRtl ? 'توسيع الكل' : 'Expand All'}
+                {tr("توسيع الكل", "Expand All")}
               </Button>
               <Button
                 variant="ghost"
@@ -705,7 +706,7 @@ export default function AdminTeamTree() {
                 onClick={handleCollapseAll}
                 className="h-7 text-[11px] rounded-lg px-2 text-slate-600 dark:text-slate-300"
               >
-                {isRtl ? 'طي الكل' : 'Collapse All'}
+                {tr("طي الكل", "Collapse All")}
               </Button>
 
               <div className="h-4 w-px bg-slate-200 dark:border-slate-700 mx-1" />
@@ -716,7 +717,7 @@ export default function AdminTeamTree() {
                 size="icon"
                 onClick={() => setZoom((z) => Math.max(0.4, Number((z - 0.15).toFixed(2))))}
                 className="h-7 w-7 rounded-lg text-slate-600 dark:text-slate-300"
-                title={isRtl ? 'تصغير' : 'Zoom Out'}
+                title={tr("تصغير", "Zoom Out")}
               >
                 <Minus className="h-3.5 w-3.5" />
               </Button>
@@ -727,7 +728,7 @@ export default function AdminTeamTree() {
                 size="sm"
                 onClick={handleResetView}
                 className="h-7 text-[11px] font-mono px-2.5 rounded-lg text-slate-700 dark:text-slate-200"
-                title={isRtl ? 'إعادة ضبط 100%' : 'Reset 100%'}
+                title={tr("إعادة ضبط 100%", "Reset 100%")}
               >
                 {Math.round(zoom * 100)}%
               </Button>
@@ -738,7 +739,7 @@ export default function AdminTeamTree() {
                 size="icon"
                 onClick={() => setZoom((z) => Math.min(1.8, Number((z + 0.15).toFixed(2))))}
                 className="h-7 w-7 rounded-lg text-slate-600 dark:text-slate-300"
-                title={isRtl ? 'تكبير' : 'Zoom In'}
+                title={tr("تكبير", "Zoom In")}
               >
                 <Plus className="h-3.5 w-3.5" />
               </Button>
@@ -749,7 +750,7 @@ export default function AdminTeamTree() {
                 size="icon"
                 onClick={handleResetView}
                 className="h-7 w-7 rounded-lg text-slate-600 dark:text-slate-300"
-                title={isRtl ? 'إعادة التمركز' : 'Center View'}
+                title={tr("إعادة التمركز", "Center View")}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
               </Button>
@@ -770,7 +771,7 @@ export default function AdminTeamTree() {
             {loading ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
                 <Loader2 className="h-9 w-9 animate-spin text-purple-600 mb-3" />
-                <p className="text-xs">{isRtl ? 'جاري بناء وتوليد شجرة الشبكة الهرمية...' : 'Building and generating hierarchical team tree...'}</p>
+                <p className="text-xs">{tr("جاري بناء وتوليد شجرة الشبكة الهرمية...", "Building and generating hierarchical team tree...")}</p>
               </div>
             ) : (
               <div
@@ -841,7 +842,7 @@ export default function AdminTeamTree() {
                   {/* Referral Code & Copy */}
                   <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{isRtl ? 'كود الإحالة (Affiliate Code)' : 'Affiliate Code'}</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{tr("كود الإحالة (Affiliate Code)", "Affiliate Code")}</span>
                       <span className="text-sm font-mono font-bold text-purple-600 dark:text-purple-400">
                         {selectedMember.affiliate_code || '-'}
                       </span>
@@ -854,7 +855,7 @@ export default function AdminTeamTree() {
                         className="h-8 rounded-xl gap-1 text-slate-500"
                       >
                         {copiedCode ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                        <span>{copiedCode ? (isRtl ? 'تم النسخ' : 'Copied') : (isRtl ? 'نسخ' : 'Copy')}</span>
+                        <span>{copiedCode ? (tr("تم النسخ", "Copied")) : (tr("نسخ", "Copy"))}</span>
                       </Button>
                     )}
                   </div>
@@ -862,14 +863,14 @@ export default function AdminTeamTree() {
                   {/* 2 Stats Cards: Team Size & Direct Referrals */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase block">{isRtl ? 'المباشرين (Directs)' : 'Direct Referrals'}</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">{tr("المباشرين (Directs)", "Direct Referrals")}</span>
                       <span className="text-lg font-black text-slate-900 dark:text-white font-mono">
                         {selectedMember.children?.length || 0}
                       </span>
                     </div>
 
                     <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase block">{isRtl ? 'إجمالي الفريق (Team)' : 'Total Team'}</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">{tr("إجمالي الفريق (Team)", "Total Team")}</span>
                       <span className="text-lg font-black text-purple-600 dark:text-purple-400 font-mono">
                         {selectedMember.teamCount || 0}
                       </span>
@@ -880,14 +881,14 @@ export default function AdminTeamTree() {
                   {!selectedMember.isPlatformRoot && (
                     <div className="grid grid-cols-2 gap-3">
                       <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
-                        <span className="text-[10px] text-emerald-600 font-bold uppercase block">{isRtl ? 'الرصيد المالي' : 'Wallet Balance'}</span>
+                        <span className="text-[10px] text-emerald-600 font-bold uppercase block">{tr("الرصيد المالي", "Wallet Balance")}</span>
                         <span className="text-base font-black text-emerald-600 font-mono">
                           ${Number(selectedMember.balance || 0).toFixed(2)}
                         </span>
                       </div>
 
                       <div className="p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
-                        <span className="text-[10px] text-purple-600 font-bold uppercase block">{isRtl ? 'إجمالي العمولات' : 'Total Commissions'}</span>
+                        <span className="text-[10px] text-purple-600 font-bold uppercase block">{tr("إجمالي العمولات", "Total Commissions")}</span>
                         <span className="text-base font-black text-purple-600 font-mono">
                           ${Number(selectedMember.total_earned || 0).toFixed(2)}
                         </span>
@@ -900,7 +901,7 @@ export default function AdminTeamTree() {
                     <div className="flex items-center justify-between text-slate-400 text-[11px] px-1">
                       <span className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" />
-                        <span>{isRtl ? 'تاريخ الانضمام:' : 'Joined Date:'}</span>
+                        <span>{tr("تاريخ الانضمام:", "Joined Date:")}</span>
                       </span>
                       <span className="font-mono text-slate-600 dark:text-slate-300">
                         {new Date(selectedMember.created_at).toLocaleDateString()}
@@ -914,18 +915,18 @@ export default function AdminTeamTree() {
                       onClick={() => {
                         setInspectedNodeId(selectedMember.id);
                         setSelectedMember(null);
-                        toast.success(isRtl ? `تم تعيين ${selectedMember.name} كجذر تصفح للشجرة` : `Set ${selectedMember.name} as tree root`);
+                        toast.success(tr("تم تعيين ${selectedMember.name} كجذر تصفح للشجرة", "Set ${selectedMember.name} as tree root"));
                       }}
                       className="flex-1 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs h-10 shadow-md shadow-purple-500/20"
                     >
-                      {isRtl ? 'تصفح شجرة هذا العضو كجذر' : 'Inspect this member tree as root'}
+                      {tr("تصفح شجرة هذا العضو كجذر", "Inspect this member tree as root")}
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => setSelectedMember(null)}
                       className="rounded-2xl text-xs h-10 px-4"
                     >
-                      {isRtl ? 'إغلاق' : 'Close'}
+                      {tr("إغلاق", "Close")}
                     </Button>
                   </div>
                 </div>

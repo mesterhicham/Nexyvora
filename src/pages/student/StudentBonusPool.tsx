@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -44,7 +45,7 @@ export default function StudentBonusPool() {
       const res = await bonusPoolService.getStudentBonusPools();
       setData(res);
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل تحميل بيانات الأحواض المالية' : 'Failed to load bonus pools');
+      toast.error(tr("فشل تحميل بيانات الأحواض المالية", "Failed to load bonus pools"));
     } finally {
       setLoading(false);
     }
@@ -75,22 +76,20 @@ export default function StudentBonusPool() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-400/30">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isRtl ? 'نظام الأحواض المالية للقيادة' : 'Global Leadership Bonus Pools'}</span>
+                <span>{tr("نظام الأحواض المالية للقيادة", "Global Leadership Bonus Pools")}</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
                 BONUS POOL
               </h1>
               <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
-                {isRtl 
-                  ? 'شارك في أرباح المنصة الشهرية! يتم فتح الأحواض تلقائياً فور تحقيق شروط الرتبة المؤهلة، وتُقسّم الأرباح بالتساوي بين القادة المؤهلين كل شهر.'
-                  : 'Share in platform monthly profits! Pools are automatically unlocked once you meet the rank requirements, with profits distributed equally among qualifiers every month.'}
+                {tr("شارك في أرباح المنصة الشهرية! يتم فتح الأحواض تلقائياً فور تحقيق شروط الرتبة المؤهلة، وتُقسّم الأرباح بالتساوي بين القادة المؤهلين كل شهر.", "Share in platform monthly profits! Pools are automatically unlocked once you meet the rank requirements, with profits distributed equally among qualifiers every month.")}
               </p>
             </div>
 
             {/* Quick Stats Badges */}
             <div className="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
               <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 min-w-[130px]">
-                <span className="text-xs text-slate-400 block">{isRtl ? 'أرباحك المستلمة' : 'Total Earned'}</span>
+                <span className="text-xs text-slate-400 block">{tr("أرباحك المستلمة", "Total Earned")}</span>
                 <span className="text-xl sm:text-2xl font-black text-amber-400 mt-0.5 block">
                   ${totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
@@ -98,11 +97,11 @@ export default function StudentBonusPool() {
               </div>
 
               <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 min-w-[130px]">
-                <span className="text-xs text-slate-400 block">{isRtl ? 'الأحواض المفتوحة' : 'Unlocked Pools'}</span>
+                <span className="text-xs text-slate-400 block">{tr("الأحواض المفتوحة", "Unlocked Pools")}</span>
                 <span className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5 block">
                   {unlockedCount} / {pools.length}
                 </span>
-                <span className="text-[10px] text-slate-400">{isRtl ? 'أحواض نشطة' : 'Active Pools'}</span>
+                <span className="text-[10px] text-slate-400">{tr("أحواض نشطة", "Active Pools")}</span>
               </div>
             </div>
           </div>
@@ -113,52 +112,52 @@ export default function StudentBonusPool() {
           <Card className="p-4 rounded-2xl border bg-white dark:bg-slate-900 shadow-xs space-y-1">
             <span className="text-xs text-slate-500 flex items-center gap-1.5">
               <Coins className="w-3.5 h-3.5 text-amber-500" />
-              <span>{isRtl ? 'الحصة التقديرية الحالية' : 'Est. Monthly Share'}</span>
+              <span>{tr("الحصة التقديرية الحالية", "Est. Monthly Share")}</span>
             </span>
             <p className="text-xl font-black text-slate-900 dark:text-white">
               ${totalEstimatedMonthlyShare.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
             <span className="text-[11px] text-slate-400 block">
-              {isRtl ? 'للشهر الحالي' : 'For current month'}
+              {tr("للشهر الحالي", "For current month")}
             </span>
           </Card>
 
           <Card className="p-4 rounded-2xl border bg-white dark:bg-slate-900 shadow-xs space-y-1">
             <span className="text-xs text-slate-500 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-blue-500" />
-              <span>{isRtl ? 'موعد التوزيع القادم' : 'Next Distribution'}</span>
+              <span>{tr("موعد التوزيع القادم", "Next Distribution")}</span>
             </span>
             <p className="text-xl font-black text-blue-600 dark:text-blue-400">
-              {financials?.daysLeft || 0} {isRtl ? 'أيام متبقية' : 'days left'}
+              {financials?.daysLeft || 0} {tr("أيام متبقية", "days left")}
             </p>
             <span className="text-[11px] text-slate-400 block">
-              {isRtl ? 'بنهاية الشهر الميلادي' : 'End of calendar month'}
+              {tr("بنهاية الشهر الميلادي", "End of calendar month")}
             </span>
           </Card>
 
           <Card className="p-4 rounded-2xl border bg-white dark:bg-slate-900 shadow-xs space-y-1">
             <span className="text-xs text-slate-500 flex items-center gap-1.5">
               <Users className="w-3.5 h-3.5 text-purple-500" />
-              <span>{isRtl ? 'مبيعاتك المباشرة' : 'Your Direct Sales'}</span>
+              <span>{tr("مبيعاتك المباشرة", "Your Direct Sales")}</span>
             </span>
             <p className="text-xl font-black text-purple-600 dark:text-purple-400">
-              {data?.userStats?.directSales || 0} {isRtl ? 'عضو نشط' : 'members'}
+              {data?.userStats?.directSales || 0} {tr("عضو نشط", "members")}
             </p>
             <span className="text-[11px] text-slate-400 block">
-              {isRtl ? 'باقات مفعلة' : 'Active packages'}
+              {tr("باقات مفعلة", "Active packages")}
             </span>
           </Card>
 
           <Card className="p-4 rounded-2xl border bg-white dark:bg-slate-900 shadow-xs space-y-1">
             <span className="text-xs text-slate-500 flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-              <span>{isRtl ? 'مبيعات فريقك' : 'Team Turnover'}</span>
+              <span>{tr("مبيعات فريقك", "Team Turnover")}</span>
             </span>
             <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">
               ${Number(data?.userStats?.teamTurnover || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
             <span className="text-[11px] text-slate-400 block">
-              {isRtl ? 'إجمالي حجم الفريق' : 'Total team volume'}
+              {tr("إجمالي حجم الفريق", "Total team volume")}
             </span>
           </Card>
         </div>
@@ -171,7 +170,7 @@ export default function StudentBonusPool() {
             className="flex items-center gap-2 font-bold"
           >
             <Coins className="w-4 h-4" />
-            <span>{isRtl ? 'الأحواض وحالة الفتح التلقائي' : 'Bonus Pools'}</span>
+            <span>{tr("الأحواض وحالة الفتح التلقائي", "Bonus Pools")}</span>
           </Button>
 
           <Button
@@ -180,7 +179,7 @@ export default function StudentBonusPool() {
             className="flex items-center gap-2 font-bold"
           >
             <History className="w-4 h-4" />
-            <span>{isRtl ? `سجل أرباحي (${myPayouts.length})` : `My Payouts (${myPayouts.length})`}</span>
+            <span>{tr("سجل أرباحي (${myPayouts.length})", "My Payouts (${myPayouts.length})")}</span>
           </Button>
 
           <Button
@@ -189,7 +188,7 @@ export default function StudentBonusPool() {
             className="flex items-center gap-2 font-bold"
           >
             <Calendar className="w-4 h-4" />
-            <span>{isRtl ? 'أرشيف توزيعات الحوض' : 'Pool Distribution History'}</span>
+            <span>{tr("أرشيف توزيعات الحوض", "Pool Distribution History")}</span>
           </Button>
         </div>
 
@@ -200,13 +199,13 @@ export default function StudentBonusPool() {
               <div className="flex items-center justify-center p-16">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
                 <span className="mr-3 text-slate-500 text-sm">
-                  {isRtl ? 'جاري تحميل تفاصيل الأحواض المالية...' : 'Loading bonus pools...'}
+                  {tr("جاري تحميل تفاصيل الأحواض المالية...", "Loading bonus pools...")}
                 </span>
               </div>
             ) : pools.length === 0 ? (
               <Card className="border-dashed p-12 text-center">
                 <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-                <h3 className="text-lg font-bold">{isRtl ? 'لا توجد أحواض مالية مفعلة حالياً' : 'No active bonus pools'}</h3>
+                <h3 className="text-lg font-bold">{tr("لا توجد أحواض مالية مفعلة حالياً", "No active bonus pools")}</h3>
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -231,11 +230,11 @@ export default function StudentBonusPool() {
                               {isRtl ? pool.name_ar : pool.name}
                             </h3>
                             <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                              {pool.pool_percentage}% {isRtl ? 'شهرياً' : 'Monthly'}
+                              {pool.pool_percentage}% {tr("شهرياً", "Monthly")}
                             </span>
                           </div>
                           <p className="text-xs text-slate-300">
-                            {isRtl ? `مخصص لرتبة: ${pool.rank_name_ar}` : `Target Rank: ${pool.rank_name}`}
+                            {tr("مخصص لرتبة: ${pool.rank_name_ar}", "Target Rank: ${pool.rank_name}")}
                           </p>
                         </div>
 
@@ -244,12 +243,12 @@ export default function StudentBonusPool() {
                           {isUnlocked ? (
                             <Badge className="bg-emerald-500 text-white font-black px-3 py-1 text-xs shadow-md shadow-emerald-500/30 flex items-center gap-1.5 animate-pulse">
                               <Unlock className="w-3.5 h-3.5" />
-                              <span>{isRtl ? 'مفتوح تلقائياً ومفعل' : 'UNLOCKED'}</span>
+                              <span>{tr("مفتوح تلقائياً ومفعل", "UNLOCKED")}</span>
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="border-slate-600 bg-slate-800/80 text-slate-300 font-semibold px-3 py-1 text-xs flex items-center gap-1.5">
                               <Lock className="w-3.5 h-3.5 text-amber-400" />
-                              <span>{isRtl ? 'مغلق - بحاجة للترقية' : 'LOCKED'}</span>
+                              <span>{tr("مغلق - بحاجة للترقية", "LOCKED")}</span>
                             </Badge>
                           )}
                         </div>
@@ -258,25 +257,25 @@ export default function StudentBonusPool() {
                       {/* Pot Values Display */}
                       <div className="my-5 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                          <span className="text-xs text-slate-400 block">{isRtl ? 'قيمة الحوض التقديرية الحالية' : 'Current Estimated Pot'}</span>
+                          <span className="text-xs text-slate-400 block">{tr("قيمة الحوض التقديرية الحالية", "Current Estimated Pot")}</span>
                           <div className="text-2xl sm:text-3xl font-black text-white flex items-baseline gap-1 mt-0.5">
                             <span>${pool.estimated_current_amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                             <span className="text-xs font-semibold text-slate-400">USD</span>
                           </div>
                           {pool.current_rollover > 0 && (
                             <span className="text-xs text-amber-300 font-medium mt-1 block">
-                              {isRtl ? `(يتضمن $${pool.current_rollover.toFixed(2)} مرحل من الشهر السابق)` : `(Includes $${pool.current_rollover.toFixed(2)} rollover)`}
+                              {tr("(يتضمن $${pool.current_rollover.toFixed(2)} مرحل من الشهر السابق)", "(Includes $${pool.current_rollover.toFixed(2)} rollover)")}
                             </span>
                           )}
                         </div>
 
                         <div className="sm:text-left text-xs text-slate-300 space-y-1">
-                          <span className="text-slate-400 block">{isRtl ? 'حصتك التقديرية' : 'Your Est. Share'}</span>
+                          <span className="text-slate-400 block">{tr("حصتك التقديرية", "Your Est. Share")}</span>
                           <span className="text-lg sm:text-xl font-bold text-emerald-400 block">
                             ${pool.estimated_share?.toFixed(2)} USD
                           </span>
                           <span className="text-[11px] text-slate-400 block">
-                            ({pool.total_qualifiers} {isRtl ? 'قادة مؤهلين حالياً' : 'qualifiers'})
+                            ({pool.total_qualifiers} {tr("قادة مؤهلين حالياً", "qualifiers")})
                           </span>
                         </div>
                       </div>
@@ -287,24 +286,22 @@ export default function StudentBonusPool() {
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                             <span className="text-sm">
-                              {isRtl ? 'أنت مؤهل رسمياً لهذا الحوض! 🎉' : 'You are officially qualified for this pool! 🎉'}
+                              {tr("أنت مؤهل رسمياً لهذا الحوض! 🎉", "You are officially qualified for this pool! 🎉")}
                             </span>
                           </div>
                           <p className="text-xs text-emerald-300/80 font-normal leading-relaxed">
-                            {isRtl 
-                              ? 'لقد حققت جميع متطلبات الرتبة بنجاح. سيتم إيداع حصتك تلقائياً في محفظتك في نهاية الشهر الحالي.'
-                              : 'You have met all rank requirements. Your share will be automatically credited to your wallet at the end of the month.'}
+                            {tr("لقد حققت جميع متطلبات الرتبة بنجاح. سيتم إيداع حصتك تلقائياً في محفظتك في نهاية الشهر الحالي.", "You have met all rank requirements. Your share will be automatically credited to your wallet at the end of the month.")}
                           </p>
                           {pool.user_earned_total > 0 && (
                             <div className="pt-1 text-[11px] text-emerald-200 font-semibold border-t border-emerald-500/20">
-                              {isRtl ? `إجمالي ما استلمته من هذا الحوض سابقاً: $${pool.user_earned_total.toFixed(2)} USD` : `Total previously earned: $${pool.user_earned_total.toFixed(2)} USD`}
+                              {tr("إجمالي ما استلمته من هذا الحوض سابقاً: $${pool.user_earned_total.toFixed(2)} USD", "Total previously earned: $${pool.user_earned_total.toFixed(2)} USD")}
                             </div>
                           )}
                         </div>
                       ) : (
                         <div className="space-y-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs">
                           <div className="flex items-center justify-between text-slate-300">
-                            <span className="font-semibold">{isRtl ? 'شروط الفتح التلقائي للحوض:' : 'Unlock Requirements:'}</span>
+                            <span className="font-semibold">{tr("شروط الفتح التلقائي للحوض:", "Unlock Requirements:")}</span>
                             <span className="text-amber-400 font-bold" style={{ color: pool.rank_color || '#eab308' }}>
                               {isRtl ? `رتبة ${pool.rank_name_ar}` : pool.rank_name}
                             </span>
@@ -314,14 +311,14 @@ export default function StudentBonusPool() {
                           <div className="space-y-1">
                             <div className="flex justify-between text-[11px]">
                               <span className="text-slate-400">
-                                {isRtl ? 'المبيعات المباشرة:' : 'Direct Sales:'} {progress?.user_direct_sales} / {progress?.min_direct_sales}
+                                {tr("المبيعات المباشرة:", "Direct Sales:")} {progress?.user_direct_sales} / {progress?.min_direct_sales}
                               </span>
                               <span className="font-semibold text-slate-300">{progress?.direct_percentage}%</span>
                             </div>
                             <Progress value={progress?.direct_percentage} className="h-2 bg-slate-800" />
                             {progress?.direct_needed > 0 && (
                               <span className="text-[10px] text-amber-300/90 block">
-                                {isRtl ? `ينقصك ${progress.direct_needed} إحالة مباشرة لفتح الحوض` : `${progress.direct_needed} direct sales needed to unlock`}
+                                {tr("ينقصك ${progress.direct_needed} إحالة مباشرة لفتح الحوض", "${progress.direct_needed} direct sales needed to unlock")}
                               </span>
                             )}
                           </div>
@@ -330,14 +327,14 @@ export default function StudentBonusPool() {
                           <div className="space-y-1">
                             <div className="flex justify-between text-[11px]">
                               <span className="text-slate-400">
-                                {isRtl ? 'مبيعات الفريق:' : 'Team Turnover:'} ${progress?.user_team_turnover?.toLocaleString()} / ${progress?.min_team_turnover?.toLocaleString()} USD
+                                {tr("مبيعات الفريق:", "Team Turnover:")} ${progress?.user_team_turnover?.toLocaleString()} / ${progress?.min_team_turnover?.toLocaleString()} USD
                               </span>
                               <span className="font-semibold text-slate-300">{progress?.turnover_percentage}%</span>
                             </div>
                             <Progress value={progress?.turnover_percentage} className="h-2 bg-slate-800" />
                             {progress?.turnover_needed > 0 && (
                               <span className="text-[10px] text-amber-300/90 block">
-                                {isRtl ? `ينقصك $${progress.turnover_needed.toLocaleString()} USD مبيعات فريق` : `$${progress.turnover_needed.toLocaleString()} team turnover needed`}
+                                {tr("ينقصك $${progress.turnover_needed.toLocaleString()} USD مبيعات فريق", "$${progress.turnover_needed.toLocaleString()} team turnover needed")}
                               </span>
                             )}
                           </div>
@@ -358,23 +355,19 @@ export default function StudentBonusPool() {
             <CardHeader className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Coins className="w-5 h-5 text-amber-500" />
-                <span>{isRtl ? 'سجل أرباحي ومكافآتي من الأحواض المالية' : 'My Bonus Pool Earnings History'}</span>
+                <span>{tr("سجل أرباحي ومكافآتي من الأحواض المالية", "My Bonus Pool Earnings History")}</span>
               </CardTitle>
               <CardDescription>
-                {isRtl 
-                  ? 'جميع الحصص الشهرية التي تم إيداعها مباشرة في محفظتك من أحواض القيادة.' 
-                  : 'All monthly pool bonuses credited directly to your wallet.'}
+                {tr("جميع الحصص الشهرية التي تم إيداعها مباشرة في محفظتك من أحواض القيادة.", "All monthly pool bonuses credited directly to your wallet.")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {myPayouts.length === 0 ? (
                 <div className="p-12 text-center text-slate-500">
                   <History className="w-12 h-12 mx-auto mb-2 opacity-30 text-indigo-500" />
-                  <p className="font-semibold">{isRtl ? 'لم تستلم أي مكافأة من الأحواض حتى الآن' : 'No bonus payouts received yet'}</p>
+                  <p className="font-semibold">{tr("لم تستلم أي مكافأة من الأحواض حتى الآن", "No bonus payouts received yet")}</p>
                   <p className="text-xs text-slate-400 mt-1">
-                    {isRtl 
-                      ? 'قم بالترقية والوصول إلى الرتبة المؤهلة لفتح الحوض واستلام حصتك الشهرية.' 
-                      : 'Reach the qualifying rank to unlock the pool and receive your monthly share.'}
+                    {tr("قم بالترقية والوصول إلى الرتبة المؤهلة لفتح الحوض واستلام حصتك الشهرية.", "Reach the qualifying rank to unlock the pool and receive your monthly share.")}
                   </p>
                 </div>
               ) : (
@@ -382,12 +375,12 @@ export default function StudentBonusPool() {
                   <table className="w-full text-right text-sm">
                     <thead className="bg-slate-50 dark:bg-slate-900 text-xs text-slate-500 font-semibold border-b border-slate-200 dark:border-slate-800">
                       <tr>
-                        <th className="p-3.5">{isRtl ? 'الدورة الشهرية' : 'Period'}</th>
-                        <th className="p-3.5">{isRtl ? 'الحوض المالي' : 'Pool Name'}</th>
-                        <th className="p-3.5">{isRtl ? 'المبلغ المستلم' : 'Amount'}</th>
-                        <th className="p-3.5">{isRtl ? 'رقم المعاملة' : 'Reference'}</th>
-                        <th className="p-3.5">{isRtl ? 'الحالة' : 'Status'}</th>
-                        <th className="p-3.5 text-left">{isRtl ? 'تاريخ الإيداع' : 'Date'}</th>
+                        <th className="p-3.5">{tr("الدورة الشهرية", "Period")}</th>
+                        <th className="p-3.5">{tr("الحوض المالي", "Pool Name")}</th>
+                        <th className="p-3.5">{tr("المبلغ المستلم", "Amount")}</th>
+                        <th className="p-3.5">{tr("رقم المعاملة", "Reference")}</th>
+                        <th className="p-3.5">{tr("الحالة", "Status")}</th>
+                        <th className="p-3.5 text-left">{tr("تاريخ الإيداع", "Date")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -407,7 +400,7 @@ export default function StudentBonusPool() {
                           </td>
                           <td className="p-3.5">
                             <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 font-semibold">
-                              {isRtl ? 'تم الإيداع بالمحفظة' : 'Credited to Wallet'}
+                              {tr("تم الإيداع بالمحفظة", "Credited to Wallet")}
                             </Badge>
                           </td>
                           <td className="p-3.5 text-left text-xs text-slate-500">
@@ -429,34 +422,32 @@ export default function StudentBonusPool() {
             <CardHeader className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-indigo-600" />
-                <span>{isRtl ? 'أرشيف توزيعات أحواض المنصة الشهرية' : 'Platform Pool Distributions Archive'}</span>
+                <span>{tr("أرشيف توزيعات أحواض المنصة الشهرية", "Platform Pool Distributions Archive")}</span>
               </CardTitle>
               <CardDescription>
-                {isRtl 
-                  ? 'سجل شفاف وموثق لجميع مبالغ الأحواض المصروفة والمرحلة شهرياً على مستوى المنصة.' 
-                  : 'Transparent history of all monthly platform pool distributions and rollovers.'}
+                {tr("سجل شفاف وموثق لجميع مبالغ الأحواض المصروفة والمرحلة شهرياً على مستوى المنصة.", "Transparent history of all monthly platform pool distributions and rollovers.")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {globalHistory.length === 0 ? (
                 <div className="p-12 text-center text-slate-500">
                   <History className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                  <p>{isRtl ? 'لا توجد توزيعات سابقة مسجلة في الأرشيف' : 'No historical pool distributions recorded yet'}</p>
+                  <p>{tr("لا توجد توزيعات سابقة مسجلة في الأرشيف", "No historical pool distributions recorded yet")}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-right text-sm">
                     <thead className="bg-slate-50 dark:bg-slate-900 text-xs text-slate-500 font-semibold border-b border-slate-200 dark:border-slate-800">
                       <tr>
-                        <th className="p-3.5">{isRtl ? 'الدورة' : 'Period'}</th>
-                        <th className="p-3.5">{isRtl ? 'الحوض' : 'Pool'}</th>
-                        <th className="p-3.5">{isRtl ? 'صافي أرباح المنصة' : 'Net Margin'}</th>
-                        <th className="p-3.5">{isRtl ? 'المبلغ المرحل' : 'Rollover'}</th>
-                        <th className="p-3.5">{isRtl ? 'إجمالي الحوض' : 'Total Pot'}</th>
-                        <th className="p-3.5">{isRtl ? 'المستفيدون' : 'Qualifiers'}</th>
-                        <th className="p-3.5">{isRtl ? 'حصة القائد' : 'Share/Leader'}</th>
-                        <th className="p-3.5">{isRtl ? 'الحالة' : 'Status'}</th>
-                        <th className="p-3.5 text-left">{isRtl ? 'تاريخ التوزيع' : 'Date'}</th>
+                        <th className="p-3.5">{tr("الدورة", "Period")}</th>
+                        <th className="p-3.5">{tr("الحوض", "Pool")}</th>
+                        <th className="p-3.5">{tr("صافي أرباح المنصة", "Net Margin")}</th>
+                        <th className="p-3.5">{tr("المبلغ المرحل", "Rollover")}</th>
+                        <th className="p-3.5">{tr("إجمالي الحوض", "Total Pot")}</th>
+                        <th className="p-3.5">{tr("المستفيدون", "Qualifiers")}</th>
+                        <th className="p-3.5">{tr("حصة القائد", "Share/Leader")}</th>
+                        <th className="p-3.5">{tr("الحالة", "Status")}</th>
+                        <th className="p-3.5 text-left">{tr("تاريخ التوزيع", "Date")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -478,7 +469,7 @@ export default function StudentBonusPool() {
                             ${Number(item.total_pool_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </td>
                           <td className="p-3.5">
-                            {item.eligible_leaders_count} {isRtl ? 'قادة' : 'leaders'}
+                            {item.eligible_leaders_count} {tr("قادة", "leaders")}
                           </td>
                           <td className="p-3.5 font-black text-emerald-600 dark:text-emerald-400">
                             ${Number(item.share_per_leader).toFixed(2)}
@@ -486,11 +477,11 @@ export default function StudentBonusPool() {
                           <td className="p-3.5">
                             {item.status === 'distributed' ? (
                               <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                                {isRtl ? 'موزّع' : 'Distributed'}
+                                {tr("موزّع", "Distributed")}
                               </Badge>
                             ) : (
                               <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-                                {isRtl ? 'مُرحّل' : 'Rolled Over'}
+                                {tr("مُرحّل", "Rolled Over")}
                               </Badge>
                             )}
                           </td>

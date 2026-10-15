@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -119,13 +120,13 @@ export function LessonAttendanceDialog({ open, onOpenChange, lesson }: LessonAtt
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            {isRtl ? 'تتبع الحضور' : 'Track Attendance'} - {lesson?.title}
+            {tr("تتبع الحضور", "Track Attendance")} - {lesson?.title}
           </DialogTitle>
         </DialogHeader>
 
         {!cohortId ? (
           <div className="text-center py-8 text-muted-foreground">
-            {isRtl ? 'هذا الدرس غير مرتبط بمجموعة. يرجى تحديد المجموعة أولاً.' : 'This lesson is not linked to a cohort. Please select a cohort first.'}
+            {tr("هذا الدرس غير مرتبط بمجموعة. يرجى تحديد المجموعة أولاً.", "This lesson is not linked to a cohort. Please select a cohort first.")}
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -138,15 +139,15 @@ export function LessonAttendanceDialog({ open, onOpenChange, lesson }: LessonAtt
               <div className="flex gap-4">
                 <Badge variant="outline" className={cn("px-3 py-1", getStatusBadge('present'))}>
                   <CheckCircle className="h-4 w-4 mr-1 rtl:mr-0 rtl:ml-1" />
-                  {isRtl ? 'حاضر' : 'Present'}: {stats.present}
+                  {tr("حاضر", "Present")}: {stats.present}
                 </Badge>
                 <Badge variant="outline" className={cn("px-3 py-1", getStatusBadge('late'))}>
                   <Clock className="h-4 w-4 mr-1 rtl:mr-0 rtl:ml-1" />
-                  {isRtl ? 'متأخر' : 'Late'}: {stats.late}
+                  {tr("متأخر", "Late")}: {stats.late}
                 </Badge>
                 <Badge variant="outline" className={cn("px-3 py-1", getStatusBadge('absent'))}>
                   <XCircle className="h-4 w-4 mr-1 rtl:mr-0 rtl:ml-1" />
-                  {isRtl ? 'غائب' : 'Absent'}: {stats.absent}
+                  {tr("غائب", "Absent")}: {stats.absent}
                 </Badge>
               </div>
 
@@ -155,7 +156,7 @@ export function LessonAttendanceDialog({ open, onOpenChange, lesson }: LessonAtt
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    {isRtl ? 'تصدير' : 'Export'}
+                    {tr("تصدير", "Export")}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -173,7 +174,7 @@ export function LessonAttendanceDialog({ open, onOpenChange, lesson }: LessonAtt
                     exportAttendanceToExcel(exportData);
                   }}>
                     <FileSpreadsheet className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    {isRtl ? 'تصدير Excel' : 'Export Excel'}
+                    {tr("تصدير Excel", "Export Excel")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => {
                     const exportData = {
@@ -189,7 +190,7 @@ export function LessonAttendanceDialog({ open, onOpenChange, lesson }: LessonAtt
                     exportAttendanceToPDF(exportData);
                   }}>
                     <FileText className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    {isRtl ? 'تصدير PDF' : 'Export PDF'}
+                    {tr("تصدير PDF", "Export PDF")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -200,9 +201,9 @@ export function LessonAttendanceDialog({ open, onOpenChange, lesson }: LessonAtt
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{isRtl ? 'الطالب' : 'Student'}</TableHead>
-                    <TableHead className="text-center">{isRtl ? 'الحالة' : 'Status'}</TableHead>
-                    <TableHead>{isRtl ? 'ملاحظات' : 'Notes'}</TableHead>
+                    <TableHead>{tr("الطالب", "Student")}</TableHead>
+                    <TableHead className="text-center">{tr("الحالة", "Status")}</TableHead>
+                    <TableHead>{tr("ملاحظات", "Notes")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -259,7 +260,7 @@ export function LessonAttendanceDialog({ open, onOpenChange, lesson }: LessonAtt
                           <Textarea
                             value={record?.notes || ''}
                             onChange={(e) => handleNotesChange(student.id, e.target.value)}
-                            placeholder={isRtl ? 'ملاحظات...' : 'Notes...'}
+                            placeholder={tr("ملاحظات...", "Notes...")}
                             className="min-h-[40px] h-10 resize-none"
                           />
                         </TableCell>
@@ -272,20 +273,20 @@ export function LessonAttendanceDialog({ open, onOpenChange, lesson }: LessonAtt
           </>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            {isRtl ? 'لا يوجد طلاب في هذه المجموعة.' : 'No students found in this cohort.'}
+            {tr("لا يوجد طلاب في هذه المجموعة.", "No students found in this cohort.")}
           </div>
         )}
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {isRtl ? 'إلغاء' : 'Cancel'}
+            {tr("إلغاء", "Cancel")}
           </Button>
           <Button 
             onClick={handleSave} 
             disabled={markAttendance.isPending || !students?.length}
           >
             {markAttendance.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isRtl ? 'حفظ الحضور' : 'Save Attendance'}
+            {tr("حفظ الحضور", "Save Attendance")}
           </Button>
         </DialogFooter>
       </DialogContent>

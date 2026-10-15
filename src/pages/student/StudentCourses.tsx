@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { tr } from '@/utils/tr';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -58,7 +59,7 @@ export default function StudentCourses() {
         <Card>
           <CardContent className="py-12 text-center">
             <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">{isRtl ? 'لا توجد مواد متاحة حالياً' : 'No courses available currently'}</p>
+            <p className="text-muted-foreground">{tr("لا توجد مواد متاحة حالياً", "No courses available currently")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -66,7 +67,7 @@ export default function StudentCourses() {
           {modules.map((m) => {
             const progress = getModuleProgress(m.id);
             const { videos, pdfs, lessonsCount } = getModuleContentCounts(m.id);
-            const teacherName = (m as any).teacher?.full_name || (m as any).teacher?.profile?.full_name || (m as any).teacher_name || (isRtl ? 'غير محدد' : 'Unassigned');
+            const teacherName = (m as any).teacher?.full_name || (m as any).teacher?.profile?.full_name || (m as any).teacher_name || (tr("غير محدد", "Unassigned"));
             
             return (
               <Card 
@@ -93,17 +94,17 @@ export default function StudentCourses() {
                     {m.hours && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
-                        <span>{m.hours} {isRtl ? 'ساعة' : 'hours'}</span>
+                        <span>{m.hours} {tr("ساعة", "hours")}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <PlayCircle className="h-4 w-4" />
-                        {videos} {isRtl ? 'فيديو' : 'videos'}
+                        {videos} {tr("فيديو", "videos")}
                       </span>
                       <span className="flex items-center gap-1">
                         <FileText className="h-4 w-4" />
-                        {pdfs} {isRtl ? 'ملف' : 'files'}
+                        {pdfs} {tr("ملف", "files")}
                       </span>
                     </div>
                   </div>
@@ -115,12 +116,12 @@ export default function StudentCourses() {
                     </div>
                     <Progress value={progress} className="h-2" />
                     <p className="text-xs text-muted-foreground text-center">
-                      {lessonsCount} {isRtl ? 'درس' : 'lessons'}
+                      {lessonsCount} {tr("درس", "lessons")}
                     </p>
                   </div>
                   
                   <Button className="w-full mt-4" variant="outline">
-                    {isRtl ? 'عرض المادة' : 'View Course'}
+                    {tr("عرض المادة", "View Course")}
                   </Button>
                 </CardContent>
               </Card>

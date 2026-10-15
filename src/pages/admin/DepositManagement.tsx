@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
@@ -206,7 +207,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopiedText(label);
-    toast.success(isRtl ? 'تم النسخ إلى الحافظة' : 'Copied to clipboard');
+    toast.success(tr("تم النسخ إلى الحافظة", "Copied to clipboard"));
     setTimeout(() => setCopiedText(null), 2500);
   };
 
@@ -268,12 +269,11 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
               FINANCIAL MANAGEMENT
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-              {filterCategory === 'ipn_log' ? (isRtl ? 'سجل محاولات الدفع وإشعارات IPN Log' : 'IPN Log & Payment Attempts') : t('adminExtra.depositsTitle')}
+              {filterCategory === 'ipn_log' ? (tr("سجل محاولات الدفع وإشعارات IPN Log", "IPN Log & Payment Attempts")) : t('adminExtra.depositsTitle')}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               {filterCategory === 'ipn_log'
-                ? (isRtl ? 'متابعة وتدقيق جميع محاولات الدفع عبر NOWPayments وتجديداتها كل 20 دقيقة والتحقق من عدم ازدواج الرصيد.' 
-                         : 'Audit all NOWPayments deposit attempts, 20-min renewals, webhook events, and wallet settlements.')
+                ? (tr("متابعة وتدقيق جميع محاولات الدفع عبر NOWPayments وتجديداتها كل 20 دقيقة والتحقق من عدم ازدواج الرصيد.", "Audit all NOWPayments deposit attempts, 20-min renewals, webhook events, and wallet settlements."))
                 : t('adminExtra.depositsSubtitle')}
             </p>
           </div>
@@ -282,7 +282,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
             <div className="flex flex-wrap items-center gap-3">
               <div className="px-4 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
                 <span className="text-[10px] font-bold text-slate-500 block">
-                  {isRtl ? 'إجمالي المحاولات المسجلة' : 'Total Attempts'}
+                  {tr("إجمالي المحاولات المسجلة", "Total Attempts")}
                 </span>
                 <span className="font-mono text-lg font-black text-indigo-600 dark:text-indigo-400">
                   {ipnMetrics.total_attempts}
@@ -290,7 +290,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
               </div>
               <div className="px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
                 <span className="text-[10px] font-bold text-slate-500 block">
-                  {isRtl ? 'حجم الرصيد المضاف' : 'Credited Volume'}
+                  {tr("حجم الرصيد المضاف", "Credited Volume")}
                 </span>
                 <span className="font-mono text-lg font-black text-emerald-600 dark:text-emerald-400">
                   ${Number(ipnMetrics.total_credited_volume || 0).toFixed(2)} USD
@@ -298,7 +298,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
               </div>
               <div className="px-4 py-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
                 <span className="text-[10px] font-bold text-amber-600 block">
-                  {isRtl ? 'محاولات قيد الانتظار' : 'Waiting / Pending'}
+                  {tr("محاولات قيد الانتظار", "Waiting / Pending")}
                 </span>
                 <span className="font-mono text-lg font-black text-amber-600">
                   {ipnMetrics.pending_count}
@@ -346,7 +346,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
               { id: 'all', label: t('adminExtra.filterAll', 'الكل') },
               { id: 'wallet', label: t('adminExtra.filterWallet', 'شحن المحفظة') },
               { id: 'package', label: t('adminExtra.filterPackages', 'الباقات') },
-              { id: 'ipn_log', label: isRtl ? '🪙 سجل IPN Log والتجديدات' : '🪙 IPN Log & Renewals' },
+              { id: 'ipn_log', label: tr("🪙 سجل IPN Log والتجديدات", "🪙 IPN Log & Renewals") },
             ].map((cat) => (
               <Button
                 key={cat.id}
@@ -371,7 +371,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
               className="rounded-xl text-xs font-bold gap-1.5"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${ipnLoading ? 'animate-spin' : ''}`} />
-              {isRtl ? 'تحديث السجل' : 'Refresh Logs'}
+              {tr("تحديث السجل", "Refresh Logs")}
             </Button>
           )}
         </div>
@@ -386,7 +386,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
               <form onSubmit={handleIpnSearchSubmit} className="relative sm:col-span-2">
                 <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-2.5 h-4 w-4 text-slate-400`} />
                 <Input
-                  placeholder={isRtl ? 'ابحث بالمعرف، العنوان، البريد أو Payment ID...' : 'Search by ID, Address, Email, Payment ID...'}
+                  placeholder={tr("ابحث بالمعرف، العنوان، البريد أو Payment ID...", "Search by ID, Address, Email, Payment ID...")}
                   value={ipnSearch}
                   onChange={(e) => setIpnSearch(e.target.value)}
                   className={`${isRtl ? 'pr-9' : 'pl-9'} rounded-xl text-xs bg-slate-50 dark:bg-slate-800/60`}
@@ -398,7 +398,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 onChange={(e) => { setIpnProvider(e.target.value); setIpnPage(1); }}
                 className="text-xs font-bold rounded-xl px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
               >
-                <option value="all">{isRtl ? 'جميع المزودين (All)' : 'All Providers'}</option>
+                <option value="all">{tr("جميع المزودين (All)", "All Providers")}</option>
                 <option value="nowpayments">NOWPayments</option>
                 <option value="stripe">Stripe</option>
               </select>
@@ -408,13 +408,13 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 onChange={(e) => { setIpnStatus(e.target.value); setIpnPage(1); }}
                 className="text-xs font-bold rounded-xl px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
               >
-                <option value="all">{isRtl ? 'جميع الحالات (All)' : 'All Statuses'}</option>
-                <option value="waiting">{isRtl ? 'في انتظار الدفع (Waiting)' : 'Waiting'}</option>
-                <option value="confirming">{isRtl ? 'جارٍ التأكيد (Confirming)' : 'Confirming'}</option>
-                <option value="finished">{isRtl ? 'مكتمل (Finished/Confirmed)' : 'Finished'}</option>
-                <option value="partially_paid">{isRtl ? 'مدفوع جزئياً (Partial)' : 'Partially Paid'}</option>
-                <option value="expired">{isRtl ? 'منتهي الصلاحية (Expired)' : 'Expired'}</option>
-                <option value="failed">{isRtl ? 'فاشل (Failed)' : 'Failed'}</option>
+                <option value="all">{tr("جميع الحالات (All)", "All Statuses")}</option>
+                <option value="waiting">{tr("في انتظار الدفع (Waiting)", "Waiting")}</option>
+                <option value="confirming">{tr("جارٍ التأكيد (Confirming)", "Confirming")}</option>
+                <option value="finished">{tr("مكتمل (Finished/Confirmed)", "Finished")}</option>
+                <option value="partially_paid">{tr("مدفوع جزئياً (Partial)", "Partially Paid")}</option>
+                <option value="expired">{tr("منتهي الصلاحية (Expired)", "Expired")}</option>
+                <option value="failed">{tr("فاشل (Failed)", "Failed")}</option>
               </select>
 
               <select
@@ -422,9 +422,9 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 onChange={(e) => { setIpnCredited(e.target.value); setIpnPage(1); }}
                 className="text-xs font-bold rounded-xl px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
               >
-                <option value="all">{isRtl ? 'حالة الرصيد (الكل)' : 'Wallet Credit (All)'}</option>
-                <option value="1">{isRtl ? 'تم شحن المحفظة (Credited)' : 'Credited'}</option>
-                <option value="0">{isRtl ? 'لم يضاف رصيد (Pending/None)' : 'Not Credited'}</option>
+                <option value="all">{tr("حالة الرصيد (الكل)", "Wallet Credit (All)")}</option>
+                <option value="1">{tr("تم شحن المحفظة (Credited)", "Credited")}</option>
+                <option value="0">{tr("لم يضاف رصيد (Pending/None)", "Not Credited")}</option>
               </select>
             </div>
 
@@ -434,15 +434,15 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 <table className="w-full text-xs text-left rtl:text-right border-collapse">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
                     <tr>
-                      <th className="p-3.5">{isRtl ? 'العضو' : 'Member'}</th>
-                      <th className="p-3.5">{isRtl ? 'المزود والمحاولة' : 'Provider & Attempt'}</th>
-                      <th className="p-3.5">{isRtl ? 'المبلغ المطلوب' : 'Price / Expected'}</th>
-                      <th className="p-3.5">{isRtl ? 'المستلم فعلياً' : 'Actually Paid'}</th>
-                      <th className="p-3.5">{isRtl ? 'عنوان الدفع والمراجع' : 'Address & Payment ID'}</th>
-                      <th className="p-3.5">{isRtl ? 'حالة البوابة' : 'Gateway Status'}</th>
-                      <th className="p-3.5">{isRtl ? 'شحن المحفظة' : 'Wallet Credited'}</th>
-                      <th className="p-3.5">{isRtl ? 'التاريخ والتجديد' : 'Timestamps'}</th>
-                      <th className="p-3.5 text-center">{isRtl ? 'الإجراءات' : 'Actions'}</th>
+                      <th className="p-3.5">{tr("العضو", "Member")}</th>
+                      <th className="p-3.5">{tr("المزود والمحاولة", "Provider & Attempt")}</th>
+                      <th className="p-3.5">{tr("المبلغ المطلوب", "Price / Expected")}</th>
+                      <th className="p-3.5">{tr("المستلم فعلياً", "Actually Paid")}</th>
+                      <th className="p-3.5">{tr("عنوان الدفع والمراجع", "Address & Payment ID")}</th>
+                      <th className="p-3.5">{tr("حالة البوابة", "Gateway Status")}</th>
+                      <th className="p-3.5">{tr("شحن المحفظة", "Wallet Credited")}</th>
+                      <th className="p-3.5">{tr("التاريخ والتجديد", "Timestamps")}</th>
+                      <th className="p-3.5 text-center">{tr("الإجراءات", "Actions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -450,13 +450,13 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                       <tr>
                         <td colSpan={9} className="text-center py-12">
                           <Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-500 mb-2" />
-                          <span className="text-xs text-slate-400">{isRtl ? 'جارٍ تحميل السجلات...' : 'Loading IPN logs...'}</span>
+                          <span className="text-xs text-slate-400">{tr("جارٍ تحميل السجلات...", "Loading IPN logs...")}</span>
                         </td>
                       </tr>
                     ) : ipnLogs.length === 0 ? (
                       <tr>
                         <td colSpan={9} className="text-center py-12 text-slate-400">
-                          {isRtl ? 'لا توجد محاولات دفع مسجلة مطابقة للفلاتر' : 'No payment attempts found matching filters'}
+                          {tr("لا توجد محاولات دفع مسجلة مطابقة للفلاتر", "No payment attempts found matching filters")}
                         </td>
                       </tr>
                     ) : (
@@ -537,12 +537,12 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                             {log.is_wallet_credited === 1 ? (
                               <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 gap-1">
                                 <CheckCircle2 className="h-3 w-3" />
-                                {isRtl ? 'تم الشحن' : 'Credited'}
+                                {tr("تم الشحن", "Credited")}
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="text-slate-400 border-slate-300 gap-1">
                                 <Clock className="h-3 w-3" />
-                                {isRtl ? 'قيد المعالجة' : 'Pending'}
+                                {tr("قيد المعالجة", "Pending")}
                               </Badge>
                             )}
                           </td>
@@ -565,7 +565,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                                 className="h-7 px-2 text-[10px] rounded-lg font-bold"
                                 onClick={() => handleOpenDetail(log.transaction_id)}
                               >
-                                {isRtl ? 'التفاصيل' : 'Details'}
+                                {tr("التفاصيل", "Details")}
                               </Button>
 
                               {log.status === 'waiting' && log.is_wallet_credited === 0 && (
@@ -575,7 +575,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                                   className="h-7 px-2 text-[10px] text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg font-bold"
                                   disabled={renewingId === log.transaction_id}
                                   onClick={() => handleTriggerRenewal(log.transaction_id)}
-                                  title={isRtl ? 'تجديد فوري الآن' : 'Trigger Renewal Now'}
+                                  title={tr("تجديد فوري الآن", "Trigger Renewal Now")}
                                 >
                                   {renewingId === log.transaction_id ? (
                                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -597,7 +597,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
               {ipnTotalPages > 1 && (
                 <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-800 text-xs">
                   <span className="text-slate-500 font-semibold">
-                    {isRtl ? `صفحة ${ipnPage} من ${ipnTotalPages}` : `Page ${ipnPage} of ${ipnTotalPages}`}
+                    {tr("صفحة ${ipnPage} من ${ipnTotalPages}", "Page ${ipnPage} of ${ipnTotalPages}")}
                   </span>
                   <div className="flex items-center gap-1.5">
                     <Button
@@ -639,7 +639,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                     <th className="p-4">{t('adminExtra.amountCol', 'Amount')}</th>
                     <th className="p-4">{t('adminExtra.methodCol', 'Method')}</th>
                     <th className="p-4">{t('adminExtra.referenceCol', 'Reference')}</th>
-                    <th className="p-4">{isRtl ? 'وصل التحويل' : 'Receipt Proof'}</th>
+                    <th className="p-4">{tr("وصل التحويل", "Receipt Proof")}</th>
                     <th className="p-4">{t('adminExtra.statusCol', 'Status')}</th>
                     <th className="p-4">{t('adminExtra.dateCol', 'Date')}</th>
                     <th className="p-4 text-center">{t('adminExtra.actionsCol', 'Actions')}</th>
@@ -695,11 +695,11 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                               className="h-7 px-2.5 text-[10px] gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 font-bold"
                             >
                               <ImageIcon className="h-3.5 w-3.5" />
-                              <span>{isRtl ? 'عرض الوصل' : 'View'}</span>
+                              <span>{tr("عرض الوصل", "View")}</span>
                             </Button>
                           ) : (
                             <span className="text-[10px] text-slate-400 italic">
-                              {isRtl ? 'بدون وصل' : 'No Receipt'}
+                              {tr("بدون وصل", "No Receipt")}
                             </span>
                           )}
                         </td>
@@ -750,19 +750,17 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
             <DialogHeader className={isRtl ? 'text-right' : 'text-left'}>
               <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <Coins className="h-5 w-5 text-emerald-500" />
-                {isRtl ? 'تفاصيل جلسة الإيداع وسجل المحاولات' : 'Deposit Session & Attempts Timeline'}
+                {tr("تفاصيل جلسة الإيداع وسجل المحاولات", "Deposit Session & Attempts Timeline")}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                {isRtl 
-                  ? 'عرض جميع محاولات الدفع المنشأة عبر NOWPayments، العناوين المستخدمة، والتسوية التلقائية.' 
-                  : 'View all NOWPayments payment attempts, generated addresses, and settlement audit.'}
+                {tr("عرض جميع محاولات الدفع المنشأة عبر NOWPayments، العناوين المستخدمة، والتسوية التلقائية.", "View all NOWPayments payment attempts, generated addresses, and settlement audit.")}
               </DialogDescription>
             </DialogHeader>
 
             {detailLoading || !detailData ? (
               <div className="py-12 text-center">
                 <Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-500 mb-2" />
-                <span className="text-xs text-slate-400">{isRtl ? 'جارٍ تحميل التفاصيل...' : 'Loading attempt details...'}</span>
+                <span className="text-xs text-slate-400">{tr("جارٍ تحميل التفاصيل...", "Loading attempt details...")}</span>
               </div>
             ) : (
               <div className="space-y-4 py-2">
@@ -770,15 +768,15 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <span className="text-[10px] text-slate-400 block">{isRtl ? 'معرف الإيداع الداخلي' : 'Transaction ID'}</span>
+                      <span className="text-[10px] text-slate-400 block">{tr("معرف الإيداع الداخلي", "Transaction ID")}</span>
                       <span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-100">{detailData.transaction?.id}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">{isRtl ? 'العضو' : 'Member'}</span>
+                      <span className="text-[10px] text-slate-400 block">{tr("العضو", "Member")}</span>
                       <span className="text-xs font-bold">{detailData.transaction?.user_name} ({detailData.transaction?.user_email})</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">{isRtl ? 'المبلغ المطلوب' : 'Price Amount'}</span>
+                      <span className="text-[10px] text-slate-400 block">{tr("المبلغ المطلوب", "Price Amount")}</span>
                       <span className="font-mono text-sm font-black text-emerald-600">${Number(detailData.transaction?.amount).toFixed(2)} USD</span>
                     </div>
                   </div>
@@ -787,7 +785,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 {/* Attempts Timeline */}
                 <div>
                   <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center justify-between">
-                    <span>{isRtl ? `محاولات الدفع المنشأة (${detailData.attempts?.length || 0}):` : `Payment Attempts (${detailData.attempts?.length || 0}):`}</span>
+                    <span>{tr("محاولات الدفع المنشأة (${detailData.attempts?.length || 0}):", "Payment Attempts (${detailData.attempts?.length || 0}):")}</span>
                     {detailData.transaction?.status === 'pending' && (
                       <Button
                         size="sm"
@@ -797,7 +795,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                         onClick={() => handleTriggerRenewal(detailData.transaction?.id)}
                       >
                         <RefreshCw className="h-3 w-3 mr-1" />
-                        {isRtl ? 'إنشاء محاولة بديلة الآن' : 'Renew / Next Attempt Now'}
+                        {tr("إنشاء محاولة بديلة الآن", "Renew / Next Attempt Now")}
                       </Button>
                     )}
                   </h4>
@@ -815,12 +813,12 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="font-mono font-bold text-xs bg-slate-100 dark:bg-slate-800">
-                              {isRtl ? `المحاولة #${att.attempt_number}` : `Attempt #${att.attempt_number}`}
+                              {tr("المحاولة #${att.attempt_number}", "Attempt #${att.attempt_number}")}
                             </Badge>
                             {getStatusBadge(att.status)}
                             {att.is_wallet_credited === 1 && (
                               <Badge className="bg-emerald-600 text-white text-[10px]">
-                                {isRtl ? 'تم شحن المحفظة بهذه المحاولة' : 'Settled to Wallet'}
+                                {tr("تم شحن المحفظة بهذه المحاولة", "Settled to Wallet")}
                               </Badge>
                             )}
                           </div>
@@ -832,13 +830,13 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
                           <div>
-                            <span className="text-slate-400 text-[10px] block">{isRtl ? 'عنوان الدفع المحجوز:' : 'Payment Address:'}</span>
+                            <span className="text-slate-400 text-[10px] block">{tr("عنوان الدفع المحجوز:", "Payment Address:")}</span>
                             <span className="font-bold text-emerald-600 dark:text-emerald-400 break-all select-all">
                               {att.pay_address || '—'}
                             </span>
                           </div>
                           <div>
-                            <span className="text-slate-400 text-[10px] block">{isRtl ? 'المبلغ والشبكة:' : 'Pay Amount & Network:'}</span>
+                            <span className="text-slate-400 text-[10px] block">{tr("المبلغ والشبكة:", "Pay Amount & Network:")}</span>
                             <span className="font-bold text-slate-700 dark:text-slate-300">
                               {Number(att.pay_amount || 0)} {att.pay_currency} ({att.network?.toUpperCase() || 'BSC'})
                             </span>
@@ -847,7 +845,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
 
                         {att.renewal_error && (
                           <div className="mt-2 p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-[10px] text-rose-600 border border-rose-200 dark:border-rose-800">
-                            <strong>{isRtl ? 'خطأ الاتصال أثناء التجديد:' : 'Renewal Error:'}</strong> {att.renewal_error}
+                            <strong>{tr("خطأ الاتصال أثناء التجديد:", "Renewal Error:")}</strong> {att.renewal_error}
                           </div>
                         )}
                       </div>
@@ -859,7 +857,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
 
             <DialogFooter className="pt-2">
               <Button variant="outline" onClick={() => setSelectedSessionId(null)} className="rounded-2xl text-xs font-bold">
-                {isRtl ? 'إغلاق' : 'Close'}
+                {tr("إغلاق", "Close")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -899,7 +897,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
 
                 {/* Receipt Preview in Approval Dialog */}
                 <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-                  <span className="text-slate-400 block mb-1.5 font-bold">{isRtl ? 'صورة وصل التحويل:' : 'Transfer Receipt Proof:'}</span>
+                  <span className="text-slate-400 block mb-1.5 font-bold">{tr("صورة وصل التحويل:", "Transfer Receipt Proof:")}</span>
                   {approveItem.receipt_url ? (
                     <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-black/5 dark:bg-black/30 p-2 text-center">
                       <img 
@@ -916,13 +914,13 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                           className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1"
                         >
                           <ExternalLink className="h-3 w-3" />
-                          {isRtl ? 'عرض بالحجم الكامل ↗' : 'View Full Image ↗'}
+                          {tr("عرض بالحجم الكامل ↗", "View Full Image ↗")}
                         </a>
                       </div>
                     </div>
                   ) : (
                     <Badge variant="outline" className="text-rose-500 border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/20 text-[10px]">
-                      {isRtl ? 'لم يقم العضو برفع وصل' : 'No Receipt Attached'}
+                      {tr("لم يقم العضو برفع وصل", "No Receipt Attached")}
                     </Badge>
                   )}
                 </div>
@@ -990,7 +988,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
             <DialogHeader className={isRtl ? 'text-right' : 'text-left'}>
               <DialogTitle className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <ImageIcon className="h-4 w-4 text-primary" />
-                <span>{isRtl ? 'وصل التحويل البنكي' : 'Bank Transfer Receipt'}</span>
+                <span>{tr("وصل التحويل البنكي", "Bank Transfer Receipt")}</span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500 font-mono truncate">
                 {viewingReceipt?.title}
@@ -1006,14 +1004,14 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                         <ExternalLink className="h-6 w-6" />
                       </div>
                       <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                        {isRtl ? 'المستند بصيغة PDF' : 'Document is in PDF format'}
+                        {tr("المستند بصيغة PDF", "Document is in PDF format")}
                       </p>
                       <Button
                         size="sm"
                         onClick={() => window.open(viewingReceipt.url, '_blank')}
                         className="rounded-xl font-bold text-xs"
                       >
-                        {isRtl ? 'فتح ملف PDF في نافذة جديدة' : 'Open PDF in New Tab'}
+                        {tr("فتح ملف PDF في نافذة جديدة", "Open PDF in New Tab")}
                       </Button>
                     </div>
                   ) : (
@@ -1033,7 +1031,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                     className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-bold"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
-                    <span>{isRtl ? 'فتح في نافذة جديدة' : 'Open in New Tab'}</span>
+                    <span>{tr("فتح في نافذة جديدة", "Open in New Tab")}</span>
                   </a>
                   <Button
                     variant="outline"
@@ -1041,7 +1039,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                     onClick={() => setViewingReceipt(null)}
                     className="rounded-xl text-xs font-bold"
                   >
-                    {isRtl ? 'إغلاق' : 'Close'}
+                    {tr("إغلاق", "Close")}
                   </Button>
                 </div>
               </div>

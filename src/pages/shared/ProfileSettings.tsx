@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService, uploadService, affiliateService } from '@/services/apiService';
@@ -42,11 +43,11 @@ export default function ProfileSettings() {
     mutationFn: userService.updateProfile,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      toast.success(isRtl ? 'تم تحديث الملف الشخصي بنجاح' : 'Profile updated successfully');
+      toast.success(tr("تم تحديث الملف الشخصي بنجاح", "Profile updated successfully"));
     },
     onError: (error: any) => {
       toast.error(
-        (isRtl ? 'فشل تحديث الملف الشخصي: ' : 'Failed to update profile: ') +
+        (tr("فشل تحديث الملف الشخصي: ", "Failed to update profile: ")) +
         (error.response?.data?.error || error.message)
       );
     }
@@ -55,12 +56,12 @@ export default function ProfileSettings() {
   const changePassword = useMutation({
     mutationFn: userService.changePassword,
     onSuccess: () => {
-      toast.success(isRtl ? 'تم تغيير كلمة المرور بنجاح' : 'Password changed successfully');
+      toast.success(tr("تم تغيير كلمة المرور بنجاح", "Password changed successfully"));
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     },
     onError: (error: any) => {
       toast.error(
-        (isRtl ? 'فشل تغيير كلمة المرور: ' : 'Failed to change password: ') +
+        (tr("فشل تغيير كلمة المرور: ", "Failed to change password: ")) +
         (error.response?.data?.error || error.message)
       );
     }
@@ -148,10 +149,10 @@ export default function ProfileSettings() {
     try {
       setSavingPayout(true);
       await affiliateService.updatePayoutSettings(payoutData);
-      toast.success(isRtl ? 'تم حفظ إعدادات استلام الأرباح بنجاح' : 'Payout settings saved successfully');
+      toast.success(tr("تم حفظ إعدادات استلام الأرباح بنجاح", "Payout settings saved successfully"));
     } catch (err: any) {
       toast.error(
-        (isRtl ? 'فشل حفظ إعدادات استلام الأرباح: ' : 'Failed to save payout settings: ') +
+        (tr("فشل حفظ إعدادات استلام الأرباح: ", "Failed to save payout settings: ")) +
         (err.response?.data?.error || err.message)
       );
     } finally {
@@ -191,7 +192,7 @@ export default function ProfileSettings() {
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error(isRtl ? 'كلمات المرور الجديدة غير متطابقة' : 'New passwords do not match');
+      toast.error(tr("كلمات المرور الجديدة غير متطابقة", "New passwords do not match"));
       return;
     }
     changePassword.mutate({
@@ -209,7 +210,7 @@ export default function ProfileSettings() {
       const res = await uploadService.uploadFile(file);
       await updateProfile.mutateAsync({ avatar_url: res.url });
     } catch (error) {
-      toast.error(isRtl ? 'فشل تحميل الصورة الشخصية' : 'Failed to upload avatar');
+      toast.error(tr("فشل تحميل الصورة الشخصية", "Failed to upload avatar"));
     } finally {
       setAvatarUploading(false);
     }
@@ -331,12 +332,10 @@ export default function ProfileSettings() {
                 </div>
                 <div>
                   <CardTitle className="text-xl">
-                    {isRtl ? 'إعدادات استلام الأرباح' : 'Payout Settings'}
+                    {tr("إعدادات استلام الأرباح", "Payout Settings")}
                   </CardTitle>
                   <CardDescription>
-                    {isRtl 
-                      ? 'قم بتعيين بيانات حسابك البنكي أو محافظك الإلكترونية لاستلام أرباحك وعمولات التسويق.'
-                      : 'Set your bank account or electronic wallet details to receive commissions and payout earnings.'}
+                    {tr("قم بتعيين بيانات حسابك البنكي أو محافظك الإلكترونية لاستلام أرباحك وعمولات التسويق.", "Set your bank account or electronic wallet details to receive commissions and payout earnings.")}
                   </CardDescription>
                 </div>
               </div>
@@ -346,45 +345,45 @@ export default function ProfileSettings() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 border-b pb-2">
                   <Building2 className="h-4 w-4 text-emerald-600" />
-                  <span>{isRtl ? 'التحويل البنكي / الحساب البنكي (Bank Transfer / IBAN)' : 'Bank Transfer / IBAN Account'}</span>
+                  <span>{tr("التحويل البنكي / الحساب البنكي (Bank Transfer / IBAN)", "Bank Transfer / IBAN Account")}</span>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="bankName">{isRtl ? 'اسم البنك / المؤسسة المالية' : 'Bank / Institution Name'}</Label>
+                    <Label htmlFor="bankName">{tr("اسم البنك / المؤسسة المالية", "Bank / Institution Name")}</Label>
                     <Input 
                       id="bankName" 
                       name="bankName" 
-                      placeholder={isRtl ? 'مثال: البنك الوطني، بريد الجزائر...' : 'e.g. Chase, BNP Paribas, Al Baraka...'}
+                      placeholder={tr("مثال: البنك الوطني، بريد الجزائر...", "e.g. Chase, BNP Paribas, Al Baraka...")}
                       value={payoutData.bankName} 
                       onChange={handlePayoutInputChange} 
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="accountHolder">{isRtl ? 'اسم صاحب الحساب (بالكامل)' : 'Account Holder Full Name'}</Label>
+                    <Label htmlFor="accountHolder">{tr("اسم صاحب الحساب (بالكامل)", "Account Holder Full Name")}</Label>
                     <Input 
                       id="accountHolder" 
                       name="accountHolder" 
-                      placeholder={isRtl ? 'الاسم المطابق لبطاقة الهوية أو الحساب' : 'Name matching bank account or ID'}
+                      placeholder={tr("الاسم المطابق لبطاقة الهوية أو الحساب", "Name matching bank account or ID")}
                       value={payoutData.accountHolder} 
                       onChange={handlePayoutInputChange} 
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="iban">{isRtl ? 'رقم الحساب أو الآيبان (IBAN / RIP)' : 'Account Number or IBAN / RIP'}</Label>
+                    <Label htmlFor="iban">{tr("رقم الحساب أو الآيبان (IBAN / RIP)", "Account Number or IBAN / RIP")}</Label>
                     <Input 
                       id="iban" 
                       name="iban" 
-                      placeholder={isRtl ? 'FR76... أو رقم الحساب' : 'IBAN or Account Number'}
+                      placeholder={tr("FR76... أو رقم الحساب", "IBAN or Account Number")}
                       value={payoutData.iban} 
                       onChange={handlePayoutInputChange} 
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="swiftCode">{isRtl ? 'رمز السويفت (SWIFT / BIC Code)' : 'SWIFT / BIC Code'}</Label>
+                    <Label htmlFor="swiftCode">{tr("رمز السويفت (SWIFT / BIC Code)", "SWIFT / BIC Code")}</Label>
                     <Input 
                       id="swiftCode" 
                       name="swiftCode" 
-                      placeholder={isRtl ? 'اختياري للحوالات الدولية' : 'Optional for international wires'}
+                      placeholder={tr("اختياري للحوالات الدولية", "Optional for international wires")}
                       value={payoutData.swiftCode} 
                       onChange={handlePayoutInputChange} 
                     />
@@ -396,11 +395,11 @@ export default function ProfileSettings() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 border-b pb-2">
                   <DollarSign className="h-4 w-4 text-emerald-600" />
-                  <span>{isRtl ? 'المحافظ والمنصات الرقمية (PayPal, Payoneer, Stripe)' : 'Digital Wallets & Platforms (PayPal, Payoneer, Stripe)'}</span>
+                  <span>{tr("المحافظ والمنصات الرقمية (PayPal, Payoneer, Stripe)", "Digital Wallets & Platforms (PayPal, Payoneer, Stripe)")}</span>
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="paypalEmail">{isRtl ? 'بريد حساب PayPal' : 'PayPal Email'}</Label>
+                    <Label htmlFor="paypalEmail">{tr("بريد حساب PayPal", "PayPal Email")}</Label>
                     <Input 
                       id="paypalEmail" 
                       name="paypalEmail" 
@@ -411,7 +410,7 @@ export default function ProfileSettings() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="payoneerEmail">{isRtl ? 'بريد أو معرف Payoneer' : 'Payoneer Email or ID'}</Label>
+                    <Label htmlFor="payoneerEmail">{tr("بريد أو معرف Payoneer", "Payoneer Email or ID")}</Label>
                     <Input 
                       id="payoneerEmail" 
                       name="payoneerEmail" 
@@ -421,11 +420,11 @@ export default function ProfileSettings() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="stripeAccount">{isRtl ? 'معرف أو بريد Stripe' : 'Stripe Account ID or Email'}</Label>
+                    <Label htmlFor="stripeAccount">{tr("معرف أو بريد Stripe", "Stripe Account ID or Email")}</Label>
                     <Input 
                       id="stripeAccount" 
                       name="stripeAccount" 
-                      placeholder={isRtl ? 'معرف حساب Stripe أو البريد' : 'Stripe Account ID or email'}
+                      placeholder={tr("معرف حساب Stripe أو البريد", "Stripe Account ID or email")}
                       value={payoutData.stripeAccount} 
                       onChange={handlePayoutInputChange} 
                     />
@@ -442,12 +441,12 @@ export default function ProfileSettings() {
                   {savingPayout ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {isRtl ? 'جاري الحفظ...' : 'Saving...'}
+                      {tr("جاري الحفظ...", "Saving...")}
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="mr-2 h-4 w-4" />
-                      {isRtl ? 'حفظ إعدادات استلام الأرباح' : 'Save Payout Settings'}
+                      {tr("حفظ إعدادات استلام الأرباح", "Save Payout Settings")}
                     </>
                   )}
                 </Button>

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { tr } from '@/utils/tr';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PlatformLogo } from '@/components/PlatformLogo';
@@ -81,40 +82,40 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
   
   const adminLinks: NavLinkItem[] = [
     // 1. Core
-    { to: '/admin', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), category: isRtl ? 'الرئيسية' : 'Main' },
+    { to: '/admin', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), category: tr("الرئيسية", "Main") },
     
     // 2. Academy & Growth
-    { to: '/admin/academy', icon: GraduationCap, label: t('nav.academy', 'Academy & Content'), category: isRtl ? 'الأكاديمية والمسابقات' : 'Academy & Growth' },
-    { to: '/admin/packages', icon: Package, label: t('nav.packages', 'Packages & Subscriptions'), category: isRtl ? 'الأكاديمية والمسابقات' : 'Academy & Growth' },
-    { to: '/admin/promised-packages', icon: Gift, label: t('nav.promisedPackages', isRtl ? 'باقات الدعم (Promised)' : 'Promised Packages'), category: isRtl ? 'الأكاديمية والمسابقات' : 'Academy & Growth' },
-    { to: '/admin/challenges', icon: Flame, label: t('nav.challenges', 'Challenges & Contests'), category: isRtl ? 'الأكاديمية والمسابقات' : 'Academy & Growth' },
+    { to: '/admin/academy', icon: GraduationCap, label: t('nav.academy', 'Academy & Content'), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
+    { to: '/admin/packages', icon: Package, label: t('nav.packages', 'Packages & Subscriptions'), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
+    { to: '/admin/promised-packages', icon: Gift, label: t('nav.promisedPackages', tr("باقات الدعم (Promised)", "Promised Packages")), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
+    { to: '/admin/challenges', icon: Flame, label: t('nav.challenges', 'Challenges & Contests'), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
     
     // 3. Members & Network
-    { to: '/admin/users', icon: Users, label: t('nav.users', 'User Management'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
-    { to: '/admin/teachers', icon: GraduationCap, label: t('nav.teachers', isRtl ? 'إدارة الأساتذة' : 'Teacher Management'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
-    { to: '/student/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
-    { to: '/admin/team-tree', icon: Network, label: t('nav.teamTree', 'Team Network Tree'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
-    { to: '/admin/kyc', icon: ShieldCheck, label: t('nav.kycApproval', 'KYC Approvals'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
-    { to: '/admin/ranks', icon: Award, label: t('nav.leaderRanks', 'Leader Ranks & Badges'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
-    { to: '/admin/leader-achievers', icon: Trophy, label: t('nav.leaderAchievers', 'Leader Achievers'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
-    { to: '/admin/support', icon: LifeBuoy, label: t('nav.support', 'Support Tickets'), category: isRtl ? 'المستخدمين والشبكة' : 'Members & Network' },
+    { to: '/admin/users', icon: Users, label: t('nav.users', 'User Management'), category: tr("المستخدمين والشبكة", "Members & Network") },
+    { to: '/admin/teachers', icon: GraduationCap, label: t('nav.teachers', tr("إدارة الأساتذة", "Teacher Management")), category: tr("المستخدمين والشبكة", "Members & Network") },
+    { to: '/student/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community'), category: tr("المستخدمين والشبكة", "Members & Network") },
+    { to: '/admin/team-tree', icon: Network, label: t('nav.teamTree', 'Team Network Tree'), category: tr("المستخدمين والشبكة", "Members & Network") },
+    { to: '/admin/kyc', icon: ShieldCheck, label: t('nav.kycApproval', 'KYC Approvals'), category: tr("المستخدمين والشبكة", "Members & Network") },
+    { to: '/admin/ranks', icon: Award, label: t('nav.leaderRanks', 'Leader Ranks & Badges'), category: tr("المستخدمين والشبكة", "Members & Network") },
+    { to: '/admin/leader-achievers', icon: Trophy, label: t('nav.leaderAchievers', 'Leader Achievers'), category: tr("المستخدمين والشبكة", "Members & Network") },
+    { to: '/admin/support', icon: LifeBuoy, label: t('nav.support', 'Support Tickets'), category: tr("المستخدمين والشبكة", "Members & Network") },
     
     // 4. Financials
-    { to: '/admin/wallets', icon: Wallet, label: t('nav.walletManagement', 'Wallets & Balances'), category: isRtl ? 'المالية والعمليات' : 'Financials' },
-    { to: '/admin/bonus-pools', icon: Coins, label: t('nav.bonusPool', 'Bonus Pools'), category: isRtl ? 'المالية والعمليات' : 'Financials' },
-    { to: '/admin/founders', icon: Crown, label: t('nav.founders', 'Founders Management'), category: isRtl ? 'المالية والعمليات' : 'Financials' },
-    { to: '/admin/deposits', icon: ArrowUpRight, label: t('nav.deposits', 'Deposit Requests'), category: isRtl ? 'المالية والعمليات' : 'Financials' },
-    { to: '/admin/withdrawals', icon: ArrowDownToLine, label: t('nav.withdrawals', 'Withdrawal Requests'), category: isRtl ? 'المالية والعمليات' : 'Financials' },
-    { to: '/admin/payment-settings', icon: CreditCard, label: t('nav.paymentSettings', 'Payment & Payout Methods'), category: isRtl ? 'المالية والعمليات' : 'Financials' },
-    { to: '/admin/currency-settings', icon: Globe, label: t('nav.currencySettings', isRtl ? 'إعدادات العملات والدفع' : 'Currency & Payment Settings'), category: isRtl ? 'المالية والعمليات' : 'Financials' },
-    { to: '/admin/transactions', icon: ArrowLeftRight, label: t('nav.transactions', 'Transactions Log'), category: isRtl ? 'المالية والعمليات' : 'Financials' },
+    { to: '/admin/wallets', icon: Wallet, label: t('nav.walletManagement', 'Wallets & Balances'), category: tr("المالية والعمليات", "Financials") },
+    { to: '/admin/bonus-pools', icon: Coins, label: t('nav.bonusPool', 'Bonus Pools'), category: tr("المالية والعمليات", "Financials") },
+    { to: '/admin/founders', icon: Crown, label: t('nav.founders', 'Founders Management'), category: tr("المالية والعمليات", "Financials") },
+    { to: '/admin/deposits', icon: ArrowUpRight, label: t('nav.deposits', 'Deposit Requests'), category: tr("المالية والعمليات", "Financials") },
+    { to: '/admin/withdrawals', icon: ArrowDownToLine, label: t('nav.withdrawals', 'Withdrawal Requests'), category: tr("المالية والعمليات", "Financials") },
+    { to: '/admin/payment-settings', icon: CreditCard, label: t('nav.paymentSettings', 'Payment & Payout Methods'), category: tr("المالية والعمليات", "Financials") },
+    { to: '/admin/currency-settings', icon: Globe, label: t('nav.currencySettings', tr("إعدادات العملات والدفع", "Currency & Payment Settings")), category: tr("المالية والعمليات", "Financials") },
+    { to: '/admin/transactions', icon: ArrowLeftRight, label: t('nav.transactions', 'Transactions Log'), category: tr("المالية والعمليات", "Financials") },
     
     // 5. System & Settings
-    { to: '/admin/generation-settings', icon: Sliders, label: t('nav.generationSettings', 'Generations & Commissions'), category: isRtl ? 'النظام والإعدادات' : 'System & Settings' },
-    { to: '/admin/news', icon: Newspaper, label: t('nav.newsCenter', 'News Center'), category: isRtl ? 'النظام والإعدادات' : 'System & Settings' },
-    { to: '/admin/email-settings', icon: Mail, label: t('nav.emailSettings', 'Email Settings'), category: isRtl ? 'النظام والإعدادات' : 'System & Settings' },
-    { to: '/admin/policies', icon: ShieldCheck, label: t('nav.policies', isRtl ? 'الدعم والسياسات' : 'Support & Politiques'), category: isRtl ? 'النظام والإعدادات' : 'System & Settings' },
-    { to: '/admin/settings', icon: Settings, label: t('nav.settings', 'Platform Settings'), category: isRtl ? 'النظام والإعدادات' : 'System & Settings' },
+    { to: '/admin/generation-settings', icon: Sliders, label: t('nav.generationSettings', 'Generations & Commissions'), category: tr("النظام والإعدادات", "System & Settings") },
+    { to: '/admin/news', icon: Newspaper, label: t('nav.newsCenter', 'News Center'), category: tr("النظام والإعدادات", "System & Settings") },
+    { to: '/admin/email-settings', icon: Mail, label: t('nav.emailSettings', 'Email Settings'), category: tr("النظام والإعدادات", "System & Settings") },
+    { to: '/admin/policies', icon: ShieldCheck, label: t('nav.policies', tr("الدعم والسياسات", "Support & Politiques")), category: tr("النظام والإعدادات", "System & Settings") },
+    { to: '/admin/settings', icon: Settings, label: t('nav.settings', 'Platform Settings'), category: tr("النظام والإعدادات", "System & Settings") },
   ];
 
   const teacherLinks: NavLinkItem[] = [
@@ -257,7 +258,7 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
               <ul className="space-y-1">
                 {filteredLinks.length === 0 ? (
                   <li className="px-3 py-6 text-center text-xs text-slate-400">
-                    {isRtl ? 'لا توجد صفحات مطابقة' : 'No matching pages'}
+                    {tr("لا توجد صفحات مطابقة", "No matching pages")}
                   </li>
                 ) : (
                   filteredLinks.map((link) => {

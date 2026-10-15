@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { tr } from '@/utils/tr';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
@@ -159,7 +160,7 @@ export default function UsersManagement() {
       setPackagesList(pkgsRes.packages || (Array.isArray(pkgsRes) ? pkgsRes : []));
     } catch (err) {
       console.error('[UsersManagement fetchData]', err);
-      toast.error(isRtl ? 'فشل تحميل قائمة المستخدمين' : 'Failed to load users list');
+      toast.error(tr("فشل تحميل قائمة المستخدمين", "Failed to load users list"));
     } finally {
       setLoading(false);
     }
@@ -192,12 +193,12 @@ export default function UsersManagement() {
         status: editForm.status,
       });
 
-      toast.success(isRtl ? 'تم تحديث بيانات المستخدم بنجاح' : 'User updated successfully');
+      toast.success(tr("تم تحديث بيانات المستخدم بنجاح", "User updated successfully"));
       setEditUser(null);
       fetchData();
     } catch (err: any) {
       console.error('[handleSaveEdit]', err);
-      toast.error(err?.response?.data?.error || (isRtl ? 'فشل حفظ التعديلات' : 'Failed to save changes'));
+      toast.error(err?.response?.data?.error || (tr("فشل حفظ التعديلات", "Failed to save changes")));
     } finally {
       setSavingEdit(false);
     }
@@ -218,7 +219,7 @@ export default function UsersManagement() {
     if (!adjustUser) return;
     const numAmount = parseFloat(adjustForm.amount);
     if (isNaN(numAmount) || numAmount <= 0) {
-      toast.error(isRtl ? 'يرجى إدخال مبلغ صحيح أكبر من 0' : 'Please enter a valid amount greater than 0');
+      toast.error(tr("يرجى إدخال مبلغ صحيح أكبر من 0", "Please enter a valid amount greater than 0"));
       return;
     }
 
@@ -229,20 +230,18 @@ export default function UsersManagement() {
         type: adjustForm.type,
         amount: numAmount,
         note: adjustForm.note || (adjustForm.type === 'credit' 
-          ? (isRtl ? 'تعديل رصيد يدوي (إيداع)' : 'Manual balance adjustment (Credit)') 
-          : (isRtl ? 'تعديل رصيد يدوي (خصم)' : 'Manual balance adjustment (Debit)')),
+          ? (tr("تعديل رصيد يدوي (إيداع)", "Manual balance adjustment (Credit)")) 
+          : (tr("تعديل رصيد يدوي (خصم)", "Manual balance adjustment (Debit)"))),
       });
 
       toast.success(
-        isRtl 
-          ? `تم ${adjustForm.type === 'credit' ? 'إضافة' : 'خصم'} $${numAmount} بنجاح`
-          : `$${numAmount} ${adjustForm.type === 'credit' ? 'credited' : 'debited'} successfully`
+        tr("تم ${adjustForm.type === 'credit' ? 'إضافة' : 'خصم'} $${numAmount} بنجاح", "$${numAmount} ${adjustForm.type === 'credit' ? 'credited' : 'debited'} successfully")
       );
       setAdjustUser(null);
       fetchData();
     } catch (err: any) {
       console.error('[handleSaveAdjust]', err);
-      toast.error(err?.response?.data?.error || (isRtl ? 'فشل تعديل الرصيد' : 'Failed to adjust balance'));
+      toast.error(err?.response?.data?.error || (tr("فشل تعديل الرصيد", "Failed to adjust balance")));
     } finally {
       setAdjusting(false);
     }
@@ -255,9 +254,7 @@ export default function UsersManagement() {
       if (res.token && res.user) {
         impersonateUser(res.token, res.user);
         toast.success(
-          isRtl 
-            ? `تم تسجيل الدخول بنجاح بحساب ${u.full_name || u.username || res.user.email}`
-            : `Logged in successfully as ${u.full_name || u.username || res.user.email}`
+          tr("تم تسجيل الدخول بنجاح بحساب ${u.full_name || u.username || res.user.email}", "Logged in successfully as ${u.full_name || u.username || res.user.email}")
         );
         
         // Navigate to appropriate role dashboard
@@ -266,7 +263,7 @@ export default function UsersManagement() {
       }
     } catch (err: any) {
       console.error('[handleImpersonate]', err);
-      toast.error(isRtl ? 'فشل تسجيل الدخول كعضو' : 'Failed to login as user');
+      toast.error(tr("فشل تسجيل الدخول كعضو", "Failed to login as user"));
     }
   };
 
@@ -327,9 +324,7 @@ export default function UsersManagement() {
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              {isRtl 
-                ? 'إدارة شؤون الطلاب وأعضاء المنصة، الرتب، الباقات، والحسابات المالية' 
-                : 'Manage student & platform member records, ranks, packages, and wallet accounts'}
+              {tr("إدارة شؤون الطلاب وأعضاء المنصة، الرتب، الباقات، والحسابات المالية", "Manage student & platform member records, ranks, packages, and wallet accounts")}
             </p>
           </div>
 
@@ -861,16 +856,14 @@ export default function UsersManagement() {
                   </SelectContent>
                 </Select>
                 <p className="text-[10px] text-slate-400">
-                  {isRtl
-                    ? '* اختيار باقة يرقي الطالب تلقائياً إلى شريك أعمال (Business Partner)، و No Package يُبقيه طالباً (Student).'
-                    : '* Selecting a package automatically promotes student to Business Partner; No Package keeps user as a Student.'}
+                  {tr("* اختيار باقة يرقي الطالب تلقائياً إلى شريك أعمال (Business Partner)، و No Package يُبقيه طالباً (Student).", "* Selecting a package automatically promotes student to Business Partner; No Package keeps user as a Student.")}
                 </p>
               </div>
 
               {/* Status Select */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {isRtl ? 'الحالة' : 'Status'}
+                  {tr("الحالة", "Status")}
                 </Label>
                 <Select
                   value={editForm.status}
@@ -880,9 +873,9 @@ export default function UsersManagement() {
                     <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
-                    <SelectItem value="active" className="text-xs">{isRtl ? 'نشط' : 'Active'}</SelectItem>
-                    <SelectItem value="inactive" className="text-xs">{isRtl ? 'غير نشط' : 'Inactive'}</SelectItem>
-                    <SelectItem value="suspended" className="text-xs">{isRtl ? 'معلق' : 'Suspended'}</SelectItem>
+                    <SelectItem value="active" className="text-xs">{tr("نشط", "Active")}</SelectItem>
+                    <SelectItem value="inactive" className="text-xs">{tr("غير نشط", "Inactive")}</SelectItem>
+                    <SelectItem value="suspended" className="text-xs">{tr("معلق", "Suspended")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -894,14 +887,14 @@ export default function UsersManagement() {
                 onClick={() => setEditUser(null)}
                 className="rounded-2xl text-xs font-bold text-slate-500"
               >
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button
                 onClick={handleSaveEdit}
                 disabled={savingEdit}
                 className="rounded-2xl font-black bg-[#2563eb] hover:bg-blue-700 text-white text-xs px-6"
               >
-                {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : (isRtl ? 'حفظ' : 'Save')}
+                {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : (tr("حفظ", "Save"))}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -913,7 +906,7 @@ export default function UsersManagement() {
             <DialogHeader>
               <DialogTitle className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-[#8b5cf6]" />
-                {isRtl ? 'تعديل رصيد المستخدم' : 'Adjust User Balance'}
+                {tr("تعديل رصيد المستخدم", "Adjust User Balance")}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500 font-bold">
                 {adjustUser?.full_name} ({adjustUser?.email})
@@ -922,7 +915,7 @@ export default function UsersManagement() {
 
             <div className="space-y-4 py-2">
               <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-bold">{isRtl ? 'الرصيد الحالي:' : 'Current Balance:'}</span>
+                <span className="text-slate-500 font-bold">{tr("الرصيد الحالي:", "Current Balance:")}</span>
                 <span className="font-mono text-base font-black text-emerald-500">
                   ${(adjustUser?.wallet?.balance || 0).toFixed(2)}
                 </span>
@@ -940,7 +933,7 @@ export default function UsersManagement() {
                   }`}
                 >
                   <PlusCircle className="h-4 w-4" />
-                  {isRtl ? 'إيداع (Credit)' : 'Credit (Deposit)'}
+                  {tr("إيداع (Credit)", "Credit (Deposit)")}
                 </button>
                 <button
                   type="button"
@@ -952,13 +945,13 @@ export default function UsersManagement() {
                   }`}
                 >
                   <MinusCircle className="h-4 w-4" />
-                  {isRtl ? 'خصم (Debit)' : 'Debit (Deduct)'}
+                  {tr("خصم (Debit)", "Debit (Deduct)")}
                 </button>
               </div>
 
               {/* Amount */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold">{isRtl ? 'المبلغ ($)' : 'Amount ($)'}</Label>
+                <Label className="text-xs font-bold">{tr("المبلغ ($)", "Amount ($)")}</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -972,10 +965,10 @@ export default function UsersManagement() {
 
               {/* Note */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold">{isRtl ? 'السبب / الملاحظة' : 'Reason / Note'}</Label>
+                <Label className="text-xs font-bold">{tr("السبب / الملاحظة", "Reason / Note")}</Label>
                 <Input
                   type="text"
-                  placeholder={isRtl ? 'مثال: بونص إيداع يدوي / تسوية رصيد' : 'e.g. Manual deposit bonus / Adjustment'}
+                  placeholder={tr("مثال: بونص إيداع يدوي / تسوية رصيد", "e.g. Manual deposit bonus / Adjustment")}
                   value={adjustForm.note}
                   onChange={(e) => setAdjustForm({ ...adjustForm, note: e.target.value })}
                   className="rounded-2xl text-xs py-2"
@@ -989,7 +982,7 @@ export default function UsersManagement() {
                 onClick={() => setAdjustUser(null)}
                 className="rounded-2xl text-xs font-bold text-slate-500"
               >
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button
                 onClick={handleSaveAdjust}
@@ -1000,7 +993,7 @@ export default function UsersManagement() {
                     : 'bg-rose-600 hover:bg-rose-700'
                 }`}
               >
-                {adjusting ? <Loader2 className="h-4 w-4 animate-spin" /> : (isRtl ? 'تأكيد العملية' : 'Confirm Adjustment')}
+                {adjusting ? <Loader2 className="h-4 w-4 animate-spin" /> : (tr("تأكيد العملية", "Confirm Adjustment"))}
               </Button>
             </DialogFooter>
           </DialogContent>

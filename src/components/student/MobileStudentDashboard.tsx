@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -69,7 +70,7 @@ export function MobileStudentDashboard({
     navigator.clipboard.writeText(referralLink);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
-    toast.success(isRtl ? 'تم نسخ رابط الإحالة بنجاح!' : 'Referral link copied successfully!');
+    toast.success(tr("تم نسخ رابط الإحالة بنجاح!", "Referral link copied successfully!"));
   };
 
   const handleCopyCode = () => {
@@ -77,7 +78,7 @@ export function MobileStudentDashboard({
     navigator.clipboard.writeText(affiliateCode);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
-    toast.success(isRtl ? 'تم نسخ كود الإحالة بنجاح!' : 'Referral code copied successfully!');
+    toast.success(tr("تم نسخ كود الإحالة بنجاح!", "Referral code copied successfully!"));
   };
 
   return (
@@ -94,7 +95,7 @@ export function MobileStudentDashboard({
               <GraduationCap className="h-7 w-7 stroke-[2.2]" />
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight text-center">
-              {t('nav.academy', isRtl ? 'الأكاديمية' : 'Academy')}
+              {t('nav.academy', tr("الأكاديمية", "Academy"))}
             </span>
           </button>
 
@@ -107,7 +108,7 @@ export function MobileStudentDashboard({
               <ShieldCheck className="h-7 w-7 stroke-[2.2]" />
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight text-center">
-              {t('nav.myPackage', isRtl ? 'باقاتي' : 'My Packages')}
+              {t('nav.myPackage', tr("باقاتي", "My Packages"))}
             </span>
           </button>
 
@@ -120,7 +121,7 @@ export function MobileStudentDashboard({
               <Wallet className="h-7 w-7 stroke-[2.2]" />
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight text-center">
-              {t('nav.wallet', isRtl ? 'المحفظة' : 'Wallet')}
+              {t('nav.wallet', tr("المحفظة", "Wallet"))}
             </span>
           </button>
 
@@ -133,7 +134,7 @@ export function MobileStudentDashboard({
               <Users className="h-7 w-7 stroke-[2.2]" />
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight text-center">
-              {t('nav.team', isRtl ? 'فريقي' : 'My Team')}
+              {t('nav.team', tr("فريقي", "My Team"))}
             </span>
           </button>
 
@@ -146,7 +147,7 @@ export function MobileStudentDashboard({
               <Gamepad2 className="h-7 w-7 stroke-[2.2]" />
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight text-center">
-              {t('nav.challenges', isRtl ? 'التحديات' : 'Challenges')}
+              {t('nav.challenges', tr("التحديات", "Challenges"))}
             </span>
           </button>
 
@@ -159,7 +160,7 @@ export function MobileStudentDashboard({
               <Package className="h-7 w-7 stroke-[2.2]" />
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight text-center">
-              {t('nav.packages', isRtl ? 'الباقات' : 'Packages')}
+              {t('nav.packages', tr("الباقات", "Packages"))}
             </span>
           </button>
         </div>
@@ -168,7 +169,7 @@ export function MobileStudentDashboard({
       {/* 3. بطاقة "المزيد من الأقسام" (More Sections) */}
       <div className="mx-1 bg-white dark:bg-slate-900 rounded-[28px] sm:rounded-[32px] shadow-[0_8px_25px_rgba(0,0,0,0.05)] border border-slate-100/90 dark:border-slate-800/80 p-4 sm:p-5">
         <h2 className="text-xs sm:text-sm font-black text-slate-800 dark:text-white mb-3.5">
-          {t('common.moreSections', isRtl ? 'المزيد من الأقسام' : 'More Sections')}
+          {t('common.moreSections', tr("المزيد من الأقسام", "More Sections"))}
         </h2>
 
         <div className="grid grid-cols-4 gap-2 text-center">
@@ -181,7 +182,7 @@ export function MobileStudentDashboard({
               <Trophy className="h-5 w-5" />
             </div>
             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate max-w-full">
-              {t('nav.ranks', isRtl ? 'الرتب' : 'Ranks')}
+              {t('nav.ranks', tr("الرتب", "Ranks"))}
             </span>
           </button>
 
@@ -194,7 +195,7 @@ export function MobileStudentDashboard({
               <Video className="h-5 w-5" />
             </div>
             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate max-w-full">
-              {t('nav.meetings', isRtl ? 'اللقاءات' : 'Meetings')}
+              {t('nav.meetings', tr("اللقاءات", "Meetings"))}
             </span>
           </button>
 
@@ -207,7 +208,7 @@ export function MobileStudentDashboard({
               <Award className="h-5 w-5" />
             </div>
             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate max-w-full">
-              {t('nav.diplomas', isRtl ? 'الشهادات' : 'Diplomas')}
+              {t('nav.diplomas', tr("الشهادات", "Diplomas"))}
             </span>
           </button>
 
@@ -220,7 +221,7 @@ export function MobileStudentDashboard({
               <User className="h-5 w-5" />
             </div>
             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate max-w-full">
-              {t('nav.profile', isRtl ? 'حسابي' : 'Profile')}
+              {t('nav.profile', tr("حسابي", "Profile"))}
             </span>
           </button>
         </div>
@@ -233,7 +234,7 @@ export function MobileStudentDashboard({
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {t('packages.currentActive', isRtl ? 'الباقة النشطة الحالية' : 'Current Active Package')}
+                {t('packages.currentActive', tr("الباقة النشطة الحالية", "Current Active Package"))}
               </span>
               {activePackage ? (
                 <div className="flex items-center gap-2">
@@ -241,12 +242,12 @@ export function MobileStudentDashboard({
                     {isRtl ? (activePackage.name_ar || activePackage.name) : (activePackage.name || activePackage.name_ar)}
                   </h3>
                   <Badge className="bg-primary/15 text-primary border-primary/20 text-[10px] font-bold px-2 py-0.5">
-                    {t('packages.level', isRtl ? 'مستوى' : 'Level')} {activePackage.level}
+                    {t('packages.level', tr("مستوى", "Level"))} {activePackage.level}
                   </Badge>
                 </div>
               ) : (
                 <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                  {t('packages.noPackageTitle', isRtl ? 'لا توجد باقة نشطة حالياً' : 'No active package currently')}
+                  {t('packages.noPackageTitle', tr("لا توجد باقة نشطة حالياً", "No active package currently"))}
                 </h3>
               )}
             </div>
@@ -262,14 +263,14 @@ export function MobileStudentDashboard({
               onClick={() => navigate('/student/my-package')}
               className="text-xs font-bold rounded-xl h-8 px-3"
             >
-              <span>{t('packages.viewDetails', isRtl ? 'تفاصيل الباقة' : 'Package Details')}</span>
+              <span>{t('packages.viewDetails', tr("تفاصيل الباقة", "Package Details"))}</span>
             </Button>
             <Button
               size="sm"
               onClick={() => navigate('/student/packages')}
               className="bg-primary text-white text-xs font-bold rounded-xl h-8 px-3"
             >
-              <span>{t('packages.upgrade', isRtl ? 'ترقية / المتجر' : 'Upgrade / Store')}</span>
+              <span>{t('packages.upgrade', tr("ترقية / المتجر", "Upgrade / Store"))}</span>
             </Button>
           </div>
         </div>
@@ -279,7 +280,7 @@ export function MobileStudentDashboard({
           <div className="flex items-start justify-between">
             <div>
               <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {t('wallet.title', isRtl ? 'محفظة الأرباح' : 'Profits Wallet')}
+                {t('wallet.title', tr("محفظة الأرباح", "Profits Wallet"))}
               </span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">
@@ -290,7 +291,7 @@ export function MobileStudentDashboard({
                       : `$${Number(wallet?.balance || 0).toFixed(2)}`}
                 </span>
                 <span className="text-[10px] text-slate-400">
-                  {isRtl ? 'إجمالي المكتسب:' : 'Total Earned:'}{' '}
+                  {tr("إجمالي المكتسب:", "Total Earned:")}{' '}
                   {isAlgeria
                     ? `${convertToLocal(wallet?.totalEarned || 0).toLocaleString()} DZD`
                     : isMorocco
@@ -305,8 +306,8 @@ export function MobileStudentDashboard({
           </div>
 
           <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-            <span>{isRtl ? 'الرصيد متاح للإيداع وشراء الباقات والسحب' : 'Available balance for deposits, packages & withdrawals'}</span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">● {isRtl ? 'نشط' : 'Active'}</span>
+            <span>{tr("الرصيد متاح للإيداع وشراء الباقات والسحب", "Available balance for deposits, packages & withdrawals")}</span>
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">● {tr("نشط", "Active")}</span>
           </div>
         </div>
 
@@ -316,11 +317,11 @@ export function MobileStudentDashboard({
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  {t('affiliate.title', isRtl ? 'نظام الشركاء والإحالة' : 'Affiliate & Referral System')}
+                  {t('affiliate.title', tr("نظام الشركاء والإحالة", "Affiliate & Referral System"))}
                 </span>
                 <p className="text-xs font-bold text-slate-800 dark:text-white mt-0.5">
-                  {isRtl ? 'إجمالي أعضاء الفريق:' : 'Total Team Members:'} <span className="text-blue-600 font-black">{totalTeam}</span>
-                  {directReferrals > 0 && <span className="text-slate-400 text-[10px] font-normal mx-2">({directReferrals} {isRtl ? 'مباشر' : 'direct'})</span>}
+                  {tr("إجمالي أعضاء الفريق:", "Total Team Members:")} <span className="text-blue-600 font-black">{totalTeam}</span>
+                  {directReferrals > 0 && <span className="text-slate-400 text-[10px] font-normal mx-2">({directReferrals} {tr("مباشر", "direct")})</span>}
                 </p>
               </div>
               <div className="p-2 rounded-xl bg-blue-50 dark:bg-slate-800 text-blue-600">
@@ -331,14 +332,14 @@ export function MobileStudentDashboard({
             {/* Referral Code Row */}
             <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl text-xs">
               <span className="text-slate-500 dark:text-slate-400 text-[11px]">
-                {isRtl ? 'كود الإحالة الخاص بك:' : 'Your referral code:'}
+                {tr("كود الإحالة الخاص بك:", "Your referral code:")}
               </span>
               <div className="flex items-center gap-1.5">
                 <span className="font-mono font-black text-blue-600 dark:text-blue-400">{affiliateCode}</span>
                 <button
                   onClick={handleCopyCode}
                   className="p-1 text-slate-400 hover:text-blue-600 active:scale-90"
-                  title={isRtl ? "نسخ الكود" : "Copy Code"}
+                  title={tr("نسخ الكود", "Copy Code")}
                 >
                   {copiedCode ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
@@ -351,7 +352,7 @@ export function MobileStudentDashboard({
               className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-98 transition-all"
             >
               {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              <span>{copiedLink ? (isRtl ? 'تم نسخ رابط الإحالة!' : 'Referral link copied!') : (isRtl ? 'نسخ رابط الإحالة ومشاركته' : 'Copy and share referral link')}</span>
+              <span>{copiedLink ? (tr("تم نسخ رابط الإحالة!", "Referral link copied!")) : (tr("نسخ رابط الإحالة ومشاركته", "Copy and share referral link"))}</span>
             </button>
           </div>
         )}
@@ -363,14 +364,14 @@ export function MobileStudentDashboard({
               <div className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-blue-600" />
                 <h3 className="text-xs font-black text-slate-900 dark:text-white">
-                  {t('student.myCourses', isRtl ? 'مقرراتي ودوراتي' : 'My Courses & Modules')}
+                  {t('student.myCourses', tr("مقرراتي ودوراتي", "My Courses & Modules"))}
                 </h3>
               </div>
               <button
                 onClick={() => navigate('/student/academy')}
                 className="text-[11px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5"
               >
-                <span>{t('common.all', isRtl ? 'الكل' : 'All')}</span>
+                <span>{t('common.all', tr("الكل", "All"))}</span>
                 <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
               </button>
             </div>
@@ -387,7 +388,7 @@ export function MobileStudentDashboard({
                       {mod.name}
                     </p>
                     <p className="text-[10px] text-slate-400 truncate">
-                      {mod.specialty_name || (isRtl ? 'أكاديمي' : 'Academic')}
+                      {mod.specialty_name || (tr("أكاديمي", "Academic"))}
                     </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-400 rtl:rotate-180 shrink-0" />
@@ -404,14 +405,14 @@ export function MobileStudentDashboard({
               <div className="flex items-center gap-2">
                 <Video className="h-4 w-4 text-rose-500" />
                 <h3 className="text-xs font-black text-slate-900 dark:text-white">
-                  {t('zoom.upcomingClasses', isRtl ? 'اللقاءات المباشرة القادمة' : 'Upcoming Live Meetings')}
+                  {t('zoom.upcomingClasses', tr("اللقاءات المباشرة القادمة", "Upcoming Live Meetings"))}
                 </h3>
               </div>
               <button
                 onClick={() => navigate('/student/meetings')}
                 className="text-[11px] font-bold text-rose-600 hover:text-rose-700 flex items-center gap-0.5"
               >
-                <span>{t('common.all', isRtl ? 'عرض الكل' : 'View All')}</span>
+                <span>{t('common.all', tr("عرض الكل", "View All"))}</span>
                 <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
               </button>
             </div>
@@ -439,7 +440,7 @@ export function MobileStudentDashboard({
                     }}
                     className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-xl h-7 px-2.5"
                   >
-                    {isRtl ? 'دخول' : 'Join'}
+                    {tr("دخول", "Join")}
                   </Button>
                 </div>
               ))}
@@ -454,7 +455,7 @@ export function MobileStudentDashboard({
               <div className="flex items-center gap-2">
                 <Bell className="h-4 w-4 text-blue-600" />
                 <h3 className="text-xs font-black text-slate-900 dark:text-white">
-                  {t('news.title', isRtl ? 'أحدث الإعلانات والأخبار' : 'Latest Announcements & News')}
+                  {t('news.title', tr("أحدث الإعلانات والأخبار", "Latest Announcements & News"))}
                 </h3>
               </div>
               <span className="text-[10px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full">

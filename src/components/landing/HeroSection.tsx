@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { 
   GraduationCap, 
@@ -20,22 +21,22 @@ export function HeroSection() {
     {
       icon: Play,
       color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
-      label: t('landing.hero.tag1') || (isRtl ? 'تكوينات شاملة' : 'Formations complètes'),
+      label: t('landing.hero.tag1') || (tr("تكوينات شاملة", "Formations complètes")),
     },
     {
       icon: Users,
       color: 'text-purple-600 bg-purple-50 border-purple-200',
-      label: t('landing.hero.tag2') || (isRtl ? 'مداخيل غير محدودة' : 'Revenus illimités'),
+      label: t('landing.hero.tag2') || (tr("مداخيل غير محدودة", "Revenus illimités")),
     },
     {
       icon: Globe,
       color: 'text-blue-600 bg-blue-50 border-blue-200',
-      label: t('landing.hero.tag3') || (isRtl ? 'مجتمع عالمي متكامل' : 'Une communauté mondiale'),
+      label: t('landing.hero.tag3') || (tr("مجتمع عالمي متكامل", "Une communauté mondiale")),
     },
     {
       icon: TrendingUp,
       color: 'text-pink-600 bg-pink-50 border-pink-200',
-      label: t('landing.hero.tag4') || (isRtl ? 'مواكبة وتأطير مخصص' : 'Accompagnement personnalisé'),
+      label: t('landing.hero.tag4') || (tr("مواكبة وتأطير مخصص", "Accompagnement personnalisé")),
     },
   ];
 
@@ -60,23 +61,21 @@ export function HeroSection() {
               <span className="p-1 rounded-full bg-indigo-600 text-white">
                 <GraduationCap className="w-3.5 h-3.5" />
               </span>
-              <span>{t('landing.hero.badge') || (isRtl ? 'مستقبلك يبدأ من هنا' : 'Votre avenir commence ici')}</span>
+              <span>{t('landing.hero.badge') || (tr("مستقبلك يبدأ من هنا", "Votre avenir commence ici"))}</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.12]">
-              {t('landing.hero.titlePart1') || (isRtl ? 'تعلّم وتدرّب اليوم،' : "Formez-vous aujourd'hui,")}
+              {t('landing.hero.titlePart1') || (tr("تعلّم وتدرّب اليوم،", "Formez-vous aujourd'hui,"))}
               <br className="hidden sm:inline" />{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                {t('landing.hero.titlePart2') || (isRtl ? 'لتنجح غداً' : 'réussissez demain')}
+                {t('landing.hero.titlePart2') || (tr("لتنجح غداً", "réussissez demain"))}
               </span>
             </h1>
 
             {/* Subtitle Description */}
             <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal">
-              {t('landing.hero.subtitle') || (isRtl 
-                ? 'Nexyvora هي أكاديمية رائدة عبر الإنترنت ترافقك في تطويرك الشخصي والمهني من خلال تكوينات عالية الجودة ونظام تسويق شبكي مبتكر ومتميز.'
-                : 'Nexyvora est une académie en ligne qui vous accompagne dans votre développement personnel et professionnel grâce à des formations de qualité et un système de marketing de réseau innovant.')}
+              {t('landing.hero.subtitle') || (tr("Nexyvora هي أكاديمية رائدة عبر الإنترنت ترافقك في تطويرك الشخصي والمهني من خلال تكوينات عالية الجودة ونظام تسويق شبكي مبتكر ومتميز.", "Nexyvora est une académie en ligne qui vous accompagne dans votre développement personnel et professionnel grâce à des formations de qualité et un système de marketing de réseau innovant."))}
             </p>
 
             {/* 4 Feature Badges Strip */}
@@ -104,7 +103,7 @@ export function HeroSection() {
                 href="#programmes"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm sm:text-base shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/40 hover:-translate-y-0.5 transition-all duration-200"
               >
-                <span>{t('landing.hero.ctaPrimary') || (isRtl ? 'اكتشف برامجنا' : 'Découvrir nos programmes')}</span>
+                <span>{t('landing.hero.ctaPrimary') || (tr("اكتشف برامجنا", "Découvrir nos programmes"))}</span>
                 {isRtl ? (
                   <ArrowLeft className="w-4 h-4" />
                 ) : (
@@ -125,7 +124,7 @@ export function HeroSection() {
                 <div className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                   <Play className="w-3 h-3 fill-current ml-0.5" />
                 </div>
-                <span>{t('landing.hero.ctaSecondary') || (isRtl ? 'مشاهدة الفيديو' : 'Voir la vidéo')}</span>
+                <span>{t('landing.hero.ctaSecondary') || (tr("مشاهدة الفيديو", "Voir la vidéo"))}</span>
               </a>
 
             </div>

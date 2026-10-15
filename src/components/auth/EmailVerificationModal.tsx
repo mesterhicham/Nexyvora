@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -47,18 +48,18 @@ export function EmailVerificationModal({
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!code.trim() || code.trim().length < 6) {
-      toast.error(isRtl ? 'يرجى إدخال رمز التحقق المكون من 6 أرقام' : 'Please enter the 6-digit OTP code');
+      toast.error(tr("يرجى إدخال رمز التحقق المكون من 6 أرقام", "Please enter the 6-digit OTP code"));
       return;
     }
 
     setLoading(true);
     try {
       const res = await authService.verifyEmailOtp(email.trim(), code.trim(), 'registration');
-      toast.success(res?.message || (isRtl ? 'تم التحقق من بريدك الإلكتروني بنجاح!' : 'Email verified successfully!'));
+      toast.success(res?.message || (tr("تم التحقق من بريدك الإلكتروني بنجاح!", "Email verified successfully!")));
       setIsSuccess(true);
       if (onVerified) onVerified();
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || (isRtl ? 'كود التحقق غير صحيح' : 'Invalid verification code');
+      const msg = err.response?.data?.error || err.message || (tr("كود التحقق غير صحيح", "Invalid verification code"));
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -70,10 +71,10 @@ export function EmailVerificationModal({
     setResending(true);
     try {
       const res = await authService.sendEmailOtp(email.trim(), 'registration');
-      toast.success(res?.message || (isRtl ? 'تم إرسال كود تحقق جديد' : 'New OTP code sent to your email'));
+      toast.success(res?.message || (tr("تم إرسال كود تحقق جديد", "New OTP code sent to your email")));
       setCountdown(60);
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || (isRtl ? 'فشل إعادة الإرسال' : 'Failed to resend code');
+      const msg = err.response?.data?.error || err.message || (tr("فشل إعادة الإرسال", "Failed to resend code"));
       toast.error(msg);
     } finally {
       setResending(false);
@@ -94,7 +95,7 @@ export function EmailVerificationModal({
             <ShieldCheck className="w-6 h-6" />
           </div>
           <DialogTitle className="text-xl font-bold text-white tracking-tight">
-            {isRtl ? 'تفعيل الحساب والتحقق من البريد' : 'Verify Your Email Address'}
+            {tr("تفعيل الحساب والتحقق من البريد", "Verify Your Email Address")}
           </DialogTitle>
           <DialogDescription className="text-sm text-slate-400 leading-relaxed">
             {isRtl ? (
@@ -116,26 +117,24 @@ export function EmailVerificationModal({
             </div>
             <div>
               <h4 className="text-base font-bold text-white">
-                {isRtl ? 'تم تفعيل حسابك بنجاح! 🎉' : 'Account Verified Successfully! 🎉'}
+                {tr("تم تفعيل حسابك بنجاح! 🎉", "Account Verified Successfully! 🎉")}
               </h4>
               <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-                {isRtl
-                  ? 'بريدك الإلكتروني موثق الآن بالكامل. يمكنك الاستمتاع بجميع ميزات Nexyvora.'
-                  : 'Your email has been successfully verified. You can now access all Nexyvora features.'}
+                {tr("بريدك الإلكتروني موثق الآن بالكامل. يمكنك الاستمتاع بجميع ميزات Nexyvora.", "Your email has been successfully verified. You can now access all Nexyvora features.")}
               </p>
             </div>
             <Button
               onClick={handleClose}
               className="w-full h-11 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-sm transition-all"
             >
-              {isRtl ? 'المتابعة إلى الحساب' : 'Continue to Dashboard'}
+              {tr("المتابعة إلى الحساب", "Continue to Dashboard")}
             </Button>
           </div>
         ) : (
           <form onSubmit={handleVerify} className="space-y-4 mt-2">
             <div className="space-y-2 text-left rtl:text-right">
               <Label className="text-xs font-semibold text-slate-300">
-                {isRtl ? 'رمز التحقق (OTP)' : 'Verification Code (OTP)'}
+                {tr("رمز التحقق (OTP)", "Verification Code (OTP)")}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
@@ -155,9 +154,9 @@ export function EmailVerificationModal({
             <div className="flex items-center justify-between text-xs pt-1">
               <span className="text-slate-400">
                 {countdown > 0 ? (
-                  isRtl ? `إعادة الإرسال بعد ${countdown} ثانية` : `Resend in ${countdown}s`
+                  tr("إعادة الإرسال بعد ${countdown} ثانية", "Resend in ${countdown}s")
                 ) : (
-                  isRtl ? 'لم يصلك الرمز؟' : "Didn't receive code?"
+                  tr("لم يصلك الرمز؟", "Didn't receive code?")
                 )}
               </span>
 
@@ -168,7 +167,7 @@ export function EmailVerificationModal({
                 className="text-purple-400 hover:text-purple-300 disabled:opacity-40 disabled:hover:text-purple-400 flex items-center gap-1 transition-colors cursor-pointer"
               >
                 {resending && <RefreshCw className="h-3 w-3 animate-spin" />}
-                <span>{isRtl ? 'إعادة إرسال الرمز' : 'Resend Code'}</span>
+                <span>{tr("إعادة إرسال الرمز", "Resend Code")}</span>
               </button>
             </div>
 
@@ -181,7 +180,7 @@ export function EmailVerificationModal({
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <span>{isRtl ? 'تأكيد الرمز وتفعيل الحساب' : 'Verify & Activate'}</span>
+                  <span>{tr("تأكيد الرمز وتفعيل الحساب", "Verify & Activate")}</span>
                   {isRtl ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                 </>
               )}

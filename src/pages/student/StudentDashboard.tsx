@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -133,11 +134,11 @@ export default function StudentDashboard() {
     if (isLink) {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
-      toast.success(isRtl ? 'تم نسخ رابط الإحالة!' : 'Referral link copied!');
+      toast.success(tr("تم نسخ رابط الإحالة!", "Referral link copied!"));
     } else {
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
-      toast.success(isRtl ? 'تم نسخ كود الإحالة!' : 'Affiliate code copied!');
+      toast.success(tr("تم نسخ كود الإحالة!", "Affiliate code copied!"));
     }
   };
 
@@ -145,105 +146,105 @@ export default function StudentDashboard() {
     {
       to: '/student/academy',
       icon: GraduationCap,
-      label: t('nav.academy', isRtl ? 'الأكاديمية' : 'Academy'),
+      label: t('nav.academy', tr("الأكاديمية", "Academy")),
       color: 'from-blue-600 to-cyan-500',
       shadow: 'shadow-blue-500/25',
     },
     {
       to: '/student/community',
       icon: MessageSquare,
-      label: t('nav.community', isRtl ? 'مجتمع نيكسيفورا' : 'Nexyvora Community'),
+      label: t('nav.community', tr("مجتمع نيكسيفورا", "Nexyvora Community")),
       color: 'from-violet-600 to-indigo-500',
       shadow: 'shadow-violet-500/25',
     },
     {
       to: '/student/news',
       icon: Newspaper,
-      label: t('nav.newsCenter', isRtl ? 'مركز الأخبار' : 'News Center'),
+      label: t('nav.newsCenter', tr("مركز الأخبار", "News Center")),
       color: 'from-blue-600 to-indigo-600',
       shadow: 'shadow-blue-500/25',
     },
     {
       to: '/student/packages',
       icon: Package,
-      label: t('nav.packages', isRtl ? 'الباقات' : 'Packages'),
+      label: t('nav.packages', tr("الباقات", "Packages")),
       color: 'from-amber-500 to-orange-400',
       shadow: 'shadow-amber-500/25',
     },
     {
       to: '/student/my-package',
       icon: Sparkles,
-      label: t('nav.myPackage', isRtl ? 'باقتي' : 'My Package'),
+      label: t('nav.myPackage', tr("باقتي", "My Package")),
       color: 'from-yellow-500 to-amber-500',
       shadow: 'shadow-yellow-500/25',
     },
     {
       to: '/student/wallet',
       icon: Wallet,
-      label: t('nav.wallet', isRtl ? 'المحفظة' : 'Wallet'),
+      label: t('nav.wallet', tr("المحفظة", "Wallet")),
       color: 'from-emerald-500 to-teal-400',
       shadow: 'shadow-emerald-500/25',
     },
     {
       to: '/student/bonus-pool',
       icon: Coins,
-      label: t('nav.bonusPool', isRtl ? 'حوض المكافآت' : 'Bonus Pool'),
+      label: t('nav.bonusPool', tr("حوض المكافآت", "Bonus Pool")),
       color: 'from-teal-500 to-emerald-400',
       shadow: 'shadow-teal-500/25',
     },
     {
       to: '/student/founder',
       icon: Crown,
-      label: t('nav.founderClub', isRtl ? 'نادي المؤسسين' : 'Founder Club'),
+      label: t('nav.founderClub', tr("نادي المؤسسين", "Founder Club")),
       color: 'from-amber-600 to-yellow-400',
       shadow: 'shadow-amber-600/25',
     },
     {
       to: '/student/team',
       icon: Users,
-      label: t('nav.team', isRtl ? 'فريقي' : 'My Team'),
+      label: t('nav.team', tr("فريقي", "My Team")),
       color: 'from-purple-600 to-fuchsia-500',
       shadow: 'shadow-purple-500/25',
     },
     {
       to: '/student/team-tree',
       icon: Network,
-      label: t('nav.teamTree', isRtl ? 'شجرة الفريق' : 'Team Tree'),
+      label: t('nav.teamTree', tr("شجرة الفريق", "Team Tree")),
       color: 'from-indigo-600 to-purple-600',
       shadow: 'shadow-indigo-500/25',
     },
     {
       to: '/student/challenges',
       icon: Trophy,
-      label: t('nav.challenges', isRtl ? 'التحديات' : 'Challenges'),
+      label: t('nav.challenges', tr("التحديات", "Challenges")),
       color: 'from-sky-500 to-cyan-400',
       shadow: 'shadow-sky-500/25',
     },
     {
       to: '/student/ranks',
       icon: Award,
-      label: t('nav.ranks', isRtl ? 'الرتب' : 'Ranks'),
+      label: t('nav.ranks', tr("الرتب", "Ranks")),
       color: 'from-rose-500 to-pink-500',
       shadow: 'shadow-rose-500/25',
     },
     {
       to: '/student/chat',
       icon: MessageCircle,
-      label: t('nav.chat', isRtl ? 'المحادثات' : 'Chat'),
+      label: t('nav.chat', tr("المحادثات", "Chat")),
       color: 'from-indigo-600 to-blue-500',
       shadow: 'shadow-indigo-500/25',
     },
     {
       to: '/student/support',
       icon: LifeBuoy,
-      label: t('nav.support', isRtl ? 'مركز الدعم' : 'Support Center'),
+      label: t('nav.support', tr("مركز الدعم", "Support Center")),
       color: 'from-cyan-600 to-teal-500',
       shadow: 'shadow-cyan-500/25',
     },
     {
       to: '/student/profile',
       icon: User,
-      label: t('nav.profile', isRtl ? 'الملف الشخصي' : 'Profile'),
+      label: t('nav.profile', tr("الملف الشخصي", "Profile")),
       color: 'from-slate-700 to-slate-900 dark:from-slate-600 dark:to-slate-800',
       shadow: 'shadow-slate-500/20',
     },
@@ -285,9 +286,9 @@ export default function StudentDashboard() {
                 <p className="text-xs font-medium text-blue-200">
                   {(() => {
                     const hour = new Date().getHours();
-                    if (hour < 12) return isRtl ? 'صباح الخير' : 'Good Morning';
-                    if (hour < 18) return isRtl ? 'مساء الخير' : 'Good Afternoon';
-                    return isRtl ? 'مساء الخير' : 'Good Evening';
+                    if (hour < 12) return tr("صباح الخير", "Good Morning");
+                    if (hour < 18) return tr("مساء الخير", "Good Afternoon");
+                    return tr("مساء الخير", "Good Evening");
                   })()}
                 </p>
                 <h2 className="text-lg lg:text-xl font-black text-amber-300 truncate mt-0.5">
@@ -305,12 +306,12 @@ export default function StudentDashboard() {
             <div className="md:col-span-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-blue-200">
-                  {t('wallet.totalBalance', isRtl ? 'إجمالي الرصيد' : 'Total Balance')}
+                  {t('wallet.totalBalance', tr("إجمالي الرصيد", "Total Balance"))}
                 </span>
                 <button
                   onClick={() => setShowBalance(!showBalance)}
                   className="p-1 text-blue-200 hover:text-white transition-colors"
-                  title={showBalance ? (isRtl ? 'إخفاء الرصيد' : 'Hide Balance') : (isRtl ? 'إظهار الرصيد' : 'Show Balance')}
+                  title={showBalance ? (tr("إخفاء الرصيد", "Hide Balance")) : (tr("إظهار الرصيد", "Show Balance"))}
                 >
                   {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </button>
@@ -335,7 +336,7 @@ export default function StudentDashboard() {
                   className="h-7 px-3 bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold rounded-lg border border-white/20"
                 >
                   <Wallet className="h-3.5 w-3.5 mr-1 rtl:ml-1" />
-                  {isRtl ? 'فتح المحفظة' : 'Open Wallet'}
+                  {tr("فتح المحفظة", "Open Wallet")}
                 </Button>
               </div>
             </div>
@@ -345,7 +346,7 @@ export default function StudentDashboard() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <span className="text-[11px] font-medium text-blue-200 block">
-                    {isRtl ? 'العمولات' : 'Commissions'}
+                    {tr("العمولات", "Commissions")}
                   </span>
                   <span className="text-base lg:text-lg font-black text-emerald-400 font-mono mt-0.5 block">
                     {showBalance ? (
@@ -359,7 +360,7 @@ export default function StudentDashboard() {
                 </div>
                 <div>
                   <span className="text-[11px] font-medium text-blue-200 block">
-                    {isRtl ? 'المكافآت' : 'Bonus'}
+                    {tr("المكافآت", "Bonus")}
                   </span>
                   <span className="text-base lg:text-lg font-black text-fuchsia-300 font-mono mt-0.5 block">
                     {showBalance ? (
@@ -374,7 +375,7 @@ export default function StudentDashboard() {
               </div>
 
               <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-                <span className="text-blue-200">{isRtl ? 'الرصيد الأساسي:' : 'Main Balance:'}</span>
+                <span className="text-blue-200">{tr("الرصيد الأساسي:", "Main Balance:")}</span>
                 <span className="font-bold text-white font-mono">
                   {showBalance ? (
                     isAlgeria
@@ -395,11 +396,11 @@ export default function StudentDashboard() {
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                {isRtl ? 'الإجراءات السريعة وأقسام المنصة' : 'Quick Actions & Sections'}
+                {tr("الإجراءات السريعة وأقسام المنصة", "Quick Actions & Sections")}
               </h3>
             </div>
             <span className="text-xs text-slate-400 font-medium">
-              {isRtl ? 'الوصول المباشر لكافة صفحات المنصة' : 'Direct access to all platform pages'}
+              {tr("الوصول المباشر لكافة صفحات المنصة", "Direct access to all platform pages")}
             </span>
           </div>
 
@@ -438,26 +439,26 @@ export default function StudentDashboard() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                        {isRtl ? 'نظام الشركاء ورابط الإحالة' : 'Referral & Partner Network'}
+                        {tr("نظام الشركاء ورابط الإحالة", "Referral & Partner Network")}
                       </h3>
                       <p className="text-[11px] text-slate-400">
-                        {isRtl ? 'شارك رابطك لبناء فريقك والحصول على عمولات الشجرة' : 'Share your link to grow your team and earn commissions'}
+                        {tr("شارك رابطك لبناء فريقك والحصول على عمولات الشجرة", "Share your link to grow your team and earn commissions")}
                       </p>
                     </div>
                   </div>
                   <Badge className="bg-blue-50 text-blue-600 dark:bg-blue-950/60 border-blue-200 text-xs font-bold">
-                    {totalTeam} {isRtl ? 'عضو' : 'Members'}
+                    {totalTeam} {tr("عضو", "Members")}
                   </Badge>
                 </div>
 
                 <div className="mt-4 space-y-3">
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60">
-                      <span className="text-[10px] text-slate-400 block">{isRtl ? 'الأعضاء المباشرين (Gen 1)' : 'Direct Referrals'}</span>
+                      <span className="text-[10px] text-slate-400 block">{tr("الأعضاء المباشرين (Gen 1)", "Direct Referrals")}</span>
                       <strong className="text-base font-black text-slate-900 dark:text-white">{directReferrals}</strong>
                     </div>
                     <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60">
-                      <span className="text-[10px] text-slate-400 block">{isRtl ? 'إجمالي الفريق' : 'Total Team Size'}</span>
+                      <span className="text-[10px] text-slate-400 block">{tr("إجمالي الفريق", "Total Team Size")}</span>
                       <strong className="text-base font-black text-blue-600">{totalTeam}</strong>
                     </div>
                   </div>
@@ -469,7 +470,7 @@ export default function StudentDashboard() {
                       className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:text-blue-600 flex items-center gap-1 font-bold text-[11px]"
                     >
                       {copiedCode ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                      <span>{copiedCode ? (isRtl ? 'تم النسخ' : 'Copied') : (isRtl ? 'نسخ الكود' : 'Copy Code')}</span>
+                      <span>{copiedCode ? (tr("تم النسخ", "Copied")) : (tr("نسخ الكود", "Copy Code"))}</span>
                     </button>
                   </div>
 
@@ -478,7 +479,7 @@ export default function StudentDashboard() {
                     className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl h-10 text-xs flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20"
                   >
                     {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    <span>{copiedLink ? (isRtl ? 'تم نسخ الرابط بنجاح!' : 'Referral Link Copied!') : (isRtl ? 'نسخ رابط الإحالة ومشاركته' : 'Copy and Share Referral Link')}</span>
+                    <span>{copiedLink ? (tr("تم نسخ الرابط بنجاح!", "Referral Link Copied!")) : (tr("نسخ رابط الإحالة ومشاركته", "Copy and Share Referral Link"))}</span>
                   </Button>
                 </div>
               </Card>
@@ -493,7 +494,7 @@ export default function StudentDashboard() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {isRtl ? 'رتبتي والترقيات' : 'Current Rank & Progression'}
+                      {tr("رتبتي والترقيات", "Current Rank & Progression")}
                     </h3>
                     <p className="text-[11px] text-slate-400">
                       {isRtl ? (currentRank.name_ar || currentRank.name) : currentRank.name} (Level {currentRank.level || 1})
@@ -506,7 +507,7 @@ export default function StudentDashboard() {
                   onClick={() => navigate('/student/ranks')}
                   className="text-xs text-primary font-bold hover:bg-primary/10 rounded-xl"
                 >
-                  <span>{isRtl ? 'عرض السلم' : 'View All'}</span>
+                  <span>{tr("عرض السلم", "View All")}</span>
                   <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
                 </Button>
               </div>
@@ -516,7 +517,7 @@ export default function StudentDashboard() {
                   <>
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-slate-500">
-                        <span>{isRtl ? 'المبيعات المباشرة المطلوبة' : 'Direct Sales'}: {ranksUserStats.directSales} / {nextRank.min_direct_sales}</span>
+                        <span>{tr("المبيعات المباشرة المطلوبة", "Direct Sales")}: {ranksUserStats.directSales} / {nextRank.min_direct_sales}</span>
                         <span className="font-bold text-slate-900 dark:text-white">{salesProgress}%</span>
                       </div>
                       <Progress value={salesProgress} className="h-2 rounded-full" />
@@ -524,7 +525,7 @@ export default function StudentDashboard() {
 
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-slate-500">
-                        <span>{isRtl ? 'حجم مبيعات الفريق المطلوب' : 'Team Turnover'}: ${Number(ranksUserStats.teamTurnover || 0).toFixed(2)} / ${Number(nextRank.min_team_turnover).toFixed(2)}</span>
+                        <span>{tr("حجم مبيعات الفريق المطلوب", "Team Turnover")}: ${Number(ranksUserStats.teamTurnover || 0).toFixed(2)} / ${Number(nextRank.min_team_turnover).toFixed(2)}</span>
                         <span className="font-bold text-slate-900 dark:text-white">{turnoverProgress}%</span>
                       </div>
                       <Progress value={turnoverProgress} className="h-2 rounded-full" />
@@ -533,7 +534,7 @@ export default function StudentDashboard() {
                 ) : (
                   <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs flex items-center gap-2">
                     <Crown className="h-4 w-4" />
-                    <span>{isRtl ? 'أنت في أعلى رتبة بالمنصة! تهانينا لك!' : 'You have reached the highest platform rank!'}</span>
+                    <span>{tr("أنت في أعلى رتبة بالمنصة! تهانينا لك!", "You have reached the highest platform rank!")}</span>
                   </div>
                 )}
               </div>
@@ -552,10 +553,10 @@ export default function StudentDashboard() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                        {isRtl ? 'المقررات والدورات الأكاديمية' : 'Enrolled Courses & Tracks'}
+                        {tr("المقررات والدورات الأكاديمية", "Enrolled Courses & Tracks")}
                       </h3>
                       <p className="text-[11px] text-slate-400">
-                        {isRtl ? 'متابعة المواد الدراسية والمحاضرات' : 'Access your active modules and lectures'}
+                        {tr("متابعة المواد الدراسية والمحاضرات", "Access your active modules and lectures")}
                       </p>
                     </div>
                   </div>
@@ -565,7 +566,7 @@ export default function StudentDashboard() {
                     onClick={() => navigate('/student/academy')}
                     className="text-xs text-primary font-bold hover:bg-primary/10 rounded-xl"
                   >
-                    <span>{isRtl ? 'عرض الكل' : 'View All'}</span>
+                    <span>{tr("عرض الكل", "View All")}</span>
                     <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
                   </Button>
                 </div>
@@ -582,7 +583,7 @@ export default function StudentDashboard() {
                           {mod.name}
                         </p>
                         <span className="text-[10px] text-slate-400">
-                          {mod.specialty_name || (isRtl ? 'مسار تعليمي' : 'Learning Track')}
+                          {mod.specialty_name || (tr("مسار تعليمي", "Learning Track"))}
                         </span>
                       </div>
                       <ChevronRight className="h-4 w-4 text-slate-400 rtl:rotate-180 group-hover:translate-x-0.5 transition-transform" />
@@ -602,10 +603,10 @@ export default function StudentDashboard() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                        {isRtl ? 'اللقاءات المباشرة القادمة' : 'Upcoming Live Sessions'}
+                        {tr("اللقاءات المباشرة القادمة", "Upcoming Live Sessions")}
                       </h3>
                       <p className="text-[11px] text-slate-400">
-                        {isRtl ? 'انضم إلى جلسات البث المباشر والتدريب' : 'Join live interactive webinars and workshops'}
+                        {tr("انضم إلى جلسات البث المباشر والتدريب", "Join live interactive webinars and workshops")}
                       </p>
                     </div>
                   </div>
@@ -615,7 +616,7 @@ export default function StudentDashboard() {
                     onClick={() => navigate('/student/meetings')}
                     className="text-xs text-rose-600 font-bold hover:bg-rose-50 rounded-xl"
                   >
-                    <span>{isRtl ? 'عرض الكل' : 'View All'}</span>
+                    <span>{tr("عرض الكل", "View All")}</span>
                     <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
                   </Button>
                 </div>
@@ -643,7 +644,7 @@ export default function StudentDashboard() {
                         }}
                         className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl h-8 px-3"
                       >
-                        {isRtl ? 'دخول' : 'Join'}
+                        {tr("دخول", "Join")}
                       </Button>
                     </div>
                   ))}
@@ -661,10 +662,10 @@ export default function StudentDashboard() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                        {isRtl ? 'أحدث الأخبار والإعلانات' : 'Latest Announcements'}
+                        {tr("أحدث الأخبار والإعلانات", "Latest Announcements")}
                       </h3>
                       <p className="text-[11px] text-slate-400">
-                        {isRtl ? 'مستجدات المنصة والفعاليات' : 'Platform news and community updates'}
+                        {tr("مستجدات المنصة والفعاليات", "Platform news and community updates")}
                       </p>
                     </div>
                   </div>

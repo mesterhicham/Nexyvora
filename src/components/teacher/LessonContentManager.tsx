@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -67,7 +68,7 @@ function SortableContentRow({ content, onDelete }: { content: any; onDelete: (id
         </div>
       </TableCell>
       <TableCell>
-        {content.content_type === 'video' ? (isRtl ? 'فيديو' : 'Video') : 'PDF'}
+        {content.content_type === 'video' ? (tr("فيديو", "Video")) : 'PDF'}
       </TableCell>
       <TableCell>{formatDuration(content.duration_seconds)}</TableCell>
       <TableCell className="text-right">
@@ -110,13 +111,13 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
       const isPdf = file.type === 'application/pdf';
       
       if (!isVideo && !isPdf) {
-        toast.error(isRtl ? 'يرجى اختيار ملف فيديو أو PDF' : 'Please select a video or PDF file');
+        toast.error(tr("يرجى اختيار ملف فيديو أو PDF", "Please select a video or PDF file"));
         return;
       }
       
       // Max 100MB
       if (file.size > 100 * 1024 * 1024) {
-        toast.error(isRtl ? 'حجم الملف يجب أن يكون أقل من 100MB' : 'File size must be under 100MB');
+        toast.error(tr("حجم الملف يجب أن يكون أقل من 100MB", "File size must be under 100MB"));
         return;
       }
       
@@ -144,7 +145,7 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
 
   const handleUpload = async () => {
     if (!form.file || !form.title || !lesson?.id) {
-      toast.error(isRtl ? 'يرجى ملء جميع الحقول' : 'Please fill all required fields');
+      toast.error(tr("يرجى ملء جميع الحقول", "Please fill all required fields"));
       return;
     }
 
@@ -208,14 +209,14 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{isRtl ? 'إدارة محتوى الدرس:' : 'Manage Lesson Content:'} {lesson?.title}</DialogTitle>
+            <DialogTitle>{tr("إدارة محتوى الدرس:", "Manage Lesson Content:")} {lesson?.title}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="flex justify-end">
               <Button onClick={() => setIsAddDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                {isRtl ? 'إضافة محتوى' : 'Add Content'}
+                {tr("إضافة محتوى", "Add Content")}
               </Button>
             </div>
 
@@ -230,10 +231,10 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-10"></TableHead>
-                        <TableHead>{isRtl ? 'العنوان' : 'Title'}</TableHead>
-                        <TableHead>{isRtl ? 'النوع' : 'Type'}</TableHead>
-                        <TableHead>{isRtl ? 'المدة' : 'Duration'}</TableHead>
-                        <TableHead className="text-right">{isRtl ? 'الإجراءات' : 'Actions'}</TableHead>
+                        <TableHead>{tr("العنوان", "Title")}</TableHead>
+                        <TableHead>{tr("النوع", "Type")}</TableHead>
+                        <TableHead>{tr("المدة", "Duration")}</TableHead>
+                        <TableHead className="text-right">{tr("الإجراءات", "Actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -252,7 +253,7 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground border rounded-lg">
-                {isRtl ? 'لا يوجد محتوى بعد. قم بإضافة فيديوهات أو ملفات PDF.' : 'No content yet. Add videos or PDF documents.'}
+                {tr("لا يوجد محتوى بعد. قم بإضافة فيديوهات أو ملفات PDF.", "No content yet. Add videos or PDF documents.")}
               </div>
             )}
           </div>
@@ -263,20 +264,20 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{isRtl ? 'إضافة محتوى جديد' : 'Add New Content'}</DialogTitle>
+            <DialogTitle>{tr("إضافة محتوى جديد", "Add New Content")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>{isRtl ? 'عنوان المحتوى *' : 'Content Title *'}</Label>
+              <Label>{tr("عنوان المحتوى *", "Content Title *")}</Label>
               <Input
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder={isRtl ? 'مثال: المقدمة' : 'e.g. Introduction'}
+                placeholder={tr("مثال: المقدمة", "e.g. Introduction")}
               />
             </div>
             
             <div>
-              <Label>{isRtl ? 'نوع المحتوى' : 'Content Type'}</Label>
+              <Label>{tr("نوع المحتوى", "Content Type")}</Label>
               <Select 
                 value={form.content_type} 
                 onValueChange={(v: 'video' | 'pdf') => setForm({ ...form, content_type: v })}
@@ -288,13 +289,13 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
                   <SelectItem value="video">
                     <div className="flex items-center gap-2">
                       <Video className="h-4 w-4" />
-                      {isRtl ? 'فيديو' : 'Video'}
+                      {tr("فيديو", "Video")}
                     </div>
                   </SelectItem>
                   <SelectItem value="pdf">
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      {isRtl ? 'ملف PDF' : 'PDF Document'}
+                      {tr("ملف PDF", "PDF Document")}
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -302,7 +303,7 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
             </div>
 
             <div>
-              <Label>{isRtl ? 'الملف *' : 'File *'}</Label>
+              <Label>{tr("الملف *", "File *")}</Label>
               <div className="mt-2">
                 <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -312,10 +313,10 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
                     ) : (
                       <>
                         <p className="text-sm text-muted-foreground">
-                          {isRtl ? `اضغط لرفع ${form.content_type === 'video' ? 'فيديو' : 'ملف PDF'}` : `Click to upload ${form.content_type === 'video' ? 'Video' : 'PDF'}`}
+                          {tr("اضغط لرفع ${form.content_type === 'video' ? 'فيديو' : 'ملف PDF'}", "Click to upload ${form.content_type === 'video' ? 'Video' : 'PDF'}")}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {isRtl ? 'الحد الأقصى: 100MB' : 'Max size: 100MB'}
+                          {tr("الحد الأقصى: 100MB", "Max size: 100MB")}
                         </p>
                       </>
                     )}
@@ -332,11 +333,11 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
 
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button onClick={handleUpload} disabled={isUploading || !form.file || !form.title}>
                 {isUploading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isRtl ? 'رفع المحتوى' : 'Upload Content'}
+                {tr("رفع المحتوى", "Upload Content")}
               </Button>
             </div>
           </div>
@@ -347,18 +348,18 @@ export function LessonContentManager({ open, onOpenChange, lesson }: LessonConte
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{isRtl ? 'حذف المحتوى' : 'Delete Content'}</AlertDialogTitle>
+            <AlertDialogTitle>{tr("حذف المحتوى", "Delete Content")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {isRtl ? 'هل أنت متأكد من حذف هذا المحتوى؟ لا يمكن التراجع عن هذا الإجراء.' : 'Are you sure you want to delete this content? This action cannot be undone.'}
+              {tr("هل أنت متأكد من حذف هذا المحتوى؟ لا يمكن التراجع عن هذا الإجراء.", "Are you sure you want to delete this content? This action cannot be undone.")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{isRtl ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+            <AlertDialogCancel>{tr("إلغاء", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete} 
               className="bg-destructive text-destructive-foreground"
             >
-              {isRtl ? 'حذف' : 'Delete'}
+              {tr("حذف", "Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

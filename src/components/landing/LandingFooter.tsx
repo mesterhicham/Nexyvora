@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import { PlatformLogo } from '@/components/PlatformLogo';
@@ -45,34 +46,34 @@ export function LandingFooter() {
               />
             </Link>
             <p className="text-xs sm:text-sm text-slate-400 font-medium">
-              {t('landing.footer.slogan') || (isRtl ? 'تعلّم • شارك • انجح' : 'Apprendre • Partager • Réussir')}
+              {t('landing.footer.slogan') || (tr("تعلّم • شارك • انجح", "Apprendre • Partager • Réussir"))}
             </p>
           </div>
 
           {/* Navigation Links (2.5 cols) */}
           <div className="lg:col-span-3 space-y-4">
             <h4 className="text-sm font-bold text-white tracking-wide">
-              {t('landing.footer.navTitle') || (isRtl ? 'التنقل السريع' : 'Navigation')}
+              {t('landing.footer.navTitle') || (tr("التنقل السريع", "Navigation"))}
             </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
                 <a href="#home" className="text-slate-400 hover:text-white transition-colors">
-                  {t('landing.nav.home') || (isRtl ? 'الرئيسية' : 'Accueil')}
+                  {t('landing.nav.home') || (tr("الرئيسية", "Accueil"))}
                 </a>
               </li>
               <li>
                 <a href="#programmes" className="text-slate-400 hover:text-white transition-colors">
-                  {t('landing.nav.programs') || (isRtl ? 'البرامج' : 'Programmes')}
+                  {t('landing.nav.programs') || (tr("البرامج", "Programmes"))}
                 </a>
               </li>
               <li>
                 <a href="#programmes" className="text-slate-400 hover:text-white transition-colors">
-                  {t('landing.nav.formations') || (isRtl ? 'التكوينات' : 'Formations')}
+                  {t('landing.nav.formations') || (tr("التكوينات", "Formations"))}
                 </a>
               </li>
               <li>
                 <a href="#apropos" className="text-slate-400 hover:text-white transition-colors">
-                  {t('landing.nav.about') || (isRtl ? 'من نحن' : 'À propos')}
+                  {t('landing.nav.about') || (tr("من نحن", "À propos"))}
                 </a>
               </li>
             </ul>
@@ -81,7 +82,7 @@ export function LandingFooter() {
           {/* Help & Support (2.5 cols) */}
           <div className="lg:col-span-2 space-y-4">
             <h4 className="text-sm font-bold text-white tracking-wide">
-              {t('landing.footer.helpTitle') || (isRtl ? 'المساعدة والدعم' : 'Aide')}
+              {t('landing.footer.helpTitle') || (tr("المساعدة والدعم", "Aide"))}
             </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
@@ -91,22 +92,22 @@ export function LandingFooter() {
               </li>
               <li>
                 <a href="#contact" className="text-slate-400 hover:text-white transition-colors">
-                  {t('landing.footer.contact') || (isRtl ? 'اتصل بنا' : 'Contact')}
+                  {t('landing.footer.contact') || (tr("اتصل بنا", "Contact"))}
                 </a>
               </li>
               <li>
                 <Link to="/policies/conditions-generales" className="text-slate-400 hover:text-white transition-colors">
-                  {t('landing.footer.legal') || (isRtl ? 'الشروط العامة' : 'Conditions Générales')}
+                  {t('landing.footer.legal') || (tr("الشروط العامة", "Conditions Générales"))}
                 </Link>
               </li>
               <li>
                 <Link to="/policies/confidentialite" className="text-slate-400 hover:text-white transition-colors">
-                  {t('landing.footer.privacy') || (isRtl ? 'سياسة الخصوصية' : 'Politique de confidentialité')}
+                  {t('landing.footer.privacy') || (tr("سياسة الخصوصية", "Politique de confidentialité"))}
                 </Link>
               </li>
               <li>
                 <Link to="/policies/anti-blanchiment" className="text-slate-400 hover:text-white transition-colors">
-                  {isRtl ? 'مكافحة غسيل الأموال (AML)' : 'Politique Anti-Blanchiment'}
+                  {tr("مكافحة غسيل الأموال (AML)", "Politique Anti-Blanchiment")}
                 </Link>
               </li>
             </ul>
@@ -115,7 +116,7 @@ export function LandingFooter() {
           {/* Social Icons (3 cols) */}
           <div className="lg:col-span-3 space-y-4">
             <h4 className="text-sm font-bold text-white tracking-wide">
-              {t('landing.footer.socialTitle') || (isRtl ? 'تابعنا على' : 'Suivez-nous')}
+              {t('landing.footer.socialTitle') || (tr("تابعنا على", "Suivez-nous"))}
             </h4>
             <div className="flex items-center gap-2.5">
               

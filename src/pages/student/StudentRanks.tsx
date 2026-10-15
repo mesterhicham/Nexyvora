@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
@@ -159,15 +160,13 @@ export default function StudentRanks() {
             <div className={`space-y-1 ${isRtl ? 'text-right' : 'text-left'}`}>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-bold border border-amber-500/20">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>{isRtl ? 'الأحواض القيادية العالمية' : 'Global Leadership Bonus Pools'}</span>
+                <span>{tr("الأحواض القيادية العالمية", "Global Leadership Bonus Pools")}</span>
               </div>
               <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">
-                {isRtl ? 'أحواض أرباح القيادة الشهرية' : 'Monthly Leadership Profit Pools'}
+                {tr("أحواض أرباح القيادة الشهرية", "Monthly Leadership Profit Pools")}
               </h2>
               <p className="text-xs text-slate-500 max-w-xl">
-                {isRtl 
-                  ? 'تقاسم أرباح المنصة المتبقية شهرياً بالتساوي بين القادة المؤهلين لكل رتبة.' 
-                  : 'Share in platform monthly profits equally among qualified leaders for each rank.'}
+                {tr("تقاسم أرباح المنصة المتبقية شهرياً بالتساوي بين القادة المؤهلين لكل رتبة.", "Share in platform monthly profits equally among qualified leaders for each rank.")}
               </p>
             </div>
 
@@ -191,7 +190,7 @@ export default function StudentRanks() {
                           </h3>
                         </div>
                         <p className="text-xs text-slate-300">
-                          {isRtl ? `مكافأة ${pool.pool_percentage}% شهرياً من صافي أرباح المنصة` : `${pool.pool_percentage}% monthly share from net platform profits`}
+                          {tr("مكافأة ${pool.pool_percentage}% شهرياً من صافي أرباح المنصة", "${pool.pool_percentage}% monthly share from net platform profits")}
                         </p>
                       </div>
 
@@ -206,14 +205,14 @@ export default function StudentRanks() {
                     {/* Pot Display */}
                     <div className="my-5 p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <span className="text-xs text-slate-400 block">{isRtl ? 'قيمة الحوض التقديرية الحالية' : 'Current Estimated Pool Pot'}</span>
+                        <span className="text-xs text-slate-400 block">{tr("قيمة الحوض التقديرية الحالية", "Current Estimated Pool Pot")}</span>
                         <div className="text-2xl sm:text-3xl font-black text-white flex items-baseline gap-1 mt-0.5">
                           <span>${pool.estimated_current_amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                           <span className="text-xs font-semibold text-slate-400">USD</span>
                         </div>
                         {pool.current_rollover > 0 && (
                           <span className="text-xs text-amber-300 font-medium mt-1 block">
-                            {isRtl ? `(يتضمن $${pool.current_rollover.toFixed(2)} مرحل من الشهر السابق)` : `(Includes $${pool.current_rollover.toFixed(2)} rolled over)`}
+                            {tr("(يتضمن $${pool.current_rollover.toFixed(2)} مرحل من الشهر السابق)", "(Includes $${pool.current_rollover.toFixed(2)} rolled over)")}
                           </span>
                         )}
                       </div>
@@ -221,10 +220,10 @@ export default function StudentRanks() {
                       <div className="sm:text-left text-xs text-slate-300 space-y-1">
                         <div className="flex items-center gap-1.5 text-slate-300">
                           <Clock className="w-3.5 h-3.5 text-amber-400" />
-                          <span>{isRtl ? `متبقي ${pool.days_left} أيام على نهاية الشهر` : `${pool.days_left} days left this month`}</span>
+                          <span>{tr("متبقي ${pool.days_left} أيام على نهاية الشهر", "${pool.days_left} days left this month")}</span>
                         </div>
                         <span className="text-slate-400 block text-[11px]">
-                          {isRtl ? 'التوزيع بالتساوي بين المؤهلين' : 'Split equally among qualifiers'}
+                          {tr("التوزيع بالتساوي بين المؤهلين", "Split equally among qualifiers")}
                         </span>
                       </div>
                     </div>
@@ -234,15 +233,13 @@ export default function StudentRanks() {
                       <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs font-bold flex items-center gap-2.5">
                         <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                         <span>
-                          {isRtl 
-                            ? 'مبروك! أنت مؤهل رسمياً لاستلام حصتك من أرباح هذا الحوض بنهاية هذا الشهر 🎉' 
-                            : 'Congratulations! You are officially eligible to receive your share at the end of this month! 🎉'}
+                          {tr("مبروك! أنت مؤهل رسمياً لاستلام حصتك من أرباح هذا الحوض بنهاية هذا الشهر 🎉", "Congratulations! You are officially eligible to receive your share at the end of this month! 🎉")}
                         </span>
                       </div>
                     ) : (
                       <div className="space-y-3 p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
                         <div className="flex items-center justify-between text-slate-300">
-                          <span className="font-semibold">{isRtl ? 'مؤشر أهليتك لدخول هذا الحوض:' : 'Qualification Progress:'}</span>
+                          <span className="font-semibold">{tr("مؤشر أهليتك لدخول هذا الحوض:", "Qualification Progress:")}</span>
                           <span className="text-amber-400 font-bold">
                             {isRtl ? `رتبة ${pool.rank_name_ar}` : pool.rank_name}
                           </span>
@@ -252,14 +249,14 @@ export default function StudentRanks() {
                         <div className="space-y-1">
                           <div className="flex justify-between text-[11px]">
                             <span className="text-slate-400">
-                              {isRtl ? 'المبيعات المباشرة:' : 'Direct Sales:'} {progress?.user_direct_sales} / {progress?.min_direct_sales}
+                              {tr("المبيعات المباشرة:", "Direct Sales:")} {progress?.user_direct_sales} / {progress?.min_direct_sales}
                             </span>
                             <span className="font-semibold text-slate-300">{progress?.direct_percentage}%</span>
                           </div>
                           <Progress value={progress?.direct_percentage} className="h-1.5 bg-slate-800" />
                           {progress?.direct_needed > 0 && (
                             <span className="text-[10px] text-slate-400 block">
-                              {isRtl ? `ينقصك ${progress.direct_needed} إحالة مباشرة` : `${progress.direct_needed} direct sales needed`}
+                              {tr("ينقصك ${progress.direct_needed} إحالة مباشرة", "${progress.direct_needed} direct sales needed")}
                             </span>
                           )}
                         </div>
@@ -268,14 +265,14 @@ export default function StudentRanks() {
                         <div className="space-y-1">
                           <div className="flex justify-between text-[11px]">
                             <span className="text-slate-400">
-                              {isRtl ? 'مبيعات الفريق:' : 'Team Turnover:'} ${progress?.user_team_turnover?.toLocaleString()} / ${progress?.min_team_turnover?.toLocaleString()}
+                              {tr("مبيعات الفريق:", "Team Turnover:")} ${progress?.user_team_turnover?.toLocaleString()} / ${progress?.min_team_turnover?.toLocaleString()}
                             </span>
                             <span className="font-semibold text-slate-300">{progress?.turnover_percentage}%</span>
                           </div>
                           <Progress value={progress?.turnover_percentage} className="h-1.5 bg-slate-800" />
                           {progress?.turnover_needed > 0 && (
                             <span className="text-[10px] text-slate-400 block">
-                              {isRtl ? `ينقصك $${progress.turnover_needed.toLocaleString()} USD مبيعات فريق` : `$${progress.turnover_needed.toLocaleString()} team turnover needed`}
+                              {tr("ينقصك $${progress.turnover_needed.toLocaleString()} USD مبيعات فريق", "$${progress.turnover_needed.toLocaleString()} team turnover needed")}
                             </span>
                           )}
                         </div>
@@ -361,13 +358,13 @@ export default function StudentRanks() {
                       </span>
                     </div>
                     <div className="flex justify-between pt-0.5 text-primary font-bold">
-                      <span>{isRtl ? 'الأجيال المفتوحة' : 'Unlocked Generations'}:</span>
+                      <span>{tr("الأجيال المفتوحة", "Unlocked Generations")}:</span>
                       <span className="font-black text-xs">
                         {r.unlocked_generations === 0 
-                          ? (isRtl ? 'المباشر فقط' : 'Direct only')
+                          ? (tr("المباشر فقط", "Direct only"))
                           : r.unlocked_generations === 10
-                          ? (isRtl ? 'جميع الأجيال (1-10)' : 'All 10 Generations')
-                          : (isRtl ? `الأجيال (1-${r.unlocked_generations})` : `Gens 1-${r.unlocked_generations}`)}
+                          ? (tr("جميع الأجيال (1-10)", "All 10 Generations"))
+                          : (tr("الأجيال (1-${r.unlocked_generations})", "Gens 1-${r.unlocked_generations}"))}
                       </span>
                     </div>
                     <div className="flex justify-between pt-1 text-emerald-600 font-bold">

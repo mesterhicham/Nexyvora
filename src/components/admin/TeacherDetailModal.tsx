@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useTeacherDetails } from '@/hooks/useDashboardData';
@@ -172,9 +173,9 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
       const res = await uploadService.uploadFile(file);
       const fileUrl = res.url || res.fileUrl || res.path;
       setNewCert((prev) => ({ ...prev, file_url: fileUrl }));
-      toast.success(isRtl ? 'تم رفع وثيقة الشهادة بنجاح' : 'Certificate uploaded successfully');
+      toast.success(tr("تم رفع وثيقة الشهادة بنجاح", "Certificate uploaded successfully"));
     } catch (err: any) {
-      toast.error((isRtl ? 'فشل رفع الملف: ' : 'File upload failed: ') + (err.response?.data?.error || err.message));
+      toast.error((tr("فشل رفع الملف: ", "File upload failed: ")) + (err.response?.data?.error || err.message));
     } finally {
       setIsUploadingCert(false);
     }
@@ -182,7 +183,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
 
   const handleAddCert = async () => {
     if (!newCert.title?.trim() || !newCert.issuer?.trim()) {
-      toast.error(isRtl ? 'يرجى ملء عنوان الشهادة والجهة المانحة' : 'Please fill in certificate title and issuing body');
+      toast.error(tr("يرجى ملء عنوان الشهادة والجهة المانحة", "Please fill in certificate title and issuing body"));
       return;
     }
 
@@ -224,7 +225,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
           certifications: updated,
         });
         refetch();
-        toast.success(isRtl ? 'تم حذف الشهادة بنجاح' : 'Certificate removed successfully');
+        toast.success(tr("تم حذف الشهادة بنجاح", "Certificate removed successfully"));
       } catch {
         // Handled
       }
@@ -249,7 +250,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
   const assignments = data?.assignments || [];
   const students = data?.students || [];
 
-  const displayName = teacher?.profile?.full_name || teacher?.full_name || (isRtl ? 'الأستاذ' : 'Instructor');
+  const displayName = teacher?.profile?.full_name || teacher?.full_name || (tr("الأستاذ", "Instructor"));
   const displayEmail = teacher?.profile?.email || teacher?.email || '';
   const initials = displayName
     .split(' ')
@@ -261,7 +262,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
   const handleImpersonate = async () => {
     const targetUserId = teacher?.user_id || teacher?.id;
     if (!targetUserId) {
-      toast.error(isRtl ? 'تعذر تحديد معرّف حساب الأستاذ' : 'Could not identify teacher user account');
+      toast.error(tr("تعذر تحديد معرّف حساب الأستاذ", "Could not identify teacher user account"));
       return;
     }
 
@@ -271,9 +272,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
       if (res.token && res.user) {
         impersonateUser(res.token, res.user);
         toast.success(
-          isRtl 
-            ? `تم تسجيل الدخول بنجاح بحساب الأستاذ ${displayName}`
-            : `Logged in successfully as Teacher ${displayName}`
+          tr("تم تسجيل الدخول بنجاح بحساب الأستاذ ${displayName}", "Logged in successfully as Teacher ${displayName}")
         );
         onOpenChange(false);
         navigate('/teacher');
@@ -283,7 +282,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
       toast.error(
         err.response?.data?.error || 
         err.message || 
-        (isRtl ? 'فشل تسجيل الدخول بحساب الأستاذ' : 'Failed to login as teacher')
+        (tr("فشل تسجيل الدخول بحساب الأستاذ", "Failed to login as teacher"))
       );
     } finally {
       setIsImpersonating(false);
@@ -340,14 +339,14 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                 ) : (
                   <LogIn className="w-3.5 h-3.5" />
                 )}
-                <span>{isRtl ? 'دخول لحساب الأستاذ' : 'Login as Teacher'}</span>
+                <span>{tr("دخول لحساب الأستاذ", "Login as Teacher")}</span>
               </Button>
               <div className="bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/40 rounded-2xl px-3 py-1.5 text-center">
-                <span className="text-[10px] text-purple-600 dark:text-purple-300 font-semibold block">{isRtl ? 'نسبة الحضور' : 'Attendance'}</span>
+                <span className="text-[10px] text-purple-600 dark:text-purple-300 font-semibold block">{tr("نسبة الحضور", "Attendance")}</span>
                 <span className="text-xs font-bold text-purple-700 dark:text-purple-200">{stats.attendanceRate}%</span>
               </div>
               <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 rounded-2xl px-3 py-1.5 text-center">
-                <span className="text-[10px] text-indigo-600 dark:text-indigo-300 font-semibold block">{isRtl ? 'إجمالي الطلاب' : 'Total Students'}</span>
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-300 font-semibold block">{tr("إجمالي الطلاب", "Total Students")}</span>
                 <span className="text-xs font-bold text-indigo-700 dark:text-indigo-200">{stats.totalStudents}</span>
               </div>
             </div>
@@ -357,30 +356,30 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
         {isLoading ? (
           <div className="py-16 flex flex-col items-center justify-center gap-3 text-muted-foreground">
             <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-            <p className="text-sm">{isRtl ? 'جاري تحميل الملف الشامل للمدرس...' : 'Loading comprehensive instructor profile...'}</p>
+            <p className="text-sm">{tr("جاري تحميل الملف الشامل للمدرس...", "Loading comprehensive instructor profile...")}</p>
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
             <TabsList className="grid grid-cols-5 w-full bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl mb-6">
               <TabsTrigger value="overview" className="rounded-xl text-xs font-semibold">
                 <BarChart3 className="w-3.5 h-3.5 mx-1" />
-                <span>{isRtl ? 'نظرة عامة' : 'Overview'}</span>
+                <span>{tr("نظرة عامة", "Overview")}</span>
               </TabsTrigger>
               <TabsTrigger value="edit" className="rounded-xl text-xs font-semibold">
                 <Edit3 className="w-3.5 h-3.5 mx-1" />
-                <span>{isRtl ? 'تعديل الحساب' : 'Edit Account'}</span>
+                <span>{tr("تعديل الحساب", "Edit Account")}</span>
               </TabsTrigger>
               <TabsTrigger value="certifications" className="rounded-xl text-xs font-semibold">
                 <Award className="w-3.5 h-3.5 mx-1" />
-                <span>{isRtl ? `الشواهد (${certifications.length})` : `Certificates (${certifications.length})`}</span>
+                <span>{tr("الشواهد (${certifications.length})", "Certificates (${certifications.length})")}</span>
               </TabsTrigger>
               <TabsTrigger value="modules" className="rounded-xl text-xs font-semibold">
                 <BookOpen className="w-3.5 h-3.5 mx-1" />
-                <span>{isRtl ? `المقررات (${modules.length})` : `Courses (${modules.length})`}</span>
+                <span>{tr("المقررات (${modules.length})", "Courses (${modules.length})")}</span>
               </TabsTrigger>
               <TabsTrigger value="students" className="rounded-xl text-xs font-semibold">
                 <Users className="w-3.5 h-3.5 mx-1" />
-                <span>{isRtl ? 'الطلاب والتقدم' : 'Students & Progress'}</span>
+                <span>{tr("الطلاب والتقدم", "Students & Progress")}</span>
               </TabsTrigger>
             </TabsList>
 
@@ -390,16 +389,16 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="bg-gradient-to-br from-violet-500/10 to-purple-500/10 dark:from-violet-950/40 dark:to-purple-950/40 p-4 rounded-3xl border border-purple-100 dark:border-purple-900/50">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{isRtl ? 'إجمالي الطلاب' : 'Total Students'}</span>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{tr("إجمالي الطلاب", "Total Students")}</span>
                     <Users className="w-4 h-4 text-purple-600" />
                   </div>
                   <div className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalStudents}</div>
-                  <p className="text-[11px] text-slate-400 mt-1">{isRtl ? 'متابعون في الأفواج المسندة' : 'In assigned cohorts'}</p>
+                  <p className="text-[11px] text-slate-400 mt-1">{tr("متابعون في الأفواج المسندة", "In assigned cohorts")}</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 dark:from-emerald-950/40 dark:to-teal-950/40 p-4 rounded-3xl border border-emerald-100 dark:border-emerald-900/50">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{isRtl ? 'نسبة الحضور' : 'Attendance Rate'}</span>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{tr("نسبة الحضور", "Attendance Rate")}</span>
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   </div>
                   <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.attendanceRate}%</div>
@@ -408,20 +407,20 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
 
                 <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 dark:from-blue-950/40 dark:to-cyan-950/40 p-4 rounded-3xl border border-blue-100 dark:border-blue-900/50">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{isRtl ? 'المقررات والدروس' : 'Modules & Lessons'}</span>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{tr("المقررات والدروس", "Modules & Lessons")}</span>
                     <BookOpen className="w-4 h-4 text-blue-600" />
                   </div>
                   <div className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalModules}</div>
-                  <p className="text-[11px] text-slate-400 mt-1">{stats.totalLessons} {isRtl ? 'درس تم إنجازه' : 'lessons completed'}</p>
+                  <p className="text-[11px] text-slate-400 mt-1">{stats.totalLessons} {tr("درس تم إنجازه", "lessons completed")}</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 dark:from-amber-950/40 dark:to-orange-950/40 p-4 rounded-3xl border border-amber-100 dark:border-amber-900/50">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{isRtl ? 'تسليم المهام' : 'Submissions'}</span>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{tr("تسليم المهام", "Submissions")}</span>
                     <FileText className="w-4 h-4 text-amber-600" />
                   </div>
                   <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.submissionRate}%</div>
-                  <p className="text-[11px] text-slate-400 mt-1">{stats.totalAssignments} {isRtl ? 'واجب مطروح' : 'assignments'}</p>
+                  <p className="text-[11px] text-slate-400 mt-1">{stats.totalAssignments} {tr("واجب مطروح", "assignments")}</p>
                 </div>
               </div>
 
@@ -431,33 +430,33 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                 <div className="bg-card p-5 rounded-3xl border border-border shadow-xs space-y-4">
                   <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Clock className="w-4 h-4 text-purple-600" />
-                    <span>{isRtl ? 'تحليل الحضور والغياب مع الطلاب' : 'Student Attendance Analytics'}</span>
+                    <span>{tr("تحليل الحضور والغياب مع الطلاب", "Student Attendance Analytics")}</span>
                   </h4>
                   <div className="space-y-3 text-xs">
                     <div className="flex items-center justify-between py-1 border-b border-border/50">
                       <span className="flex items-center gap-1.5 text-muted-foreground">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
-                        {isRtl ? 'حاضر (Present)' : 'Present'}
+                        {tr("حاضر (Present)", "Present")}
                       </span>
-                      <span className="font-bold text-foreground">{stats.presentCount} {isRtl ? 'طالب' : 'students'}</span>
+                      <span className="font-bold text-foreground">{stats.presentCount} {tr("طالب", "students")}</span>
                     </div>
                     <div className="flex items-center justify-between py-1 border-b border-border/50">
                       <span className="flex items-center gap-1.5 text-muted-foreground">
                         <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
-                        {isRtl ? 'غائب (Absent)' : 'Absent'}
+                        {tr("غائب (Absent)", "Absent")}
                       </span>
-                      <span className="font-bold text-foreground">{stats.absentCount} {isRtl ? 'طالب' : 'students'}</span>
+                      <span className="font-bold text-foreground">{stats.absentCount} {tr("طالب", "students")}</span>
                     </div>
                     <div className="flex items-center justify-between py-1 border-b border-border/50">
                       <span className="flex items-center gap-1.5 text-muted-foreground">
                         <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
-                        {isRtl ? 'متأخر (Late)' : 'Late'}
+                        {tr("متأخر (Late)", "Late")}
                       </span>
-                      <span className="font-bold text-foreground">{stats.lateCount} {isRtl ? 'طالب' : 'students'}</span>
+                      <span className="font-bold text-foreground">{stats.lateCount} {tr("طالب", "students")}</span>
                     </div>
                     <div className="flex items-center justify-between pt-1">
-                      <span className="font-semibold text-foreground">{isRtl ? 'إجمالي سجلات الحضور:' : 'Total Attendance Records:'}</span>
-                      <span className="font-bold text-foreground">{stats.totalAttendanceRecords} {isRtl ? 'سجل' : 'records'}</span>
+                      <span className="font-semibold text-foreground">{tr("إجمالي سجلات الحضور:", "Total Attendance Records:")}</span>
+                      <span className="font-bold text-foreground">{stats.totalAttendanceRecords} {tr("سجل", "records")}</span>
                     </div>
                   </div>
                 </div>
@@ -466,33 +465,33 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                 <div className="bg-card p-5 rounded-3xl border border-border shadow-xs space-y-3">
                   <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <GraduationCap className="w-4 h-4 text-purple-600" />
-                    <span>{isRtl ? 'البطاقة الأكاديمية والمهنية' : 'Academic & Professional Profile'}</span>
+                    <span>{tr("البطاقة الأكاديمية والمهنية", "Academic & Professional Profile")}</span>
                   </h4>
                   <div className="space-y-2 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{isRtl ? 'التخصص:' : 'Specialty:'}</span>
-                      <span className="font-semibold text-foreground">{teacher?.specialty || (isRtl ? 'غير محدد' : 'Not specified')}</span>
+                      <span className="text-muted-foreground">{tr("التخصص:", "Specialty:")}</span>
+                      <span className="font-semibold text-foreground">{teacher?.specialty || (tr("غير محدد", "Not specified"))}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{isRtl ? 'الدرجة العلمية:' : 'Degree / Qualification:'}</span>
-                      <span className="font-semibold text-foreground">{teacher?.degree || (isRtl ? 'غير محدد' : 'Not specified')}</span>
+                      <span className="text-muted-foreground">{tr("الدرجة العلمية:", "Degree / Qualification:")}</span>
+                      <span className="font-semibold text-foreground">{teacher?.degree || (tr("غير محدد", "Not specified"))}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{isRtl ? 'تاريخ التعيين:' : 'Hire Date:'}</span>
-                      <span className="font-semibold text-foreground">{teacher?.hire_date || (isRtl ? 'غير محدد' : 'Not specified')}</span>
+                      <span className="text-muted-foreground">{tr("تاريخ التعيين:", "Hire Date:")}</span>
+                      <span className="font-semibold text-foreground">{teacher?.hire_date || (tr("غير محدد", "Not specified"))}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{isRtl ? 'الهاتف / الواتساب:' : 'Phone / WhatsApp:'}</span>
+                      <span className="text-muted-foreground">{tr("الهاتف / الواتساب:", "Phone / WhatsApp:")}</span>
                       <span className="font-semibold text-foreground" dir="ltr">{teacher?.profile?.phone || teacher?.profile?.whatsapp_number || '-'}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{isRtl ? 'المدينة / الدولة:' : 'City / Country:'}</span>
+                      <span className="text-muted-foreground">{tr("المدينة / الدولة:", "City / Country:")}</span>
                       <span className="font-semibold text-foreground">{teacher?.profile?.city ? `${teacher.profile.city}, ` : ''}{teacher?.profile?.country || '-'}</span>
                     </div>
                   </div>
                   {teacher?.experience && (
                     <div className="pt-2 border-t border-border/50">
-                      <span className="text-[11px] font-semibold text-muted-foreground block mb-1">{isRtl ? 'الخبرة:' : 'Experience:'}</span>
+                      <span className="text-[11px] font-semibold text-muted-foreground block mb-1">{tr("الخبرة:", "Experience:")}</span>
                       <p className="text-xs text-foreground leading-relaxed bg-muted/30 p-2.5 rounded-xl">{teacher.experience}</p>
                     </div>
                   )}
@@ -506,50 +505,50 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Full Name */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">{isRtl ? 'الاسم الكامل *' : 'Full Name *'}</Label>
+                    <Label className="text-xs font-semibold">{tr("الاسم الكامل *", "Full Name *")}</Label>
                     <Input
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       required
-                      placeholder={isRtl ? 'اسم المدرس' : 'Instructor name'}
+                      placeholder={tr("اسم المدرس", "Instructor name")}
                       className="rounded-xl"
                     />
                   </div>
 
                   {/* Specialty */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">{isRtl ? 'التخصص الأكاديمي' : 'Specialty'}</Label>
+                    <Label className="text-xs font-semibold">{tr("التخصص الأكاديمي", "Specialty")}</Label>
                     <Input
                       value={formData.specialty}
                       onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-                      placeholder={isRtl ? 'مثال: هندسة البرمجيات، علوم الحاسوب' : 'e.g. Software Engineering'}
+                      placeholder={tr("مثال: هندسة البرمجيات، علوم الحاسوب", "e.g. Software Engineering")}
                       className="rounded-xl"
                     />
                   </div>
 
                   {/* Degree */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">{isRtl ? 'الدرجة العلمية / المؤهل' : 'Degree / Qualification'}</Label>
+                    <Label className="text-xs font-semibold">{tr("الدرجة العلمية / المؤهل", "Degree / Qualification")}</Label>
                     <Select
                       value={formData.degree}
                       onValueChange={(val) => setFormData({ ...formData, degree: val })}
                     >
                       <SelectTrigger className="rounded-xl">
-                        <SelectValue placeholder={isRtl ? 'اختر الدرجة العلمية' : 'Select Degree'} />
+                        <SelectValue placeholder={tr("اختر الدرجة العلمية", "Select Degree")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="PhD">{isRtl ? 'دكتوراه (PhD)' : 'Doctorate (PhD)'}</SelectItem>
-                        <SelectItem value="Master">{isRtl ? 'ماجستير (Master)' : 'Master'}</SelectItem>
-                        <SelectItem value="مهندس دولة (State Engineer)">{isRtl ? 'مهندس دولة (State Engineer)' : 'State Engineer'}</SelectItem>
-                        <SelectItem value="إجازة / بكالوريوس (Bachelor)">{isRtl ? 'إجازة / بكالوريوس (Bachelor)' : 'Bachelor'}</SelectItem>
-                        <SelectItem value="خبير معتمد (Certified Expert)">{isRtl ? 'خبير معتمد (Certified Expert)' : 'Certified Expert'}</SelectItem>
+                        <SelectItem value="PhD">{tr("دكتوراه (PhD)", "Doctorate (PhD)")}</SelectItem>
+                        <SelectItem value="Master">{tr("ماجستير (Master)", "Master")}</SelectItem>
+                        <SelectItem value="مهندس دولة (State Engineer)">{tr("مهندس دولة (State Engineer)", "State Engineer")}</SelectItem>
+                        <SelectItem value="إجازة / بكالوريوس (Bachelor)">{tr("إجازة / بكالوريوس (Bachelor)", "Bachelor")}</SelectItem>
+                        <SelectItem value="خبير معتمد (Certified Expert)">{tr("خبير معتمد (Certified Expert)", "Certified Expert")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Status */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">{isRtl ? 'حالة الحساب' : 'Account Status'}</Label>
+                    <Label className="text-xs font-semibold">{tr("حالة الحساب", "Account Status")}</Label>
                     <Select
                       value={formData.status}
                       onValueChange={(val) => setFormData({ ...formData, status: val })}
@@ -558,16 +557,16 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="active">{t('status.active', isRtl ? 'نشط' : 'Active')}</SelectItem>
-                        <SelectItem value="inactive">{t('status.inactive', isRtl ? 'غير نشط' : 'Inactive')}</SelectItem>
-                        <SelectItem value="suspended">{isRtl ? 'معلق / إجازة' : 'Suspended / On Leave'}</SelectItem>
+                        <SelectItem value="active">{t('status.active', tr("نشط", "Active"))}</SelectItem>
+                        <SelectItem value="inactive">{t('status.inactive', tr("غير نشط", "Inactive"))}</SelectItem>
+                        <SelectItem value="suspended">{tr("معلق / إجازة", "Suspended / On Leave")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Phone */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">{isRtl ? 'رقم الهاتف' : 'Phone Number'}</Label>
+                    <Label className="text-xs font-semibold">{tr("رقم الهاتف", "Phone Number")}</Label>
                     <Input
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -579,7 +578,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
 
                   {/* WhatsApp */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">{isRtl ? 'رقم الواتساب' : 'WhatsApp Number'}</Label>
+                    <Label className="text-xs font-semibold">{tr("رقم الواتساب", "WhatsApp Number")}</Label>
                     <Input
                       value={formData.whatsappNumber}
                       onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })}
@@ -591,13 +590,13 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
 
                   {/* Country */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">{isRtl ? 'الدولة' : 'Country'}</Label>
+                    <Label className="text-xs font-semibold">{tr("الدولة", "Country")}</Label>
                     <Select
                       value={formData.country}
                       onValueChange={(val) => setFormData({ ...formData, country: val })}
                     >
                       <SelectTrigger className="rounded-xl">
-                        <SelectValue placeholder={isRtl ? 'اختر الدولة' : 'Select Country'} />
+                        <SelectValue placeholder={tr("اختر الدولة", "Select Country")} />
                       </SelectTrigger>
                       <SelectContent className="max-h-60">
                         {COUNTRIES.map((c) => (
@@ -611,18 +610,18 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
 
                   {/* City */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">{isRtl ? 'المدينة' : 'City'}</Label>
+                    <Label className="text-xs font-semibold">{tr("المدينة", "City")}</Label>
                     <Input
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      placeholder={isRtl ? 'المدينة' : 'City'}
+                      placeholder={tr("المدينة", "City")}
                       className="rounded-xl"
                     />
                   </div>
 
                   {/* Hire Date */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">{isRtl ? 'تاريخ التعيين' : 'Hire Date'}</Label>
+                    <Label className="text-xs font-semibold">{tr("تاريخ التعيين", "Hire Date")}</Label>
                     <Input
                       type="date"
                       value={formData.hire_date}
@@ -634,24 +633,24 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
 
                 {/* Experience */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">{isRtl ? 'الخبرة المهنية والأكاديمية' : 'Professional & Academic Experience'}</Label>
+                  <Label className="text-xs font-semibold">{tr("الخبرة المهنية والأكاديمية", "Professional & Academic Experience")}</Label>
                   <Textarea
                     value={formData.experience}
                     onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
                     rows={2}
-                    placeholder={isRtl ? 'وصف لسنوات الخبرة والمجالات التي عمل بها المدرس...' : 'Description of experience, domains, and background...'}
+                    placeholder={tr("وصف لسنوات الخبرة والمجالات التي عمل بها المدرس...", "Description of experience, domains, and background...")}
                     className="rounded-xl"
                   />
                 </div>
 
                 {/* Bio */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">{isRtl ? 'نبذة تعريفية (Bio)' : 'Bio / Overview'}</Label>
+                  <Label className="text-xs font-semibold">{tr("نبذة تعريفية (Bio)", "Bio / Overview")}</Label>
                   <Textarea
                     value={formData.bio}
                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                     rows={2}
-                    placeholder={isRtl ? 'نبذة عامة تظهر في ملف المدرس...' : 'Public bio displayed on instructor profile...'}
+                    placeholder={tr("نبذة عامة تظهر في ملف المدرس...", "Public bio displayed on instructor profile...")}
                     className="rounded-xl"
                   />
                 </div>
@@ -665,10 +664,10 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                     {updateTeacher.isPending ? (
                       <>
                         <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                        <span>{isRtl ? 'جاري الحفظ...' : 'Saving...'}</span>
+                        <span>{tr("جاري الحفظ...", "Saving...")}</span>
                       </>
                     ) : (
-                      <span>{isRtl ? 'حفظ التعديلات' : 'Save Changes'}</span>
+                      <span>{tr("حفظ التعديلات", "Save Changes")}</span>
                     )}
                   </Button>
                 </div>
@@ -681,10 +680,10 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                 <div>
                   <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
                     <Award className="w-4 h-4 text-purple-600" />
-                    <span>{isRtl ? 'الشواهد والشهادات الأكاديمية والمهنية' : 'Certifications & Diplomas'}</span>
+                    <span>{tr("الشواهد والشهادات الأكاديمية والمهنية", "Certifications & Diplomas")}</span>
                   </h4>
                   <p className="text-xs text-muted-foreground">
-                    {isRtl ? 'عرض وإدارة كافة الشهادات والدبلومات الحاصل عليها الأستاذ' : 'Manage all degrees and certificates held by the instructor'}
+                    {tr("عرض وإدارة كافة الشهادات والدبلومات الحاصل عليها الأستاذ", "Manage all degrees and certificates held by the instructor")}
                   </p>
                 </div>
 
@@ -694,7 +693,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                   className="rounded-xl bg-purple-600 hover:bg-purple-700 text-white gap-1.5 shadow-xs"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>{isRtl ? 'إضافة شهادة جديدة' : 'Add New Certificate'}</span>
+                  <span>{tr("إضافة شهادة جديدة", "Add New Certificate")}</span>
                 </Button>
               </div>
 
@@ -702,36 +701,36 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
               {isAddingCert && (
                 <div className="bg-purple-50/70 dark:bg-purple-950/30 p-4 rounded-2xl border border-purple-100 dark:border-purple-900/50 space-y-3 animate-in fade-in duration-200">
                   <div className="flex items-center justify-between">
-                    <h5 className="text-xs font-bold text-purple-900 dark:text-purple-200">{isRtl ? 'بيانات الشهادة الجديدة' : 'New Certificate Details'}</h5>
+                    <h5 className="text-xs font-bold text-purple-900 dark:text-purple-200">{tr("بيانات الشهادة الجديدة", "New Certificate Details")}</h5>
                     <button
                       onClick={() => setIsAddingCert(false)}
                       className="text-muted-foreground hover:text-foreground text-xs"
                     >
-                      {isRtl ? 'إلغاء' : 'Cancel'}
+                      {tr("إلغاء", "Cancel")}
                     </button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">{isRtl ? 'عنوان الشهادة / الدبلوم *' : 'Certificate Title *'}</Label>
+                      <Label className="text-xs">{tr("عنوان الشهادة / الدبلوم *", "Certificate Title *")}</Label>
                       <Input
                         value={newCert.title || ''}
                         onChange={(e) => setNewCert({ ...newCert, title: e.target.value })}
-                        placeholder={isRtl ? 'مثال: دكتوراه في علوم البيانات' : 'e.g. Master in Software Engineering'}
+                        placeholder={tr("مثال: دكتوراه في علوم البيانات", "e.g. Master in Software Engineering")}
                         className="rounded-xl bg-background text-xs"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">{isRtl ? 'الجهة المانحة / الجامعة *' : 'Issuing University / Institution *'}</Label>
+                      <Label className="text-xs">{tr("الجهة المانحة / الجامعة *", "Issuing University / Institution *")}</Label>
                       <Input
                         value={newCert.issuer || ''}
                         onChange={(e) => setNewCert({ ...newCert, issuer: e.target.value })}
-                        placeholder={isRtl ? 'مثال: جامعة السوربون / معهد ماساتشوستس' : 'e.g. MIT / Harvard'}
+                        placeholder={tr("مثال: جامعة السوربون / معهد ماساتشوستس", "e.g. MIT / Harvard")}
                         className="rounded-xl bg-background text-xs"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">{isRtl ? 'تاريخ / سنة الحصول عليها' : 'Issue Date / Year'}</Label>
+                      <Label className="text-xs">{tr("تاريخ / سنة الحصول عليها", "Issue Date / Year")}</Label>
                       <Input
                         type="date"
                         value={newCert.issue_date || ''}
@@ -740,7 +739,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">{isRtl ? 'رفع وثيقة أو رابط الشهادة (PDF / صورة)' : 'Upload Document (PDF / Image)'}</Label>
+                      <Label className="text-xs">{tr("رفع وثيقة أو رابط الشهادة (PDF / صورة)", "Upload Document (PDF / Image)")}</Label>
                       <div className="flex items-center gap-2">
                         <Input
                           type="file"
@@ -753,18 +752,18 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                       </div>
                       {newCert.file_url && (
                         <p className="text-[11px] text-emerald-600 truncate flex items-center gap-1 mt-1">
-                          <CheckCircle2 className="w-3 h-3" /> {isRtl ? 'تم رفع الملف بنجاح' : 'File uploaded successfully'}
+                          <CheckCircle2 className="w-3 h-3" /> {tr("تم رفع الملف بنجاح", "File uploaded successfully")}
                         </p>
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs">{isRtl ? 'وصف إضافي أو تخصص دقيق' : 'Additional Description / Field'}</Label>
+                    <Label className="text-xs">{tr("وصف إضافي أو تخصص دقيق", "Additional Description / Field")}</Label>
                     <Input
                       value={newCert.description || ''}
                       onChange={(e) => setNewCert({ ...newCert, description: e.target.value })}
-                      placeholder={isRtl ? 'ملاحظات حول الشهادة...' : 'Additional notes...'}
+                      placeholder={tr("ملاحظات حول الشهادة...", "Additional notes...")}
                       className="rounded-xl bg-background text-xs"
                     />
                   </div>
@@ -776,14 +775,14 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                       onClick={() => setIsAddingCert(false)}
                       className="rounded-xl text-xs"
                     >
-                      {isRtl ? 'إلغاء' : 'Cancel'}
+                      {tr("إلغاء", "Cancel")}
                     </Button>
                     <Button
                       size="sm"
                       onClick={handleAddCert}
                       className="rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs"
                     >
-                      {isRtl ? 'حفظ الشهادة' : 'Save Certificate'}
+                      {tr("حفظ الشهادة", "Save Certificate")}
                     </Button>
                   </div>
                 </div>
@@ -793,14 +792,14 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
               {certifications.length === 0 ? (
                 <div className="text-center py-10 border border-dashed rounded-3xl p-6 bg-muted/20">
                   <Award className="w-10 h-10 mx-auto text-muted-foreground/50 mb-2" />
-                  <p className="text-xs text-muted-foreground font-semibold">{isRtl ? 'لم تتم إضافة أي شواهد أو دبلومات لهذا الأستاذ بعد' : 'No certificates or diplomas added yet'}</p>
+                  <p className="text-xs text-muted-foreground font-semibold">{tr("لم تتم إضافة أي شواهد أو دبلومات لهذا الأستاذ بعد", "No certificates or diplomas added yet")}</p>
                   <Button
                     onClick={() => setIsAddingCert(true)}
                     variant="link"
                     size="sm"
                     className="text-purple-600 text-xs mt-1"
                   >
-                    {isRtl ? '+ أضف أول شهادة الآن' : '+ Add first certificate now'}
+                    {tr("+ أضف أول شهادة الآن", "+ Add first certificate now")}
                   </Button>
                 </div>
               ) : (
@@ -825,7 +824,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                           <button
                             onClick={() => handleDeleteCert(cert.id)}
                             className="text-slate-400 hover:text-rose-500 p-1 rounded-lg transition-colors"
-                            title={isRtl ? 'حذف الشهادة' : 'Delete Certificate'}
+                            title={tr("حذف الشهادة", "Delete Certificate")}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -839,7 +838,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                       </div>
 
                       <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t border-border/50 mt-3">
-                        <span>{cert.issue_date || (isRtl ? 'تاريخ غير محدد' : 'No date')}</span>
+                        <span>{cert.issue_date || (tr("تاريخ غير محدد", "No date"))}</span>
                         {cert.file_url ? (
                           <a
                             href={cert.file_url}
@@ -848,10 +847,10 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                             className="text-purple-600 hover:text-purple-700 font-semibold flex items-center gap-1"
                           >
                             <ExternalLink className="w-3 h-3" />
-                            <span>{isRtl ? 'عرض الوثيقة' : 'View Document'}</span>
+                            <span>{tr("عرض الوثيقة", "View Document")}</span>
                           </a>
                         ) : (
-                          <span className="text-slate-400">{isRtl ? 'لا يوجد ملف مرفق' : 'No document attached'}</span>
+                          <span className="text-slate-400">{tr("لا يوجد ملف مرفق", "No document attached")}</span>
                         )}
                       </div>
                     </div>
@@ -865,17 +864,17 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
               <div>
                 <h4 className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
                   <BookOpen className="w-4 h-4 text-purple-600" />
-                  <span>{isRtl ? 'المقررات الدراسية الموكلة للأستاذ' : 'Assigned Courses & Modules'}</span>
+                  <span>{tr("المقررات الدراسية الموكلة للأستاذ", "Assigned Courses & Modules")}</span>
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  {isRtl ? 'قائمة المواد والمقررات المكلف بتدريسها مع عدد الساعات' : 'Curriculum modules and contact hours assigned'}
+                  {tr("قائمة المواد والمقررات المكلف بتدريسها مع عدد الساعات", "Curriculum modules and contact hours assigned")}
                 </p>
               </div>
 
               {modules.length === 0 ? (
                 <div className="text-center py-10 border border-dashed rounded-3xl p-6 bg-muted/20">
                   <BookOpen className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
-                  <p className="text-xs text-muted-foreground font-semibold">{isRtl ? 'لا يوجد أي مقرر مسند لهذا المدرس حالياً' : 'No courses currently assigned'}</p>
+                  <p className="text-xs text-muted-foreground font-semibold">{tr("لا يوجد أي مقرر مسند لهذا المدرس حالياً", "No courses currently assigned")}</p>
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -888,7 +887,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                           </Badge>
                           <h5 className="text-xs font-bold text-foreground">{mod.name}</h5>
                           <p className="text-[11px] text-muted-foreground">
-                            {mod.specialty_name || mod.program_name || (isRtl ? 'عام' : 'General')}
+                            {mod.specialty_name || mod.program_name || (tr("عام", "General"))}
                           </p>
                         </div>
                         <div className="text-left" dir="ltr">
@@ -896,8 +895,8 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                         </div>
                       </div>
                       <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-2.5 mt-2.5 border-t border-border/50">
-                        <span>{isRtl ? `الدروس المنجزة: ${mod.lessons_count || 0}` : `Lessons: ${mod.lessons_count || 0}`}</span>
-                        <span className="text-emerald-600 font-medium">{isRtl ? 'نشط' : 'Active'}</span>
+                        <span>{tr("الدروس المنجزة: ${mod.lessons_count || 0}", "Lessons: ${mod.lessons_count || 0}")}</span>
+                        <span className="text-emerald-600 font-medium">{tr("نشط", "Active")}</span>
                       </div>
                     </div>
                   ))}
@@ -908,10 +907,10 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
               <div className="pt-4 border-t border-border">
                 <h4 className="text-sm font-bold text-foreground flex items-center gap-2 mb-2">
                   <Calendar className="w-4 h-4 text-purple-600" />
-                  <span>{isRtl ? 'سجل الحصص والدروس الأخيرة' : 'Recent Lessons History'}</span>
+                  <span>{tr("سجل الحصص والدروس الأخيرة", "Recent Lessons History")}</span>
                 </h4>
                 {lessons.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">{isRtl ? 'لم يتم تسجيل حصص سابقة بعد.' : 'No recorded lessons yet.'}</p>
+                  <p className="text-xs text-muted-foreground">{tr("لم يتم تسجيل حصص سابقة بعد.", "No recorded lessons yet.")}</p>
                 ) : (
                   <div className="space-y-2">
                     {lessons.slice(0, 5).map((les: any) => (
@@ -922,7 +921,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                         <div>
                           <p className="font-semibold text-foreground">{les.title}</p>
                           <span className="text-[11px] text-muted-foreground">
-                            {les.module_name} • {les.cohort_name || (isRtl ? 'كل الأفواج' : 'All Cohorts')}
+                            {les.module_name} • {les.cohort_name || (tr("كل الأفواج", "All Cohorts"))}
                           </span>
                         </div>
                         <div className="text-left" dir="ltr">
@@ -930,7 +929,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                             {les.scheduled_date ? les.scheduled_date.substring(0, 10) : '-'}
                           </span>
                           <span className="text-emerald-600 font-semibold text-[11px]">
-                            {les.present_count || 0} {isRtl ? 'حاضرون' : 'present'}
+                            {les.present_count || 0} {tr("حاضرون", "present")}
                           </span>
                         </div>
                       </div>
@@ -945,22 +944,22 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
               <div>
                 <h4 className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
                   <Users className="w-4 h-4 text-purple-600" />
-                  <span>{isRtl ? 'متابعة الطلاب ونسبة التقدم' : 'Student Progress Monitoring'}</span>
+                  <span>{tr("متابعة الطلاب ونسبة التقدم", "Student Progress Monitoring")}</span>
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  {isRtl ? 'الطلاب المسجلون في أفواج ومقررات هذا الأستاذ' : 'Students enrolled in cohorts and courses taught by this instructor'}
+                  {tr("الطلاب المسجلون في أفواج ومقررات هذا الأستاذ", "Students enrolled in cohorts and courses taught by this instructor")}
                 </p>
               </div>
 
               {/* Assignments and Progress Overview */}
               <div className="bg-card p-4 rounded-2xl border border-border shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-foreground">{isRtl ? 'الواجبات والتكليفات المسندة للطلاب' : 'Assigned Student Tasks'}</span>
-                  <span className="text-xs font-semibold text-purple-600">{assignments.length} {isRtl ? 'واجبات' : 'assignments'}</span>
+                  <span className="text-xs font-bold text-foreground">{tr("الواجبات والتكليفات المسندة للطلاب", "Assigned Student Tasks")}</span>
+                  <span className="text-xs font-semibold text-purple-600">{assignments.length} {tr("واجبات", "assignments")}</span>
                 </div>
 
                 {assignments.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">{isRtl ? 'لم يقم الأستاذ بطرح واجبات بعد.' : 'No assignments posted yet.'}</p>
+                  <p className="text-xs text-muted-foreground">{tr("لم يقم الأستاذ بطرح واجبات بعد.", "No assignments posted yet.")}</p>
                 ) : (
                   <div className="space-y-2">
                     {assignments.slice(0, 4).map((asg: any) => (
@@ -968,13 +967,13 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                         <div>
                           <p className="font-semibold text-foreground">{asg.title}</p>
                           <span className="text-[11px] text-muted-foreground">
-                            {asg.module_name} • {isRtl ? 'استحقاق:' : 'Due:'} {asg.due_date ? asg.due_date.substring(0, 10) : '-'}
+                            {asg.module_name} • {tr("استحقاق:", "Due:")} {asg.due_date ? asg.due_date.substring(0, 10) : '-'}
                           </span>
                         </div>
                         <div className="text-left">
-                          <span className="font-bold text-purple-600 block">{asg.submissions_count || 0} {isRtl ? 'تسليم' : 'submissions'}</span>
+                          <span className="font-bold text-purple-600 block">{asg.submissions_count || 0} {tr("تسليم", "submissions")}</span>
                           {asg.avg_grade && (
-                            <span className="text-[11px] text-emerald-600 font-medium">{isRtl ? 'معدل:' : 'Avg:'} {Math.round(asg.avg_grade)}/20</span>
+                            <span className="text-[11px] text-emerald-600 font-medium">{tr("معدل:", "Avg:")} {Math.round(asg.avg_grade)}/20</span>
                           )}
                         </div>
                       </div>
@@ -985,10 +984,10 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
 
               {/* Students List */}
               <div className="space-y-2">
-                <h5 className="text-xs font-bold text-foreground">{isRtl ? `قائمة الطلاب المتابعين (${students.length})` : `Enrolled Students (${students.length})`}</h5>
+                <h5 className="text-xs font-bold text-foreground">{tr("قائمة الطلاب المتابعين (${students.length})", "Enrolled Students (${students.length})")}</h5>
                 {students.length === 0 ? (
                   <div className="text-center py-6 border border-dashed rounded-2xl p-4 bg-muted/20">
-                    <p className="text-xs text-muted-foreground">{isRtl ? 'لا يوجد طلاب مسجلون في الأفواج المسندة حالياً' : 'No students enrolled in assigned cohorts'}</p>
+                    <p className="text-xs text-muted-foreground">{tr("لا يوجد طلاب مسجلون في الأفواج المسندة حالياً", "No students enrolled in assigned cohorts")}</p>
                   </div>
                 ) : (
                   <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
@@ -1008,7 +1007,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                         </div>
                         <div className="text-left">
                           <Badge variant="secondary" className="text-[10px]">
-                            {st.cohort_name || (isRtl ? 'الفوج' : 'Cohort')}
+                            {st.cohort_name || (tr("الفوج", "Cohort"))}
                           </Badge>
                         </div>
                       </div>

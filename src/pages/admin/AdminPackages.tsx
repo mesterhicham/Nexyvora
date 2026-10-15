@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
@@ -403,7 +404,7 @@ export default function AdminPackages() {
                   <Input
                     value={editForm.name_ar}
                     onChange={(e) => setEditForm(prev => ({ ...prev, name_ar: e.target.value }))}
-                    placeholder={isRtl ? 'مثال: الباقة الأساسية' : 'e.g. Basic Package'}
+                    placeholder={tr("مثال: الباقة الأساسية", "e.g. Basic Package")}
                     className="rounded-xl text-xs font-bold"
                   />
                 </div>
@@ -498,7 +499,7 @@ export default function AdminPackages() {
                     rows={2}
                     value={editForm.description_ar}
                     onChange={(e) => setEditForm(prev => ({ ...prev, description_ar: e.target.value }))}
-                    placeholder={isRtl ? 'وصف مختصر لمحتوى وهدف الباقة...' : 'Brief description of package content and objective...'}
+                    placeholder={tr("وصف مختصر لمحتوى وهدف الباقة...", "Brief description of package content and objective...")}
                     className="rounded-xl text-xs resize-none"
                   />
                 </div>

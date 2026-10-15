@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { usePWAInstall } from '@/contexts/PWAInstallContext';
 import { Download, X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,7 @@ export function MobileInstallBanner() {
               <Sparkles className="w-3 h-3 text-purple-500" />
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              {isRtl ? 'ثبّت التطبيق على جهازك لتصفح أسرع' : 'Install the app on your device for faster browsing'}
+              {tr("ثبّت التطبيق على جهازك لتصفح أسرع", "Install the app on your device for faster browsing")}
             </p>
           </div>
         </div>
@@ -61,13 +62,13 @@ export function MobileInstallBanner() {
             className="h-8 px-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs font-semibold shadow-xs"
           >
             <Download className="w-3.5 h-3.5 ml-1 rtl:ml-1 ltr:mr-1" />
-            <span>{isRtl ? 'تثبيت' : 'Install'}</span>
+            <span>{tr("تثبيت", "Install")}</span>
           </Button>
 
           <button
             onClick={handleDismiss}
             className="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-            title={isRtl ? 'إغلاق' : 'Close'}
+            title={tr("إغلاق", "Close")}
           >
             <X className="w-4 h-4" />
           </button>

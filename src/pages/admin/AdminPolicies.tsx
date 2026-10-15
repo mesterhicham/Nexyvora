@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -363,7 +364,7 @@ export default function AdminPolicies() {
   };
 
   const handleResetToDefault = () => {
-    if (!window.confirm(isRtl ? 'هل أنت متأكد من استعادة النموذج الافتراضي لهذه السياسة؟' : 'Voulez-vous vraiment réinitialiser cette politique au modèle par défaut ?')) {
+    if (!window.confirm(tr("هل أنت متأكد من استعادة النموذج الافتراضي لهذه السياسة؟", "Voulez-vous vraiment réinitialiser cette politique au modèle par défaut ?"))) {
       return;
     }
     setPolicyForms(prev => ({
@@ -373,7 +374,7 @@ export default function AdminPolicies() {
         [activeLang]: activeLang === 'fr' ? activePolicy.defaultContentFr : activePolicy.defaultContentAr
       }
     }));
-    toast.info(isRtl ? 'تمت استعادة النص الافتراضي' : 'Modèle par défaut restauré');
+    toast.info(tr("تمت استعادة النص الافتراضي", "Modèle par défaut restauré"));
   };
 
   const handleSavePolicy = async () => {
@@ -404,9 +405,9 @@ export default function AdminPolicies() {
         })
       ]);
 
-      toast.success(isRtl ? 'تم حفظ السياسة وتحديثها بنجاح!' : 'Politique enregistrée et mise à jour avec succès !');
+      toast.success(tr("تم حفظ السياسة وتحديثها بنجاح!", "Politique enregistrée et mise à jour avec succès !"));
     } catch (err: any) {
-      toast.error(isRtl ? `فشل الحفظ: ${err.message}` : `Erreur lors de l'enregistrement: ${err.message}`);
+      toast.error(tr("فشل الحفظ: ${err.message}", "Erreur lors de l'enregistrement: ${err.message}"));
     } finally {
       setIsSaving(false);
     }
@@ -423,15 +424,13 @@ export default function AdminPolicies() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-2">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>{isRtl ? 'الامتثال والشروط القانونية' : 'Conformité & Légal'}</span>
+              <span>{tr("الامتثال والشروط القانونية", "Conformité & Légal")}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {isRtl ? 'إدارة الدعم والسياسات' : 'Support & Politiques'}
+              {tr("إدارة الدعم والسياسات", "Support & Politiques")}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {isRtl 
-                ? 'تعديل وتخصيص سياسات الخصوصية، الشروط العامة، مكافحة غسيل الأموال ووسائل الدفع للمنصة.'
-                : 'Personnalisez et mettez à jour les politiques de confidentialité, conditions générales, AML et moyens de paiement.'}
+              {tr("تعديل وتخصيص سياسات الخصوصية، الشروط العامة، مكافحة غسيل الأموال ووسائل الدفع للمنصة.", "Personnalisez et mettez à jour les politiques de confidentialité, conditions générales, AML et moyens de paiement.")}
             </p>
           </div>
 
@@ -444,7 +443,7 @@ export default function AdminPolicies() {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-all"
             >
               <ExternalLink className="w-4 h-4 text-slate-500" />
-              <span>{isRtl ? 'معاينة الواجهة العامة' : 'Aperçu public'}</span>
+              <span>{tr("معاينة الواجهة العامة", "Aperçu public")}</span>
             </a>
 
             {/* Save Button */}
@@ -454,7 +453,7 @@ export default function AdminPolicies() {
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs sm:text-sm shadow-md shadow-indigo-600/30 gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              <span>{isSaving ? (isRtl ? 'جاري الحفظ...' : 'Enregistrement...') : (isRtl ? 'حفظ السياسة' : 'Enregistrer')}</span>
+              <span>{isSaving ? (tr("جاري الحفظ...", "Enregistrement...")) : (tr("حفظ السياسة", "Enregistrer"))}</span>
             </Button>
           </div>
         </div>
@@ -466,7 +465,7 @@ export default function AdminPolicies() {
           <div className="lg:col-span-4 space-y-3">
             <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200/60 dark:border-slate-800">
               <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-2 py-1">
-                {isRtl ? 'قائمة السياسات (5)' : 'Liste des politiques (5)'}
+                {tr("قائمة السياسات (5)", "Liste des politiques (5)")}
               </p>
               
               <div className="mt-2 space-y-2">
@@ -499,7 +498,7 @@ export default function AdminPolicies() {
                             {isRtl ? policy.titleAr : policy.titleFr}
                           </p>
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 rounded-md border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/40 shrink-0">
-                            {isRtl ? 'مفعل' : 'Actif'}
+                            {tr("مفعل", "Actif")}
                           </Badge>
                         </div>
                         <p className="text-[11px] text-slate-400 dark:text-slate-500 line-clamp-1 mt-0.5">
@@ -516,9 +515,7 @@ export default function AdminPolicies() {
             <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/60 flex items-start gap-3 text-xs text-indigo-900 dark:text-indigo-200">
               <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
               <p className="leading-relaxed">
-                {isRtl
-                  ? 'التعديلات المحفوظة هنا تنعكس فورياً في الروابط العامة بالفوتر وفي صفحات التسجيل وتوثيق الحساب.'
-                  : 'Les modifications enregistrées ici sont immédiatement visibles publiquement dans le footer et lors des inscriptions.'}
+                {tr("التعديلات المحفوظة هنا تنعكس فورياً في الروابط العامة بالفوتر وفي صفحات التسجيل وتوثيق الحساب.", "Les modifications enregistrées ici sont immédiatement visibles publiquement dans le footer et lors des inscriptions.")}
               </p>
             </div>
           </div>
@@ -608,7 +605,7 @@ export default function AdminPolicies() {
                       className="text-xs text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 gap-1.5 rounded-xl h-8 px-2.5"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">{isRtl ? 'استعادة الافتراضي' : 'Modèle'}</span>
+                      <span className="hidden sm:inline">{tr("استعادة الافتراضي", "Modèle")}</span>
                     </Button>
                   </div>
                 </div>
@@ -621,7 +618,7 @@ export default function AdminPolicies() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs text-slate-500">
                       <Label htmlFor="policy-content" className="font-semibold text-slate-700 dark:text-slate-300">
-                        {isRtl ? 'محتوى السياسة (يدعم تنسيق Markdown)' : 'Contenu légal (Format Markdown supporté)'}
+                        {tr("محتوى السياسة (يدعم تنسيق Markdown)", "Contenu légal (Format Markdown supporté)")}
                       </Label>
                       <span className="text-[11px] font-mono text-slate-400">
                         {currentContent.length} caractères
@@ -633,7 +630,7 @@ export default function AdminPolicies() {
                       value={currentContent}
                       onChange={(e) => handleContentChange(e.target.value)}
                       rows={22}
-                      placeholder={isRtl ? 'اكتب بنود السياسة هنا...' : 'Rédigez le texte de la politique ici...'}
+                      placeholder={tr("اكتب بنود السياسة هنا...", "Rédigez le texte de la politique ici...")}
                       className="font-mono text-xs sm:text-sm bg-slate-950/5 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 rounded-2xl p-4 leading-relaxed focus:ring-2 focus:ring-indigo-500 transition-all resize-y"
                     />
                   </div>
@@ -650,7 +647,7 @@ export default function AdminPolicies() {
                   <div className="flex items-center gap-2 text-xs text-slate-500">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
                     <span>
-                      {isRtl ? 'الحفظ يتم في قاعدة بيانات المنصة' : 'Enregistrement direct dans la base de données'}
+                      {tr("الحفظ يتم في قاعدة بيانات المنصة", "Enregistrement direct dans la base de données")}
                     </span>
                   </div>
 
@@ -660,7 +657,7 @@ export default function AdminPolicies() {
                     className="px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-md shadow-indigo-600/30 gap-2 cursor-pointer"
                   >
                     <Save className="w-4 h-4" />
-                    <span>{isSaving ? (isRtl ? 'جاري الحفظ...' : 'Enregistrement...') : (isRtl ? 'حفظ التعديلات' : 'Enregistrer')}</span>
+                    <span>{isSaving ? (tr("جاري الحفظ...", "Enregistrement...")) : (tr("حفظ التعديلات", "Enregistrer"))}</span>
                   </Button>
                 </div>
 

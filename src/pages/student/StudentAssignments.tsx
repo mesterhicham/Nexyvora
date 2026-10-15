@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -61,12 +62,12 @@ export default function StudentAssignments() {
       // Validate file type (images and PDFs only)
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
       if (!allowedTypes.includes(file.type)) {
-        alert(isRtl ? 'يرجى اختيار صورة أو ملف PDF فقط' : 'Please choose an image or PDF file only');
+        alert(tr("يرجى اختيار صورة أو ملف PDF فقط", "Please choose an image or PDF file only"));
         return;
       }
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        alert(isRtl ? 'حجم الملف كبير جداً (الحد الأقصى 10MB)' : 'File size is too large (max 10MB)');
+        alert(tr("حجم الملف كبير جداً (الحد الأقصى 10MB)", "File size is too large (max 10MB)"));
         return;
       }
       setSelectedFile(file);
@@ -92,7 +93,7 @@ export default function StudentAssignments() {
         <Card>
           <CardContent className="py-12 text-center">
             <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">{isRtl ? 'لا توجد واجبات متاحة حالياً' : 'No assignments currently available'}</p>
+            <p className="text-muted-foreground">{tr("لا توجد واجبات متاحة حالياً", "No assignments currently available")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -123,7 +124,7 @@ export default function StudentAssignments() {
                               {t('teacher.due')}: {format(new Date(assignment.due_date), 'PPP', isRtl ? { locale: ar } : undefined)}
                             </span>
                             {assignment.max_grade && (
-                              <span>{isRtl ? 'الدرجة القصوى:' : 'Max Grade:'} {assignment.max_grade}</span>
+                              <span>{tr("الدرجة القصوى:", "Max Grade:")} {assignment.max_grade}</span>
                             )}
                           </div>
                           
@@ -139,10 +140,10 @@ export default function StudentAssignments() {
                     <div className="flex flex-col items-end gap-3">
                       <div className="flex items-center gap-2">
                         {isOverdue && !mySubmission && (
-                          <Badge variant="destructive">{isRtl ? 'انتهى الوقت' : 'Overdue'}</Badge>
+                          <Badge variant="destructive">{tr("انتهى الوقت", "Overdue")}</Badge>
                         )}
                         <StatusBadge 
-                          status={assignment.status === 'active' ? (isRtl ? 'نشط' : 'Active') : (isRtl ? 'مغلق' : 'Closed')} 
+                          status={assignment.status === 'active' ? (tr("نشط", "Active")) : (tr("مغلق", "Closed"))} 
                           variant={getStatusVariant(assignment.status || 'active')} 
                         />
                       </div>
@@ -152,7 +153,7 @@ export default function StudentAssignments() {
                         <div className="text-right space-y-2">
                           <Badge variant="default" className="flex items-center gap-1">
                             <Check className="h-3 w-3" />
-                            {isRtl ? 'تم التسليم' : 'Submitted'}
+                            {tr("تم التسليم", "Submitted")}
                           </Badge>
                           <p className="text-xs text-muted-foreground">
                             {format(new Date(mySubmission.submitted_at), 'PPP p', isRtl ? { locale: ar } : undefined)}
@@ -160,7 +161,7 @@ export default function StudentAssignments() {
                           {mySubmission.status === 'graded' && (
                             <div className="bg-primary/10 p-3 rounded-lg">
                               <p className="font-bold text-primary">
-                                {isRtl ? 'الدرجة:' : 'Grade:'} {mySubmission.grade}/{assignment.max_grade}
+                                {tr("الدرجة:", "Grade:")} {mySubmission.grade}/{assignment.max_grade}
                               </p>
                               {mySubmission.feedback && (
                                 <p className="text-sm text-muted-foreground mt-1">
@@ -176,14 +177,14 @@ export default function StudentAssignments() {
                               onClick={() => window.open(mySubmission.submission_url, '_blank')}
                             >
                               <ExternalLink className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                              {isRtl ? 'عرض التسليم' : 'View Submission'}
+                              {tr("عرض التسليم", "View Submission")}
                             </Button>
                           )}
                         </div>
                       ) : canSubmit ? (
                         <Button onClick={() => setSubmitModal({ open: true, assignment })}>
                           <Upload className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                          {isRtl ? 'تسليم الواجب' : 'Submit Assignment'}
+                          {tr("تسليم الواجب", "Submit Assignment")}
                         </Button>
                       ) : null}
                     </div>
@@ -205,7 +206,7 @@ export default function StudentAssignments() {
       }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{isRtl ? 'تسليم الواجب' : 'Submit Assignment'}</DialogTitle>
+            <DialogTitle>{tr("تسليم الواجب", "Submit Assignment")}</DialogTitle>
             <DialogDescription>
               {submitModal.assignment?.title}
             </DialogDescription>
@@ -214,7 +215,7 @@ export default function StudentAssignments() {
           <div className="space-y-4 py-4">
             {/* File Upload */}
             <div className="space-y-2">
-              <Label>{isRtl ? 'الملف (صورة أو PDF) *' : 'File (Image or PDF) *'}</Label>
+              <Label>{tr("الملف (صورة أو PDF) *", "File (Image or PDF) *")}</Label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -244,10 +245,10 @@ export default function StudentAssignments() {
                   <>
                     <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      {isRtl ? 'اضغط لاختيار ملف' : 'Click to select a file'}
+                      {tr("اضغط لاختيار ملف", "Click to select a file")}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {isRtl ? 'صور أو PDF (حد أقصى 10MB)' : 'Images or PDF (max 10MB)'}
+                      {tr("صور أو PDF (حد أقصى 10MB)", "Images or PDF (max 10MB)")}
                     </p>
                   </>
                 )}
@@ -256,11 +257,11 @@ export default function StudentAssignments() {
             
             {/* Additional Notes */}
             <div className="space-y-2">
-              <Label>{isRtl ? 'ملاحظات إضافية (اختياري)' : 'Additional Notes (Optional)'}</Label>
+              <Label>{tr("ملاحظات إضافية (اختياري)", "Additional Notes (Optional)")}</Label>
               <Textarea
                 value={submissionText}
                 onChange={(e) => setSubmissionText(e.target.value)}
-                placeholder={isRtl ? 'أضف أي ملاحظات للمعلم...' : 'Add any notes for the instructor...'}
+                placeholder={tr("أضف أي ملاحظات للمعلم...", "Add any notes for the instructor...")}
                 rows={3}
               />
             </div>
@@ -268,15 +269,15 @@ export default function StudentAssignments() {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setSubmitModal({ open: false, assignment: null })}>
-              {isRtl ? 'إلغاء' : 'Cancel'}
+              {tr("إلغاء", "Cancel")}
             </Button>
             <Button 
               onClick={handleSubmit} 
               disabled={!selectedFile || submitAssignment.isPending}
             >
               {submitAssignment.isPending 
-                ? (isRtl ? 'جاري التسليم...' : 'Submitting...') 
-                : (isRtl ? 'تسليم' : 'Submit')}
+                ? (tr("جاري التسليم...", "Submitting...")) 
+                : (tr("تسليم", "Submit"))}
             </Button>
           </DialogFooter>
         </DialogContent>

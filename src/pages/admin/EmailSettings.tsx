@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -123,11 +124,11 @@ export default function EmailSettings() {
 
   const handleSendTestEmail = async () => {
     if (!testRecipient) {
-      toast.error(isRtl ? 'الرجاء إدخال البريد الإلكتروني المستلم' : 'Please enter recipient email');
+      toast.error(tr("الرجاء إدخال البريد الإلكتروني المستلم", "Please enter recipient email"));
       return;
     }
     if (!emailForm.smtp_host) {
-      toast.error(isRtl ? 'يرجى إدخال عنوان خادم SMTP أولاً (مثل smtp.gmail.com)' : 'Please enter SMTP host first');
+      toast.error(tr("يرجى إدخال عنوان خادم SMTP أولاً (مثل smtp.gmail.com)", "Please enter SMTP host first"));
       return;
     }
     await testEmail.mutateAsync({
@@ -188,13 +189,13 @@ export default function EmailSettings() {
   };
 
   const handleDeleteTemplate = async (id: string) => {
-    if (confirm(isRtl ? 'هل أنت متأكد من رغبتك في حذف هذا القالب؟' : 'Are you sure you want to delete this template?')) {
+    if (confirm(tr("هل أنت متأكد من رغبتك في حذف هذا القالب؟", "Are you sure you want to delete this template?"))) {
       await deleteTemplate.mutateAsync(id);
     }
   };
 
   const handleResetDefaults = async () => {
-    if (confirm(isRtl ? 'هل تريد استعادة جميع قوالب Nexyvora الافتراضية (OTP، الترحيب، العمولات، الإيداع، السحب، وغيرها)؟' : 'Do you want to restore all default Nexyvora templates (OTP, Welcome, Commissions, Deposit, Withdrawal, etc.)?')) {
+    if (confirm(tr("هل تريد استعادة جميع قوالب Nexyvora الافتراضية (OTP، الترحيب، العمولات، الإيداع، السحب، وغيرها)؟", "Do you want to restore all default Nexyvora templates (OTP, Welcome, Commissions, Deposit, Withdrawal, etc.)?"))) {
       await resetTemplates.mutateAsync();
     }
   };
@@ -202,7 +203,7 @@ export default function EmailSettings() {
   // Generate simulated preview HTML replacing {{variables}} with sample dummy values
   const getPreviewHtml = (html: string) => {
     const dummyValues: Record<string, string> = {
-      name: isRtl ? 'محمد أحمد' : 'John Doe',
+      name: tr("محمد أحمد", "John Doe"),
       otp_code: '492015',
       platform_name: 'Nexyvora Academy',
       amount: '150.00',
@@ -215,7 +216,7 @@ export default function EmailSettings() {
       date: new Date().toLocaleDateString(isRtl ? 'ar-EG' : 'en-US'),
       payment_method: 'USDT (TRC20)',
       transaction_proof: '0x8f3c7a2b9e1d...',
-      package_name: isRtl ? 'باقة النخبة الاحترافية (Elite VIP)' : 'Elite VIP Package',
+      package_name: tr("باقة النخبة الاحترافية (Elite VIP)", "Elite VIP Package"),
       tier: 'Platinum',
       price: '500.00',
       expires_in: '15',
@@ -237,15 +238,15 @@ export default function EmailSettings() {
 
   const getTemplateCategory = (slug: string) => {
     if (slug.includes('otp') || slug.includes('password') || slug.includes('welcome')) {
-      return { label: isRtl ? 'تسجيل وهوية' : 'Auth & Identity', color: 'border-violet-200 text-violet-700 bg-violet-50 dark:bg-violet-950/40', icon: KeyRound };
+      return { label: tr("تسجيل وهوية", "Auth & Identity"), color: 'border-violet-200 text-violet-700 bg-violet-50 dark:bg-violet-950/40', icon: KeyRound };
     }
     if (slug.includes('commission') || slug.includes('deposit') || slug.includes('withdraw')) {
-      return { label: isRtl ? 'معاملات مالية' : 'Financial', color: 'border-emerald-200 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40', icon: DollarSign };
+      return { label: tr("معاملات مالية", "Financial"), color: 'border-emerald-200 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40', icon: DollarSign };
     }
     if (slug.includes('package')) {
-      return { label: isRtl ? 'باقات واشتراكات' : 'Packages', color: 'border-amber-200 text-amber-700 bg-amber-50 dark:bg-amber-950/40', icon: GraduationCap };
+      return { label: tr("باقات واشتراكات", "Packages"), color: 'border-amber-200 text-amber-700 bg-amber-50 dark:bg-amber-950/40', icon: GraduationCap };
     }
-    return { label: isRtl ? 'أمان وتحقق' : 'Security', color: 'border-sky-200 text-sky-700 bg-sky-50 dark:bg-sky-950/40', icon: ShieldCheck };
+    return { label: tr("أمان وتحقق", "Security"), color: 'border-sky-200 text-sky-700 bg-sky-50 dark:bg-sky-950/40', icon: ShieldCheck };
   };
 
   const filteredTemplates = templates?.filter(t => 
@@ -259,9 +260,9 @@ export default function EmailSettings() {
       <div className="space-y-6 pb-12 font-sans">
         {/* Header */}
         <PageHeader
-          title={isRtl ? 'إعدادات البريد الإلكتروني والقوالب' : 'Email Settings & Templates'}
-          description={isRtl ? 'إدارة خادم SMTP، إعدادات الإرسال، وتخصيص قوالب الرسائل التلقائية (OTP، الأرباح، والعمليات المالية).' : 'Manage SMTP mail server, test delivery, and customize automated email templates (OTP, earnings, and transactions).'}
-          breadcrumbs={[{ label: t('nav.dashboard'), href: '/admin' }, { label: isRtl ? 'إعدادات البريد' : 'Email Settings' }]}
+          title={tr("إعدادات البريد الإلكتروني والقوالب", "Email Settings & Templates")}
+          description={tr("إدارة خادم SMTP، إعدادات الإرسال، وتخصيص قوالب الرسائل التلقائية (OTP، الأرباح، والعمليات المالية).", "Manage SMTP mail server, test delivery, and customize automated email templates (OTP, earnings, and transactions).")}
+          breadcrumbs={[{ label: t('nav.dashboard'), href: '/admin' }, { label: tr("إعدادات البريد", "Email Settings") }]}
           icon={Mail}
         />
 
@@ -269,11 +270,11 @@ export default function EmailSettings() {
           <TabsList className="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl">
             <TabsTrigger value="settings" className="rounded-xl flex items-center gap-2 text-xs sm:text-sm">
               <Settings className="h-4 w-4 text-purple-600" />
-              <span>{isRtl ? 'خادم البريد (SMTP)' : 'SMTP Configuration'}</span>
+              <span>{tr("خادم البريد (SMTP)", "SMTP Configuration")}</span>
             </TabsTrigger>
             <TabsTrigger value="templates" className="rounded-xl flex items-center gap-2 text-xs sm:text-sm">
               <FileText className="h-4 w-4 text-indigo-600" />
-              <span>{isRtl ? 'قوالب الرسائل التلقائية' : 'Email Templates'}</span>
+              <span>{tr("قوالب الرسائل التلقائية", "Email Templates")}</span>
               {templates && (
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold">
                   {templates.length}
@@ -282,7 +283,7 @@ export default function EmailSettings() {
             </TabsTrigger>
             <TabsTrigger value="logs" className="rounded-xl flex items-center gap-2 text-xs sm:text-sm">
               <History className="h-4 w-4 text-slate-500" />
-              <span>{isRtl ? 'سجل الرسائل المرسلة' : 'Delivery Logs'}</span>
+              <span>{tr("سجل الرسائل المرسلة", "Delivery Logs")}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -294,10 +295,10 @@ export default function EmailSettings() {
                   <div>
                     <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                       <Mail className="h-5 w-5 text-purple-600" />
-                      <span>{isRtl ? 'إعدادات خادم SMTP' : 'SMTP Server Settings'}</span>
+                      <span>{tr("إعدادات خادم SMTP", "SMTP Server Settings")}</span>
                     </CardTitle>
                     <CardDescription className="text-xs text-slate-400 mt-1">
-                      {isRtl ? 'أدخل بيانات خادم البريد الإلكتروني الذي ستعتمد عليه Nexyvora في إرسال رموز التحقق والإشعارات.' : 'Configure the mail transport credentials used by Nexyvora to send OTPs and financial alerts.'}
+                      {tr("أدخل بيانات خادم البريد الإلكتروني الذي ستعتمد عليه Nexyvora في إرسال رموز التحقق والإشعارات.", "Configure the mail transport credentials used by Nexyvora to send OTPs and financial alerts.")}
                     </CardDescription>
                   </div>
 
@@ -308,7 +309,7 @@ export default function EmailSettings() {
                       className="rounded-2xl border-slate-200 dark:border-slate-800 text-xs sm:text-sm flex items-center gap-2 hover:bg-purple-50 hover:text-purple-700"
                     >
                       <Send className="h-3.5 w-3.5" />
-                      <span>{isRtl ? 'إرسال بريد تجريبي' : 'Test Email'}</span>
+                      <span>{tr("إرسال بريد تجريبي", "Test Email")}</span>
                     </Button>
 
                     <Button 
@@ -317,7 +318,7 @@ export default function EmailSettings() {
                       className="rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-sm shadow-purple-500/20 text-xs sm:text-sm font-bold flex items-center gap-2"
                     >
                       {saveSettings.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      <span>{isRtl ? 'حفظ الإعدادات' : 'Save Settings'}</span>
+                      <span>{tr("حفظ الإعدادات", "Save Settings")}</span>
                     </Button>
                   </div>
                 </div>
@@ -337,7 +338,7 @@ export default function EmailSettings() {
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <Sparkles className="h-3.5 w-3.5 text-purple-600" />
-                          <span>{isRtl ? 'إعداد سريع حسب المزود (Quick Presets):' : 'Quick SMTP Provider Presets:'}</span>
+                          <span>{tr("إعداد سريع حسب المزود (Quick Presets):", "Quick SMTP Provider Presets:")}</span>
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -354,7 +355,7 @@ export default function EmailSettings() {
                               from_name: prev.from_name || 'Nexyvora Platform',
                               is_active: true
                             }));
-                            toast.info(isRtl ? 'تم تحديد إعدادات Gmail (Port 465 SSL). تذكر استخدام كلمة مرور التطبيقات App Password.' : 'Gmail preset applied. Use Google App Password.');
+                            toast.info(tr("تم تحديد إعدادات Gmail (Port 465 SSL). تذكر استخدام كلمة مرور التطبيقات App Password.", "Gmail preset applied. Use Google App Password."));
                           }}
                           className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900 border-slate-200 hover:border-purple-400"
                         >
@@ -373,7 +374,7 @@ export default function EmailSettings() {
                               from_name: prev.from_name || 'Nexyvora Platform',
                               is_active: true
                             }));
-                            toast.info(isRtl ? 'تم تحديد إعدادات Hostinger Webmail' : 'Hostinger preset applied');
+                            toast.info(tr("تم تحديد إعدادات Hostinger Webmail", "Hostinger preset applied"));
                           }}
                           className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900 border-slate-200 hover:border-purple-400"
                         >
@@ -392,7 +393,7 @@ export default function EmailSettings() {
                               from_name: prev.from_name || 'Nexyvora Platform',
                               is_active: true
                             }));
-                            toast.info(isRtl ? 'تم تحديد إعدادات Titan Mail' : 'Titan Mail preset applied');
+                            toast.info(tr("تم تحديد إعدادات Titan Mail", "Titan Mail preset applied"));
                           }}
                           className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900 border-slate-200 hover:border-purple-400"
                         >
@@ -411,7 +412,7 @@ export default function EmailSettings() {
                               from_name: prev.from_name || 'Nexyvora Platform',
                               is_active: true
                             }));
-                            toast.info(isRtl ? 'تم تحديد إعدادات Outlook / Office 365' : 'Office 365 preset applied');
+                            toast.info(tr("تم تحديد إعدادات Outlook / Office 365", "Office 365 preset applied"));
                           }}
                           className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900 border-slate-200 hover:border-purple-400"
                         >
@@ -424,7 +425,7 @@ export default function EmailSettings() {
                         <div className="p-3 rounded-xl bg-purple-50/80 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/50 text-xs text-purple-900 dark:text-purple-200 space-y-1">
                           <p className="font-semibold flex items-center gap-1.5">
                             <KeyRound className="h-3.5 w-3.5 text-purple-600" />
-                            <span>{isRtl ? 'تعليمات مهمة لإرسال البريد عبر Gmail:' : 'Important Instructions for Gmail SMTP:'}</span>
+                            <span>{tr("تعليمات مهمة لإرسال البريد عبر Gmail:", "Important Instructions for Gmail SMTP:")}</span>
                           </p>
                           <p className="text-[11px] leading-relaxed opacity-90">
                             {isRtl ? (
@@ -450,7 +451,7 @@ export default function EmailSettings() {
                     <div className="grid sm:grid-cols-2 gap-5">
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          {isRtl ? 'عنوان الخادم (SMTP Host)' : 'SMTP Host'}
+                          {tr("عنوان الخادم (SMTP Host)", "SMTP Host")}
                         </Label>
                         <Input
                           value={emailForm.smtp_host}
@@ -462,13 +463,13 @@ export default function EmailSettings() {
 
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          {isRtl ? 'المنفذ (SMTP Port)' : 'SMTP Port'}
+                          {tr("المنفذ (SMTP Port)", "SMTP Port")}
                         </Label>
                         <Input
                           type="number"
                           value={emailForm.smtp_port}
                           onChange={(e) => setEmailForm({ ...emailForm, smtp_port: parseInt(e.target.value) || 587 })}
-                          placeholder={isRtl ? "587 أو 465" : "587 or 465"}
+                          placeholder={tr("587 أو 465", "587 or 465")}
                           className="rounded-2xl border-slate-200 dark:border-slate-800 font-mono text-sm"
                         />
                       </div>
@@ -477,7 +478,7 @@ export default function EmailSettings() {
                     <div className="grid sm:grid-cols-2 gap-5">
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          {isRtl ? 'اسم المستخدم / البريد (SMTP Username)' : 'SMTP Username'}
+                          {tr("اسم المستخدم / البريد (SMTP Username)", "SMTP Username")}
                         </Label>
                         <Input
                           value={emailForm.smtp_username}
@@ -489,7 +490,7 @@ export default function EmailSettings() {
 
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          {isRtl ? 'كلمة مرور التطبيق (SMTP Password)' : 'SMTP Password'}
+                          {tr("كلمة مرور التطبيق (SMTP Password)", "SMTP Password")}
                         </Label>
                         <div className="relative">
                           <Input
@@ -515,7 +516,7 @@ export default function EmailSettings() {
                     <div className="grid sm:grid-cols-3 gap-5">
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          {isRtl ? 'نوع التشفير (Encryption)' : 'Encryption'}
+                          {tr("نوع التشفير (Encryption)", "Encryption")}
                         </Label>
                         <Select
                           value={emailForm.encryption}
@@ -534,7 +535,7 @@ export default function EmailSettings() {
 
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          {isRtl ? 'بريد المُرسل (From Email)' : 'Sender Email'}
+                          {tr("بريد المُرسل (From Email)", "Sender Email")}
                         </Label>
                         <Input
                           value={emailForm.from_email}
@@ -546,7 +547,7 @@ export default function EmailSettings() {
 
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          {isRtl ? 'اسم المُرسل (From Name)' : 'Sender Name'}
+                          {tr("اسم المُرسل (From Name)", "Sender Name")}
                         </Label>
                         <Input
                           value={emailForm.from_name}
@@ -567,18 +568,16 @@ export default function EmailSettings() {
                             onCheckedChange={(checked) => setEmailForm({ ...emailForm, is_active: checked })}
                           />
                           <Label htmlFor="enable-email" className="font-bold text-sm text-slate-900 dark:text-white cursor-pointer">
-                            {isRtl ? 'تفعيل الإرسال الحقيقي للبريد الإلكتروني' : 'Enable Active Email Delivery'}
+                            {tr("تفعيل الإرسال الحقيقي للبريد الإلكتروني", "Enable Active Email Delivery")}
                           </Label>
                         </div>
                         <p className="text-xs text-slate-400">
-                          {isRtl 
-                            ? 'عند التعطيل، سيتم محاكاة الرسائل وتسجيلها في السجلات دون إرسالها الفعلي لتفادي الأخطاء في بيئة التطوير.' 
-                            : 'When disabled, outgoing emails are simulated and logged without performing actual SMTP dispatch.'}
+                          {tr("عند التعطيل، سيتم محاكاة الرسائل وتسجيلها في السجلات دون إرسالها الفعلي لتفادي الأخطاء في بيئة التطوير.", "When disabled, outgoing emails are simulated and logged without performing actual SMTP dispatch.")}
                         </p>
                       </div>
 
                       <Badge variant={emailForm.is_active ? 'default' : 'secondary'} className="rounded-xl px-3 py-1 font-bold text-xs">
-                        {emailForm.is_active ? (isRtl ? 'مفعل نشط' : 'ACTIVE') : (isRtl ? 'معطل / محاكاة' : 'SIMULATED')}
+                        {emailForm.is_active ? (tr("مفعل نشط", "ACTIVE")) : (tr("معطل / محاكاة", "SIMULATED"))}
                       </Badge>
                     </div>
                   </>
@@ -595,12 +594,10 @@ export default function EmailSettings() {
                   <div>
                     <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                       <FileText className="h-5 w-5 text-indigo-600" />
-                      <span>{isRtl ? 'قوالب الرسائل التلقائية للنظام' : 'System Automated Email Templates'}</span>
+                      <span>{tr("قوالب الرسائل التلقائية للنظام", "System Automated Email Templates")}</span>
                     </CardTitle>
                     <CardDescription className="text-xs text-slate-400 mt-1">
-                      {isRtl 
-                        ? 'تخصيص الرسائل التي تصل للأعضاء من رمز التحقق (OTP) عند التسجيل، إلى إشعارات الأرباح والمعاملات المالية.' 
-                        : 'Customize emails sent to members from OTP verification to commissions and financial operations.'}
+                      {tr("تخصيص الرسائل التي تصل للأعضاء من رمز التحقق (OTP) عند التسجيل، إلى إشعارات الأرباح والمعاملات المالية.", "Customize emails sent to members from OTP verification to commissions and financial operations.")}
                     </CardDescription>
                   </div>
 
@@ -611,10 +608,10 @@ export default function EmailSettings() {
                       onClick={handleResetDefaults}
                       disabled={resetTemplates.isPending}
                       className="rounded-2xl border-slate-200 dark:border-slate-800 text-xs flex items-center gap-1.5 hover:bg-slate-100"
-                      title={isRtl ? 'استعادة القوالب الافتراضية الأصلية' : 'Restore Default Templates'}
+                      title={tr("استعادة القوالب الافتراضية الأصلية", "Restore Default Templates")}
                     >
                       <RotateCcw className="h-3.5 w-3.5 text-slate-500" />
-                      <span>{isRtl ? 'استعادة القوالب الأصلية' : 'Reset Defaults'}</span>
+                      <span>{tr("استعادة القوالب الأصلية", "Reset Defaults")}</span>
                     </Button>
 
                     <Button 
@@ -623,7 +620,7 @@ export default function EmailSettings() {
                       className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-indigo-500/20"
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      <span>{isRtl ? 'إضافة قالب جديد' : 'New Template'}</span>
+                      <span>{tr("إضافة قالب جديد", "New Template")}</span>
                     </Button>
                   </div>
                 </div>
@@ -631,7 +628,7 @@ export default function EmailSettings() {
                 {/* Filter Search */}
                 <div className="pt-3">
                   <Input 
-                    placeholder={isRtl ? 'ابحث عن قالب (مثال: OTP، عمولة، سحب، إيداع)...' : 'Search templates (e.g. OTP, Commission, Withdrawal)...'}
+                    placeholder={tr("ابحث عن قالب (مثال: OTP، عمولة، سحب، إيداع)...", "Search templates (e.g. OTP, Commission, Withdrawal)...")}
                     value={templateSearch}
                     onChange={(e) => setTemplateSearch(e.target.value)}
                     className="max-w-md rounded-2xl border-slate-200 dark:border-slate-800 text-xs"
@@ -649,7 +646,7 @@ export default function EmailSettings() {
                 ) : filteredTemplates?.length === 0 ? (
                   <div className="p-12 text-center text-slate-400">
                     <Mail className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                    <p className="font-bold">{isRtl ? 'لم يتم العثور على قوالب مطابقة' : 'No templates found'}</p>
+                    <p className="font-bold">{tr("لم يتم العثور على قوالب مطابقة", "No templates found")}</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -672,7 +669,7 @@ export default function EmailSettings() {
                               <div className="flex items-center gap-1.5">
                                 <span className={`inline-block w-2 h-2 rounded-full ${template.is_active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                                 <span className="text-[11px] font-semibold text-slate-500">
-                                  {template.is_active ? (isRtl ? 'نشط' : 'Active') : (isRtl ? 'معطل' : 'Inactive')}
+                                  {template.is_active ? (tr("نشط", "Active")) : (tr("معطل", "Inactive"))}
                                 </span>
                               </div>
                             </div>
@@ -682,7 +679,7 @@ export default function EmailSettings() {
                             </h4>
 
                             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium line-clamp-1">
-                              <strong>{isRtl ? 'الموضوع:' : 'Subject:'}</strong> {template.subject}
+                              <strong>{tr("الموضوع:", "Subject:")}</strong> {template.subject}
                             </p>
 
                             {/* Variable chips */}
@@ -709,7 +706,7 @@ export default function EmailSettings() {
                                 onClick={() => handleEditTemplate(template)}
                                 className="h-8 rounded-xl border-slate-200 dark:border-slate-800 text-xs font-bold hover:bg-purple-50 hover:text-purple-700"
                               >
-                                {isRtl ? 'تعديل ومعاينة' : 'Edit & Preview'}
+                                {tr("تعديل ومعاينة", "Edit & Preview")}
                               </Button>
 
                               <Button 
@@ -737,10 +734,10 @@ export default function EmailSettings() {
               <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
                 <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                   <History className="h-5 w-5 text-slate-500" />
-                  <span>{isRtl ? 'سجل الرسائل الصادرة' : 'Email Dispatch History'}</span>
+                  <span>{tr("سجل الرسائل الصادرة", "Email Dispatch History")}</span>
                 </CardTitle>
                 <CardDescription className="text-xs text-slate-400">
-                  {isRtl ? 'أحدث 100 رسالة تم إرسالها أو محاكاتها عبر منصة Nexyvora.' : 'Latest 100 email dispatches and delivery statuses.'}
+                  {tr("أحدث 100 رسالة تم إرسالها أو محاكاتها عبر منصة Nexyvora.", "Latest 100 email dispatches and delivery statuses.")}
                 </CardDescription>
               </CardHeader>
 
@@ -749,11 +746,11 @@ export default function EmailSettings() {
                   <table className="w-full text-xs">
                     <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
                       <tr>
-                        <th className="p-3.5 text-slate-500 font-bold ltr:text-left rtl:text-right">{isRtl ? 'المستلم' : 'Recipient'}</th>
-                        <th className="p-3.5 text-slate-500 font-bold ltr:text-left rtl:text-right">{isRtl ? 'عنوان الرسالة' : 'Subject'}</th>
-                        <th className="p-3.5 text-slate-500 font-bold ltr:text-left rtl:text-right">{isRtl ? 'القالب' : 'Template'}</th>
-                        <th className="p-3.5 text-slate-500 font-bold text-center">{isRtl ? 'الحالة' : 'Status'}</th>
-                        <th className="p-3.5 text-slate-500 font-bold ltr:text-right rtl:text-left">{isRtl ? 'التاريخ والوقت' : 'Date'}</th>
+                        <th className="p-3.5 text-slate-500 font-bold ltr:text-left rtl:text-right">{tr("المستلم", "Recipient")}</th>
+                        <th className="p-3.5 text-slate-500 font-bold ltr:text-left rtl:text-right">{tr("عنوان الرسالة", "Subject")}</th>
+                        <th className="p-3.5 text-slate-500 font-bold ltr:text-left rtl:text-right">{tr("القالب", "Template")}</th>
+                        <th className="p-3.5 text-slate-500 font-bold text-center">{tr("الحالة", "Status")}</th>
+                        <th className="p-3.5 text-slate-500 font-bold ltr:text-right rtl:text-left">{tr("التاريخ والوقت", "Date")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -770,7 +767,7 @@ export default function EmailSettings() {
                       ) : logs?.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="p-12 text-center text-slate-400">
-                            {isRtl ? 'لم يتم إرسال أي رسائل بريد حتى الآن.' : 'No email logs recorded yet.'}
+                            {tr("لم يتم إرسال أي رسائل بريد حتى الآن.", "No email logs recorded yet.")}
                           </td>
                         </tr>
                       ) : (
@@ -794,7 +791,7 @@ export default function EmailSettings() {
                                   ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
                                   : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
                               }`}>
-                                {log.status === 'sent' ? (isRtl ? 'مرسل بنجاح' : 'Sent') : log.status === 'failed' ? (isRtl ? 'فشل' : 'Failed') : (isRtl ? 'محاكاة' : 'Simulated')}
+                                {log.status === 'sent' ? (tr("مرسل بنجاح", "Sent")) : log.status === 'failed' ? (tr("فشل", "Failed")) : (tr("محاكاة", "Simulated"))}
                               </span>
                             </td>
                             <td className="p-3.5 ltr:text-right rtl:text-left text-slate-400 font-mono text-[11px]">
@@ -818,28 +815,28 @@ export default function EmailSettings() {
               <DialogTitle className="text-lg font-bold flex items-center gap-2">
                 <FileText className="h-5 w-5 text-purple-600" />
                 <span>
-                  {isCreatingTemplate ? (isRtl ? 'إنشاء قالب بريد جديد' : 'Create New Template') : `${isRtl ? 'تعديل قالب:' : 'Edit Template:'} ${editingTemplate?.name}`}
+                  {isCreatingTemplate ? (tr("إنشاء قالب بريد جديد", "Create New Template")) : `${tr("تعديل قالب:", "Edit Template:")} ${editingTemplate?.name}`}
                 </span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-400">
-                {isRtl ? 'قم بتعديل عنوان الرسالة وكود HTML للقالب. استخدم المتغيرات المدرجة لتخصيص محتوى البريد لكل عضو.' : 'Edit template subject and HTML markup. Use dynamic variables to customize content.'}
+                {tr("قم بتعديل عنوان الرسالة وكود HTML للقالب. استخدم المتغيرات المدرجة لتخصيص محتوى البريد لكل عضو.", "Edit template subject and HTML markup. Use dynamic variables to customize content.")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 pt-2">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">{isRtl ? 'اسم القالب' : 'Template Name'}</Label>
+                  <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">{tr("اسم القالب", "Template Name")}</Label>
                   <Input
                     value={templateForm.name}
                     onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
-                    placeholder={isRtl ? "كود التحقق لتفعيل الحساب..." : "e.g. Account Verification OTP"}
+                    placeholder={tr("كود التحقق لتفعيل الحساب...", "e.g. Account Verification OTP")}
                     className="rounded-xl text-sm"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">{isRtl ? 'المعرف الفريد (Slug)' : 'Unique Slug'}</Label>
+                  <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">{tr("المعرف الفريد (Slug)", "Unique Slug")}</Label>
                   <Input
                     value={templateForm.slug}
                     onChange={(e) => setTemplateForm({ ...templateForm, slug: e.target.value })}
@@ -851,11 +848,11 @@ export default function EmailSettings() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">{isRtl ? 'عنوان الرسالة (Subject)' : 'Email Subject'}</Label>
+                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">{tr("عنوان الرسالة (Subject)", "Email Subject")}</Label>
                 <Input
                   value={templateForm.subject}
                   onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })}
-                  placeholder={isRtl ? "عنوان الرسالة مع المتغيرات..." : "Email subject with variables..."}
+                  placeholder={tr("عنوان الرسالة مع المتغيرات...", "Email subject with variables...")}
                   className="rounded-xl text-sm font-medium"
                 />
               </div>
@@ -863,7 +860,7 @@ export default function EmailSettings() {
               {/* Variable helpers */}
               <div className="p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50">
                 <span className="text-xs font-bold text-purple-900 dark:text-purple-200 block mb-1.5">
-                  {isRtl ? '💡 انقر لإدراج المتغيرات في القالب:' : '💡 Click variable to insert into template:'}
+                  {tr("💡 انقر لإدراج المتغيرات في القالب:", "💡 Click variable to insert into template:")}
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {templateForm.variables?.map((v) => (
@@ -881,7 +878,7 @@ export default function EmailSettings() {
 
               {/* View Switch: Code Editor vs Live Preview */}
               <div className="flex items-center justify-between pt-2">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{isRtl ? 'محتوى الرسالة (HTML Body)' : 'HTML Body'}</span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{tr("محتوى الرسالة (HTML Body)", "HTML Body")}</span>
                 <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                   <button
                     type="button"
@@ -892,7 +889,7 @@ export default function EmailSettings() {
                         : 'text-slate-500'
                     }`}
                   >
-                    {isRtl ? 'محرر الكود' : 'HTML Editor'}
+                    {tr("محرر الكود", "HTML Editor")}
                   </button>
                   <button
                     type="button"
@@ -903,7 +900,7 @@ export default function EmailSettings() {
                         : 'text-slate-500'
                     }`}
                   >
-                    {isRtl ? 'معاينة حية' : 'Live Preview'}
+                    {tr("معاينة حية", "Live Preview")}
                   </button>
                 </div>
               </div>
@@ -931,7 +928,7 @@ export default function EmailSettings() {
                     onCheckedChange={(checked) => setTemplateForm({ ...templateForm, is_active: checked })}
                   />
                   <Label htmlFor="template-active" className="text-xs font-bold cursor-pointer">
-                    {isRtl ? 'تفعيل هذا القالب' : 'Template Active'}
+                    {tr("تفعيل هذا القالب", "Template Active")}
                   </Label>
                 </div>
               </div>
@@ -943,7 +940,7 @@ export default function EmailSettings() {
                 onClick={() => { setEditingTemplate(null); setIsCreatingTemplate(false); }}
                 className="rounded-xl text-xs"
               >
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button 
                 onClick={handleSaveTemplate} 
@@ -951,7 +948,7 @@ export default function EmailSettings() {
                 className="rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold"
               >
                 {updateTemplate.isPending || createTemplate.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                {isRtl ? 'حفظ التعديلات' : 'Save Template'}
+                {tr("حفظ التعديلات", "Save Template")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -963,16 +960,16 @@ export default function EmailSettings() {
             <DialogHeader>
               <DialogTitle className="text-base font-bold flex items-center gap-2">
                 <Send className="h-5 w-5 text-purple-600" />
-                <span>{isRtl ? 'إرسال بريد تجريبي' : 'Send Test Email'}</span>
+                <span>{tr("إرسال بريد تجريبي", "Send Test Email")}</span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-400">
-                {isRtl ? 'أدخل البريد الإلكتروني الذي ترغب في إرسال رسالة الاختبار إليه للتحقق من سلامة إعدادات SMTP.' : 'Enter recipient address to verify your SMTP server delivery.'}
+                {tr("أدخل البريد الإلكتروني الذي ترغب في إرسال رسالة الاختبار إليه للتحقق من سلامة إعدادات SMTP.", "Enter recipient address to verify your SMTP server delivery.")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">{isRtl ? 'بريد المستلم' : 'Recipient Email'}</Label>
+                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">{tr("بريد المستلم", "Recipient Email")}</Label>
                 <Input
                   type="email"
                   value={testRecipient}
@@ -983,20 +980,18 @@ export default function EmailSettings() {
               </div>
 
               <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 text-xs text-slate-500 space-y-1">
-                <p><strong>{isRtl ? 'الخادم المحدد:' : 'Current Host:'}</strong> {emailForm.smtp_host || '(Not set)'}</p>
-                <p><strong>{isRtl ? 'المنفذ:' : 'Port:'}</strong> {emailForm.smtp_port}</p>
-                <p><strong>{isRtl ? 'مُرسل الرسالة:' : 'From:'}</strong> {emailForm.from_email || emailForm.smtp_username || '(Not set)'}</p>
+                <p><strong>{tr("الخادم المحدد:", "Current Host:")}</strong> {emailForm.smtp_host || '(Not set)'}</p>
+                <p><strong>{tr("المنفذ:", "Port:")}</strong> {emailForm.smtp_port}</p>
+                <p><strong>{tr("مُرسل الرسالة:", "From:")}</strong> {emailForm.from_email || emailForm.smtp_username || '(Not set)'}</p>
               </div>
 
               {(!emailForm.smtp_host || !emailForm.smtp_username || !emailForm.smtp_password) && (
                 <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400 flex items-start gap-2.5">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                   <div className="space-y-0.5">
-                    <p className="font-bold">{isRtl ? 'بيانات SMTP غير مكتملة' : 'Incomplete SMTP Configuration'}</p>
+                    <p className="font-bold">{tr("بيانات SMTP غير مكتملة", "Incomplete SMTP Configuration")}</p>
                     <p className="text-[11px] leading-relaxed opacity-90">
-                      {isRtl 
-                        ? 'يرجى ملء خادم SMTP واسم المستخدم وكلمة مرور التطبيق، وحفظ الإعدادات أولاً.' 
-                        : 'Please enter SMTP Host, Username, and App Password, then save settings before testing.'}
+                      {tr("يرجى ملء خادم SMTP واسم المستخدم وكلمة مرور التطبيق، وحفظ الإعدادات أولاً.", "Please enter SMTP Host, Username, and App Password, then save settings before testing.")}
                     </p>
                   </div>
                 </div>
@@ -1005,7 +1000,7 @@ export default function EmailSettings() {
 
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => setTestModalOpen(false)} className="rounded-xl text-xs">
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button 
                 onClick={handleSendTestEmail} 
@@ -1013,7 +1008,7 @@ export default function EmailSettings() {
                 className="rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5"
               >
                 {testEmail.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                <span>{isRtl ? 'إرسال الآن' : 'Send Now'}</span>
+                <span>{tr("إرسال الآن", "Send Now")}</span>
               </Button>
             </DialogFooter>
           </DialogContent>

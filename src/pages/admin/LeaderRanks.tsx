@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,7 +49,7 @@ export default function LeaderRanks() {
       const res = await adminAffiliateService.getRanks();
       setRanks(res.ranks || []);
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل تحميل الرتب القيادية' : 'Failed to load leader ranks');
+      toast.error(tr("فشل تحميل الرتب القيادية", "Failed to load leader ranks"));
     } finally {
       setLoading(false);
     }
@@ -75,11 +76,11 @@ export default function LeaderRanks() {
     try {
       setSaving(true);
       await adminAffiliateService.updateRank(editingRank.id, formData);
-      toast.success(isRtl ? 'تم تحديث شروط ومكافأة الرتبة بنجاح' : 'Rank criteria and reward updated successfully');
+      toast.success(tr("تم تحديث شروط ومكافأة الرتبة بنجاح", "Rank criteria and reward updated successfully"));
       setEditingRank(null);
       loadRanks();
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل تحديث الرتبة' : 'Failed to update rank');
+      toast.error(tr("فشل تحديث الرتبة", "Failed to update rank"));
     } finally {
       setSaving(false);
     }
@@ -95,12 +96,10 @@ export default function LeaderRanks() {
               Leadership System
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-              {isRtl ? 'إعدادات الرتب القيادية' : 'Leader Ranks Configuration'}
+              {tr("إعدادات الرتب القيادية", "Leader Ranks Configuration")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              {isRtl 
-                ? 'تحديد سلم الرتب القيادية، شروط المبيعات المباشرة ومبيعات الفريق، والمكافآت المالية المرصودة لكل رتبة.'
-                : 'Configure leader ranks ladder, direct and team turnover criteria, and monetary rewards for each rank.'}
+              {tr("تحديد سلم الرتب القيادية، شروط المبيعات المباشرة ومبيعات الفريق، والمكافآت المالية المرصودة لكل رتبة.", "Configure leader ranks ladder, direct and team turnover criteria, and monetary rewards for each rank.")}
             </p>
           </div>
         </div>
@@ -110,7 +109,7 @@ export default function LeaderRanks() {
           {loading ? (
             <div className="col-span-3 text-center py-20 text-slate-400">
               <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-indigo-600" />
-              {isRtl ? 'جاري تحميل الرتب...' : 'Loading ranks...'}
+              {tr("جاري تحميل الرتب...", "Loading ranks...")}
             </div>
           ) : (
             ranks.map((r) => (
@@ -125,7 +124,7 @@ export default function LeaderRanks() {
                       style={{ backgroundColor: r.color_hex || '#6366f1' }}
                     >
                       <Award className="h-5 w-5" />
-                      <span>{isRtl ? `المستوى ${r.level}` : `Level ${r.level}`}</span>
+                      <span>{tr("المستوى ${r.level}", "Level ${r.level}")}</span>
                     </div>
 
                     <Button
@@ -135,7 +134,7 @@ export default function LeaderRanks() {
                       className="rounded-xl text-xs gap-1 text-slate-500 hover:text-indigo-600"
                     >
                       <Edit className="h-3.5 w-3.5" />
-                      {isRtl ? 'تعديل' : 'Edit'}
+                      {tr("تعديل", "Edit")}
                     </Button>
                   </div>
 
@@ -147,27 +146,27 @@ export default function LeaderRanks() {
 
                   <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
                     <div className="flex items-center justify-between text-slate-500">
-                      <span>{isRtl ? 'المبيعات المباشرة المطلوبة:' : 'Direct sales required:'}</span>
+                      <span>{tr("المبيعات المباشرة المطلوبة:", "Direct sales required:")}</span>
                       <strong className="text-slate-800 dark:text-slate-200">
-                        {r.min_direct_sales} {isRtl ? 'طالب' : 'students'}
+                        {r.min_direct_sales} {tr("طالب", "students")}
                       </strong>
                     </div>
                     <div className="flex items-center justify-between text-slate-500">
-                      <span>{isRtl ? 'حجم مبيعات الفريق المطلوب:' : 'Team turnover required:'}</span>
+                      <span>{tr("حجم مبيعات الفريق المطلوب:", "Team turnover required:")}</span>
                       <strong className="text-slate-800 dark:text-slate-200">${Number(r.min_team_turnover).toLocaleString()} USD</strong>
                     </div>
                     <div className="flex items-center justify-between text-indigo-600 font-bold pt-1 border-t border-dashed">
-                      <span>{isRtl ? 'الأجيال المفتوحة:' : 'Unlocked Generations:'}</span>
+                      <span>{tr("الأجيال المفتوحة:", "Unlocked Generations:")}</span>
                       <span className="font-mono text-sm">
                         {Number(r.unlocked_generations) === 0 
-                          ? (isRtl ? 'المباشر فقط' : 'Direct Only') 
+                          ? (tr("المباشر فقط", "Direct Only")) 
                           : Number(r.unlocked_generations) === 10 
-                          ? (isRtl ? 'جميع الأجيال (1-10)' : 'All Generations (1-10)') 
-                          : (isRtl ? `حتى الجيل ${r.unlocked_generations}` : `Up to Gen ${r.unlocked_generations}`)}
+                          ? (tr("جميع الأجيال (1-10)", "All Generations (1-10)")) 
+                          : (tr("حتى الجيل ${r.unlocked_generations}", "Up to Gen ${r.unlocked_generations}"))}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-emerald-600 font-bold pt-1">
-                      <span>{isRtl ? 'المكافأة النقدية للرتبة:' : 'Rank Cash Reward:'}</span>
+                      <span>{tr("المكافأة النقدية للرتبة:", "Rank Cash Reward:")}</span>
                       <span className="font-mono text-sm">${Number(r.reward_bonus !== undefined ? r.reward_bonus : (r.reward_amount || 0)).toLocaleString()} USD</span>
                     </div>
                   </div>
@@ -183,17 +182,17 @@ export default function LeaderRanks() {
             <form onSubmit={handleSave}>
               <DialogHeader>
                 <DialogTitle className="text-lg sm:text-xl font-bold">
-                  {isRtl ? `تعديل الرتبة القيادية: ${editingRank?.name_ar}` : `Edit Leader Rank: ${editingRank?.name}`}
+                  {tr("تعديل الرتبة القيادية: ${editingRank?.name_ar}", "Edit Leader Rank: ${editingRank?.name}")}
                 </DialogTitle>
                 <DialogDescription>
-                  {isRtl ? `المستوى ${editingRank?.level} في سلم القيادة` : `Level ${editingRank?.level} in leadership ladder`}
+                  {tr("المستوى ${editingRank?.level} في سلم القيادة", "Level ${editingRank?.level} in leadership ladder")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-xs">{isRtl ? 'الاسم بالعربية' : 'Arabic Name'}</Label>
+                    <Label className="text-xs">{tr("الاسم بالعربية", "Arabic Name")}</Label>
                     <Input
                       value={formData.name_ar}
                       onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
@@ -202,7 +201,7 @@ export default function LeaderRanks() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">{isRtl ? 'الاسم بالإنجليزية' : 'English Name'}</Label>
+                    <Label className="text-xs">{tr("الاسم بالإنجليزية", "English Name")}</Label>
                     <Input
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -213,7 +212,7 @@ export default function LeaderRanks() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">{isRtl ? 'المبيعات المباشرة المطلوبة (عدد الطلاب)' : 'Required Direct Sales (Students)'}</Label>
+                  <Label className="text-xs">{tr("المبيعات المباشرة المطلوبة (عدد الطلاب)", "Required Direct Sales (Students)")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -225,7 +224,7 @@ export default function LeaderRanks() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">{isRtl ? 'حجم مبيعات الفريق التراكمي ($ USD)' : 'Cumulative Team Turnover ($ USD)'}</Label>
+                  <Label className="text-xs">{tr("حجم مبيعات الفريق التراكمي ($ USD)", "Cumulative Team Turnover ($ USD)")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -238,7 +237,7 @@ export default function LeaderRanks() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs text-indigo-600 font-bold">{isRtl ? 'الأجيال المفتوحة بواسطة هذه الرتبة (0 إلى 10)' : 'Generations Unlocked by Rank (0 to 10)'}</Label>
+                  <Label className="text-xs text-indigo-600 font-bold">{tr("الأجيال المفتوحة بواسطة هذه الرتبة (0 إلى 10)", "Generations Unlocked by Rank (0 to 10)")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -251,7 +250,7 @@ export default function LeaderRanks() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs text-emerald-600 font-bold">{isRtl ? 'المكافأة النقدية الفورية ($ USD)' : 'Instant Cash Reward ($ USD)'}</Label>
+                  <Label className="text-xs text-emerald-600 font-bold">{tr("المكافأة النقدية الفورية ($ USD)", "Instant Cash Reward ($ USD)")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -264,7 +263,7 @@ export default function LeaderRanks() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">{isRtl ? 'لون الشارة المميز (Hex Code)' : 'Badge Accent Color (Hex Code)'}</Label>
+                  <Label className="text-xs">{tr("لون الشارة المميز (Hex Code)", "Badge Accent Color (Hex Code)")}</Label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -283,10 +282,10 @@ export default function LeaderRanks() {
 
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button type="button" variant="outline" onClick={() => setEditingRank(null)} className="rounded-xl">
-                  {isRtl ? 'إلغاء' : 'Cancel'}
+                  {tr("إلغاء", "Cancel")}
                 </Button>
                 <Button type="submit" disabled={saving} className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 text-white">
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : (isRtl ? 'حفظ التعديلات' : 'Save Changes')}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : (tr("حفظ التعديلات", "Save Changes"))}
                 </Button>
               </DialogFooter>
             </form>

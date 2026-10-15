@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -88,7 +89,7 @@ export default function PackagesStore() {
         }
       }
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل تحميل الباقات' : 'Failed to load packages');
+      toast.error(tr("فشل تحميل الباقات", "Failed to load packages"));
     } finally {
       setLoading(false);
     }
@@ -119,7 +120,7 @@ export default function PackagesStore() {
     if (!selectedPackage) return;
 
     if (paymentMethod === 'wallet' && !canPayWithWallet) {
-      return toast.error(isRtl ? 'رصيد المحفظة غير كافٍ لإتمام عملية الشراء' : 'Insufficient wallet balance for this purchase');
+      return toast.error(tr("رصيد المحفظة غير كافٍ لإتمام عملية الشراء", "Insufficient wallet balance for this purchase"));
     }
 
     try {
@@ -129,14 +130,14 @@ export default function PackagesStore() {
         paymentMethod,
         paymentReference: paymentMethod === 'wallet' ? `WALLET-${Date.now()}` : paymentRef
       });
-      toast.success(res.message || (isRtl ? 'تمت العملية وتفعيل الباقة بنجاح! جاري تحويلك للأكاديمية...' : 'Package activated successfully! Redirecting to Academy...'));
+      toast.success(res.message || (tr("تمت العملية وتفعيل الباقة بنجاح! جاري تحويلك للأكاديمية...", "Package activated successfully! Redirecting to Academy...")));
       setIsBuyModalOpen(false);
       loadData();
       setTimeout(() => {
         navigate('/student/academy');
       }, 1200);
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (isRtl ? 'فشلت معالجة الطلب' : 'Failed to process request'));
+      toast.error(err.response?.data?.error || (tr("فشلت معالجة الطلب", "Failed to process request")));
     } finally {
       setSubmitting(false);
     }
@@ -220,7 +221,7 @@ export default function PackagesStore() {
 
                     {isCore && (
                       <div className="mt-2.5 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-500 font-medium leading-relaxed">
-                        {isRtl ? '📌 باقة اشتراك عضوية تتيح الفيديوهات التعريفية وتفعيل رابط الإحالة' : '📌 Membership subscription with project overview videos & referral access'}
+                        {tr("📌 باقة اشتراك عضوية تتيح الفيديوهات التعريفية وتفعيل رابط الإحالة", "📌 Membership subscription with project overview videos & referral access")}
                       </div>
                     )}
 
@@ -259,14 +260,14 @@ export default function PackagesStore() {
                       <span className="text-[11px] font-black text-primary flex items-center justify-center gap-1.5">
                         <Sparkles className="h-3.5 w-3.5" />
                         {Number(pkg.unlocked_generations) === 0 
-                          ? (isRtl ? 'أرباح الإحالة المباشرة فقط' : 'Direct referrals only')
+                          ? (tr("أرباح الإحالة المباشرة فقط", "Direct referrals only"))
                           : Number(pkg.unlocked_generations) === 1 
-                          ? (isRtl ? 'يفتح أرباح الجيل 1' : 'Unlocks Gen 1 matching')
+                          ? (tr("يفتح أرباح الجيل 1", "Unlocks Gen 1 matching"))
                           : Number(pkg.unlocked_generations) === 2 
-                          ? (isRtl ? 'يفتح أرباح الجيل 1 + 2' : 'Unlocks Gen 1 + 2 matching')
+                          ? (tr("يفتح أرباح الجيل 1 + 2", "Unlocks Gen 1 + 2 matching"))
                           : Number(pkg.unlocked_generations) === 3 
-                          ? (isRtl ? 'يفتح أرباح الجيل 1 + 2 + 3' : 'Unlocks Gen 1 + 2 + 3 matching')
-                          : (isRtl ? `يفتح أرباح حتى الجيل ${pkg.unlocked_generations}` : `Unlocks up to Gen ${pkg.unlocked_generations}`)}
+                          ? (tr("يفتح أرباح الجيل 1 + 2 + 3", "Unlocks Gen 1 + 2 + 3 matching"))
+                          : (tr("يفتح أرباح حتى الجيل ${pkg.unlocked_generations}", "Unlocks up to Gen ${pkg.unlocked_generations}"))}
                       </span>
                     </div>
 
@@ -319,15 +320,13 @@ export default function PackagesStore() {
           <div className={`space-y-2 ${isRtl ? 'text-right' : 'text-left'}`}>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>{isRtl ? 'الفكرة التسويقية للأكاديمية' : 'Academy Marketing Journey'}</span>
+              <span>{tr("الفكرة التسويقية للأكاديمية", "Academy Marketing Journey")}</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              {isRtl ? 'رحلة التحول الرقمي بالأكاديمية (3 مراحل متكاملة)' : 'Academy Digital Transformation Journey'}
+              {tr("رحلة التحول الرقمي بالأكاديمية (3 مراحل متكاملة)", "Academy Digital Transformation Journey")}
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-              {isRtl 
-                ? 'مسار تدرجي واضح ينقلك من: صاحب مشروع ← خبير أتمتة AI ← رائد أعمال تقني (AI Builder)' 
-                : 'A progressive path taking you from Project Owner → AI Automation Expert → Tech Builder'}
+              {tr("مسار تدرجي واضح ينقلك من: صاحب مشروع ← خبير أتمتة AI ← رائد أعمال تقني (AI Builder)", "A progressive path taking you from Project Owner → AI Automation Expert → Tech Builder")}
             </p>
           </div>
 
@@ -337,7 +336,7 @@ export default function PackagesStore() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                    🟢 {isRtl ? 'المرحلة 1 — أنشئ' : 'Stage 1 — Build'}
+                    🟢 {tr("المرحلة 1 — أنشئ", "Stage 1 — Build")}
                   </span>
                   <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 font-bold">
                     FLOW $150
@@ -346,18 +345,16 @@ export default function PackagesStore() {
                 <div className="space-y-1">
                   <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <ShoppingCart className="h-5 w-5 text-emerald-600" />
-                    <span>{isRtl ? 'اصنع مشروعك — E-COMMERCE' : 'Create Your E-Commerce'}</span>
+                    <span>{tr("اصنع مشروعك — E-COMMERCE", "Create Your E-Commerce")}</span>
                   </h3>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
-                    {isRtl 
-                      ? 'تعلم كيف تنشئ وتطلق مشروع تجارة إلكترونية متكامل بالاعتماد على الذكاء الاصطناعي (المتجر، الهوية، المحتوى، واختبار الحملات).' 
-                      : 'Build and launch a complete e-commerce brand powered by AI.'}
+                    {tr("تعلم كيف تنشئ وتطلق مشروع تجارة إلكترونية متكامل بالاعتماد على الذكاء الاصطناعي (المتجر، الهوية، المحتوى، واختبار الحملات).", "Build and launch a complete e-commerce brand powered by AI.")}
                   </p>
                 </div>
               </div>
               <div className="mt-6 pt-4 border-t border-emerald-500/20 text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
-                <span>{isRtl ? 'النتيجة: إطلاق مشروع تجاري وإدارته بالذكاء الاصطناعي' : 'Outcome: Launch & manage your AI-driven store'}</span>
+                <span>{tr("النتيجة: إطلاق مشروع تجاري وإدارته بالذكاء الاصطناعي", "Outcome: Launch & manage your AI-driven store")}</span>
               </div>
             </Card>
 
@@ -366,7 +363,7 @@ export default function PackagesStore() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full text-xs font-black bg-blue-500/15 text-blue-600 dark:text-blue-400">
-                    🔵 {isRtl ? 'المرحلة 2 — أتمت' : 'Stage 2 — Automate'}
+                    🔵 {tr("المرحلة 2 — أتمت", "Stage 2 — Automate")}
                   </span>
                   <Badge variant="outline" className="border-blue-500/30 text-blue-600 font-bold">
                     GROW $500
@@ -375,18 +372,16 @@ export default function PackagesStore() {
                 <div className="space-y-1">
                   <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <Bot className="h-5 w-5 text-blue-600" />
-                    <span>{isRtl ? 'أتمت مشروعك — AI AUTOMATION' : 'Automate with AI'}</span>
+                    <span>{tr("أتمت مشروعك — AI AUTOMATION", "Automate with AI")}</span>
                   </h3>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
-                    {isRtl 
-                      ? 'تعلم كيف تجعل الذكاء الاصطناعي يعمل من أجلك من خلال بناء الوكلاء (AI Agents) وWorkflows الأتمتة لربط الأدوات والتوسع.' 
-                      : 'Make AI work for you with AI Agents and automated workflows.'}
+                    {tr("تعلم كيف تجعل الذكاء الاصطناعي يعمل من أجلك من خلال بناء الوكلاء (AI Agents) وWorkflows الأتمتة لربط الأدوات والتوسع.", "Make AI work for you with AI Agents and automated workflows.")}
                   </p>
                 </div>
               </div>
               <div className="mt-6 pt-4 border-t border-blue-500/20 text-xs font-bold text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
-                <span>{isRtl ? 'النتيجة: بناء أنظمة وأتمتة ووكلاء أذكياء للمشروع' : 'Outcome: Build smart AI agents & autonomous workflows'}</span>
+                <span>{tr("النتيجة: بناء أنظمة وأتمتة ووكلاء أذكياء للمشروع", "Outcome: Build smart AI agents & autonomous workflows")}</span>
               </div>
             </Card>
 
@@ -395,7 +390,7 @@ export default function PackagesStore() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full text-xs font-black bg-purple-500/15 text-purple-600 dark:text-purple-400">
-                    🟣 {isRtl ? 'المرحلة 3 — ابنِ' : 'Stage 3 — Build Tech'}
+                    🟣 {tr("المرحلة 3 — ابنِ", "Stage 3 — Build Tech")}
                   </span>
                   <Badge variant="outline" className="border-purple-500/30 text-purple-600 font-bold">
                     PRIME $1000
@@ -404,18 +399,16 @@ export default function PackagesStore() {
                 <div className="space-y-1">
                   <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <Rocket className="h-5 w-5 text-purple-600" />
-                    <span>{isRtl ? 'ابنِ مشروعك التقني — AI BUILDER' : 'AI Builder & SaaS'}</span>
+                    <span>{tr("ابنِ مشروعك التقني — AI BUILDER", "AI Builder & SaaS")}</span>
                   </h3>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
-                    {isRtl 
-                      ? 'تعلم البرمجة المتقدمة وبناء المواقع والتطبيقات والـ SaaS من الفكرة حتى تحقيق الدخل + جلستان شهرياً لمرافقة مشروعك.' 
-                      : 'Build web apps, dashboards & SaaS with AI + 1-on-1 monthly mentorship.'}
+                    {tr("تعلم البرمجة المتقدمة وبناء المواقع والتطبيقات والـ SaaS من الفكرة حتى تحقيق الدخل + جلستان شهرياً لمرافقة مشروعك.", "Build web apps, dashboards & SaaS with AI + 1-on-1 monthly mentorship.")}
                   </p>
                 </div>
               </div>
               <div className="mt-6 pt-4 border-t border-purple-500/20 text-xs font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
-                <span>{isRtl ? 'النتيجة: رائد أعمال تقني يمتلك SaaS ومنتجات رقمية' : 'Outcome: Tech entrepreneur with active SaaS & apps'}</span>
+                <span>{tr("النتيجة: رائد أعمال تقني يمتلك SaaS ومنتجات رقمية", "Outcome: Tech entrepreneur with active SaaS & apps")}</span>
               </div>
             </Card>
           </div>
@@ -428,12 +421,10 @@ export default function PackagesStore() {
               <div>
                 <CardTitle className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Layers className="h-5 w-5 text-primary" />
-                  <span>{isRtl ? 'جدول مقارنة مميزات ومستويات الباقات' : 'Complete Packages Feature Comparison'}</span>
+                  <span>{tr("جدول مقارنة مميزات ومستويات الباقات", "Complete Packages Feature Comparison")}</span>
                 </CardTitle>
                 <CardDescription className="text-xs text-slate-400 mt-1">
-                  {isRtl 
-                    ? 'جدول تفصيلي يوضح الصلاحيات المتاحة في كل باقة ومستوى تعليمي بالأكاديمية' 
-                    : 'Detailed overview of capabilities across each academy tier'}
+                  {tr("جدول تفصيلي يوضح الصلاحيات المتاحة في كل باقة ومستوى تعليمي بالأكاديمية", "Detailed overview of capabilities across each academy tier")}
                 </CardDescription>
               </div>
             </div>
@@ -443,50 +434,50 @@ export default function PackagesStore() {
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-black">
                   <th className={`p-4 ${isRtl ? 'text-right' : 'text-left'}`}>
-                    {isRtl ? 'المميزات والمحاور' : 'Features & Curriculum'}
+                    {tr("المميزات والمحاور", "Features & Curriculum")}
                   </th>
                   <th className="p-4 text-center">
                     <div className="inline-flex flex-col items-center">
                       <span className="text-emerald-600 font-black">🟢 FLOW $150</span>
-                      <span className="text-[10px] text-slate-400 font-normal">{isRtl ? 'المستوى 1' : 'Level 1'}</span>
+                      <span className="text-[10px] text-slate-400 font-normal">{tr("المستوى 1", "Level 1")}</span>
                     </div>
                   </th>
                   <th className="p-4 text-center">
                     <div className="inline-flex flex-col items-center">
                       <span className="text-blue-600 font-black">🔵 GROW $500</span>
-                      <span className="text-[10px] text-slate-400 font-normal">{isRtl ? 'المستوى 2' : 'Level 2'}</span>
+                      <span className="text-[10px] text-slate-400 font-normal">{tr("المستوى 2", "Level 2")}</span>
                     </div>
                   </th>
                   <th className="p-4 text-center">
                     <div className="inline-flex flex-col items-center">
                       <span className="text-purple-600 font-black">🟣 PRIME $1000</span>
-                      <span className="text-[10px] text-slate-400 font-normal">{isRtl ? 'المستوى 3 (VIP)' : 'Level 3 (VIP)'}</span>
+                      <span className="text-[10px] text-slate-400 font-normal">{tr("المستوى 3 (VIP)", "Level 3 (VIP)")}</span>
                     </div>
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {[
-                  { name: isRtl ? 'التجارة الإلكترونية والبيزنس الرقمي' : 'E-Commerce & Digital Business', flow: true, grow: true, prime: true },
-                  { name: isRtl ? 'إنشاء العلامة التجارية والهوية البصرية' : 'Brand Creation & Visual Identity', flow: true, grow: true, prime: true },
-                  { name: isRtl ? 'إنشاء المحتوى وUGC بالذكاء الاصطناعي' : 'Content & AI UGC Creation', flow: true, grow: true, prime: true },
-                  { name: isRtl ? 'البحث عن المنتجات الرابحة (Product Research)' : 'Winning Product Research', flow: true, grow: true, prime: true },
-                  { name: isRtl ? 'إعلانات Meta Ads (Facebook & Instagram)' : 'Meta Ads (Facebook & Instagram)', flow: true, grow: true, prime: true },
-                  { name: isRtl ? 'إعلانات TikTok Ads الاحترافية' : 'Professional TikTok Ads', flow: true, grow: true, prime: true },
-                  { name: isRtl ? 'إعلانات Snapchat Ads' : 'Snapchat Ads', flow: true, grow: true, prime: true },
-                  { name: isRtl ? 'إنشاء وكلاء الذكاء الاصطناعي (AI Agents)' : 'AI Agents Creation', flow: false, grow: true, prime: true },
-                  { name: isRtl ? 'إنشاء أنظمة وسير العمل الذكي (AI Workflows)' : 'Smart AI Workflows', flow: false, grow: true, prime: true },
-                  { name: isRtl ? 'الأتمتة الشاملة بالذكاء الاصطناعي' : 'Comprehensive AI Automation', flow: false, grow: true, prime: true },
-                  { name: isRtl ? 'البرمجة والتطوير بمساعدة الذكاء الاصطناعي' : 'AI-Assisted Coding & Dev', flow: false, grow: true, prime: true },
-                  { name: isRtl ? 'إنشاء مشاريع وتطبيقات SaaS باستخدام AI' : 'Building SaaS Apps with AI', flow: false, grow: true, prime: true },
-                  { name: isRtl ? 'تدريب ChatGPT المتقدم' : 'Advanced ChatGPT Training', flow: 'partial', grow: true, prime: true },
-                  { name: isRtl ? 'أدوات Codex المتقدمة' : 'Advanced Codex Tools', flow: false, grow: 'partial', prime: true },
+                  { name: tr("التجارة الإلكترونية والبيزنس الرقمي", "E-Commerce & Digital Business"), flow: true, grow: true, prime: true },
+                  { name: tr("إنشاء العلامة التجارية والهوية البصرية", "Brand Creation & Visual Identity"), flow: true, grow: true, prime: true },
+                  { name: tr("إنشاء المحتوى وUGC بالذكاء الاصطناعي", "Content & AI UGC Creation"), flow: true, grow: true, prime: true },
+                  { name: tr("البحث عن المنتجات الرابحة (Product Research)", "Winning Product Research"), flow: true, grow: true, prime: true },
+                  { name: tr("إعلانات Meta Ads (Facebook & Instagram)", "Meta Ads (Facebook & Instagram)"), flow: true, grow: true, prime: true },
+                  { name: tr("إعلانات TikTok Ads الاحترافية", "Professional TikTok Ads"), flow: true, grow: true, prime: true },
+                  { name: tr("إعلانات Snapchat Ads", "Snapchat Ads"), flow: true, grow: true, prime: true },
+                  { name: tr("إنشاء وكلاء الذكاء الاصطناعي (AI Agents)", "AI Agents Creation"), flow: false, grow: true, prime: true },
+                  { name: tr("إنشاء أنظمة وسير العمل الذكي (AI Workflows)", "Smart AI Workflows"), flow: false, grow: true, prime: true },
+                  { name: tr("الأتمتة الشاملة بالذكاء الاصطناعي", "Comprehensive AI Automation"), flow: false, grow: true, prime: true },
+                  { name: tr("البرمجة والتطوير بمساعدة الذكاء الاصطناعي", "AI-Assisted Coding & Dev"), flow: false, grow: true, prime: true },
+                  { name: tr("إنشاء مشاريع وتطبيقات SaaS باستخدام AI", "Building SaaS Apps with AI"), flow: false, grow: true, prime: true },
+                  { name: tr("تدريب ChatGPT المتقدم", "Advanced ChatGPT Training"), flow: 'partial', grow: true, prime: true },
+                  { name: tr("أدوات Codex المتقدمة", "Advanced Codex Tools"), flow: false, grow: 'partial', prime: true },
                   { name: 'Google AI Studio', flow: false, grow: 'partial', prime: true },
-                  { name: isRtl ? 'منصة Antigravity لبناء الأنظمة' : 'Antigravity Platform for Systems', flow: false, grow: 'partial', prime: true },
-                  { name: isRtl ? 'VS Code + أدوات الذكاء الاصطناعي' : 'VS Code + AI Tools', flow: false, grow: 'partial', prime: true },
-                  { name: isRtl ? 'جلسات مرافقة واستشارات شخصية (جلستان شهرياً)' : '1-on-1 Mentorship (2 sessions/month)', flow: false, grow: false, prime: true },
-                  { name: isRtl ? 'جميع التحديثات الدورية وورش العمل' : 'All Regular Updates & Workshops', flow: false, grow: false, prime: true },
-                  { name: isRtl ? 'الوصول الكامل وغير المحدود لجميع الدورات (Premium)' : 'Unlimited Full Access to All Courses (Premium)', flow: false, grow: false, prime: true },
+                  { name: tr("منصة Antigravity لبناء الأنظمة", "Antigravity Platform for Systems"), flow: false, grow: 'partial', prime: true },
+                  { name: tr("VS Code + أدوات الذكاء الاصطناعي", "VS Code + AI Tools"), flow: false, grow: 'partial', prime: true },
+                  { name: tr("جلسات مرافقة واستشارات شخصية (جلستان شهرياً)", "1-on-1 Mentorship (2 sessions/month)"), flow: false, grow: false, prime: true },
+                  { name: tr("جميع التحديثات الدورية وورش العمل", "All Regular Updates & Workshops"), flow: false, grow: false, prime: true },
+                  { name: tr("الوصول الكامل وغير المحدود لجميع الدورات (Premium)", "Unlimited Full Access to All Courses (Premium)"), flow: false, grow: false, prime: true },
                 ].map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                     <td className={`p-3.5 font-bold text-slate-800 dark:text-slate-200 ${isRtl ? 'text-right' : 'text-left'}`}>
@@ -629,7 +620,7 @@ export default function PackagesStore() {
               <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-3.5 text-xs text-slate-500 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                  {isRtl ? 'أمان وضمان تفعيل الحساب' : 'Secure Instant Activation'}
+                  {tr("أمان وضمان تفعيل الحساب", "Secure Instant Activation")}
                 </div>
                 <p className="text-[11px]">
                   {t('packages.instantActivationGuarantee')}

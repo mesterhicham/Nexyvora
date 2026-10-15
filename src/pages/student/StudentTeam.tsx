@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -62,7 +63,7 @@ export default function StudentTeam() {
       const res = await affiliateService.getTeam();
       setData(res);
     } catch (err) {
-      toast.error(t('common.error', isRtl ? 'فشل تحميل بيانات الفريق' : 'Failed to load team data'));
+      toast.error(t('common.error', tr("فشل تحميل بيانات الفريق", "Failed to load team data")));
     } finally {
       setLoading(false);
     }
@@ -76,11 +77,11 @@ export default function StudentTeam() {
     if (isLink) {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
-      toast.success(t('team.copyLinkSuccess', isRtl ? 'تم نسخ رابط الإحالة بنجاح!' : 'Referral link copied successfully!'));
+      toast.success(t('team.copyLinkSuccess', tr("تم نسخ رابط الإحالة بنجاح!", "Referral link copied successfully!")));
     } else {
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
-      toast.success(t('team.copyCodeSuccess', isRtl ? 'تم نسخ كود الإحالة!' : 'Referral code copied!'));
+      toast.success(t('team.copyCodeSuccess', tr("تم نسخ كود الإحالة!", "Referral code copied!")));
     }
   };
 
@@ -89,7 +90,7 @@ export default function StudentTeam() {
       try {
         await navigator.share({
           title: 'Nexyvora Academy',
-          text: `${t('team.shareInviteText', isRtl ? 'انضم إلى فريقي في منصة Nexyvora Academy واستفد من البرامج التعليمية والفرص الرائعة!' : 'Join my team on Nexyvora Academy and take advantage of great educational programs!')}\n`,
+          text: `${t('team.shareInviteText', tr("انضم إلى فريقي في منصة Nexyvora Academy واستفد من البرامج التعليمية والفرص الرائعة!", "Join my team on Nexyvora Academy and take advantage of great educational programs!"))}\n`,
           url: referralLink,
         });
       } catch (err) {
@@ -97,7 +98,7 @@ export default function StudentTeam() {
       }
     } else {
       copyToClipboard(referralLink, true);
-      toast.info(t('team.linkCopiedShare', isRtl ? 'تم نسخ رابط الإحالة! يمكنك مشاركته الآن.' : 'Referral link copied! You can share it now.'));
+      toast.info(t('team.linkCopiedShare', tr("تم نسخ رابط الإحالة! يمكنك مشاركته الآن.", "Referral link copied! You can share it now.")));
     }
   };
 
@@ -148,7 +149,7 @@ export default function StudentTeam() {
             <button
               onClick={() => setShowQr(!showQr)}
               className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs"
-              title={t('team.qrCode', isRtl ? 'رمز QR' : 'QR Code')}
+              title={t('team.qrCode', tr("رمز QR", "QR Code"))}
             >
               <QrCode className="h-5 w-5" />
             </button>
@@ -167,7 +168,7 @@ export default function StudentTeam() {
         {showQr && (
           <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-150">
             <p className="text-xs font-bold text-slate-500 mb-3">
-              {t('team.scanToJoin', isRtl ? 'امسح الرمز للانضمام لفريقك مباشرة' : 'Scan the code to join your team directly')}
+              {t('team.scanToJoin', tr("امسح الرمز للانضمام لفريقك مباشرة", "Scan the code to join your team directly"))}
             </p>
             <div className="p-3 bg-white rounded-2xl border shadow-xs">
               <QRCodeSVG value={referralLink} size={150} />
@@ -182,7 +183,7 @@ export default function StudentTeam() {
           className="w-full py-3.5 px-4 rounded-2xl bg-[#eff6ff] dark:bg-blue-950/40 hover:bg-blue-100/80 dark:hover:bg-blue-900/50 border border-blue-200/80 dark:border-blue-800/80 text-[#1d4ed8] dark:text-blue-400 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-xs"
         >
           <Network className="h-4 w-4 stroke-[2.2]" />
-          <span>{t('team.viewTeamTree', isRtl ? 'عرض واستكشاف شجرة الفريق التفاعلية' : 'View Team Tree Canvas')}</span>
+          <span>{t('team.viewTeamTree', tr("عرض واستكشاف شجرة الفريق التفاعلية", "View Team Tree Canvas"))}</span>
         </Link>
 
         {/* Invite Link Royal Blue Hero Card (Exact Match to Screenshot) */}
@@ -200,9 +201,9 @@ export default function StudentTeam() {
             <button
               onClick={() => copyToClipboard(affiliateCode, false)}
               className="px-3.5 py-1 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-extrabold text-white tracking-wider font-mono transition-all active:scale-95"
-              title={t('team.copyCode', isRtl ? 'نسخ الكود' : 'Copy Code')}
+              title={t('team.copyCode', tr("نسخ الكود", "Copy Code"))}
             >
-              {copiedCode ? t('common.copied', isRtl ? 'تم النسخ!' : 'Copied!') : affiliateCode}
+              {copiedCode ? t('common.copied', tr("تم النسخ!", "Copied!")) : affiliateCode}
             </button>
           </div>
 
@@ -295,10 +296,10 @@ export default function StudentTeam() {
         <div className="space-y-4 pt-2">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-              {t('team.breakdownTitle', isRtl ? 'تفاصيل شبكة الأجيال (10 Generations)' : 'Generations Network Breakdown (10 Generations)')}
+              {t('team.breakdownTitle', tr("تفاصيل شبكة الأجيال (10 Generations)", "Generations Network Breakdown (10 Generations)"))}
             </h2>
             <span className="text-xs text-slate-400 font-medium">
-              {totals.totalTeamMembers} {t('team.membersCount', isRtl ? 'عضو' : 'Members')}
+              {totals.totalTeamMembers} {t('team.membersCount', tr("عضو", "Members"))}
             </span>
           </div>
 
@@ -337,17 +338,17 @@ export default function StudentTeam() {
                           </div>
                           <div>
                             <h4 className="text-xs font-bold text-amber-900 dark:text-amber-200">
-                              {t('team.lockedGenNotice', isRtl ? 'هذا الجيل مقفل في خطتك الحالية' : 'This generation is locked in your current plan')} ({t('team.gen', isRtl ? 'الجيل' : 'Gen')} {lvl})
+                              {t('team.lockedGenNotice', tr("هذا الجيل مقفل في خطتك الحالية", "This generation is locked in your current plan"))} ({t('team.gen', tr("الجيل", "Gen"))} {lvl})
                             </h4>
                             <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">
-                              {t('team.requireUpgradeToUnlock', isRtl ? 'قم بترقية باقتك للاستفادة من عمولات هذا الجيل.' : 'Upgrade your package to unlock commissions from this generation.')}
+                              {t('team.requireUpgradeToUnlock', tr("قم بترقية باقتك للاستفادة من عمولات هذا الجيل.", "Upgrade your package to unlock commissions from this generation."))}
                             </p>
                           </div>
                         </div>
                         <Link to="/student/packages" className="shrink-0">
                           <Button size="sm" className="rounded-xl font-bold text-xs bg-amber-600 hover:bg-amber-700 text-white gap-1 shadow-xs">
                             <ArrowUpRight className="h-3.5 w-3.5" />
-                            {t('packages.upgradeNow', isRtl ? 'ترقية الباقة' : 'Upgrade Package')}
+                            {t('packages.upgradeNow', tr("ترقية الباقة", "Upgrade Package"))}
                           </Button>
                         </Link>
                       </div>
@@ -356,19 +357,19 @@ export default function StudentTeam() {
                     {/* Gen Stats Bar */}
                     <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 text-center sm:text-right rtl:sm:text-right">
                       <div>
-                        <span className="text-[10px] sm:text-xs text-slate-400 font-semibold">{t('team.genMembers', isRtl ? 'أعضاء الجيل' : 'Gen Members')}</span>
+                        <span className="text-[10px] sm:text-xs text-slate-400 font-semibold">{t('team.genMembers', tr("أعضاء الجيل", "Gen Members"))}</span>
                         <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-0.5">
                           {gen.count}
                         </p>
                       </div>
                       <div>
-                        <span className="text-[10px] sm:text-xs text-slate-400 font-semibold">{t('team.commissionRate', isRtl ? 'نسبة الربح' : 'Commission Rate')}</span>
+                        <span className="text-[10px] sm:text-xs text-slate-400 font-semibold">{t('team.commissionRate', tr("نسبة الربح", "Commission Rate"))}</span>
                         <p className="text-lg sm:text-xl font-black text-primary mt-0.5">
                           {rate}
                         </p>
                       </div>
                       <div>
-                        <span className="text-[10px] sm:text-xs text-slate-400 font-semibold">{t('team.earnedFromGen', isRtl ? 'أرباح الجيل' : 'Gen Earnings')}</span>
+                        <span className="text-[10px] sm:text-xs text-slate-400 font-semibold">{t('team.earnedFromGen', tr("أرباح الجيل", "Gen Earnings"))}</span>
                         <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
                           ${Number(gen.commissions || 0).toFixed(1)}
                         </p>
@@ -378,11 +379,11 @@ export default function StudentTeam() {
                     {/* Members in this generation */}
                     <div>
                       <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">
-                        {t('team.membersList', isRtl ? 'قائمة أعضاء الجيل' : 'Members of Gen')} ({gen.members.length}):
+                        {t('team.membersList', tr("قائمة أعضاء الجيل", "Members of Gen"))} ({gen.members.length}):
                       </h4>
                       {gen.members.length === 0 ? (
                         <div className="py-7 text-center text-slate-400 text-xs border border-dashed rounded-2xl">
-                          {t('team.noMembers', isRtl ? 'لا يوجد أي أعضاء مسجلين في هذا الجيل حتى الآن.' : 'No members registered in this generation yet.')}
+                          {t('team.noMembers', tr("لا يوجد أي أعضاء مسجلين في هذا الجيل حتى الآن.", "No members registered in this generation yet."))}
                         </div>
                       ) : (
                         <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden">
@@ -394,7 +395,7 @@ export default function StudentTeam() {
                                 </div>
                                 <div>
                                   <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                                    {m.full_name || t('roles.student', isRtl ? 'عضو مسجل' : 'Registered Member')}
+                                    {m.full_name || t('roles.student', tr("عضو مسجل", "Registered Member"))}
                                   </p>
                                   <p className="text-[10px] text-slate-400 font-mono truncate max-w-[150px] sm:max-w-none">{m.email}</p>
                                 </div>
@@ -405,7 +406,7 @@ export default function StudentTeam() {
                                     {i18n.language === 'ar' ? (m.active_package_name_ar || m.active_package_name) : (m.active_package_name || m.active_package_name_ar)}
                                   </Badge>
                                 ) : (
-                                  <span className="text-[10px] text-slate-400 font-medium">{t('team.noPackage', isRtl ? 'بدون باقة' : 'No Package')}</span>
+                                  <span className="text-[10px] text-slate-400 font-medium">{t('team.noPackage', tr("بدون باقة", "No Package"))}</span>
                                 )}
                                 <p className="text-[9px] text-slate-400 mt-0.5">
                                   {new Date(m.created_at).toLocaleDateString(dateLocale)}
@@ -434,10 +435,10 @@ export default function StudentTeam() {
                 </div>
                 <div>
                   <DialogTitle className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight">
-                    {t('team.teamTreeTitle', isRtl ? 'شجرة الفريق (Team Tree)' : 'Team Tree')}
+                    {t('team.teamTreeTitle', tr("شجرة الفريق (Team Tree)", "Team Tree"))}
                   </DialogTitle>
                   <DialogDescription className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                    {t('team.teamTreeDesc', isRtl ? 'استعراض هيكل شبكتك عبر الأجيال (10 أجيال)' : 'View your network structure across 10 generations')}
+                    {t('team.teamTreeDesc', tr("استعراض هيكل شبكتك عبر الأجيال (10 أجيال)", "View your network structure across 10 generations"))}
                   </DialogDescription>
                 </div>
               </div>
@@ -453,7 +454,7 @@ export default function StudentTeam() {
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">
-                      {t('team.rootNode', isRtl ? 'قائد الشبكة (أنت)' : 'Network Leader (You)')}
+                      {t('team.rootNode', tr("قائد الشبكة (أنت)", "Network Leader (You)"))}
                     </span>
                     <h4 className="text-xs font-black text-slate-900 dark:text-white">
                       {user?.name || user?.email}
@@ -461,7 +462,7 @@ export default function StudentTeam() {
                   </div>
                 </div>
                 <Badge className="bg-blue-600 text-white text-[10px] font-bold">
-                  {totals.totalTeamMembers} {t('team.membersCount', isRtl ? 'عضو' : 'Members')}
+                  {totals.totalTeamMembers} {t('team.membersCount', tr("عضو", "Members"))}
                 </Badge>
               </div>
 
@@ -492,7 +493,7 @@ export default function StudentTeam() {
                           <div>
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-black text-slate-800 dark:text-slate-200">
-                                {t('team.gen', isRtl ? 'الجيل' : 'Gen')} {lvl}
+                                {t('team.gen', tr("الجيل", "Gen"))} {lvl}
                               </span>
                               <span className="text-[10px] font-bold text-primary">({genRates[lvl]})</span>
                             </div>
@@ -501,7 +502,7 @@ export default function StudentTeam() {
 
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] font-bold text-slate-500">
-                            {gen.count} {t('team.membersCount', isRtl ? 'عضو' : 'Members')}
+                            {gen.count} {t('team.membersCount', tr("عضو", "Members"))}
                           </span>
                         </div>
                       </button>
@@ -511,7 +512,7 @@ export default function StudentTeam() {
                         <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-2.5 space-y-1.5">
                           {!hasMembers ? (
                             <p className="text-[10px] text-slate-400 text-center py-2">
-                              {t('team.noMembersInLevel', isRtl ? 'لا يوجد أعضاء في هذا المستوى حالياً' : 'No members in this tier yet')}
+                              {t('team.noMembersInLevel', tr("لا يوجد أعضاء في هذا المستوى حالياً", "No members in this tier yet"))}
                             </p>
                           ) : (
                             gen.members.map((m: any) => (
@@ -529,7 +530,7 @@ export default function StudentTeam() {
                                     {m.active_package_name}
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] text-slate-400">{isRtl ? 'بدون باقة' : 'No Package'}</span>
+                                  <span className="text-[9px] text-slate-400">{tr("بدون باقة", "No Package")}</span>
                                 )}
                               </div>
                             ))
@@ -550,7 +551,7 @@ export default function StudentTeam() {
                 onClick={() => setIsTreeOpen(false)} 
                 className="rounded-xl text-xs h-8 px-4"
               >
-                {t('common.close', isRtl ? 'إغلاق' : 'Close')}
+                {t('common.close', tr("إغلاق", "Close"))}
               </Button>
             </div>
           </DialogContent>

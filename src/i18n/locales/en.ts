@@ -42,7 +42,15 @@ export const en = {
     "close": "Close",
     "confirm": "Confirm",
     "moreSections": "More Sections",
-    "menu": "Menu"
+    "menu": "Menu",
+    "completed": "Completed",
+    "suspend": "Suspend",
+    "activate": "Activate",
+    "user": "User",
+    "package": "Package",
+    "type": "Type",
+    "active": "Active",
+    "revoked": "Revoked"
   },
   "auth": {
     "createAccount": "Create an Account",
@@ -60,7 +68,8 @@ export const en = {
     "alreadyRegistered": "This email is already registered",
     "email": "Email Address",
     "country": "Country",
-    "selectCountry": "Select your country"
+    "selectCountry": "Select your country",
+    "password": "Password"
   },
   "nav": {
     "home": "Home",
@@ -113,7 +122,9 @@ export const en = {
     "meetings": "Live Meetings",
     "notifications": "Notifications",
     "policies": "Support & Policies",
-    "support": "Support & Helpdesk"
+    "support": "Support & Helpdesk",
+    "promisedPackages": "Promised Packages",
+    "currencySettings": "Currency Settings"
   },
   "home": {
     "heroTitle": "Shape Your Future with",
@@ -173,10 +184,10 @@ export const en = {
       "formationsDesc": "From beginner to expert level",
       "countriesVal": "+ 20",
       "countriesLabel": "Countries",
-      "countriesDesc: ": "A worldwide opportunity",
       "ratingVal": "4.9/5",
       "ratingLabel": "Member Satisfaction",
-      "ratingDesc": "Based on 10,000+ member reviews"
+      "ratingDesc": "Based on 10,000+ member reviews",
+      "countriesDesc": "A worldwide opportunity"
     },
     "programs": {
       "tag": "OUR PROGRAMS",
@@ -530,7 +541,8 @@ export const en = {
     "allLandingSaved": "All landing page settings saved successfully!",
     "selectCohort": "Select Cohort",
     "attendance": "Attendance",
-    "duration": "Duration (Minutes)"
+    "duration": "Duration (Minutes)",
+    "faviconTitle": "Website Favicon"
   },
   "teacher": {
     "title": "Teacher Dashboard",
@@ -885,7 +897,9 @@ export const en = {
     "completedStatus": "Credited ✓",
     "upgradedStatus": "Upgraded",
     "pendingStatus": "Pending Review",
-    "rejectedStatus": "Rejected"
+    "rejectedStatus": "Rejected",
+    "studentCol": "Student",
+    "noDepositsFound": "No deposit requests found."
   },
   "reports": {
     "studentProgress": "Student Progress"
@@ -1042,7 +1056,65 @@ export const en = {
     "distNotesCol": "Notes",
     "searchFounders": "Search founders by name or email...",
     "filterAll": "All Founders",
-    "noFoundersFound": "No qualified founders found."
+    "noFoundersFound": "No qualified founders found.",
+    "loadError": "Failed to load founders data",
+    "previewError": "Failed to load distribution preview",
+    "saveSettingsSuccess": "Founders settings saved successfully",
+    "saveSettingsError": "Failed to save founders settings",
+    "selectUserRequired": "Please select a member first",
+    "grantSuccess": "Founder seat granted successfully",
+    "grantError": "Failed to grant founder seat",
+    "toggleStatusError": "Failed to toggle status",
+    "deleteError": "Failed to delete founder record",
+    "executeError": "Failed to execute distribution",
+    "adminBadge": "Founders Management",
+    "targetWindowDesc": "Rolling qualification period",
+    "monthly": "Monthly",
+    "poolSourceDesc": "Deduction from global platform sales",
+    "depositedWalletsDesc": "Directly deposited into member wallets",
+    "membersListTitle": "Qualified Founders List",
+    "membersListSubtitle": "Members entitled to an equal lifetime share of the monthly pool",
+    "noFoundersDesc": "No qualified founders yet.",
+    "activeStatus": "Active",
+    "suspendedStatus": "Suspended",
+    "distributionsDesc": "History of all executed monthly pool distributions",
+    "noDistributionsYet": "No distributions have been performed yet.",
+    "grossSales": "Gross Sales",
+    "commissions": "Commissions",
+    "rolloverOut": "Rollover to next cycle",
+    "members": "Members",
+    "statusDistributed": "Distributed",
+    "statusRollover": "Rolled Over",
+    "totalSeatsHint": "Maximum seats in the club",
+    "targetSalesHint": "Target sales goal in USD",
+    "poolPctHint": "Pool percentage of gross sales",
+    "activateFeatureLabel": "Activate Founders Club",
+    "activateFeatureDesc": "Enable access and automatic computations for Founders",
+    "selectUserPlaceholder": "Select eligible user...",
+    "seatAutoHint": "Seat numbers are assigned automatically by order of qualification",
+    "grantNotesPlaceholder": "Internal justification or notes...",
+    "distributionYear": "Distribution year",
+    "distributionMonth": "Distribution month",
+    "alreadyDistributedWarning": "This month has already been distributed and confirmed.",
+    "qualifiedBeneficiariesList": "Qualified Beneficiaries",
+    "noQualifiersRolloverNotice": "No qualified founders this cycle. Balance will roll over automatically.",
+    "distNotes": "Distribution Notes",
+    "distNotesPlaceholder": "Notes regarding this payout...",
+    "seatsClaimed": "Seats Claimed",
+    "salesAtQualification": "Sales at Qualification",
+    "equalShare": "Equal Share",
+    "distributedMonthly": "Distributed Monthly",
+    "payoutHistoryDesc": "History of your earnings from the founders pool",
+    "autoDepositNotice": "Earnings are credited directly to your platform wallet.",
+    "progressTowardsSeat": "Progress towards your founder seat",
+    "targetSalesGoal": "Target Sales Goal",
+    "rollingWindowNotice": "Calculated over a rolling 30-day window",
+    "urgencyTitle": "Limited Lifetime Seats",
+    "urgencyDesc": "Seats are granted on a first-to-qualify basis until full.",
+    "viewDirectTeam": "View Direct Team",
+    "seatNumberDesc": "Your official Founder seat number",
+    "recentSalesDesc": "Recent qualifying package sales",
+    "shareReferralHint": "Share your referral link to reach the sales goal"
   },
   "bonusPools": {
     "title": "Leadership Bonus Pools",
@@ -1498,7 +1570,8 @@ export const en = {
       "adminBadge": "Support Team & Admin",
       "userBadge": "Member",
       "statusUpdated": "Ticket status updated successfully.",
-      "priorityUpdated": "Ticket priority updated successfully."
+      "priorityUpdated": "Ticket priority updated successfully.",
+      "closedSuccess": "Ticket has been closed successfully"
     },
     "ai": {
       "welcomeTitle": "Nexyvora Smart AI Support Assistant",
@@ -1517,7 +1590,9 @@ export const en = {
       "q4": "How do I earn certificates and verify my diploma?"
     },
     "emptyTickets": "No support tickets found.",
-    "openFirstTicket": "Open Your First Ticket"
+    "openFirstTicket": "Open Your First Ticket",
+    "loadError": "Failed to load support tickets",
+    "threadError": "Failed to load ticket thread"
   },
   "promisedPackages": {
     "title": "Promised Packages",

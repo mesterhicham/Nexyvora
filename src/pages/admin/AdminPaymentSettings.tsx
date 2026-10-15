@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -148,12 +149,12 @@ export default function AdminPaymentSettings() {
       const res = await adminIpnLogService.testConnection();
       setApiTestResult(res);
       if (res.success && res.api_status?.status === 'OK') {
-        toast.success(isRtl ? 'تم الاتصال ببوابة NOWPayments بنجاح! 🚀' : 'NOWPayments API connected successfully!');
+        toast.success(tr("تم الاتصال ببوابة NOWPayments بنجاح! 🚀", "NOWPayments API connected successfully!"));
       } else {
-        toast.warning(isRtl ? 'فحص الاتصال: تم استقبال رد مع تحذير' : 'Connection check completed with warnings');
+        toast.warning(tr("فحص الاتصال: تم استقبال رد مع تحذير", "Connection check completed with warnings"));
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || err?.message || (isRtl ? 'فشل فحص الاتصال' : 'Connection check failed'));
+      toast.error(err?.response?.data?.message || err?.message || (tr("فشل فحص الاتصال", "Connection check failed")));
     } finally {
       setTestingApi(false);
     }
@@ -169,7 +170,7 @@ export default function AdminPaymentSettings() {
       const res = await adminPaymentService.getPaymentMethods();
       setMethods(res.paymentMethods || []);
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || (isRtl ? 'فشل في تحميل طرق الدفع' : 'Failed to load payment methods'));
+      toast.error(err?.response?.data?.error || (tr("فشل في تحميل طرق الدفع", "Failed to load payment methods")));
     } finally {
       setLoading(false);
     }
@@ -252,7 +253,7 @@ export default function AdminPaymentSettings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      toast.error(isRtl ? 'يرجى كتابة اسم طريقة الدفع' : 'Please enter payment method name');
+      toast.error(tr("يرجى كتابة اسم طريقة الدفع", "Please enter payment method name"));
       return;
     }
 
@@ -260,15 +261,15 @@ export default function AdminPaymentSettings() {
       setIsSubmitting(true);
       if (editingMethod) {
         await adminPaymentService.updatePaymentMethod(editingMethod.id, formData);
-        toast.success(isRtl ? 'تم تحديث طريقة الدفع بنجاح!' : 'Payment method updated successfully!');
+        toast.success(tr("تم تحديث طريقة الدفع بنجاح!", "Payment method updated successfully!"));
       } else {
         await adminPaymentService.createPaymentMethod(formData);
-        toast.success(isRtl ? 'تمت إضافة طريقة الدفع بنجاح!' : 'Payment method added successfully!');
+        toast.success(tr("تمت إضافة طريقة الدفع بنجاح!", "Payment method added successfully!"));
       }
       setIsModalOpen(false);
       fetchMethods();
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || (isRtl ? 'حدث خطأ أثناء حفظ الإعدادات' : 'Error saving settings'));
+      toast.error(err?.response?.data?.error || (tr("حدث خطأ أثناء حفظ الإعدادات", "Error saving settings")));
     } finally {
       setIsSubmitting(false);
     }
@@ -277,41 +278,41 @@ export default function AdminPaymentSettings() {
   const handleDelete = async (id: string) => {
     try {
       await adminPaymentService.deletePaymentMethod(id);
-      toast.success(isRtl ? 'تم حذف طريقة الدفع بنجاح!' : 'Payment method deleted successfully!');
+      toast.success(tr("تم حذف طريقة الدفع بنجاح!", "Payment method deleted successfully!"));
       setDeleteConfirmId(null);
       fetchMethods();
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل في حذف طريقة الدفع' : 'Failed to delete payment method');
+      toast.error(tr("فشل في حذف طريقة الدفع", "Failed to delete payment method"));
     }
   };
 
   const handleToggleStatus = async (id: string) => {
     try {
       await adminPaymentService.toggleStatus(id);
-      toast.success(isRtl ? 'تم تغيير حالة التفعيل بنجاح' : 'Status updated successfully');
+      toast.success(tr("تم تغيير حالة التفعيل بنجاح", "Status updated successfully"));
       fetchMethods();
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل في تغيير الحالة' : 'Failed to update status');
+      toast.error(tr("فشل في تغيير الحالة", "Failed to update status"));
     }
   };
 
   const handleToggleDeposit = async (id: string) => {
     try {
       await adminPaymentService.toggleDeposit(id);
-      toast.success(isRtl ? 'تم تحديث إعداد الإيداع' : 'Deposit setting updated');
+      toast.success(tr("تم تحديث إعداد الإيداع", "Deposit setting updated"));
       fetchMethods();
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل في تغيير الإعداد' : 'Failed to update setting');
+      toast.error(tr("فشل في تغيير الإعداد", "Failed to update setting"));
     }
   };
 
   const handleToggleWithdrawal = async (id: string) => {
     try {
       await adminPaymentService.toggleWithdrawal(id);
-      toast.success(isRtl ? 'تم تحديث إعداد السحب' : 'Withdrawal setting updated');
+      toast.success(tr("تم تحديث إعداد السحب", "Withdrawal setting updated"));
       fetchMethods();
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل في تغيير الإعداد' : 'Failed to update setting');
+      toast.error(tr("فشل في تغيير الإعداد", "Failed to update setting"));
     }
   };
 
@@ -319,7 +320,7 @@ export default function AdminPaymentSettings() {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
-    toast.success(isRtl ? 'تم النسخ بنجاح!' : 'Copied to clipboard!');
+    toast.success(tr("تم النسخ بنجاح!", "Copied to clipboard!"));
   };
 
   const filteredMethods = methods.filter((m) => {
@@ -341,13 +342,11 @@ export default function AdminPaymentSettings() {
                 <CreditCard className="h-6 w-6" />
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                {isRtl ? 'طرق وإعدادات الدفع والسحب' : 'Payment & Withdrawal Gateways'}
+                {tr("طرق وإعدادات الدفع والسحب", "Payment & Withdrawal Gateways")}
               </h1>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-xl">
-              {isRtl
-                ? 'إدارة بوابات الدفع الإلكترونية بالبطاقة البنكية، التحويل البنكي اليدوي، وبوابة العملات الرقمية NOWPayments (USDT BEP20) للإيداع والسحب.'
-                : 'Configure card payment gateways, manual bank transfers, and NOWPayments.io crypto gateway (USDT BEP20) for deposits and payouts.'}
+              {tr("إدارة بوابات الدفع الإلكترونية بالبطاقة البنكية، التحويل البنكي اليدوي، وبوابة العملات الرقمية NOWPayments (USDT BEP20) للإيداع والسحب.", "Configure card payment gateways, manual bank transfers, and NOWPayments.io crypto gateway (USDT BEP20) for deposits and payouts.")}
             </p>
           </div>
 
@@ -357,7 +356,7 @@ export default function AdminPaymentSettings() {
             className="rounded-2xl font-black text-sm bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-600/25 gap-2"
           >
             <Plus className="h-5 w-5" />
-            <span>{isRtl ? 'إضافة وسيلة دفع جديدة' : 'Add Payment Method'}</span>
+            <span>{tr("إضافة وسيلة دفع جديدة", "Add Payment Method")}</span>
           </Button>
         </div>
 
@@ -367,7 +366,7 @@ export default function AdminPaymentSettings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {isRtl ? 'إجمالي الوسائل' : 'Total Gateways'}
+                  {tr("إجمالي الوسائل", "Total Gateways")}
                 </p>
                 <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
                   {methods.length}
@@ -383,7 +382,7 @@ export default function AdminPaymentSettings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {isRtl ? 'مفعلة للإيداع' : 'Active for Deposit'}
+                  {tr("مفعلة للإيداع", "Active for Deposit")}
                 </p>
                 <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
                   {activeDepositCount}
@@ -399,7 +398,7 @@ export default function AdminPaymentSettings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {isRtl ? 'مفعلة للسحب' : 'Active for Withdrawal'}
+                  {tr("مفعلة للسحب", "Active for Withdrawal")}
                 </p>
                 <h3 className="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
                   {activeWithdrawalCount}
@@ -415,7 +414,7 @@ export default function AdminPaymentSettings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {isRtl ? 'بوابة الكريبتو USDT' : 'Crypto USDT BEP20'}
+                  {tr("بوابة الكريبتو USDT", "Crypto USDT BEP20")}
                 </p>
                 <h3 className="text-base font-black text-amber-600 dark:text-amber-400 mt-1">
                   NOWPayments.io
@@ -431,9 +430,9 @@ export default function AdminPaymentSettings() {
         {/* Filter Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           {[
-            { id: 'all', label: isRtl ? 'جميع الطرق' : 'All Methods' },
-            { id: 'card_gateway', label: isRtl ? 'البطاقات البنكية' : 'Card Gateways' },
-            { id: 'bank_transfer', label: isRtl ? 'التحويل البنكي اليدوي' : 'Bank Transfer' },
+            { id: 'all', label: tr("جميع الطرق", "All Methods") },
+            { id: 'card_gateway', label: tr("البطاقات البنكية", "Card Gateways") },
+            { id: 'bank_transfer', label: tr("التحويل البنكي اليدوي", "Bank Transfer") },
             { id: 'nowpayments_crypto', label: isRtl ? 'NOWPayments (USDT BEP20)' : 'Crypto (USDT BEP20)' },
           ].map((tab) => (
             <Button
@@ -456,20 +455,20 @@ export default function AdminPaymentSettings() {
         {loading ? (
           <div className="text-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent mx-auto" />
-            <p className="text-sm text-slate-400 mt-4">{isRtl ? 'جاري تحميل وسائل الدفع...' : 'Loading gateways...'}</p>
+            <p className="text-sm text-slate-400 mt-4">{tr("جاري تحميل وسائل الدفع...", "Loading gateways...")}</p>
           </div>
         ) : filteredMethods.length === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 p-8">
             <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">
-              {isRtl ? 'لا توجد وسائل دفع مضافة في هذا القسم' : 'No payment methods found'}
+              {tr("لا توجد وسائل دفع مضافة في هذا القسم", "No payment methods found")}
             </h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1 mb-6">
-              {isRtl ? 'أضف بوابة دفع إلكترونية، تحويل بنكي، أو ربط NOWPayments.' : 'Add a card gateway, bank details, or connect NOWPayments.'}
+              {tr("أضف بوابة دفع إلكترونية، تحويل بنكي، أو ربط NOWPayments.", "Add a card gateway, bank details, or connect NOWPayments.")}
             </p>
             <Button onClick={handleOpenCreate} className="rounded-xl text-xs font-bold gap-1 bg-emerald-600 text-white">
               <Plus className="h-4 w-4" />
-              <span>{isRtl ? 'إضافة وسيلة دفع' : 'Add Gateway'}</span>
+              <span>{tr("إضافة وسيلة دفع", "Add Gateway")}</span>
             </Button>
           </div>
         ) : (
@@ -537,7 +536,7 @@ export default function AdminPaymentSettings() {
                         <div className="flex items-center justify-between">
                           <span className="text-slate-600 dark:text-slate-300 font-bold flex items-center gap-1">
                             <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-600" />
-                            {isRtl ? 'الإيداع' : 'Deposit'}
+                            {tr("الإيداع", "Deposit")}
                           </span>
                           <Switch
                             checked={!!m.enabled_for_deposit}
@@ -549,7 +548,7 @@ export default function AdminPaymentSettings() {
                         <div className="flex items-center justify-between border-l rtl:border-r rtl:border-l-0 border-slate-200 dark:border-slate-700 pl-2 rtl:pr-2 rtl:pl-0">
                           <span className="text-slate-600 dark:text-slate-300 font-bold flex items-center gap-1">
                             <ArrowUpRight className="h-3.5 w-3.5 text-blue-600" />
-                            {isRtl ? 'السحب' : 'Withdrawal'}
+                            {tr("السحب", "Withdrawal")}
                           </span>
                           <Switch
                             checked={!!m.enabled_for_withdrawal}
@@ -585,13 +584,13 @@ export default function AdminPaymentSettings() {
                               </div>
                             </div>
                           ) : (
-                            <p className="text-[11px] text-amber-600">{isRtl ? 'لم يتم إدخال عنوان محفظة USDT BEP20 بعد' : 'No USDT BEP20 wallet address configured yet'}</p>
+                            <p className="text-[11px] text-amber-600">{tr("لم يتم إدخال عنوان محفظة USDT BEP20 بعد", "No USDT BEP20 wallet address configured yet")}</p>
                           )}
 
                           <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
                             <span>NOWPayments API Key:</span>
                             <span className="font-mono text-slate-700 dark:text-slate-300 font-bold">
-                              {m.api_key ? '••••••••' + m.api_key.slice(-4) : (isRtl ? 'غير مضبوط' : 'Not set')}
+                              {m.api_key ? '••••••••' + m.api_key.slice(-4) : (tr("غير مضبوط", "Not set"))}
                             </span>
                           </div>
                         </div>
@@ -600,16 +599,16 @@ export default function AdminPaymentSettings() {
                       {isBank && (
                         <div className="space-y-1.5 p-3 rounded-2xl bg-blue-500/5 dark:bg-blue-950/20 border border-blue-500/15">
                           <div className="flex justify-between">
-                            <span className="text-slate-400">{isRtl ? 'البنك:' : 'Bank:'}</span>
+                            <span className="text-slate-400">{tr("البنك:", "Bank:")}</span>
                             <strong className="text-slate-800 dark:text-slate-200">{m.bank_name || '-'}</strong>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-400">{isRtl ? 'صاحب الحساب:' : 'Holder:'}</span>
+                            <span className="text-slate-400">{tr("صاحب الحساب:", "Holder:")}</span>
                             <strong className="text-slate-800 dark:text-slate-200">{m.account_holder || '-'}</strong>
                           </div>
                           {m.account_number && (
                             <div>
-                              <span className="text-[10px] text-slate-400 block mb-0.5">{isRtl ? 'رقم الحساب / IBAN:' : 'IBAN / Account:'}</span>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">{tr("رقم الحساب / IBAN:", "IBAN / Account:")}</span>
                               <div className="flex items-center justify-between font-mono bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-blue-200 dark:border-blue-900/40 text-[11px]">
                                 <span className="text-slate-700 dark:text-slate-300 truncate mr-1 rtl:ml-1 rtl:mr-0">{m.account_number}</span>
                                 <button
@@ -627,19 +626,19 @@ export default function AdminPaymentSettings() {
                       {isCard && (
                         <div className="space-y-1.5 p-3 rounded-2xl bg-purple-500/5 dark:bg-purple-950/20 border border-purple-500/15">
                           <div className="flex justify-between">
-                            <span className="text-slate-400">{isRtl ? 'المزود:' : 'Provider:'}</span>
+                            <span className="text-slate-400">{tr("المزود:", "Provider:")}</span>
                             <strong className="text-purple-600 uppercase font-black">{m.provider || 'Stripe'}</strong>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-400">Public Key:</span>
                             <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300">
-                              {m.public_key ? m.public_key.slice(0, 8) + '...' : (isRtl ? 'غير مدخل' : 'Not set')}
+                              {m.public_key ? m.public_key.slice(0, 8) + '...' : (tr("غير مدخل", "Not set"))}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-400">Secret Key:</span>
                             <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300">
-                              {m.secret_key ? '••••••••' + m.secret_key.slice(-4) : (isRtl ? 'غير مدخل' : 'Not set')}
+                              {m.secret_key ? '••••••••' + m.secret_key.slice(-4) : (tr("غير مدخل", "Not set"))}
                             </span>
                           </div>
                         </div>
@@ -648,27 +647,27 @@ export default function AdminPaymentSettings() {
                       {/* Limits and Fees Grid */}
                       <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2">
                         <div>
-                          <span className="text-slate-400 block text-[10px]">{isRtl ? 'حد الإيداع:' : 'Deposit Limits:'}</span>
+                          <span className="text-slate-400 block text-[10px]">{tr("حد الإيداع:", "Deposit Limits:")}</span>
                           <span className="font-bold text-slate-800 dark:text-slate-200">
                             ${m.min_deposit} - ${m.max_deposit}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10px]">{isRtl ? 'حد السحب:' : 'Withdrawal Limits:'}</span>
+                          <span className="text-slate-400 block text-[10px]">{tr("حد السحب:", "Withdrawal Limits:")}</span>
                           <span className="font-bold text-slate-800 dark:text-slate-200">
                             ${m.min_withdrawal} - ${m.max_withdrawal}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10px]">{isRtl ? 'رسوم المعاملة:' : 'Fee:'}</span>
+                          <span className="text-slate-400 block text-[10px]">{tr("رسوم المعاملة:", "Fee:")}</span>
                           <span className="font-bold text-emerald-600">
                             {Number(m.fee_percent) > 0 ? `${m.fee_percent}%` : ''}
                             {Number(m.fee_fixed) > 0 ? ` +$${m.fee_fixed}` : ''}
-                            {Number(m.fee_percent) === 0 && Number(m.fee_fixed) === 0 ? (isRtl ? 'مجاناً 0%' : 'Free 0%') : ''}
+                            {Number(m.fee_percent) === 0 && Number(m.fee_fixed) === 0 ? (tr("مجاناً 0%", "Free 0%")) : ''}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10px]">{isRtl ? 'العملة:' : 'Currency:'}</span>
+                          <span className="text-slate-400 block text-[10px]">{tr("العملة:", "Currency:")}</span>
                           <span className="font-bold text-slate-800 dark:text-slate-200">
                             {m.currency || 'USD'}
                           </span>
@@ -686,7 +685,7 @@ export default function AdminPaymentSettings() {
                       className="rounded-xl text-xs font-bold gap-1 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
                     >
                       <Settings2 className="h-3.5 w-3.5" />
-                      <span>{isRtl ? 'تعديل وضبط' : 'Configure'}</span>
+                      <span>{tr("تعديل وضبط", "Configure")}</span>
                     </Button>
 
                     <Button
@@ -696,7 +695,7 @@ export default function AdminPaymentSettings() {
                       className="rounded-xl text-xs font-bold text-rose-500 hover:text-rose-700 hover:bg-rose-50"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      <span>{isRtl ? 'حذف' : 'Delete'}</span>
+                      <span>{tr("حذف", "Delete")}</span>
                     </Button>
                   </div>
                 </Card>
@@ -713,14 +712,12 @@ export default function AdminPaymentSettings() {
                 <CreditCard className="h-5 w-5 text-emerald-600" />
                 <span>
                   {editingMethod
-                    ? (isRtl ? 'تعديل إعدادات وسيلة الدفع' : 'Configure Payment Method')
-                    : (isRtl ? 'إضافة طريقة دفع وسحب جديدة' : 'Add Payment Gateway')}
+                    ? (tr("تعديل إعدادات وسيلة الدفع", "Configure Payment Method"))
+                    : (tr("إضافة طريقة دفع وسحب جديدة", "Add Payment Gateway"))}
                 </span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-400">
-                {isRtl
-                  ? 'قم باختيار نوع البوابة (بطاقة بنكية، تحويل بنكي يدوي، أو NOWPayments USDT BEP20) وضبط بيانات الربط.'
-                  : 'Configure credentials, limits, and fees for this payment/withdrawal channel.'}
+                {tr("قم باختيار نوع البوابة (بطاقة بنكية، تحويل بنكي يدوي، أو NOWPayments USDT BEP20) وضبط بيانات الربط.", "Configure credentials, limits, and fees for this payment/withdrawal channel.")}
               </DialogDescription>
             </DialogHeader>
 
@@ -728,27 +725,27 @@ export default function AdminPaymentSettings() {
               {/* Method Type Picker */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {isRtl ? 'نوع البوابة / الطريقة' : 'Gateway / Method Type'} <span className="text-rose-500">*</span>
+                  {tr("نوع البوابة / الطريقة", "Gateway / Method Type")} <span className="text-rose-500">*</span>
                 </Label>
                 <Select
                   value={formData.type}
                   onValueChange={handleTypeChange}
                 >
                   <SelectTrigger className="rounded-xl text-sm font-bold">
-                    <SelectValue placeholder={isRtl ? "اختر نوع الطريقة" : "Select method type"} />
+                    <SelectValue placeholder={tr("اختر نوع الطريقة", "Select method type")} />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
                     <SelectItem value="nowpayments_crypto">
                       🪙 NOWPayments.io — USDT (BEP20 Binance Smart Chain)
                     </SelectItem>
                     <SelectItem value="card_gateway">
-                      💳 {isRtl ? 'بوابات الدفع الإلكترونية بالبطاقة البنكية (Stripe / CMI)' : 'Credit Card Gateway (Stripe / CMI)'}
+                      💳 {tr("بوابات الدفع الإلكترونية بالبطاقة البنكية (Stripe / CMI)", "Credit Card Gateway (Stripe / CMI)")}
                     </SelectItem>
                     <SelectItem value="bank_transfer">
-                      🏦 {isRtl ? 'التحويل البنكي أو الدفع اليدوي (Bank Transfer / Manuel)' : 'Bank Transfer / Manual Payment'}
+                      🏦 {tr("التحويل البنكي أو الدفع اليدوي (Bank Transfer / Manuel)", "Bank Transfer / Manual Payment")}
                     </SelectItem>
                     <SelectItem value="custom">
-                      ✨ {isRtl ? 'طريقة مخصصة أخرى (Custom Payment Method)' : 'Custom Payment Method'}
+                      ✨ {tr("طريقة مخصصة أخرى (Custom Payment Method)", "Custom Payment Method")}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -770,12 +767,12 @@ export default function AdminPaymentSettings() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {isRtl ? 'الاسم بالعربية (Method Name Arabic)' : 'Arabic Method Name'}
+                    {tr("الاسم بالعربية (Method Name Arabic)", "Arabic Method Name")}
                   </Label>
                   <Input
                     value={formData.name_ar}
                     onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                    placeholder={isRtl ? "مثال: الدفع عبر العملات الرقمية USDT (BEP20)" : "e.g. USDT (BEP20) Crypto Payment"}
+                    placeholder={tr("مثال: الدفع عبر العملات الرقمية USDT (BEP20)", "e.g. USDT (BEP20) Crypto Payment")}
                     className="rounded-xl text-sm"
                   />
                 </div>
@@ -785,7 +782,7 @@ export default function AdminPaymentSettings() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
-                    {isRtl ? 'مفعل للإيداع (Deposit)' : 'Enabled for Deposit'}
+                    {tr("مفعل للإيداع (Deposit)", "Enabled for Deposit")}
                   </Label>
                   <Switch
                     checked={formData.enabled_for_deposit}
@@ -796,7 +793,7 @@ export default function AdminPaymentSettings() {
 
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
-                    {isRtl ? 'مفعل للسحب (Withdrawal)' : 'Enabled for Withdrawal'}
+                    {tr("مفعل للسحب (Withdrawal)", "Enabled for Withdrawal")}
                   </Label>
                   <Switch
                     checked={formData.enabled_for_withdrawal}
@@ -807,7 +804,7 @@ export default function AdminPaymentSettings() {
 
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
-                    {isRtl ? 'وضع الاختبار (Sandbox)' : 'Sandbox Mode'}
+                    {tr("وضع الاختبار (Sandbox)", "Sandbox Mode")}
                   </Label>
                   <Switch
                     checked={formData.is_sandbox}
@@ -822,13 +819,13 @@ export default function AdminPaymentSettings() {
                 <div className="space-y-3 p-4 rounded-2xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20">
                   <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 font-bold text-xs">
                     <Coins className="h-4 w-4" />
-                    <span>{isRtl ? 'إعدادات بوابة NOWPayments.io والعملات الرقمية USDT:' : 'NOWPayments.io & USDT Gateway Settings:'}</span>
+                    <span>{tr("إعدادات بوابة NOWPayments.io والعملات الرقمية USDT:", "NOWPayments.io & USDT Gateway Settings:")}</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                        {isRtl ? 'الشبكة المدعومة (Network)' : 'Supported Network'}
+                        {tr("الشبكة المدعومة (Network)", "Supported Network")}
                       </Label>
                       <Input
                         disabled
@@ -839,7 +836,7 @@ export default function AdminPaymentSettings() {
 
                     <div className="space-y-1">
                       <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                        {isRtl ? 'عنوان محفظة الاستلام (USDT BEP20)' : 'Receiving Wallet Address (USDT BEP20)'}
+                        {tr("عنوان محفظة الاستلام (USDT BEP20)", "Receiving Wallet Address (USDT BEP20)")}
                       </Label>
                       <Input
                         value={formData.crypto_wallet_address}
@@ -882,9 +879,7 @@ export default function AdminPaymentSettings() {
                   <div className="pt-2 border-t border-amber-500/20 flex flex-col gap-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                        {isRtl
-                          ? 'يقوم النظام بإنشاء محفظة فريدة لكل إيداع وتغييرها تلقائياً بعد 20 دقيقة.'
-                          : 'The system creates a unique wallet for each deposit and renews it every 20 minutes.'}
+                        {tr("يقوم النظام بإنشاء محفظة فريدة لكل إيداع وتغييرها تلقائياً بعد 20 دقيقة.", "The system creates a unique wallet for each deposit and renews it every 20 minutes.")}
                       </div>
                       <Button
                         type="button"
@@ -908,14 +903,14 @@ export default function AdminPaymentSettings() {
                         <div className="flex items-center justify-between font-bold">
                           <span className="flex items-center gap-1.5">
                             <Activity className="h-4 w-4" />
-                            {isRtl ? 'حالة البوابة:' : 'Gateway Status:'} {apiTestResult.api_status?.message || apiTestResult.api_status?.status || (apiTestResult.success ? 'متصل' : 'تحذير')}
+                            {tr("حالة البوابة:", "Gateway Status:")} {apiTestResult.api_status?.message || apiTestResult.api_status?.status || (apiTestResult.success ? 'متصل' : 'تحذير')}
                           </span>
                           <Badge variant="outline" className="text-[10px]">
                             {apiTestResult.mode === 'live' ? '⚡ مباشر (Live API)' : '🛡️ وضع المحاكاة الآمن'}
                           </Badge>
                         </div>
                         <div className="text-[11px] opacity-90">
-                          {isRtl ? 'مفتاح API:' : 'API Key:'} {apiTestResult.is_configured?.has_api_key ? '✅ متوفر' : '⚠️ غير مسجل'} | {isRtl ? 'مفتاح IPN:' : 'IPN Secret:'} {apiTestResult.is_configured?.has_ipn_secret ? '✅ متوفر' : '⚠️ غير مسجل'}
+                          {tr("مفتاح API:", "API Key:")} {apiTestResult.is_configured?.has_api_key ? '✅ متوفر' : '⚠️ غير مسجل'} | {tr("مفتاح IPN:", "IPN Secret:")} {apiTestResult.is_configured?.has_ipn_secret ? '✅ متوفر' : '⚠️ غير مسجل'}
                         </div>
                       </div>
                     )}
@@ -928,13 +923,13 @@ export default function AdminPaymentSettings() {
                 <div className="space-y-3 p-4 rounded-2xl bg-blue-500/5 dark:bg-blue-950/20 border border-blue-500/20">
                   <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold text-xs">
                     <Building2 className="h-4 w-4" />
-                    <span>{isRtl ? 'بيانات الحساب البنكي للتحويل اليدوي:' : 'Bank Account Details for Manual Transfer:'}</span>
+                    <span>{tr("بيانات الحساب البنكي للتحويل اليدوي:", "Bank Account Details for Manual Transfer:")}</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                        {isRtl ? 'اسم البنك (Bank Name)' : 'Bank Name'}
+                        {tr("اسم البنك (Bank Name)", "Bank Name")}
                       </Label>
                       <Input
                         value={formData.bank_name}
@@ -946,7 +941,7 @@ export default function AdminPaymentSettings() {
 
                     <div className="space-y-1">
                       <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                        {isRtl ? 'اسم صاحب الحساب (Account Holder Name)' : 'Account Holder Name'}
+                        {tr("اسم صاحب الحساب (Account Holder Name)", "Account Holder Name")}
                       </Label>
                       <Input
                         value={formData.account_holder}
@@ -960,7 +955,7 @@ export default function AdminPaymentSettings() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                        {isRtl ? 'رقم الحساب / الآيبان (IBAN / RIB / Account Number)' : 'Account Number / IBAN / RIB'}
+                        {tr("رقم الحساب / الآيبان (IBAN / RIB / Account Number)", "Account Number / IBAN / RIB")}
                       </Label>
                       <Input
                         value={formData.account_number}
@@ -972,7 +967,7 @@ export default function AdminPaymentSettings() {
 
                     <div className="space-y-1">
                       <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                        {isRtl ? 'رمز السويفت (SWIFT / BIC)' : 'SWIFT / BIC Code'}
+                        {tr("رمز السويفت (SWIFT / BIC)", "SWIFT / BIC Code")}
                       </Label>
                       <Input
                         value={formData.swift_code}
@@ -990,20 +985,20 @@ export default function AdminPaymentSettings() {
                 <div className="space-y-3 p-4 rounded-2xl bg-purple-500/5 dark:bg-purple-950/20 border border-purple-500/20">
                   <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-bold text-xs">
                     <CreditCard className="h-4 w-4" />
-                    <span>{isRtl ? 'مفاتيح الربط والاتصال بالبطاقة البنكية:' : 'Credit Card Gateway Credentials:'}</span>
+                    <span>{tr("مفاتيح الربط والاتصال بالبطاقة البنكية:", "Credit Card Gateway Credentials:")}</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                        {isRtl ? 'مزود الخدمة (Provider)' : 'Provider'}
+                        {tr("مزود الخدمة (Provider)", "Provider")}
                       </Label>
                       <Select
                         value={formData.provider}
                         onValueChange={(val) => setFormData({ ...formData, provider: val })}
                       >
                         <SelectTrigger className="rounded-xl text-xs">
-                          <SelectValue placeholder={isRtl ? "اختر المزود" : "Select provider"} />
+                          <SelectValue placeholder={tr("اختر المزود", "Select provider")} />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
                           <SelectItem value="stripe">Stripe Payments (Global)</SelectItem>
@@ -1068,7 +1063,7 @@ export default function AdminPaymentSettings() {
               {/* Limits & Fees Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'الحد الأدنى للإيداع ($)' : 'Min Deposit ($)'}</Label>
+                  <Label className="text-[10px] font-bold text-slate-500">{tr("الحد الأدنى للإيداع ($)", "Min Deposit ($)")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -1079,7 +1074,7 @@ export default function AdminPaymentSettings() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'الحد الأقصى للإيداع ($)' : 'Max Deposit ($)'}</Label>
+                  <Label className="text-[10px] font-bold text-slate-500">{tr("الحد الأقصى للإيداع ($)", "Max Deposit ($)")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -1090,7 +1085,7 @@ export default function AdminPaymentSettings() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'الحد الأدنى للسحب ($)' : 'Min Withdrawal ($)'}</Label>
+                  <Label className="text-[10px] font-bold text-slate-500">{tr("الحد الأدنى للسحب ($)", "Min Withdrawal ($)")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -1101,7 +1096,7 @@ export default function AdminPaymentSettings() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'رسوم المعاملة (%)' : 'Transaction Fee (%)'}</Label>
+                  <Label className="text-[10px] font-bold text-slate-500">{tr("رسوم المعاملة (%)", "Transaction Fee (%)")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -1117,7 +1112,7 @@ export default function AdminPaymentSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="space-y-1">
                   <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                    {isRtl ? 'تعليمات للطالب (بالإنجليزية)' : 'Student Instructions (English)'}
+                    {tr("تعليمات للطالب (بالإنجليزية)", "Student Instructions (English)")}
                   </Label>
                   <Textarea
                     rows={2}
@@ -1130,13 +1125,13 @@ export default function AdminPaymentSettings() {
 
                 <div className="space-y-1">
                   <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                    {isRtl ? 'تعليمات للطالب بالعربية' : 'Student Instructions (Arabic)'}
+                    {tr("تعليمات للطالب بالعربية", "Student Instructions (Arabic)")}
                   </Label>
                   <Textarea
                     rows={2}
                     value={formData.instructions_ar}
                     onChange={(e) => setFormData({ ...formData, instructions_ar: e.target.value })}
-                    placeholder={isRtl ? "التعليمات والإرشادات التي تظهر للطالب عند اختيار هذه الطريقة..." : "Instructions in Arabic for students..."}
+                    placeholder={tr("التعليمات والإرشادات التي تظهر للطالب عند اختيار هذه الطريقة...", "Instructions in Arabic for students...")}
                     className="rounded-xl text-xs"
                   />
                 </div>
@@ -1149,7 +1144,7 @@ export default function AdminPaymentSettings() {
                   onClick={() => setIsModalOpen(false)}
                   className="rounded-xl text-xs font-bold"
                 >
-                  {isRtl ? 'إلغاء' : 'Cancel'}
+                  {tr("إلغاء", "Cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -1159,9 +1154,9 @@ export default function AdminPaymentSettings() {
                   {isSubmitting ? (
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : editingMethod ? (
-                    isRtl ? 'حفظ التعديلات' : 'Save Changes'
+                    tr("حفظ التعديلات", "Save Changes")
                   ) : (
-                    isRtl ? 'إضافة الطريقة' : 'Add Gateway'
+                    tr("إضافة الطريقة", "Add Gateway")
                   )}
                 </Button>
               </DialogFooter>
@@ -1175,12 +1170,10 @@ export default function AdminPaymentSettings() {
             <DialogHeader>
               <DialogTitle className="text-lg font-black text-rose-600 flex items-center gap-2">
                 <AlertCircle className="h-5 w-5" />
-                <span>{isRtl ? 'تأكيد الحذف' : 'Confirm Deletion'}</span>
+                <span>{tr("تأكيد الحذف", "Confirm Deletion")}</span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500 mt-2">
-                {isRtl
-                  ? 'هل أنت متأكد من رغبتك في حذف طريقة الدفع هذه؟ لن يتمكن الطلاب من استخدامها بعد الآن.'
-                  : 'Are you sure you want to permanently delete this payment method?'}
+                {tr("هل أنت متأكد من رغبتك في حذف طريقة الدفع هذه؟ لن يتمكن الطلاب من استخدامها بعد الآن.", "Are you sure you want to permanently delete this payment method?")}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="gap-2 mt-4">
@@ -1190,14 +1183,14 @@ export default function AdminPaymentSettings() {
                 onClick={() => setDeleteConfirmId(null)}
                 className="rounded-xl text-xs font-bold"
               >
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button
                 size="sm"
                 onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
                 className="rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"
               >
-                {isRtl ? 'نعم، حذف' : 'Delete'}
+                {tr("نعم، حذف", "Delete")}
               </Button>
             </DialogFooter>
           </DialogContent>

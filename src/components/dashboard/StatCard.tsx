@@ -1,4 +1,5 @@
 import { LucideIcon } from 'lucide-react';
+import { tr } from '@/utils/tr';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
@@ -80,7 +81,7 @@ export function StatCard({ title, value, icon: Icon, trend, variant = 'default' 
               trend.isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
             )}>
               <span>{trend.isPositive ? '↑ +' : '↓ -'}{Math.abs(trend.value)}%</span>
-              <span className="text-slate-400 font-normal">{isRtl ? 'من الشهر الماضي' : 'vs last month'}</span>
+              <span className="text-slate-400 font-normal">{tr("من الشهر الماضي", "vs last month")}</span>
             </p>
           )}
         </div>

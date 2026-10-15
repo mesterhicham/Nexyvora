@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { tr } from '@/utils/tr';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -143,9 +144,7 @@ export default function PlatformSettings() {
 
     if (file.size > maxSize) {
       toast.error(
-        isRtl
-          ? `حجم الملف كبير جداً! الحد الأقصى هو ${isVideo ? '250 ميجابايت' : '15 ميجابايت'}`
-          : `File too large! Maximum limit is ${isVideo ? '250MB' : '15MB'}`
+        tr("حجم الملف كبير جداً! الحد الأقصى هو ${isVideo ? '250 ميجابايت' : '15 ميجابايت'}", "File too large! Maximum limit is ${isVideo ? '250MB' : '15MB'}")
       );
       return;
     }
@@ -167,14 +166,12 @@ export default function PlatformSettings() {
           return copy;
         });
         toast.success(
-          isRtl
-            ? `تم رفع وحفظ ${isVideo ? 'الفيديو' : 'الصورة'} بنجاح!`
-            : `${isVideo ? 'Video' : 'Image'} uploaded and saved successfully!`
+          tr("تم رفع وحفظ ${isVideo ? 'الفيديو' : 'الصورة'} بنجاح!", "${isVideo ? 'Video' : 'Image'} uploaded and saved successfully!")
         );
       }
     } catch (err: any) {
       console.error(`[Upload Error] ${key}:`, err);
-      toast.error(err.response?.data?.error || err.message || (isRtl ? 'فشل في رفع الملف' : 'Upload failed'));
+      toast.error(err.response?.data?.error || err.message || (tr("فشل في رفع الملف", "Upload failed")));
     } finally {
       setUploadingField(null);
     }
@@ -198,7 +195,7 @@ export default function PlatformSettings() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error(t('admin.fileTooLarge', isRtl ? 'حجم الملف يتجاوز 5 ميجابايت' : 'File size exceeds 5MB'));
+      toast.error(t('admin.fileTooLarge', tr("حجم الملف يتجاوز 5 ميجابايت", "File size exceeds 5MB")));
       return;
     }
 
@@ -213,10 +210,10 @@ export default function PlatformSettings() {
           delete copy['logo_url'];
           return copy;
         });
-        toast.success(t('admin.logoUploadedSuccess', isRtl ? 'تم رفع صورة الشعار وتحديث الإعدادات بنجاح!' : 'Logo uploaded successfully!'));
+        toast.success(t('admin.logoUploadedSuccess', tr("تم رفع صورة الشعار وتحديث الإعدادات بنجاح!", "Logo uploaded successfully!")));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || err.message || (isRtl ? 'فشل في رفع صورة الشعار' : 'Failed to upload logo'));
+      toast.error(err.response?.data?.error || err.message || (tr("فشل في رفع صورة الشعار", "Failed to upload logo")));
     } finally {
       setUploadingLogo(false);
       if (fileInputRef.current) {
@@ -230,7 +227,7 @@ export default function PlatformSettings() {
     if (!file) return;
 
     if (file.size > 8 * 1024 * 1024) {
-      toast.error(t('admin.fileTooLarge', isRtl ? 'حجم الملف يتجاوز 8 ميجابايت' : 'File size exceeds 8MB'));
+      toast.error(t('admin.fileTooLarge', tr("حجم الملف يتجاوز 8 ميجابايت", "File size exceeds 8MB")));
       return;
     }
 
@@ -245,10 +242,10 @@ export default function PlatformSettings() {
           delete copy['hero_image_url'];
           return copy;
         });
-        toast.success(t('admin.heroImageUploadedSuccess', isRtl ? 'تم رفع صورة الـ HERO وتحديث الإعدادات بنجاح!' : 'Hero image uploaded successfully!'));
+        toast.success(t('admin.heroImageUploadedSuccess', tr("تم رفع صورة الـ HERO وتحديث الإعدادات بنجاح!", "Hero image uploaded successfully!")));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || err.message || (isRtl ? 'فشل في رفع صورة الـ HERO' : 'Failed to upload hero image'));
+      toast.error(err.response?.data?.error || err.message || (tr("فشل في رفع صورة الـ HERO", "Failed to upload hero image")));
     } finally {
       setUploadingHero(false);
       if (heroFileInputRef.current) {
@@ -262,7 +259,7 @@ export default function PlatformSettings() {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      toast.error(isRtl ? 'حجم الملف يتجاوز 2 ميجابايت' : 'File size exceeds 2MB');
+      toast.error(tr("حجم الملف يتجاوز 2 ميجابايت", "File size exceeds 2MB"));
       return;
     }
 
@@ -277,10 +274,10 @@ export default function PlatformSettings() {
           delete copy['favicon_url'];
           return copy;
         });
-        toast.success(isRtl ? 'تم رفع وتعيين Favicon بنجاح!' : 'Favicon uploaded successfully!');
+        toast.success(tr("تم رفع وتعيين Favicon بنجاح!", "Favicon uploaded successfully!"));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || err.message || (isRtl ? 'فشل في رفع Favicon' : 'Failed to upload favicon'));
+      toast.error(err.response?.data?.error || err.message || (tr("فشل في رفع Favicon", "Failed to upload favicon")));
     } finally {
       setUploadingFavicon(false);
       if (faviconFileInputRef.current) {
@@ -324,7 +321,7 @@ export default function PlatformSettings() {
       landingKeys.forEach(k => delete copy[k]);
       return copy;
     });
-    toast.success(t('admin.allLandingSaved', isRtl ? 'تم حفظ جميع تعديلات الواجهة بنجاح!' : 'All landing adjustments saved successfully!'));
+    toast.success(t('admin.allLandingSaved', tr("تم حفظ جميع تعديلات الواجهة بنجاح!", "All landing adjustments saved successfully!")));
   };
 
   const getValue = (key: string) => {
@@ -423,7 +420,7 @@ export default function PlatformSettings() {
               onClick={() => handleSave(settingKey)}
               disabled={!hasChanges(settingKey) || updateSetting.isPending || isUploading}
               size="icon"
-              title={isRtl ? 'حفظ الرابط' : 'Save Link'}
+              title={tr("حفظ الرابط", "Save Link")}
             >
               <Save className="h-4 w-4" />
             </Button>
@@ -442,11 +439,11 @@ export default function PlatformSettings() {
                     delete copy[settingKey];
                     return copy;
                   });
-                  toast.info(isRtl ? 'تم تفريغ الحقل وحفظ التغيير' : 'Field cleared and saved');
+                  toast.info(tr("تم تفريغ الحقل وحفظ التغيير", "Field cleared and saved"));
                 }}
                 disabled={isUploading || updateSetting.isPending}
                 className="text-muted-foreground hover:text-destructive"
-                title={isRtl ? 'تفريغ' : 'Clear'}
+                title={tr("تفريغ", "Clear")}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -460,7 +457,7 @@ export default function PlatformSettings() {
             <div className="flex items-center justify-between text-xs font-semibold text-primary">
               <span className="flex items-center gap-1.5">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                {isRtl ? 'جاري رفع الملف إلى السيرفر... يرجى الانتظار' : 'Uploading file to server... please wait'}
+                {tr("جاري رفع الملف إلى السيرفر... يرجى الانتظار", "Uploading file to server... please wait")}
               </span>
               <span>{progress}%</span>
             </div>
@@ -506,8 +503,8 @@ export default function PlatformSettings() {
                   <span className="truncate max-w-[220px]" dir="ltr">{currentValue}</span>
                   <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium">
                     {isDirectVideoUrl(currentValue) 
-                      ? (isRtl ? '✓ ملف فيديو مرفوع' : '✓ Uploaded Video File') 
-                      : (isRtl ? '✓ رابط فيديو مضمن' : '✓ Embedded Video Link')}
+                      ? (tr("✓ ملف فيديو مرفوع", "✓ Uploaded Video File")) 
+                      : (tr("✓ رابط فيديو مضمن", "✓ Embedded Video Link"))}
                   </span>
                 </div>
               </div>
@@ -527,7 +524,7 @@ export default function PlatformSettings() {
                     className="text-primary hover:underline flex items-center gap-1 font-medium"
                   >
                     <ExternalLink className="h-3 w-3" />
-                    {isRtl ? 'معاينة بالحجم الكامل' : 'Full Preview'}
+                    {tr("معاينة بالحجم الكامل", "Full Preview")}
                   </a>
                 </div>
               </div>
@@ -574,7 +571,7 @@ export default function PlatformSettings() {
           </TabsTrigger>
           <TabsTrigger value="landing" className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-accent" />
-            {t('admin.landingPage', isRtl ? 'الواجهة الرئيسية (Hero)' : 'Landing Page (Hero)')}
+            {t('admin.landingPage', tr("الواجهة الرئيسية (Hero)", "Landing Page (Hero)"))}
           </TabsTrigger>
           <TabsTrigger value="theme" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
@@ -590,7 +587,7 @@ export default function PlatformSettings() {
           </TabsTrigger>
           <TabsTrigger value="academy" className="flex items-center gap-2">
             <GraduationCap className="h-4 w-4 text-primary" />
-            {isRtl ? 'الأكاديمية وعرض المستويات' : 'Academy & Levels'}
+            {tr("الأكاديمية وعرض المستويات", "Academy & Levels")}
           </TabsTrigger>
         </TabsList>
 
@@ -621,7 +618,7 @@ export default function PlatformSettings() {
 
               {/* Logo Section with File Upload */}
               <div className="space-y-4 pt-2">
-                <Label className="text-base font-semibold">{t('admin.platformLogo', isRtl ? 'شعار المنصة (Logo)' : 'Platform Logo')}</Label>
+                <Label className="text-base font-semibold">{t('admin.platformLogo', tr("شعار المنصة (Logo)", "Platform Logo"))}</Label>
                 
                 {/* Upload File Drag/Click Box */}
                 <div className="p-4 border-2 border-dashed border-border rounded-xl bg-secondary/10 hover:bg-secondary/20 transition-colors">
@@ -639,10 +636,10 @@ export default function PlatformSettings() {
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-foreground">
-                          {t('admin.uploadLogoTitle', isRtl ? 'رفع صورة الشعار' : 'Upload Logo Image')}
+                          {t('admin.uploadLogoTitle', tr("رفع صورة الشعار", "Upload Logo Image"))}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {t('admin.uploadLogoHint', isRtl ? 'يدعم ملفات الصور PNG, JPG, JPEG, WEBP, SVG (الحد الأقصى 5 ميجابايت)' : 'Supports PNG, JPG, JPEG, WEBP, SVG (Max 5MB)')}
+                          {t('admin.uploadLogoHint', tr("يدعم ملفات الصور PNG, JPG, JPEG, WEBP, SVG (الحد الأقصى 5 ميجابايت)", "Supports PNG, JPG, JPEG, WEBP, SVG (Max 5MB)"))}
                         </p>
                       </div>
                     </div>
@@ -658,7 +655,7 @@ export default function PlatformSettings() {
                       ) : (
                         <Upload className="h-4 w-4" />
                       )}
-                      {uploadingLogo ? t('common.uploading', isRtl ? 'جاري الرفع...' : 'Uploading...') : t('admin.selectLogoFile', isRtl ? 'اختيار ملف صورة' : 'Select Image File')}
+                      {uploadingLogo ? t('common.uploading', tr("جاري الرفع...", "Uploading...")) : t('admin.selectLogoFile', tr("اختيار ملف صورة", "Select Image File"))}
                     </Button>
                   </div>
                 </div>
@@ -666,7 +663,7 @@ export default function PlatformSettings() {
                 {/* Direct URL input fallback */}
                 <div className="space-y-1 pt-1">
                   <Label className="text-xs text-muted-foreground">
-                    {t('admin.orEnterUrl', isRtl ? 'أو ادخل رابط الصورة مباشرة:' : 'Or enter direct image URL:')}
+                    {t('admin.orEnterUrl', tr("أو ادخل رابط الصورة مباشرة:", "Or enter direct image URL:"))}
                   </Label>
                   <div className="flex gap-2">
                     <Input
@@ -699,7 +696,7 @@ export default function PlatformSettings() {
                         />
                       </div>
                       <div className="overflow-hidden">
-                        <p className="text-sm font-medium text-foreground">{t('admin.logoPreview', isRtl ? 'معاينة الشعار المخصص الحالي' : 'Current Custom Logo')}</p>
+                        <p className="text-sm font-medium text-foreground">{t('admin.logoPreview', tr("معاينة الشعار المخصص الحالي", "Current Custom Logo"))}</p>
                         <p className="text-xs text-muted-foreground truncate max-w-xs">{getValue('logo_url')}</p>
                       </div>
                     </div>
@@ -714,7 +711,7 @@ export default function PlatformSettings() {
                       }}
                     >
                       <Trash2 className="h-4 w-4 mr-1" />
-                      {t('common.delete', isRtl ? 'حذف' : 'Delete')}
+                      {t('common.delete', tr("حذف", "Delete"))}
                     </Button>
                   </div>
                 ) : (
@@ -733,8 +730,8 @@ export default function PlatformSettings() {
                         />
                       </div>
                       <div className="overflow-hidden">
-                        <p className="text-sm font-medium text-foreground">{isRtl ? 'الشعار الرسمي النشط (Nexyvora)' : 'Active Official Logo (Nexyvora)'}</p>
-                        <p className="text-xs text-muted-foreground">{isRtl ? 'شعار Nexyvora الافتراضي عالي الدقة مفعل حالياً' : 'Official high-definition Nexyvora logo is currently active'}</p>
+                        <p className="text-sm font-medium text-foreground">{tr("الشعار الرسمي النشط (Nexyvora)", "Active Official Logo (Nexyvora)")}</p>
+                        <p className="text-xs text-muted-foreground">{tr("شعار Nexyvora الافتراضي عالي الدقة مفعل حالياً", "Official high-definition Nexyvora logo is currently active")}</p>
                       </div>
                     </div>
                   </div>
@@ -747,22 +744,22 @@ export default function PlatformSettings() {
         <TabsContent value="theme">
           <Card>
             <CardHeader>
-              <CardTitle>{t('admin.theme', isRtl ? 'مظهر وألوان المنصة' : 'Theme & Platform Colors')}</CardTitle>
-              <CardDescription>{t('admin.themeDesc', isRtl ? 'تخصيص الهوية البصرية والألوان الرئيسية للمنصة بضغطة زر.' : 'Customize visual identity and theme colors.')}</CardDescription>
+              <CardTitle>{t('admin.theme', tr("مظهر وألوان المنصة", "Theme & Platform Colors"))}</CardTitle>
+              <CardDescription>{t('admin.themeDesc', tr("تخصيص الهوية البصرية والألوان الرئيسية للمنصة بضغطة زر.", "Customize visual identity and theme colors."))}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               
               {/* Presets Palette Section */}
               <div className="space-y-3">
-                <Label className="text-base font-semibold">{t('admin.colorPresets', isRtl ? 'أنماط ألوان جاهزة (Presets)' : 'Theme Presets')}</Label>
+                <Label className="text-base font-semibold">{t('admin.colorPresets', tr("أنماط ألوان جاهزة (Presets)", "Theme Presets"))}</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                   {[
-                    { name: isRtl ? 'الأزرق الأكاديمي' : 'Academic Blue', primary: '217 91% 30%', accent: '172 66% 40%', hexP: '#0747a6', hexA: '#22b8cf' },
-                    { name: isRtl ? 'الزمرد الأكاديمي' : 'Emerald Green', primary: '160 84% 28%', accent: '38 92% 50%', hexP: '#0c7a52', hexA: '#f59e0b' },
-                    { name: isRtl ? 'البنفسجي الملكي' : 'Royal Purple', primary: '262 83% 45%', accent: '330 81% 56%', hexP: '#6d28d9', hexA: '#ec4899' },
-                    { name: isRtl ? 'العنابي الكلاسيكي' : 'Classic Crimson', primary: '348 83% 42%', accent: '25 95% 53%', hexP: '#be123c', hexA: '#f97316' },
-                    { name: isRtl ? 'الداكن الفاخر' : 'Luxury Dark', primary: '222 47% 18%', accent: '188 86% 43%', hexP: '#1e293b', hexA: '#06b6d4' },
-                    { name: isRtl ? 'الكهرماني الدافئ' : 'Warm Amber', primary: '38 92% 38%', accent: '142 71% 45%', hexP: '#b45309', hexA: '#16a34a' }
+                    { name: tr("الأزرق الأكاديمي", "Academic Blue"), primary: '217 91% 30%', accent: '172 66% 40%', hexP: '#0747a6', hexA: '#22b8cf' },
+                    { name: tr("الزمرد الأكاديمي", "Emerald Green"), primary: '160 84% 28%', accent: '38 92% 50%', hexP: '#0c7a52', hexA: '#f59e0b' },
+                    { name: tr("البنفسجي الملكي", "Royal Purple"), primary: '262 83% 45%', accent: '330 81% 56%', hexP: '#6d28d9', hexA: '#ec4899' },
+                    { name: tr("العنابي الكلاسيكي", "Classic Crimson"), primary: '348 83% 42%', accent: '25 95% 53%', hexP: '#be123c', hexA: '#f97316' },
+                    { name: tr("الداكن الفاخر", "Luxury Dark"), primary: '222 47% 18%', accent: '188 86% 43%', hexP: '#1e293b', hexA: '#06b6d4' },
+                    { name: tr("الكهرماني الدافئ", "Warm Amber"), primary: '38 92% 38%', accent: '142 71% 45%', hexP: '#b45309', hexA: '#16a34a' }
                   ].map((preset, idx) => (
                     <button
                       key={idx}
@@ -792,7 +789,7 @@ export default function PlatformSettings() {
                 {/* Primary Color Picker */}
                 <div className="space-y-3 p-4 bg-secondary/10 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold">{t('admin.primaryColor', isRtl ? 'اللون الرئيسي (Primary)' : 'Primary Color')}</Label>
+                    <Label className="text-sm font-semibold">{t('admin.primaryColor', tr("اللون الرئيسي (Primary)", "Primary Color"))}</Label>
                     <span className="text-xs font-mono text-muted-foreground">{getValue('primary_color')}</span>
                   </div>
 
@@ -814,7 +811,7 @@ export default function PlatformSettings() {
                         handleChange('primary_color', e.target.value);
                         document.documentElement.style.setProperty('--primary', e.target.value.includes('%') ? `hsl(${e.target.value})` : e.target.value);
                       }}
-                      placeholder={isRtl ? "217 91% 30% أو #0747a6" : "217 91% 30% or #0747a6"}
+                      placeholder={tr("217 91% 30% أو #0747a6", "217 91% 30% or #0747a6")}
                       className="font-mono text-sm"
                     />
                     <Button 
@@ -826,13 +823,13 @@ export default function PlatformSettings() {
                       {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">{isRtl ? "يتحكم في لون الهيدر، الأزرار الرئيسية، والروابط النشطة." : "Controls header color, primary buttons, and active links."}</p>
+                  <p className="text-xs text-muted-foreground">{tr("يتحكم في لون الهيدر، الأزرار الرئيسية، والروابط النشطة.", "Controls header color, primary buttons, and active links.")}</p>
                 </div>
 
                 {/* Accent Color Picker */}
                 <div className="space-y-3 p-4 bg-secondary/10 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold">{t('admin.accentColor', isRtl ? 'اللون الفرعي (Accent)' : 'Accent Color')}</Label>
+                    <Label className="text-sm font-semibold">{t('admin.accentColor', tr("اللون الفرعي (Accent)", "Accent Color"))}</Label>
                     <span className="text-xs font-mono text-muted-foreground">{getValue('accent_color')}</span>
                   </div>
 
@@ -854,7 +851,7 @@ export default function PlatformSettings() {
                         handleChange('accent_color', e.target.value);
                         document.documentElement.style.setProperty('--accent', e.target.value.includes('%') ? `hsl(${e.target.value})` : e.target.value);
                       }}
-                      placeholder={isRtl ? "172 66% 40% أو #22b8cf" : "172 66% 40% or #22b8cf"}
+                      placeholder={tr("172 66% 40% أو #22b8cf", "172 66% 40% or #22b8cf")}
                       className="font-mono text-sm"
                     />
                     <Button 
@@ -866,14 +863,14 @@ export default function PlatformSettings() {
                       {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">{isRtl ? "يتحكم في العناصر المتميزة، الشارات، والتظليل الإضافي." : "Controls highlights, badges, and accents."}</p>
+                  <p className="text-xs text-muted-foreground">{tr("يتحكم في العناصر المتميزة، الشارات، والتظليل الإضافي.", "Controls highlights, badges, and accents.")}</p>
                 </div>
               </div>
 
               {/* Batch Save Button */}
               {(hasChanges('primary_color') || hasChanges('accent_color')) && (
                 <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 flex items-center justify-between gap-4">
-                  <p className="text-sm font-medium text-foreground">{isRtl ? "لديك تغييرات غير محفوظة في ألوان المنصة." : "You have unsaved theme color changes."}</p>
+                  <p className="text-sm font-medium text-foreground">{tr("لديك تغييرات غير محفوظة في ألوان المنصة.", "You have unsaved theme color changes.")}</p>
                   <Button
                     onClick={async () => {
                       if (hasChanges('primary_color')) await handleSave('primary_color');
@@ -883,14 +880,14 @@ export default function PlatformSettings() {
                     className="gap-2"
                   >
                     {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    {isRtl ? 'حفظ جميع الألوان' : 'Save All Colors'}
+                    {tr("حفظ جميع الألوان", "Save All Colors")}
                   </Button>
                 </div>
               )}
 
               {/* Live Preview UI Card */}
               <div className="pt-4 border-t space-y-3">
-                <Label className="text-base font-semibold">{isRtl ? "معاينة مباشرة لمظهر المنصة (Live UI Preview)" : "Live UI Preview"}</Label>
+                <Label className="text-base font-semibold">{tr("معاينة مباشرة لمظهر المنصة (Live UI Preview)", "Live UI Preview")}</Label>
                 <div className="p-6 border border-border rounded-2xl bg-card shadow-sm space-y-4">
                   <div className="flex items-center justify-between pb-4 border-b border-border">
                     <div className="flex items-center gap-3">
@@ -902,14 +899,14 @@ export default function PlatformSettings() {
                       </div>
                       <div>
                         <h4 className="font-bold text-foreground">Simply University</h4>
-                        <p className="text-xs text-muted-foreground">{isRtl ? "معاينة عناصر الواجهة بالألوان الجديدة" : "UI components preview with selected palette"}</p>
+                        <p className="text-xs text-muted-foreground">{tr("معاينة عناصر الواجهة بالألوان الجديدة", "UI components preview with selected palette")}</p>
                       </div>
                     </div>
                     <span 
                       className="px-3 py-1 text-xs font-semibold rounded-full text-white shadow-sm"
                       style={{ backgroundColor: getValue('accent_color').startsWith('#') ? getValue('accent_color') : `hsl(${getValue('accent_color')})` }}
                     >
-                      {isRtl ? "مميز (Accent)" : "Accent"}
+                      {tr("مميز (Accent)", "Accent")}
                     </span>
                   </div>
 
@@ -919,7 +916,7 @@ export default function PlatformSettings() {
                       className="px-4 py-2 rounded-lg text-white font-medium text-sm shadow-sm transition-opacity hover:opacity-90"
                       style={{ backgroundColor: getValue('primary_color').startsWith('#') ? getValue('primary_color') : `hsl(${getValue('primary_color')})` }}
                     >
-                      {isRtl ? "زر رئيسي (Primary Button)" : "Primary Button"}
+                      {tr("زر رئيسي (Primary Button)", "Primary Button")}
                     </button>
 
                     <button
@@ -927,7 +924,7 @@ export default function PlatformSettings() {
                       className="px-4 py-2 rounded-lg text-white font-medium text-sm shadow-sm transition-opacity hover:opacity-90"
                       style={{ backgroundColor: getValue('accent_color').startsWith('#') ? getValue('accent_color') : `hsl(${getValue('accent_color')})` }}
                     >
-                      {isRtl ? "زر فرعي (Accent Button)" : "Accent Button"}
+                      {tr("زر فرعي (Accent Button)", "Accent Button")}
                     </button>
 
                     <div 
@@ -937,7 +934,7 @@ export default function PlatformSettings() {
                         color: getValue('primary_color').startsWith('#') ? getValue('primary_color') : `hsl(${getValue('primary_color')})`
                       }}
                     >
-                      {isRtl ? "مفعل (Outline)" : "Active (Outline)"}
+                      {tr("مفعل (Outline)", "Active (Outline)")}
                     </div>
                   </div>
                 </div>
@@ -956,10 +953,10 @@ export default function PlatformSettings() {
               </div>
               <div>
                 <h3 className="font-bold text-lg text-foreground">
-                  {t('admin.landingPage', isRtl ? 'الواجهة الرئيسية وقسم الـ HERO' : 'Landing Page & Hero Section')}
+                  {t('admin.landingPage', tr("الواجهة الرئيسية وقسم الـ HERO", "Landing Page & Hero Section"))}
                 </h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  {t('admin.landingPageDesc', isRtl ? 'تخصيص نصوص وصورة قسم الـ HERO لواجهة جامعة Simply مع معاينة حية.' : 'Customize hero section headings, image, and CTAs with live preview.')}
+                  {t('admin.landingPageDesc', tr("تخصيص نصوص وصورة قسم الـ HERO لواجهة جامعة Simply مع معاينة حية.", "Customize hero section headings, image, and CTAs with live preview."))}
                 </p>
               </div>
             </div>
@@ -972,7 +969,7 @@ export default function PlatformSettings() {
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-secondary hover:bg-secondary/80 text-foreground transition-colors"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                {isRtl ? 'عرض الموقع الحي' : 'View Live Site'}
+                {tr("عرض الموقع الحي", "View Live Site")}
               </a>
 
               {hasAnyLandingChanges && (
@@ -982,7 +979,7 @@ export default function PlatformSettings() {
                   className="gap-2 shadow-md"
                 >
                   {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  {t('admin.saveAllLanding', isRtl ? 'حفظ جميع التعديلات' : 'Save All Changes')}
+                  {t('admin.saveAllLanding', tr("حفظ جميع التعديلات", "Save All Changes"))}
                 </Button>
               )}
             </div>
@@ -993,10 +990,10 @@ export default function PlatformSettings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Image className="h-5 w-5 text-primary" />
-                {t('admin.heroImage', isRtl ? 'صورة الـ HERO لجامعة SIMPLY' : 'Simply University Hero Image')}
+                {t('admin.heroImage', tr("صورة الـ HERO لجامعة SIMPLY", "Simply University Hero Image"))}
               </CardTitle>
               <CardDescription>
-                {t('admin.heroImageDesc', isRtl ? 'الصورة المميزة المعروضة في واجهة المنصة بجانب النصوص الترحيبية لجامعة Simply University.' : 'Featured hero image displayed on home page next to welcome copy.')}
+                {t('admin.heroImageDesc', tr("الصورة المميزة المعروضة في واجهة المنصة بجانب النصوص الترحيبية لجامعة Simply University.", "Featured hero image displayed on home page next to welcome copy."))}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -1016,10 +1013,10 @@ export default function PlatformSettings() {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-foreground">
-                        {t('admin.uploadHeroImage', isRtl ? 'رفع صورة جديدة للـ HERO' : 'Upload New Hero Image')}
+                        {t('admin.uploadHeroImage', tr("رفع صورة جديدة للـ HERO", "Upload New Hero Image"))}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {isRtl ? 'يدعم صيغ JPG, PNG, WEBP, SVG (الحد الأقصى 8 ميجابايت) — يُفضل صورة أفقية بدقة عالية 16:9' : 'Supports JPG, PNG, WEBP, SVG (Max 8MB) — 16:9 horizontal image recommended'}
+                        {tr("يدعم صيغ JPG, PNG, WEBP, SVG (الحد الأقصى 8 ميجابايت) — يُفضل صورة أفقية بدقة عالية 16:9", "Supports JPG, PNG, WEBP, SVG (Max 8MB) — 16:9 horizontal image recommended")}
                       </p>
                     </div>
                   </div>
@@ -1035,7 +1032,7 @@ export default function PlatformSettings() {
                     ) : (
                       <Upload className="h-4 w-4" />
                     )}
-                    {uploadingHero ? t('common.uploading', isRtl ? 'جاري الرفع...' : 'Uploading...') : (isRtl ? 'اختيار صورة من الجهاز' : 'Choose Local Image')}
+                    {uploadingHero ? t('common.uploading', tr("جاري الرفع...", "Uploading...")) : (tr("اختيار صورة من الجهاز", "Choose Local Image"))}
                   </Button>
                 </div>
               </div>
@@ -1043,13 +1040,13 @@ export default function PlatformSettings() {
               {/* Direct URL input fallback and reset button */}
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
-                  {isRtl ? 'أو ادخل مسار أو رابط الصورة مباشرة:' : 'Or enter image URL directly:'}
+                  {tr("أو ادخل مسار أو رابط الصورة مباشرة:", "Or enter image URL directly:")}
                 </Label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     value={getValue('hero_image_url')}
                     onChange={(e) => handleChange('hero_image_url', e.target.value)}
-                    placeholder={isRtl ? "/simply_university_hero.jpg أو https://..." : "/simply_university_hero.jpg or https://..."}
+                    placeholder={tr("/simply_university_hero.jpg أو https://...", "/simply_university_hero.jpg or https://...")}
                     className="font-mono text-xs sm:text-sm"
                   />
                   <div className="flex items-center gap-2 shrink-0">
@@ -1059,21 +1056,21 @@ export default function PlatformSettings() {
                       className="gap-1.5"
                     >
                       {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      {isRtl ? 'حفظ' : 'Save'}
+                      {tr("حفظ", "Save")}
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
-                      title={isRtl ? "استعادة صورة Simply University الافتراضية" : "Restore Simply University default image"}
+                      title={tr("استعادة صورة Simply University الافتراضية", "Restore Simply University default image")}
                       onClick={async () => {
                         handleChange('hero_image_url', '/simply_university_hero.jpg');
                         await updateSetting.mutateAsync({ key: 'hero_image_url', value: '/simply_university_hero.jpg' });
-                        toast.success(isRtl ? 'تمت استعادة صورة جامعة Simply الافتراضية بنجاح!' : 'Default image restored successfully!');
+                        toast.success(tr("تمت استعادة صورة جامعة Simply الافتراضية بنجاح!", "Default image restored successfully!"));
                       }}
                       className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
                     >
                       <RefreshCw className="h-3.5 w-3.5" />
-                      {isRtl ? 'استعادة الافتراضية' : 'Restore Default'}
+                      {tr("استعادة الافتراضية", "Restore Default")}
                     </Button>
                   </div>
                 </div>
@@ -1084,7 +1081,7 @@ export default function PlatformSettings() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <Eye className="h-4 w-4 text-primary" />
-                      {t('admin.heroImagePreview', isRtl ? 'معاينة صورة الـ HERO الحالية' : 'Current Hero Image Preview')}
+                      {t('admin.heroImagePreview', tr("معاينة صورة الـ HERO الحالية", "Current Hero Image Preview"))}
                     </span>
                     <span className="text-xs font-mono text-muted-foreground truncate max-w-[200px]">
                       {getValue('hero_image_url') || '/simply_university_hero.jpg'}
@@ -1117,24 +1114,24 @@ export default function PlatformSettings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Type className="h-5 w-5 text-primary" />
-                {isRtl ? 'عناوين ونصوص الـ HERO الرئيسية' : 'Hero Headings & Text'}
+                {tr("عناوين ونصوص الـ HERO الرئيسية", "Hero Headings & Text")}
               </CardTitle>
               <CardDescription>
-                {isRtl ? 'تخصيص الشارة العلوية، العنوان الرئيسي، العنوان الملون، والوصف الترحيبي.' : 'Customize tagline badge, main title, accent title, and hero subtitle.'}
+                {tr("تخصيص الشارة العلوية، العنوان الرئيسي، العنوان الملون، والوصف الترحيبي.", "Customize tagline badge, main title, accent title, and hero subtitle.")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               {/* Badge Tagline */}
               <div className="space-y-1.5">
                 <Label className="text-sm font-semibold flex items-center justify-between">
-                  <span>{t('admin.heroBadge', isRtl ? 'شارة البداية العلوية (Badge Tagline)' : 'Top Tagline Badge')}</span>
-                  <span className="text-xs text-muted-foreground font-normal">{isRtl ? "تظهر كشارة مميزة فوق العنوان" : "Appears as badge above main title"}</span>
+                  <span>{t('admin.heroBadge', tr("شارة البداية العلوية (Badge Tagline)", "Top Tagline Badge"))}</span>
+                  <span className="text-xs text-muted-foreground font-normal">{tr("تظهر كشارة مميزة فوق العنوان", "Appears as badge above main title")}</span>
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     value={getValue('hero_badge')}
                     onChange={(e) => handleChange('hero_badge', e.target.value)}
-                    placeholder={isRtl ? "🎓 مرحباً بكم في جامعة Simply University — التميز والابتكار الأكاديمي" : "🎓 Welcome to Simply University — Academic Excellence & Innovation"}
+                    placeholder={tr("🎓 مرحباً بكم في جامعة Simply University — التميز والابتكار الأكاديمي", "🎓 Welcome to Simply University — Academic Excellence & Innovation")}
                   />
                   <Button 
                     onClick={() => handleSave('hero_badge')} 
@@ -1149,12 +1146,12 @@ export default function PlatformSettings() {
               {/* Main Title & Accent Title */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-sm font-semibold">{t('admin.heroTitle', isRtl ? 'العنوان الرئيسي الأول' : 'Primary Main Title')}</Label>
+                  <Label className="text-sm font-semibold">{t('admin.heroTitle', tr("العنوان الرئيسي الأول", "Primary Main Title"))}</Label>
                   <div className="flex gap-2">
                     <Input
                       value={getValue('hero_title')}
                       onChange={(e) => handleChange('hero_title', e.target.value)}
-                      placeholder={isRtl ? "اصنع مستقبلك مع / Shape Your Future with" : "Shape Your Future with"}
+                      placeholder={tr("اصنع مستقبلك مع / Shape Your Future with", "Shape Your Future with")}
                     />
                     <Button 
                       onClick={() => handleSave('hero_title')} 
@@ -1164,16 +1161,16 @@ export default function PlatformSettings() {
                       {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">{isRtl ? "النص الأساسي للعنوان باللون الأبيض." : "Primary headline text."}</p>
+                  <p className="text-xs text-muted-foreground">{tr("النص الأساسي للعنوان باللون الأبيض.", "Primary headline text.")}</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-sm font-semibold">{t('admin.heroTitleAccent', isRtl ? 'العنوان البارز الملون (Accent Title)' : 'Accent Title Headline')}</Label>
+                  <Label className="text-sm font-semibold">{t('admin.heroTitleAccent', tr("العنوان البارز الملون (Accent Title)", "Accent Title Headline"))}</Label>
                   <div className="flex gap-2">
                     <Input
                       value={getValue('hero_title_accent')}
                       onChange={(e) => handleChange('hero_title_accent', e.target.value)}
-                      placeholder={isRtl ? "SIMPLY UNIVERSITY / التعليم المهني المتخصص" : "SIMPLY UNIVERSITY / Specialized Professional Education"}
+                      placeholder={tr("SIMPLY UNIVERSITY / التعليم المهني المتخصص", "SIMPLY UNIVERSITY / Specialized Professional Education")}
                     />
                     <Button 
                       onClick={() => handleSave('hero_title_accent')} 
@@ -1183,19 +1180,19 @@ export default function PlatformSettings() {
                       {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">{isRtl ? "السطر الثاني الملون بلون التمييز (Accent)." : "Second headline rendered in accent color."}</p>
+                  <p className="text-xs text-muted-foreground">{tr("السطر الثاني الملون بلون التمييز (Accent).", "Second headline rendered in accent color.")}</p>
                 </div>
               </div>
 
               {/* Subtitle / Description */}
               <div className="space-y-1.5">
-                <Label className="text-sm font-semibold">{t('admin.heroSubtitle', isRtl ? 'الوصف التعريفي للجامعة (Hero Subtitle)' : 'Hero Subtitle Description')}</Label>
+                <Label className="text-sm font-semibold">{t('admin.heroSubtitle', tr("الوصف التعريفي للجامعة (Hero Subtitle)", "Hero Subtitle Description"))}</Label>
                 <div className="flex gap-2">
                   <Textarea
                     value={getValue('hero_subtitle')}
                     onChange={(e) => handleChange('hero_subtitle', e.target.value)}
                     rows={3}
-                    placeholder={isRtl ? "انضم إلى آلاف الخريجين الناجحين الذين غيروا مسار حياتهم المهنية من خلال برامجنا التقنية الشاملة..." : "Join thousands of successful graduates who transformed their careers through our comprehensive programs..."}
+                    placeholder={tr("انضم إلى آلاف الخريجين الناجحين الذين غيروا مسار حياتهم المهنية من خلال برامجنا التقنية الشاملة...", "Join thousands of successful graduates who transformed their careers through our comprehensive programs...")}
                   />
                   <Button 
                     onClick={() => handleSave('hero_subtitle')} 
@@ -1213,29 +1210,29 @@ export default function PlatformSettings() {
           {/* 3. Hero CTA Buttons */}
           <Card className="border-border shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold">{isRtl ? "أزرار الإجراء والدعوة (Hero CTA Buttons)" : "Hero CTA Buttons"}</CardTitle>
-              <CardDescription>{isRtl ? "التحكم في نصوص وروابط أزرار الصفحة الرئيسية" : "Configure home page action buttons and target links"}</CardDescription>
+              <CardTitle className="text-base font-bold">{tr("أزرار الإجراء والدعوة (Hero CTA Buttons)", "Hero CTA Buttons")}</CardTitle>
+              <CardDescription>{tr("التحكم في نصوص وروابط أزرار الصفحة الرئيسية", "Configure home page action buttons and target links")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-5">
                 {/* Primary Button */}
                 <div className="p-4 bg-secondary/20 rounded-xl border border-border space-y-3">
-                  <span className="text-xs font-bold text-primary block">{isRtl ? "الزر الرئيسي (Primary Button)" : "Primary Button"}</span>
+                  <span className="text-xs font-bold text-primary block">{tr("الزر الرئيسي (Primary Button)", "Primary Button")}</span>
                   <div className="space-y-2">
                     <div>
-                      <Label className="text-xs">{t('admin.heroCtaPrimaryText', isRtl ? 'نص الزر' : 'Button Label')}</Label>
+                      <Label className="text-xs">{t('admin.heroCtaPrimaryText', tr("نص الزر", "Button Label"))}</Label>
                       <Input
                         value={getValue('hero_cta_primary_text')}
                         onChange={(e) => handleChange('hero_cta_primary_text', e.target.value)}
-                        placeholder={isRtl ? "ابدأ الآن / Get Started" : "Get Started"}
+                        placeholder={tr("ابدأ الآن / Get Started", "Get Started")}
                       />
                     </div>
                     <div>
-                      <Label className="text-xs">{t('admin.heroCtaPrimaryLink', isRtl ? 'رابط الوجهة' : 'Target Link')}</Label>
+                      <Label className="text-xs">{t('admin.heroCtaPrimaryLink', tr("رابط الوجهة", "Target Link"))}</Label>
                       <Input
                         value={getValue('hero_cta_primary_link')}
                         onChange={(e) => handleChange('hero_cta_primary_link', e.target.value)}
-                        placeholder={isRtl ? "/auth أو /login" : "/auth or /login"}
+                        placeholder={tr("/auth أو /login", "/auth or /login")}
                       />
                     </div>
                     <Button 
@@ -1247,29 +1244,29 @@ export default function PlatformSettings() {
                       size="sm"
                       className="w-full mt-2"
                     >
-                      {isRtl ? 'حفظ الزر الرئيسي' : 'Save Primary CTA'}
+                      {tr("حفظ الزر الرئيسي", "Save Primary CTA")}
                     </Button>
                   </div>
                 </div>
 
                 {/* Secondary Button */}
                 <div className="p-4 bg-secondary/20 rounded-xl border border-border space-y-3">
-                  <span className="text-xs font-bold text-muted-foreground block">{isRtl ? "الزر الثانوي (Secondary Button)" : "Secondary Button"}</span>
+                  <span className="text-xs font-bold text-muted-foreground block">{tr("الزر الثانوي (Secondary Button)", "Secondary Button")}</span>
                   <div className="space-y-2">
                     <div>
-                      <Label className="text-xs">{t('admin.heroCtaSecondaryText', isRtl ? 'نص الزر' : 'Button Label')}</Label>
+                      <Label className="text-xs">{t('admin.heroCtaSecondaryText', tr("نص الزر", "Button Label"))}</Label>
                       <Input
                         value={getValue('hero_cta_secondary_text')}
                         onChange={(e) => handleChange('hero_cta_secondary_text', e.target.value)}
-                        placeholder={isRtl ? "استكشف البرامج / Explore Programs" : "Explore Programs"}
+                        placeholder={tr("استكشف البرامج / Explore Programs", "Explore Programs")}
                       />
                     </div>
                     <div>
-                      <Label className="text-xs">{t('admin.heroCtaSecondaryLink', isRtl ? 'رابط الوجهة' : 'Target Link')}</Label>
+                      <Label className="text-xs">{t('admin.heroCtaSecondaryLink', tr("رابط الوجهة", "Target Link"))}</Label>
                       <Input
                         value={getValue('hero_cta_secondary_link')}
                         onChange={(e) => handleChange('hero_cta_secondary_link', e.target.value)}
-                        placeholder={isRtl ? "#programs أو /verify-diploma" : "#programs or /verify-diploma"}
+                        placeholder={tr("#programs أو /verify-diploma", "#programs or /verify-diploma")}
                       />
                     </div>
                     <Button 
@@ -1282,7 +1279,7 @@ export default function PlatformSettings() {
                       variant="outline"
                       className="w-full mt-2"
                     >
-                      {isRtl ? 'حفظ الزر الثانوي' : 'Save Secondary CTA'}
+                      {tr("حفظ الزر الثانوي", "Save Secondary CTA")}
                     </Button>
                   </div>
                 </div>
@@ -1293,19 +1290,19 @@ export default function PlatformSettings() {
           {/* 4. Hero Statistics */}
           <Card className="border-border shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold">{t('admin.heroStats', isRtl ? 'إحصائيات الواجهة الرئيسية' : 'Hero Section Statistics')}</CardTitle>
-              <CardDescription>{isRtl ? "القيم والتسميات المعروضة في شريط الأرقام والإنجازات" : "Numbers and labels shown in home counter bar"}</CardDescription>
+              <CardTitle className="text-base font-bold">{t('admin.heroStats', tr("إحصائيات الواجهة الرئيسية", "Hero Section Statistics"))}</CardTitle>
+              <CardDescription>{tr("القيم والتسميات المعروضة في شريط الأرقام والإنجازات", "Numbers and labels shown in home counter bar")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
-                  { keyV: 'hero_stat_1_val', keyL: 'hero_stat_1_label', defaultV: '2,500+', defaultL: isRtl ? 'خريج' : 'Graduates' },
-                  { keyV: 'hero_stat_2_val', keyL: 'hero_stat_2_label', defaultV: '95%', defaultL: isRtl ? 'نسبة التوظيف' : 'Employment Rate' },
-                  { keyV: 'hero_stat_3_val', keyL: 'hero_stat_3_label', defaultV: '50+', defaultL: isRtl ? 'شركة شريكة' : 'Partner Companies' },
-                  { keyV: 'hero_stat_4_val', keyL: 'hero_stat_4_label', defaultV: '25+', defaultL: isRtl ? 'سنة خبرة' : 'Years Experience' },
+                  { keyV: 'hero_stat_1_val', keyL: 'hero_stat_1_label', defaultV: '2,500+', defaultL: tr("خريج", "Graduates") },
+                  { keyV: 'hero_stat_2_val', keyL: 'hero_stat_2_label', defaultV: '95%', defaultL: tr("نسبة التوظيف", "Employment Rate") },
+                  { keyV: 'hero_stat_3_val', keyL: 'hero_stat_3_label', defaultV: '50+', defaultL: tr("شركة شريكة", "Partner Companies") },
+                  { keyV: 'hero_stat_4_val', keyL: 'hero_stat_4_label', defaultV: '25+', defaultL: tr("سنة خبرة", "Years Experience") },
                 ].map((stat, i) => (
                   <div key={i} className="p-3 bg-card border border-border rounded-xl space-y-2">
-                    <Label className="text-xs text-muted-foreground font-semibold">{isRtl ? "مؤشر" : "Metric"} {i + 1}</Label>
+                    <Label className="text-xs text-muted-foreground font-semibold">{tr("مؤشر", "Metric")} {i + 1}</Label>
                     <Input
                       value={getValue(stat.keyV)}
                       onChange={(e) => handleChange(stat.keyV, e.target.value)}
@@ -1328,7 +1325,7 @@ export default function PlatformSettings() {
                       variant="ghost"
                       className="w-full text-xs h-7"
                     >
-                      {isRtl ? 'حفظ' : 'Save'}
+                      {tr("حفظ", "Save")}
                     </Button>
                   </div>
                 ))}
@@ -1343,14 +1340,14 @@ export default function PlatformSettings() {
                 <div>
                   <CardTitle className="text-base font-bold flex items-center gap-2">
                     <Eye className="h-5 w-5 text-primary" />
-                    {isRtl ? 'معاينة حية لقسم الـ HERO المحدث' : 'Live Preview of Updated Hero'}
+                    {tr("معاينة حية لقسم الـ HERO المحدث", "Live Preview of Updated Hero")}
                   </CardTitle>
                   <CardDescription>
-                    {isRtl ? 'شكل الـ Hero كما سيظهر للزوار على الواجهة الرئيسية' : 'Hero layout as it appears to visitors on home page'}
+                    {tr("شكل الـ Hero كما سيظهر للزوار على الواجهة الرئيسية", "Hero layout as it appears to visitors on home page")}
                   </CardDescription>
                 </div>
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground">
-                  {isRtl ? 'معاينة فورية' : 'Live Preview'}
+                  {tr("معاينة فورية", "Live Preview")}
                 </span>
               </div>
             </CardHeader>
@@ -1514,7 +1511,7 @@ export default function PlatformSettings() {
                   <p className="text-xs text-muted-foreground">{t('admin.siteDescriptionHint', 'Meta description for SEO (max 160 characters)')}</p>
                 </div>
                 <div className="space-y-4 pt-2">
-                  <Label className="text-base font-semibold">{t('admin.faviconTitle', isRtl ? 'الأيقونة المفضلة (Favicon & PWA)' : 'Favicon & App Icon')}</Label>
+                  <Label className="text-base font-semibold">{t('admin.faviconTitle', tr("الأيقونة المفضلة (Favicon & PWA)", "Favicon & App Icon"))}</Label>
                   
                   {/* File Upload Box */}
                   <div className="p-3 border-2 border-dashed border-border rounded-xl bg-secondary/10 hover:bg-secondary/20 transition-colors">
@@ -1532,10 +1529,10 @@ export default function PlatformSettings() {
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-foreground">
-                            {isRtl ? 'رفع أيقونة المفضلة (Favicon)' : 'Upload Favicon Image'}
+                            {tr("رفع أيقونة المفضلة (Favicon)", "Upload Favicon Image")}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {isRtl ? 'يدعم PNG, ICO, SVG (الحجم المثالي 32x32 أو 512x512)' : 'Supports PNG, ICO, SVG (Ideal size 32x32 or 512x512)'}
+                            {tr("يدعم PNG, ICO, SVG (الحجم المثالي 32x32 أو 512x512)", "Supports PNG, ICO, SVG (Ideal size 32x32 or 512x512)")}
                           </p>
                         </div>
                       </div>
@@ -1552,14 +1549,14 @@ export default function PlatformSettings() {
                         ) : (
                           <Upload className="h-4 w-4" />
                         )}
-                        {uploadingFavicon ? (isRtl ? 'جاري الرفع...' : 'Uploading...') : (isRtl ? 'اختيار أيقونة' : 'Select Icon')}
+                        {uploadingFavicon ? (tr("جاري الرفع...", "Uploading...")) : (tr("اختيار أيقونة", "Select Icon"))}
                       </Button>
                     </div>
                   </div>
 
                   {/* Direct URL Fallback */}
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{t('admin.faviconUrl', isRtl ? 'رابط الأيقونة المباشر:' : 'Favicon Direct URL:')}</Label>
+                    <Label className="text-xs text-muted-foreground">{t('admin.faviconUrl', tr("رابط الأيقونة المباشر:", "Favicon Direct URL:"))}</Label>
                     <div className="flex gap-2">
                       <Input
                         value={getValue('favicon_url')}
@@ -1584,7 +1581,7 @@ export default function PlatformSettings() {
                           <img src={getValue('favicon_url')} alt="Favicon preview" className="h-7 w-7 object-contain" />
                         </div>
                         <div className="overflow-hidden">
-                          <p className="text-sm font-medium text-foreground">{isRtl ? 'الأيقونة المخصصة النشطة' : 'Active Custom Favicon'}</p>
+                          <p className="text-sm font-medium text-foreground">{tr("الأيقونة المخصصة النشطة", "Active Custom Favicon")}</p>
                           <p className="text-xs text-muted-foreground truncate max-w-xs">{getValue('favicon_url')}</p>
                         </div>
                       </div>
@@ -1599,7 +1596,7 @@ export default function PlatformSettings() {
                         }}
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
-                        {t('common.delete', isRtl ? 'حذف' : 'Delete')}
+                        {t('common.delete', tr("حذف", "Delete"))}
                       </Button>
                     </div>
                   ) : (
@@ -1608,8 +1605,8 @@ export default function PlatformSettings() {
                         <img src="/icons/favicon-32x32.png" alt="Default Favicon" className="h-7 w-7 object-contain" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">{isRtl ? 'أيقونة Nexyvora الافتراضية نشطة (3D Emblem)' : 'Default Nexyvora Favicon is Active (3D Emblem)'}</p>
-                        <p className="text-xs text-muted-foreground">{isRtl ? 'تظهر الأيقونة الرسمية في شريط تبويب المتصفح وتطبيق PWA' : 'Displayed in browser tabs and PWA installed apps'}</p>
+                        <p className="text-sm font-medium text-foreground">{tr("أيقونة Nexyvora الافتراضية نشطة (3D Emblem)", "Default Nexyvora Favicon is Active (3D Emblem)")}</p>
+                        <p className="text-xs text-muted-foreground">{tr("تظهر الأيقونة الرسمية في شريط تبويب المتصفح وتطبيق PWA", "Displayed in browser tabs and PWA installed apps")}</p>
                       </div>
                     </div>
                   )}
@@ -1748,26 +1745,26 @@ export default function PlatformSettings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-primary" />
-                  {isRtl ? 'إعدادات الفيديو التعريفي بالمشروع (البوسط 1 في الأكاديمية)' : 'Project Intro Video Settings (Academy Post 1)'}
+                  {tr("إعدادات الفيديو التعريفي بالمشروع (البوسط 1 في الأكاديمية)", "Project Intro Video Settings (Academy Post 1)")}
                 </CardTitle>
                 <CardDescription>
-                  {isRtl ? 'هذا البوسط يظهر في بداية صفحة الأكاديمية للطلاب الجدد والأعضاء لشرح فكرة ورؤية المشروع مع إمكانية رفع الفيديو وصورة الغلاف مباشرة.' : 'This post appears at top of Academy page for new members explaining project vision with direct file upload.'}
+                  {tr("هذا البوسط يظهر في بداية صفحة الأكاديمية للطلاب الجدد والأعضاء لشرح فكرة ورؤية المشروع مع إمكانية رفع الفيديو وصورة الغلاف مباشرة.", "This post appears at top of Academy page for new members explaining project vision with direct file upload.")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label>{isRtl ? "عنوان البوسط التعريفي" : "Intro Post Title"}</Label>
+                  <Label>{tr("عنوان البوسط التعريفي", "Intro Post Title")}</Label>
                   <div className="flex gap-2">
                     <Input
                       value={getValue('academy_intro_title')}
                       onChange={(e) => handleChange('academy_intro_title', e.target.value)}
-                      placeholder={isRtl ? "فيديو تعريفي بمشروع ورؤية أكاديمية Nexyvora" : "Introductory video of Nexyvora Academy project and vision"}
+                      placeholder={tr("فيديو تعريفي بمشروع ورؤية أكاديمية Nexyvora", "Introductory video of Nexyvora Academy project and vision")}
                     />
                     <Button 
                       onClick={() => handleSave('academy_intro_title')} 
                       disabled={!hasChanges('academy_intro_title') || updateSetting.isPending}
                       size="icon"
-                      title={isRtl ? 'حفظ العنوان' : 'Save Title'}
+                      title={tr("حفظ العنوان", "Save Title")}
                     >
                       <Save className="h-4 w-4" />
                     </Button>
@@ -1777,31 +1774,31 @@ export default function PlatformSettings() {
                 {/* Intro Video Field with Upload & Link */}
                 <MediaUploadField
                   settingKey="academy_intro_video_url"
-                  label={isRtl ? "فيديو مقدمة ورؤية المشروع التعريفي" : "Introductory Project Video"}
+                  label={tr("فيديو مقدمة ورؤية المشروع التعريفي", "Introductory Project Video")}
                   type="video"
                   icon={Video}
                   placeholder="https://www.youtube.com/embed/... أو انقر رفع فيديو"
-                  helpText={isRtl ? "يمكنك رفع فيديو MP4 أو WebM مباشرة من جهازك (حتى 250MB) أو وضع رابط YouTube/Vimeo." : "Upload an MP4/WebM video file directly (up to 250MB) or paste a YouTube/Vimeo embed URL."}
+                  helpText={tr("يمكنك رفع فيديو MP4 أو WebM مباشرة من جهازك (حتى 250MB) أو وضع رابط YouTube/Vimeo.", "Upload an MP4/WebM video file directly (up to 250MB) or paste a YouTube/Vimeo embed URL.")}
                 />
 
                 {/* Intro Banner Image Field with Upload & Link */}
                 <MediaUploadField
                   settingKey="academy_intro_banner"
-                  label={isRtl ? "صورة غلاف / بانر الفيديو التعريفي" : "Intro Video Cover Banner"}
+                  label={tr("صورة غلاف / بانر الفيديو التعريفي", "Intro Video Cover Banner")}
                   type="image"
                   icon={Image}
                   placeholder="https://... أو انقر رفع صورة"
-                  helpText={isRtl ? "صورة الغلاف التي تظهر كواجهة قبل تشغيل الفيديو التعريفي وفي شريط المعاينة." : "Cover banner displayed as the preview before playing the intro video."}
+                  helpText={tr("صورة الغلاف التي تظهر كواجهة قبل تشغيل الفيديو التعريفي وفي شريط المعاينة.", "Cover banner displayed as the preview before playing the intro video.")}
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{isRtl ? "اسم الناشر / الإدارة" : "Publisher / Admin Name"}</Label>
+                    <Label>{tr("اسم الناشر / الإدارة", "Publisher / Admin Name")}</Label>
                     <div className="flex gap-2">
                       <Input
                         value={getValue('academy_intro_author')}
                         onChange={(e) => handleChange('academy_intro_author', e.target.value)}
-                        placeholder={isRtl ? "إدارة Nexyvora" : "Nexyvora Management"}
+                        placeholder={tr("إدارة Nexyvora", "Nexyvora Management")}
                       />
                       <Button 
                         onClick={() => handleSave('academy_intro_author')} 
@@ -1814,12 +1811,12 @@ export default function PlatformSettings() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{isRtl ? "شارة المنشور (Badge)" : "Post Badge"}</Label>
+                    <Label>{tr("شارة المنشور (Badge)", "Post Badge")}</Label>
                     <div className="flex gap-2">
                       <Input
                         value={getValue('academy_intro_badge')}
                         onChange={(e) => handleChange('academy_intro_badge', e.target.value)}
-                        placeholder={isRtl ? "دليل البداية للمشروع" : "Project Starter Guide"}
+                        placeholder={tr("دليل البداية للمشروع", "Project Starter Guide")}
                       />
                       <Button 
                         onClick={() => handleSave('academy_intro_badge')} 
@@ -1833,13 +1830,13 @@ export default function PlatformSettings() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{isRtl ? "نص الشرح والتوجيه للأعضاء الجدد" : "Orientation Text & Guidance"}</Label>
+                  <Label>{tr("نص الشرح والتوجيه للأعضاء الجدد", "Orientation Text & Guidance")}</Label>
                   <div className="space-y-2">
                     <Textarea
                       rows={5}
                       value={getValue('academy_intro_description')}
                       onChange={(e) => handleChange('academy_intro_description', e.target.value)}
-                      placeholder={isRtl ? "اكتب هنا الرسالة التوجيهية وشرح مشروع وأكاديمية Nexyvora..." : "Write orientation message and explanation of Nexyvora project & academy here..."}
+                      placeholder={tr("اكتب هنا الرسالة التوجيهية وشرح مشروع وأكاديمية Nexyvora...", "Write orientation message and explanation of Nexyvora project & academy here...")}
                     />
                     <div className="flex justify-end">
                       <Button 
@@ -1848,7 +1845,7 @@ export default function PlatformSettings() {
                         className="gap-2"
                       >
                         <Save className="h-4 w-4" />
-                        {isRtl ? 'حفظ نص الشرح' : 'Save Orientation Text'}
+                        {tr("حفظ نص الشرح", "Save Orientation Text")}
                       </Button>
                     </div>
                   </div>
@@ -1861,20 +1858,20 @@ export default function PlatformSettings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Video className="h-5 w-5 text-blue-500" />
-                  {isRtl ? 'المستوى 1: باقة FLOW (150$) — فيديو وصور وتعريف الباقة' : 'Level 1: FLOW ($150) — Video, Images & Description'}
+                  {tr("المستوى 1: باقة FLOW (150$) — فيديو وصور وتعريف الباقة", "Level 1: FLOW ($150) — Video, Images & Description")}
                 </CardTitle>
                 <CardDescription>
-                  {isRtl ? 'تخصيص ورفع فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة FLOW في الأكاديمية.' : 'Customize & upload preview video, banner image, and description for FLOW package in Academy.'}
+                  {tr("تخصيص ورفع فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة FLOW في الأكاديمية.", "Customize & upload preview video, banner image, and description for FLOW package in Academy.")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="space-y-2">
-                  <Label>{isRtl ? "عنوان الباقة الترويجي" : "Package Promo Title"}</Label>
+                  <Label>{tr("عنوان الباقة الترويجي", "Package Promo Title")}</Label>
                   <div className="flex gap-2">
                     <Input
                       value={getValue('academy_flow_title')}
                       onChange={(e) => handleChange('academy_flow_title', e.target.value)}
-                      placeholder={isRtl ? "FLOW 150 $ — التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي" : "FLOW $150 — AI E-Commerce & Digital Business"}
+                      placeholder={tr("FLOW 150 $ — التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي", "FLOW $150 — AI E-Commerce & Digital Business")}
                     />
                     <Button 
                       onClick={() => handleSave('academy_flow_title')} 
@@ -1889,31 +1886,31 @@ export default function PlatformSettings() {
                 {/* FLOW Video Field */}
                 <MediaUploadField
                   settingKey="academy_flow_video_url"
-                  label={isRtl ? "فيديو معاينة وشرح باقة FLOW" : "FLOW Preview Video"}
+                  label={tr("فيديو معاينة وشرح باقة FLOW", "FLOW Preview Video")}
                   type="video"
                   icon={Video}
                   placeholder="https://www.youtube.com/embed/... أو انقر رفع فيديو"
-                  helpText={isRtl ? "يمكنك رفع فيديو تعريفي لباقة 150$ أو وضع رابط مباشر/يوتيوب." : "Upload direct video or paste YouTube/Vimeo embed URL."}
+                  helpText={tr("يمكنك رفع فيديو تعريفي لباقة 150$ أو وضع رابط مباشر/يوتيوب.", "Upload direct video or paste YouTube/Vimeo embed URL.")}
                 />
 
                 {/* FLOW Banner Image Field */}
                 <MediaUploadField
                   settingKey="academy_flow_banner"
-                  label={isRtl ? "صورة غلاف / بانر باقة FLOW" : "FLOW Banner Image"}
+                  label={tr("صورة غلاف / بانر باقة FLOW", "FLOW Banner Image")}
                   type="image"
                   icon={Image}
                   placeholder="https://... أو انقر رفع صورة"
-                  helpText={isRtl ? "صورة الغلاف المعروضة في بطاقة باقة FLOW وشريط الوسائط." : "Banner image displayed in FLOW package showcase."}
+                  helpText={tr("صورة الغلاف المعروضة في بطاقة باقة FLOW وشريط الوسائط.", "Banner image displayed in FLOW package showcase.")}
                 />
 
                 <div className="space-y-2">
-                  <Label>{isRtl ? "نص الوصف الترويجي للباقة" : "Package Description"}</Label>
+                  <Label>{tr("نص الوصف الترويجي للباقة", "Package Description")}</Label>
                   <div className="space-y-2">
                     <Textarea
                       rows={3}
                       value={getValue('academy_flow_description')}
                       onChange={(e) => handleChange('academy_flow_description', e.target.value)}
-                      placeholder={isRtl ? "مجتمع لتعلم التجارة الإلكترونية بالذكاء الاصطناعي خطوة بخطوة..." : "Community to learn AI-powered e-commerce step by step..."}
+                      placeholder={tr("مجتمع لتعلم التجارة الإلكترونية بالذكاء الاصطناعي خطوة بخطوة...", "Community to learn AI-powered e-commerce step by step...")}
                     />
                     <div className="flex justify-end">
                       <Button 
@@ -1922,7 +1919,7 @@ export default function PlatformSettings() {
                         className="gap-2"
                       >
                         <Save className="h-4 w-4" />
-                        {isRtl ? 'حفظ وصف باقة FLOW' : 'Save FLOW Description'}
+                        {tr("حفظ وصف باقة FLOW", "Save FLOW Description")}
                       </Button>
                     </div>
                   </div>
@@ -1935,20 +1932,20 @@ export default function PlatformSettings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Video className="h-5 w-5 text-purple-500" />
-                  {isRtl ? 'المستوى 2: باقة GROW (500$) — فيديو وصور وتعريف الباقة' : 'Level 2: GROW ($500) — Video, Images & Description'}
+                  {tr("المستوى 2: باقة GROW (500$) — فيديو وصور وتعريف الباقة", "Level 2: GROW ($500) — Video, Images & Description")}
                 </CardTitle>
                 <CardDescription>
-                  {isRtl ? 'تخصيص ورفع فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة GROW في الأكاديمية.' : 'Customize & upload preview video, banner image, and description for GROW package in Academy.'}
+                  {tr("تخصيص ورفع فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة GROW في الأكاديمية.", "Customize & upload preview video, banner image, and description for GROW package in Academy.")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="space-y-2">
-                  <Label>{isRtl ? "عنوان الباقة الترويجي" : "Package Promo Title"}</Label>
+                  <Label>{tr("عنوان الباقة الترويجي", "Package Promo Title")}</Label>
                   <div className="flex gap-2">
                     <Input
                       value={getValue('academy_grow_title')}
                       onChange={(e) => handleChange('academy_grow_title', e.target.value)}
-                      placeholder={isRtl ? "GROW 500 $ — الذكاء الاصطناعي، الأتمتة ووكلاء AI (AI Automation)" : "GROW $500 — AI, Automation & AI Agents (AAA)"}
+                      placeholder={tr("GROW 500 $ — الذكاء الاصطناعي، الأتمتة ووكلاء AI (AI Automation)", "GROW $500 — AI, Automation & AI Agents (AAA)")}
                     />
                     <Button 
                       onClick={() => handleSave('academy_grow_title')} 
@@ -1963,31 +1960,31 @@ export default function PlatformSettings() {
                 {/* GROW Video Field */}
                 <MediaUploadField
                   settingKey="academy_grow_video_url"
-                  label={isRtl ? "فيديو معاينة وشرح باقة GROW" : "GROW Preview Video"}
+                  label={tr("فيديو معاينة وشرح باقة GROW", "GROW Preview Video")}
                   type="video"
                   icon={Video}
                   placeholder="https://www.youtube.com/embed/... أو انقر رفع فيديو"
-                  helpText={isRtl ? "يمكنك رفع فيديو تعريفي لباقة 500$ أو وضع رابط مباشر/يوتيوب." : "Upload direct video or paste YouTube/Vimeo embed URL."}
+                  helpText={tr("يمكنك رفع فيديو تعريفي لباقة 500$ أو وضع رابط مباشر/يوتيوب.", "Upload direct video or paste YouTube/Vimeo embed URL.")}
                 />
 
                 {/* GROW Banner Image Field */}
                 <MediaUploadField
                   settingKey="academy_grow_banner"
-                  label={isRtl ? "صورة غلاف / بانر باقة GROW" : "GROW Banner Image"}
+                  label={tr("صورة غلاف / بانر باقة GROW", "GROW Banner Image")}
                   type="image"
                   icon={Image}
                   placeholder="https://... أو انقر رفع صورة"
-                  helpText={isRtl ? "صورة الغلاف المعروضة في بطاقة باقة GROW وشريط الوسائط." : "Banner image displayed in GROW package showcase."}
+                  helpText={tr("صورة الغلاف المعروضة في بطاقة باقة GROW وشريط الوسائط.", "Banner image displayed in GROW package showcase.")}
                 />
 
                 <div className="space-y-2">
-                  <Label>{isRtl ? "نص الوصف الترويجي للباقة" : "Package Description"}</Label>
+                  <Label>{tr("نص الوصف الترويجي للباقة", "Package Description")}</Label>
                   <div className="space-y-2">
                     <Textarea
                       rows={3}
                       value={getValue('academy_grow_description')}
                       onChange={(e) => handleChange('academy_grow_description', e.target.value)}
-                      placeholder={isRtl ? "مجتمع لبناء وتدريب وكلاء الذكاء الاصطناعي (Custom AI Agents)..." : "Community to build custom AI agents and automate operations..."}
+                      placeholder={tr("مجتمع لبناء وتدريب وكلاء الذكاء الاصطناعي (Custom AI Agents)...", "Community to build custom AI agents and automate operations...")}
                     />
                     <div className="flex justify-end">
                       <Button 
@@ -1996,7 +1993,7 @@ export default function PlatformSettings() {
                         className="gap-2"
                       >
                         <Save className="h-4 w-4" />
-                        {isRtl ? 'حفظ وصف باقة GROW' : 'Save GROW Description'}
+                        {tr("حفظ وصف باقة GROW", "Save GROW Description")}
                       </Button>
                     </div>
                   </div>
@@ -2009,20 +2006,20 @@ export default function PlatformSettings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Video className="h-5 w-5 text-amber-500" />
-                  {isRtl ? 'المستوى 3: باقة PRIME (1000$) — فيديو وصور وتعريف الباقة' : 'Level 3: PRIME ($1000) — Video, Images & Description'}
+                  {tr("المستوى 3: باقة PRIME (1000$) — فيديو وصور وتعريف الباقة", "Level 3: PRIME ($1000) — Video, Images & Description")}
                 </CardTitle>
                 <CardDescription>
-                  {isRtl ? 'تخصيص ورفع فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة PRIME في الأكاديمية.' : 'Customize & upload preview video, banner image, and description for PRIME package in Academy.'}
+                  {tr("تخصيص ورفع فيديو المعاينة وصورة الغلاف والشرح المعروض لباقة PRIME في الأكاديمية.", "Customize & upload preview video, banner image, and description for PRIME package in Academy.")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="space-y-2">
-                  <Label>{isRtl ? "عنوان الباقة الترويجي" : "Package Promo Title"}</Label>
+                  <Label>{tr("عنوان الباقة الترويجي", "Package Promo Title")}</Label>
                   <div className="flex gap-2">
                     <Input
                       value={getValue('academy_prime_title')}
                       onChange={(e) => handleChange('academy_prime_title', e.target.value)}
-                      placeholder={isRtl ? "PRIME 1000 $ — البرمجة المتقدمة، بناء SaaS والمرافقة الشخصية 1-on-1" : "PRIME $1000 — Full-Stack SaaS & 1-on-1 Mentorship"}
+                      placeholder={tr("PRIME 1000 $ — البرمجة المتقدمة، بناء SaaS والمرافقة الشخصية 1-on-1", "PRIME $1000 — Full-Stack SaaS & 1-on-1 Mentorship")}
                     />
                     <Button 
                       onClick={() => handleSave('academy_prime_title')} 
@@ -2037,31 +2034,31 @@ export default function PlatformSettings() {
                 {/* PRIME Video Field */}
                 <MediaUploadField
                   settingKey="academy_prime_video_url"
-                  label={isRtl ? "فيديو معاينة وشرح باقة PRIME" : "PRIME Preview Video"}
+                  label={tr("فيديو معاينة وشرح باقة PRIME", "PRIME Preview Video")}
                   type="video"
                   icon={Video}
                   placeholder="https://www.youtube.com/embed/... أو انقر رفع فيديو"
-                  helpText={isRtl ? "يمكنك رفع فيديو تعريفي لباقة 1000$ أو وضع رابط مباشر/يوتيوب." : "Upload direct video or paste YouTube/Vimeo embed URL."}
+                  helpText={tr("يمكنك رفع فيديو تعريفي لباقة 1000$ أو وضع رابط مباشر/يوتيوب.", "Upload direct video or paste YouTube/Vimeo embed URL.")}
                 />
 
                 {/* PRIME Banner Image Field */}
                 <MediaUploadField
                   settingKey="academy_prime_banner"
-                  label={isRtl ? "صورة غلاف / بانر باقة PRIME" : "PRIME Banner Image"}
+                  label={tr("صورة غلاف / بانر باقة PRIME", "PRIME Banner Image")}
                   type="image"
                   icon={Image}
                   placeholder="https://... أو انقر رفع صورة"
-                  helpText={isRtl ? "صورة الغلاف المعروضة في بطاقة باقة PRIME وشريط الوسائط." : "Banner image displayed in PRIME package showcase."}
+                  helpText={tr("صورة الغلاف المعروضة في بطاقة باقة PRIME وشريط الوسائط.", "Banner image displayed in PRIME package showcase.")}
                 />
 
                 <div className="space-y-2">
-                  <Label>{isRtl ? "نص الوصف الترويجي للباقة" : "Package Description"}</Label>
+                  <Label>{tr("نص الوصف الترويجي للباقة", "Package Description")}</Label>
                   <div className="space-y-2">
                     <Textarea
                       rows={3}
                       value={getValue('academy_prime_description')}
                       onChange={(e) => handleChange('academy_prime_description', e.target.value)}
-                      placeholder={isRtl ? "مجتمع النخبة لتطوير البرمجيات الكاملة وتطبيقات SaaS المربحة..." : "Elite community to build scalable web applications..."}
+                      placeholder={tr("مجتمع النخبة لتطوير البرمجيات الكاملة وتطبيقات SaaS المربحة...", "Elite community to build scalable web applications...")}
                     />
                     <div className="flex justify-end">
                       <Button 
@@ -2070,7 +2067,7 @@ export default function PlatformSettings() {
                         className="gap-2"
                       >
                         <Save className="h-4 w-4" />
-                        {isRtl ? 'حفظ وصف باقة PRIME' : 'Save PRIME Description'}
+                        {tr("حفظ وصف باقة PRIME", "Save PRIME Description")}
                       </Button>
                     </div>
                   </div>

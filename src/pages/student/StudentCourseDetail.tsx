@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -58,16 +59,16 @@ export default function StudentCourseDetail() {
     return (
       <DashboardLayout role="student">
         <div className="text-center py-12">
-          <p className="text-muted-foreground">{isRtl ? 'المادة غير موجودة' : 'Course / Module not found'}</p>
+          <p className="text-muted-foreground">{tr("المادة غير موجودة", "Course / Module not found")}</p>
           <Button className="mt-4" onClick={() => navigate('/student/courses')}>
-            {isRtl ? 'العودة للمواد' : 'Back to Courses'}
+            {tr("العودة للمواد", "Back to Courses")}
           </Button>
         </div>
       </DashboardLayout>
     );
   }
 
-  const teacherName = (module as any)?.teacher?.full_name || (module as any)?.teacher?.profile?.full_name || (module as any)?.teacher_name || (isRtl ? 'غير محدد' : 'Unassigned');
+  const teacherName = (module as any)?.teacher?.full_name || (module as any)?.teacher?.profile?.full_name || (module as any)?.teacher_name || (tr("غير محدد", "Unassigned"));
 
   return (
     <DashboardLayout role="student">
@@ -78,7 +79,7 @@ export default function StudentCourseDetail() {
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2 rtl:rotate-180" />
-          {isRtl ? 'العودة للمواد' : 'Back to Courses'}
+          {tr("العودة للمواد", "Back to Courses")}
         </Button>
 
         {/* Module Header */}
@@ -100,7 +101,7 @@ export default function StudentCourseDetail() {
                     {module.hours && (
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {module.hours} {isRtl ? 'ساعة' : 'hours'}
+                        {module.hours} {tr("ساعة", "hours")}
                       </span>
                     )}
                   </div>
@@ -108,7 +109,7 @@ export default function StudentCourseDetail() {
               </div>
               <div className="w-full md:w-48">
                 <div className="flex justify-between text-sm mb-2">
-                  <span>{isRtl ? 'التقدم' : 'Progress'}</span>
+                  <span>{tr("التقدم", "Progress")}</span>
                   <span className="font-medium">{progressPercent}%</span>
                 </div>
                 <Progress value={progressPercent} className="h-2" />
@@ -120,7 +121,7 @@ export default function StudentCourseDetail() {
         {/* Lessons */}
         <Tabs defaultValue="lessons">
           <TabsList>
-            <TabsTrigger value="lessons">{isRtl ? 'الدروس' : 'Lessons'} ({moduleLessons.length})</TabsTrigger>
+            <TabsTrigger value="lessons">{tr("الدروس", "Lessons")} ({moduleLessons.length})</TabsTrigger>
           </TabsList>
           
           <TabsContent value="lessons" className="space-y-4 mt-4">
@@ -128,7 +129,7 @@ export default function StudentCourseDetail() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <PlayCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">{isRtl ? 'لا توجد دروس متاحة حالياً' : 'No lessons available currently'}</p>
+                  <p className="text-muted-foreground">{tr("لا توجد دروس متاحة حالياً", "No lessons available currently")}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -162,7 +163,7 @@ export default function StudentCourseDetail() {
                             {lesson.duration_minutes && (
                               <span className="flex items-center gap-1">
                                 <Clock className="h-4 w-4" />
-                                {lesson.duration_minutes} {isRtl ? 'دقيقة' : 'min'}
+                                {lesson.duration_minutes} {tr("دقيقة", "min")}
                               </span>
                             )}
                           </div>
@@ -182,8 +183,8 @@ export default function StudentCourseDetail() {
                           </div>
                         )}
                         <Badge variant={lesson.status === 'completed' ? 'default' : 'secondary'}>
-                          {lesson.status === 'completed' ? (isRtl ? 'مكتمل' : 'Completed') : 
-                           lesson.status === 'in_progress' ? (isRtl ? 'جاري' : 'In Progress') : (isRtl ? 'مجدول' : 'Scheduled')}
+                          {lesson.status === 'completed' ? (tr("مكتمل", "Completed")) : 
+                           lesson.status === 'in_progress' ? (tr("جاري", "In Progress")) : (tr("مجدول", "Scheduled"))}
                         </Badge>
                       </div>
                     </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
@@ -194,12 +195,12 @@ function VisualTreeNode({
           <div className="mt-1 flex items-center gap-1">
             <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
               {node.isCurrentUserRoot 
-                ? (isRtl ? 'حسابي (Root)' : 'My Account') 
-                : `${isRtl ? 'الجيل' : 'Gen'} ${level}`}
+                ? (tr("حسابي (Root)", "My Account")) 
+                : `${tr("الجيل", "Gen")} ${level}`}
             </span>
             {(node.teamCount !== undefined && node.teamCount > 0) && (
               <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
-                {node.teamCount} {isRtl ? 'فريق' : 'team'}
+                {node.teamCount} {tr("فريق", "team")}
               </span>
             )}
           </div>
@@ -220,7 +221,7 @@ function VisualTreeNode({
               onToggleExpand(node.id);
             }}
             className="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-blue-600 hover:border-blue-500 flex items-center justify-center text-xs font-black shadow-xs transition-all active:scale-90 z-10"
-            title={isExpanded ? (isRtl ? 'طي الأبناء' : 'Collapse') : (isRtl ? 'توسيع الأبناء' : 'Expand')}
+            title={isExpanded ? (tr("طي الأبناء", "Collapse")) : (tr("توسيع الأبناء", "Expand"))}
           >
             {isExpanded ? (
               <Minus className="h-3 w-3 stroke-[3]" />
@@ -341,7 +342,7 @@ export default function StudentTeamTree() {
       setAllDownlineUsers(res.allUsers || []);
       setTotalCount(res.totalUsers || 0);
     } catch {
-      toast.error(isRtl ? 'فشل تحميل شجرة الفريق' : 'Failed to load team tree');
+      toast.error(tr("فشل تحميل شجرة الفريق", "Failed to load team tree"));
     } finally {
       setLoading(false);
     }
@@ -438,7 +439,7 @@ export default function StudentTeamTree() {
     }
     setAll(rootNode);
     setExpandedMap(newMap);
-    toast.success(isRtl ? 'تم توسيع جميع الفروع' : 'All branches expanded');
+    toast.success(tr("تم توسيع جميع الفروع", "All branches expanded"));
   };
 
   const handleCollapseAll = () => {
@@ -451,7 +452,7 @@ export default function StudentTeamTree() {
     setAll(rootNode);
     if (currentRootNode) newMap[currentRootNode.id] = true;
     setExpandedMap(newMap);
-    toast.info(isRtl ? 'تم طي جميع الفروع' : 'All branches collapsed');
+    toast.info(tr("تم طي جميع الفروع", "All branches collapsed"));
   };
 
   const handleFocusMember = (member: TreeNodeData) => {
@@ -472,7 +473,7 @@ export default function StudentTeamTree() {
     navigator.clipboard.writeText(code);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
-    toast.success(isRtl ? 'تم نسخ كود الإحالة بنجاح' : 'Affiliate code copied');
+    toast.success(tr("تم نسخ كود الإحالة بنجاح", "Affiliate code copied"));
   };
 
   const affiliateCode = rootNode?.affiliate_code || user?.affiliate_code || 'NV------';
@@ -489,17 +490,15 @@ export default function StudentTeamTree() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                <span>{isRtl ? 'شجرة الفريق والشبكة' : 'Team Tree'}</span>
+                <span>{tr("شجرة الفريق والشبكة", "Team Tree")}</span>
                 {totalCount > 1 && (
                   <Badge className="bg-purple-50 text-purple-600 dark:bg-purple-950/60 text-xs font-bold border-purple-200">
-                    {totalCount - 1} {isRtl ? 'عضو في الفريق' : 'Members'}
+                    {totalCount - 1} {tr("عضو في الفريق", "Members")}
                   </Badge>
                 )}
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">
-                {isRtl 
-                  ? 'استعرض شبكة فريقك وتفاصيل الأجيال المباشرة وغير المباشرة بشكل تفاعلي مرئي.' 
-                  : 'Interactive visual hierarchy of your downline team members across 10 generations.'}
+                {tr("استعرض شبكة فريقك وتفاصيل الأجيال المباشرة وغير المباشرة بشكل تفاعلي مرئي.", "Interactive visual hierarchy of your downline team members across 10 generations.")}
               </p>
             </div>
           </div>
@@ -511,12 +510,12 @@ export default function StudentTeamTree() {
               size="sm"
               onClick={() => {
                 navigator.clipboard.writeText(referralLink);
-                toast.success(isRtl ? 'تم نسخ رابط الإحالة!' : 'Referral link copied!');
+                toast.success(tr("تم نسخ رابط الإحالة!", "Referral link copied!"));
               }}
               className="rounded-xl h-10 text-xs font-bold gap-1.5 border-purple-200 dark:border-purple-800 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40"
             >
               <Copy className="w-3.5 h-3.5" />
-              <span>{isRtl ? 'نسخ رابط الإحالة' : 'Copy Referral Link'}</span>
+              <span>{tr("نسخ رابط الإحالة", "Copy Referral Link")}</span>
             </Button>
           </div>
         </div>
@@ -535,7 +534,7 @@ export default function StudentTeamTree() {
                   setIsSearchOpen(true);
                 }}
                 onFocus={() => setIsSearchOpen(true)}
-                placeholder={isRtl ? 'بحث بالاسم، البريد، أو الكود...' : 'Search by Name, Email, or Code...'}
+                placeholder={tr("بحث بالاسم، البريد، أو الكود...", "Search by Name, Email, or Code...")}
                 className="ps-10 rounded-2xl text-xs bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 h-10"
               />
 
@@ -579,7 +578,7 @@ export default function StudentTeamTree() {
                   className="h-8 rounded-xl text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs gap-1"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>{isRtl ? 'العودة لشجرتي الرئيسية' : 'Back to My Tree'}</span>
+                  <span>{tr("العودة لشجرتي الرئيسية", "Back to My Tree")}</span>
                 </Button>
                 <ChevronRight className="w-3.5 h-3.5 text-slate-400 rtl:rotate-180" />
                 <span className="text-slate-900 dark:text-white font-extrabold truncate max-w-xs">
@@ -591,12 +590,12 @@ export default function StudentTeamTree() {
             {/* Right Summary Counters */}
             <div className="flex items-center gap-3">
               <div className="text-end">
-                <span className="text-[10px] text-slate-400 block font-bold uppercase">{isRtl ? 'المباشرين (Gen 1)' : 'Direct Referrals'}</span>
+                <span className="text-[10px] text-slate-400 block font-bold uppercase">{tr("المباشرين (Gen 1)", "Direct Referrals")}</span>
                 <span className="text-base font-black text-blue-600">{currentRootNode?.children?.length || 0}</span>
               </div>
               <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
               <div className="text-end">
-                <span className="text-[10px] text-slate-400 block font-bold uppercase">{isRtl ? 'إجمالي الفريق' : 'Team Downline'}</span>
+                <span className="text-[10px] text-slate-400 block font-bold uppercase">{tr("إجمالي الفريق", "Team Downline")}</span>
                 <span className="text-base font-black text-purple-600">{currentRootNode?.teamCount || 0}</span>
               </div>
             </div>
@@ -606,7 +605,7 @@ export default function StudentTeamTree() {
           <div className="px-4 sm:px-6 py-3 bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
               <span className="text-xs font-black text-slate-400 shrink-0 uppercase tracking-wider">
-                {isRtl ? 'الأجيال الـ 10:' : '10 Generations:'}
+                {tr("الأجيال الـ 10:", "10 Generations:")}
               </span>
               {GENERATION_CONFIG.map((cfg) => {
                 const count = generationStats[cfg.gen] || 0;
@@ -636,7 +635,7 @@ export default function StudentTeamTree() {
                 size="sm"
                 onClick={() => setZoom((z) => Math.min(1.8, z + 0.15))}
                 className="h-8 w-8 p-0 rounded-xl"
-                title={isRtl ? 'تكبير' : 'Zoom In'}
+                title={tr("تكبير", "Zoom In")}
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
@@ -645,7 +644,7 @@ export default function StudentTeamTree() {
                 size="sm"
                 onClick={() => setZoom((z) => Math.max(0.4, z - 0.15))}
                 className="h-8 w-8 p-0 rounded-xl"
-                title={isRtl ? 'تصغير' : 'Zoom Out'}
+                title={tr("تصغير", "Zoom Out")}
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
@@ -654,10 +653,10 @@ export default function StudentTeamTree() {
                 size="sm"
                 onClick={handleResetView}
                 className="h-8 px-2.5 rounded-xl text-xs gap-1"
-                title={isRtl ? 'إعادة ضبط العرض' : 'Reset View'}
+                title={tr("إعادة ضبط العرض", "Reset View")}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{isRtl ? 'إعادة ضبط' : 'Reset'}</span>
+                <span className="hidden sm:inline">{tr("إعادة ضبط", "Reset")}</span>
               </Button>
             </div>
 
@@ -669,7 +668,7 @@ export default function StudentTeamTree() {
                 className="h-8 px-2.5 rounded-xl text-xs gap-1 font-bold"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span>{isRtl ? 'توسيع الكل' : 'Expand All'}</span>
+                <span>{tr("توسيع الكل", "Expand All")}</span>
               </Button>
               <Button
                 variant="outline"
@@ -678,14 +677,14 @@ export default function StudentTeamTree() {
                 className="h-8 px-2.5 rounded-xl text-xs gap-1 font-bold"
               >
                 <Minus className="h-3.5 w-3.5" />
-                <span>{isRtl ? 'طي الكل' : 'Collapse All'}</span>
+                <span>{tr("طي الكل", "Collapse All")}</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 className="h-8 w-8 p-0 rounded-xl text-slate-500 hover:text-slate-900"
-                title={isRtl ? 'ملء الشاشة' : 'Fullscreen'}
+                title={tr("ملء الشاشة", "Fullscreen")}
               >
                 {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
@@ -712,7 +711,7 @@ export default function StudentTeamTree() {
                   className="rounded-xl bg-white dark:bg-slate-900 shadow-md"
                 >
                   <Minimize2 className="w-4 h-4 mr-1 rtl:mr-0 rtl:ml-1" />
-                  {isRtl ? 'خروج من ملء الشاشة' : 'Exit Fullscreen'}
+                  {tr("خروج من ملء الشاشة", "Exit Fullscreen")}
                 </Button>
               </div>
             )}
@@ -720,12 +719,12 @@ export default function StudentTeamTree() {
             {loading ? (
               <div className="h-[500px] flex flex-col items-center justify-center gap-3 text-slate-400">
                 <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-                <span className="text-xs font-bold">{isRtl ? 'جاري بناء شجرة فريقك...' : 'Generating your team tree...'}</span>
+                <span className="text-xs font-bold">{tr("جاري بناء شجرة فريقك...", "Generating your team tree...")}</span>
               </div>
             ) : !currentRootNode ? (
               <div className="h-[500px] flex flex-col items-center justify-center gap-2 text-slate-400">
                 <Users className="w-10 h-10 stroke-[1.5]" />
-                <span className="text-sm font-bold">{isRtl ? 'لا توجد بيانات متاحة' : 'No team data available'}</span>
+                <span className="text-sm font-bold">{tr("لا توجد بيانات متاحة", "No team data available")}</span>
               </div>
             ) : currentRootNode.children.length === 0 && currentRootNode.isCurrentUserRoot ? (
               /* ONBOARDING EMPTY TEAM STATE */
@@ -734,12 +733,10 @@ export default function StudentTeamTree() {
                   <Network className="w-8 h-8 stroke-[2]" />
                 </div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  {isRtl ? 'ابدأ في بناء شجرة فريقك اليوم!' : 'Start building your team tree today!'}
+                  {tr("ابدأ في بناء شجرة فريقك اليوم!", "Start building your team tree today!")}
                 </h3>
                 <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
-                  {isRtl 
-                    ? 'لم تقم بدعوة أي أعضاء إلى فريقك بعد. شارك رابط إحالتك الفريد لتبدأ شجرتك في النمو وجني عمولات الـ 10 أجيال.' 
-                    : 'You haven\'t invited any members yet. Share your referral link to watch your tree expand.'}
+                  {tr("لم تقم بدعوة أي أعضاء إلى فريقك بعد. شارك رابط إحالتك الفريد لتبدأ شجرتك في النمو وجني عمولات الـ 10 أجيال.", "You haven\\'t invited any members yet. Share your referral link to watch your tree expand.")}
                 </p>
 
                 <div className="mt-5 w-full space-y-2">
@@ -784,7 +781,7 @@ export default function StudentTeamTree() {
           <DialogContent className="max-w-md rounded-3xl p-6">
             <DialogHeader>
               <DialogTitle className="text-base font-black text-slate-900 dark:text-white flex items-center justify-between">
-                <span>{isRtl ? 'تفاصيل عضو الفريق' : 'Team Member Details'}</span>
+                <span>{tr("تفاصيل عضو الفريق", "Team Member Details")}</span>
                 {selectedMember?.kyc_status === 'verified' && (
                   <Badge className="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 border-emerald-200 text-xs gap-1">
                     <ShieldCheck className="w-3 h-3" /> KYC Verified
@@ -792,7 +789,7 @@ export default function StudentTeamTree() {
                 )}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-400">
-                {isRtl ? 'معلومات العضو وموقعه في شجرة فريقك' : 'Detailed performance & branch position'}
+                {tr("معلومات العضو وموقعه في شجرة فريقك", "Detailed performance & branch position")}
               </DialogDescription>
             </DialogHeader>
 
@@ -815,7 +812,7 @@ export default function StudentTeamTree() {
                       <button
                         onClick={() => copyCode(selectedMember.affiliate_code)}
                         className="text-slate-400 hover:text-purple-600"
-                        title={isRtl ? 'نسخ الكود' : 'Copy code'}
+                        title={tr("نسخ الكود", "Copy code")}
                       >
                         <Copy className="w-3 h-3" />
                       </button>
@@ -827,7 +824,7 @@ export default function StudentTeamTree() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex flex-col justify-between">
                     <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold uppercase block">
-                      {isRtl ? 'الباقة الحالية' : 'Current Package'}
+                      {tr("الباقة الحالية", "Current Package")}
                     </span>
                     <div className="flex items-center gap-1.5 mt-1">
                       <Layers className="w-4 h-4 text-amber-500" />
@@ -839,7 +836,7 @@ export default function StudentTeamTree() {
 
                   <div className="p-3 rounded-2xl bg-purple-500/5 border border-purple-500/20 flex flex-col justify-between">
                     <span className="text-[10px] text-purple-700 dark:text-purple-400 font-bold uppercase block">
-                      {isRtl ? 'رتبة القيادة' : 'Leader Rank'}
+                      {tr("رتبة القيادة", "Leader Rank")}
                     </span>
                     <div className="flex items-center gap-1.5 mt-1">
                       <Award className="w-4 h-4 text-purple-500" />
@@ -853,11 +850,11 @@ export default function StudentTeamTree() {
                 {/* Team & Directs Stats */}
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 block font-bold">{isRtl ? 'الأعضاء المباشرين' : 'Direct Referrals'}</span>
+                    <span className="text-[10px] text-slate-400 block font-bold">{tr("الأعضاء المباشرين", "Direct Referrals")}</span>
                     <span className="text-lg font-black text-blue-600 block mt-0.5">{selectedMember.directCount || selectedMember.children?.length || 0}</span>
                   </div>
                   <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 block font-bold">{isRtl ? 'إجمالي شبكة الفريق' : 'Team Downline'}</span>
+                    <span className="text-[10px] text-slate-400 block font-bold">{tr("إجمالي شبكة الفريق", "Team Downline")}</span>
                     <span className="text-lg font-black text-purple-600 block mt-0.5">{selectedMember.teamCount || 0}</span>
                   </div>
                 </div>
@@ -867,7 +864,7 @@ export default function StudentTeamTree() {
                   <div className="flex items-center justify-between text-xs text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
-                      {isRtl ? 'تاريخ الانضمام:' : 'Joined Date:'}
+                      {tr("تاريخ الانضمام:", "Joined Date:")}
                     </span>
                     <span className="font-semibold text-slate-700 dark:text-slate-300">
                       {new Date(selectedMember.created_at).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', {
@@ -886,7 +883,7 @@ export default function StudentTeamTree() {
                     className="w-full h-10 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs gap-1.5 shadow-md shadow-purple-500/20"
                   >
                     <Network className="w-4 h-4" />
-                    <span>{isRtl ? 'تصفح شجرة هذا العضو بالتفصيل' : 'Inspect This Member\'s Tree'}</span>
+                    <span>{tr("تصفح شجرة هذا العضو بالتفصيل", "Inspect This Member\\'s Tree")}</span>
                   </Button>
                 )}
               </div>

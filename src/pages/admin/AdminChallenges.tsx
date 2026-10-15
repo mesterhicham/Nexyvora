@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -130,7 +131,7 @@ export default function AdminChallenges() {
       setChallenges(res.challenges || []);
       setStats(res.stats || { total: 0, active: 0, completed: 0, totalRewardPool: 0 });
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || (isRtl ? 'فشل في تحميل التحديات' : 'Failed to load challenges'));
+      toast.error(err?.response?.data?.error || (tr("فشل في تحميل التحديات", "Failed to load challenges")));
     } finally {
       setLoading(false);
     }
@@ -171,7 +172,7 @@ export default function AdminChallenges() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error(isRtl ? 'يرجى اختيار ملف صورة صالح (JPG, PNG, WebP)' : 'Please select a valid image file (JPG, PNG, WebP)');
+      toast.error(tr("يرجى اختيار ملف صورة صالح (JPG, PNG, WebP)", "Please select a valid image file (JPG, PNG, WebP)"));
       return;
     }
 
@@ -186,9 +187,9 @@ export default function AdminChallenges() {
 
       const uploadedUrl = res.data.fileUrl || res.data.url;
       setFormData(prev => ({ ...prev, image_url: uploadedUrl }));
-      toast.success(isRtl ? 'تم رفع صورة التحدي بنجاح!' : 'Challenge image uploaded successfully!');
+      toast.success(tr("تم رفع صورة التحدي بنجاح!", "Challenge image uploaded successfully!"));
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل في رفع الصورة' : 'Failed to upload image');
+      toast.error(tr("فشل في رفع الصورة", "Failed to upload image"));
     } finally {
       setUploadingImage(false);
     }
@@ -197,7 +198,7 @@ export default function AdminChallenges() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) {
-      toast.error(isRtl ? 'يرجى إدخال عنوان التحدي' : 'Please enter challenge title');
+      toast.error(tr("يرجى إدخال عنوان التحدي", "Please enter challenge title"));
       return;
     }
 
@@ -205,15 +206,15 @@ export default function AdminChallenges() {
       setIsSubmitting(true);
       if (editingChallenge) {
         await adminChallengeService.updateChallenge(editingChallenge.id, formData);
-        toast.success(isRtl ? 'تم تعديل التحدي بنجاح!' : 'Challenge updated successfully!');
+        toast.success(tr("تم تعديل التحدي بنجاح!", "Challenge updated successfully!"));
       } else {
         await adminChallengeService.createChallenge(formData);
-        toast.success(isRtl ? 'تم إنشاء التحدي بنجاح!' : 'Challenge created successfully!');
+        toast.success(tr("تم إنشاء التحدي بنجاح!", "Challenge created successfully!"));
       }
       setIsModalOpen(false);
       fetchChallenges();
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || (isRtl ? 'حدث خطأ أثناء حفظ التحدي' : 'Error saving challenge'));
+      toast.error(err?.response?.data?.error || (tr("حدث خطأ أثناء حفظ التحدي", "Error saving challenge")));
     } finally {
       setIsSubmitting(false);
     }
@@ -222,21 +223,21 @@ export default function AdminChallenges() {
   const handleDelete = async (id: string) => {
     try {
       await adminChallengeService.deleteChallenge(id);
-      toast.success(isRtl ? 'تم حذف التحدي بنجاح!' : 'Challenge deleted successfully!');
+      toast.success(tr("تم حذف التحدي بنجاح!", "Challenge deleted successfully!"));
       setDeleteConfirmId(null);
       fetchChallenges();
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل في حذف التحدي' : 'Failed to delete challenge');
+      toast.error(tr("فشل في حذف التحدي", "Failed to delete challenge"));
     }
   };
 
   const handleToggleStatus = async (id: string) => {
     try {
       await adminChallengeService.toggleStatus(id);
-      toast.success(isRtl ? 'تم تغيير حالة التحدي بنجاح' : 'Challenge status updated successfully');
+      toast.success(tr("تم تغيير حالة التحدي بنجاح", "Challenge status updated successfully"));
       fetchChallenges();
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل في تغيير الحالة' : 'Failed to update status');
+      toast.error(tr("فشل في تغيير الحالة", "Failed to update status"));
     }
   };
 
@@ -273,13 +274,11 @@ export default function AdminChallenges() {
                 <Flame className="h-6 w-6" />
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                {isRtl ? 'إدارة التحديات والحملات التنافسية' : 'Challenge Campaigns'}
+                {tr("إدارة التحديات والحملات التنافسية", "Challenge Campaigns")}
               </h1>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-xl">
-              {isRtl
-                ? 'إنشاء ومتابعة وتعديل كافة التحديات التنافسية للأعضاء مع ضبط الشروط، الأهداف، والجوائز القيمة.'
-                : 'Create, edit, and track affiliate and student performance challenge campaigns with customizable rules and rewards.'}
+              {tr("إنشاء ومتابعة وتعديل كافة التحديات التنافسية للأعضاء مع ضبط الشروط، الأهداف، والجوائز القيمة.", "Create, edit, and track affiliate and student performance challenge campaigns with customizable rules and rewards.")}
             </p>
           </div>
 
@@ -289,7 +288,7 @@ export default function AdminChallenges() {
             className="rounded-2xl font-black text-sm bg-linear-to-r from-primary to-indigo-600 hover:from-primary/95 hover:to-indigo-700 text-white shadow-lg shadow-primary/25 gap-2"
           >
             <Plus className="h-5 w-5" />
-            <span>{isRtl ? 'إضافة تحدي جديد' : 'Create Campaign'}</span>
+            <span>{tr("إضافة تحدي جديد", "Create Campaign")}</span>
           </Button>
         </div>
 
@@ -299,7 +298,7 @@ export default function AdminChallenges() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {isRtl ? 'إجمالي التحديات' : 'Total Campaigns'}
+                  {tr("إجمالي التحديات", "Total Campaigns")}
                 </p>
                 <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
                   {stats.total}
@@ -315,7 +314,7 @@ export default function AdminChallenges() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {isRtl ? 'التحديات النشطة' : 'Active Challenges'}
+                  {tr("التحديات النشطة", "Active Challenges")}
                 </p>
                 <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
                   {stats.active}
@@ -331,7 +330,7 @@ export default function AdminChallenges() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {isRtl ? 'التحديات المنتهية' : 'Completed / Expired'}
+                  {tr("التحديات المنتهية", "Completed / Expired")}
                 </p>
                 <h3 className="text-2xl font-black text-slate-600 dark:text-slate-300 mt-1">
                   {stats.completed}
@@ -347,7 +346,7 @@ export default function AdminChallenges() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {isRtl ? 'إجمالي الجوائز المرصودة' : 'Total Rewards Pool'}
+                  {tr("إجمالي الجوائز المرصودة", "Total Rewards Pool")}
                 </p>
                 <h3 className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
                   ${Number(stats.totalRewardPool).toLocaleString('en-US')}
@@ -367,7 +366,7 @@ export default function AdminChallenges() {
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={isRtl ? 'بحث في التحديات...' : 'Search challenges...'}
+              placeholder={tr("بحث في التحديات...", "Search challenges...")}
               className="pl-9 rtl:pr-9 rtl:pl-4 rounded-xl border-slate-200 dark:border-slate-800 text-sm"
             />
           </div>
@@ -383,10 +382,10 @@ export default function AdminChallenges() {
                   statusFilter === st ? 'bg-primary text-white' : 'text-slate-600 dark:text-slate-300'
                 }`}
               >
-                {st === 'all' && (isRtl ? 'الكل' : 'All')}
-                {st === 'active' && (isRtl ? 'النشطة' : 'Active')}
-                {st === 'inactive' && (isRtl ? 'غير المفعلة' : 'Inactive')}
-                {st === 'completed' && (isRtl ? 'المنتهية' : 'Completed')}
+                {st === 'all' && (tr("الكل", "All"))}
+                {st === 'active' && (tr("النشطة", "Active"))}
+                {st === 'inactive' && (tr("غير المفعلة", "Inactive"))}
+                {st === 'completed' && (tr("المنتهية", "Completed"))}
               </Button>
             ))}
           </div>
@@ -396,20 +395,20 @@ export default function AdminChallenges() {
         {loading ? (
           <div className="text-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
-            <p className="text-sm text-slate-400 mt-4">{isRtl ? 'جاري تحميل التحديات...' : 'Loading challenges...'}</p>
+            <p className="text-sm text-slate-400 mt-4">{tr("جاري تحميل التحديات...", "Loading challenges...")}</p>
           </div>
         ) : filteredChallenges.length === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 p-8">
             <Flame className="h-12 w-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">
-              {isRtl ? 'لا توجد تحديات مطابقة' : 'No challenge campaigns found'}
+              {tr("لا توجد تحديات مطابقة", "No challenge campaigns found")}
             </h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1 mb-6">
-              {isRtl ? 'ابدأ بإضافة تحدي تنافسي جديد لتحفيز الأعضاء وزيادة المبيعات.' : 'Start by creating your first challenge campaign to engage affiliates and boost sales.'}
+              {tr("ابدأ بإضافة تحدي تنافسي جديد لتحفيز الأعضاء وزيادة المبيعات.", "Start by creating your first challenge campaign to engage affiliates and boost sales.")}
             </p>
             <Button onClick={handleOpenCreate} className="rounded-xl text-xs font-bold gap-1 bg-primary text-white">
               <Plus className="h-4 w-4" />
-              <span>{isRtl ? 'إنشاء تحدي جديد' : 'Add Challenge'}</span>
+              <span>{tr("إنشاء تحدي جديد", "Add Challenge")}</span>
             </Button>
           </div>
         ) : (
@@ -447,8 +446,8 @@ export default function AdminChallenges() {
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold">
                           <Flame className="h-3.5 w-3.5 text-orange-400" />
                           {isExpired
-                            ? (isRtl ? 'منتهي' : 'Expired')
-                            : `${daysLeft} ${isRtl ? 'يوم متبقي' : 'days left'}`}
+                            ? (tr("منتهي", "Expired"))
+                            : `${daysLeft} ${tr("يوم متبقي", "days left")}`}
                         </span>
 
                         <Badge
@@ -488,35 +487,35 @@ export default function AdminChallenges() {
                       {/* Conditions & Criteria (الشروط) */}
                       <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2 text-xs">
                         <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider block">
-                          {isRtl ? 'الشروط والمتطلبات:' : 'Campaign Criteria:'}
+                          {tr("الشروط والمتطلبات:", "Campaign Criteria:")}
                         </span>
 
                         <div className="grid grid-cols-2 gap-2">
                           <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                             <Target className="h-3.5 w-3.5 text-primary shrink-0" />
                             <span>
-                              {isRtl ? 'مبيعات:' : 'Sales:'} <strong>{c.target_sales}</strong>
+                              {tr("مبيعات:", "Sales:")} <strong>{c.target_sales}</strong>
                             </span>
                           </div>
 
                           <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                             <DollarSign className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                             <span>
-                              {isRtl ? 'حجم:' : 'Rev:'} <strong>${Number(c.target_revenue).toFixed(0)}</strong>
+                              {tr("حجم:", "Rev:")} <strong>${Number(c.target_revenue).toFixed(0)}</strong>
                             </span>
                           </div>
 
                           <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                             <Users className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
                             <span>
-                              {isRtl ? 'مباشرين:' : 'Directs:'} <strong>{c.required_directs} ({c.directs_type})</strong>
+                              {tr("مباشرين:", "Directs:")} <strong>{c.required_directs} ({c.directs_type})</strong>
                             </span>
                           </div>
 
                           <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                             <Percent className="h-3.5 w-3.5 text-amber-600 shrink-0" />
                             <span>
-                              {isRtl ? 'سقف الفريق:' : 'Leg Limit:'} <strong>{c.leg_limit_percent}%</strong>
+                              {tr("سقف الفريق:", "Leg Limit:")} <strong>{c.leg_limit_percent}%</strong>
                             </span>
                           </div>
                         </div>
@@ -541,7 +540,7 @@ export default function AdminChallenges() {
                       className="rounded-xl text-xs font-bold gap-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100"
                     >
                       <Eye className="h-3.5 w-3.5" />
-                      <span>{isRtl ? 'معاينة' : 'Preview'}</span>
+                      <span>{tr("معاينة", "Preview")}</span>
                     </Button>
 
                     <div className="flex items-center gap-1.5">
@@ -555,7 +554,7 @@ export default function AdminChallenges() {
                             : 'text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800'
                         }`}
                       >
-                        {c.status === 'active' ? (isRtl ? 'إيقاف' : 'Deactivate') : (isRtl ? 'تفعيل' : 'Activate')}
+                        {c.status === 'active' ? (tr("إيقاف", "Deactivate")) : (tr("تفعيل", "Activate"))}
                       </Button>
 
                       <Button
@@ -591,14 +590,12 @@ export default function AdminChallenges() {
                 <Flame className="h-5 w-5 text-primary" />
                 <span>
                   {editingChallenge
-                    ? (isRtl ? 'تعديل حملة التحدي' : 'Edit Challenge Campaign')
-                    : (isRtl ? 'إنشاء حملة تحدي جديدة' : 'Create Challenge Campaign')}
+                    ? (tr("تعديل حملة التحدي", "Edit Challenge Campaign"))
+                    : (tr("إنشاء حملة تحدي جديدة", "Create Challenge Campaign"))}
                 </span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-400">
-                {isRtl
-                  ? 'قم بتحديد الشروط والأهداف والمكافأة الخاصة بالتحدي بدقة.'
-                  : 'Define the challenge criteria, targets, dates, and reward.'}
+                {tr("قم بتحديد الشروط والأهداف والمكافأة الخاصة بالتحدي بدقة.", "Define the challenge criteria, targets, dates, and reward.")}
               </DialogDescription>
             </DialogHeader>
 
@@ -619,12 +616,12 @@ export default function AdminChallenges() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {isRtl ? 'العنوان بالعربية (Title Arabic)' : 'Arabic Title'}
+                    {tr("العنوان بالعربية (Title Arabic)", "Arabic Title")}
                   </Label>
                   <Input
                     value={formData.title_ar}
                     onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
-                    placeholder={isRtl ? "مثال: تحدي رحلة دبي ومؤتمر القادة VIP" : "e.g. Dubai Leadership Retreat VIP"}
+                    placeholder={tr("مثال: تحدي رحلة دبي ومؤتمر القادة VIP", "e.g. Dubai Leadership Retreat VIP")}
                     className="rounded-xl text-sm"
                   />
                 </div>
@@ -646,13 +643,13 @@ export default function AdminChallenges() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {isRtl ? 'الوصف بالعربية (Description Arabic)' : 'Arabic Description'}
+                    {tr("الوصف بالعربية (Description Arabic)", "Arabic Description")}
                   </Label>
                   <Textarea
                     rows={3}
                     value={formData.description_ar}
                     onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-                    placeholder={isRtl ? "اشرح شروط المسابقة ومميزاتها بالتفصيل..." : "Explain campaign requirements and perks in detail..."}
+                    placeholder={tr("اشرح شروط المسابقة ومميزاتها بالتفصيل...", "Explain campaign requirements and perks in detail...")}
                     className="rounded-xl text-sm"
                   />
                 </div>
@@ -701,12 +698,12 @@ export default function AdminChallenges() {
                       <SelectValue placeholder="Select Reward Type" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      <SelectItem value="TRAVEL">✈️ {isRtl ? 'TRAVEL (سياحة وسفر)' : 'TRAVEL (Trip / Tourism)'}</SelectItem>
-                      <SelectItem value="CASH">💵 {isRtl ? 'CASH (مكافأة نقدية)' : 'CASH (Cash Reward)'}</SelectItem>
-                      <SelectItem value="BADGE">🏅 {isRtl ? 'BADGE (شارة تميز)' : 'BADGE (Excellence Badge)'}</SelectItem>
-                      <SelectItem value="PHYSICAL_GIFT">🎁 {isRtl ? 'PHYSICAL GIFT (هدية عينية)' : 'PHYSICAL GIFT (Physical Gift)'}</SelectItem>
-                      <SelectItem value="COACHING">🎓 {isRtl ? 'COACHING (تدريب VIP)' : 'COACHING (VIP Coaching)'}</SelectItem>
-                      <SelectItem value="OTHER">✨ {isRtl ? 'OTHER (أخرى)' : 'OTHER (Other)'}</SelectItem>
+                      <SelectItem value="TRAVEL">✈️ {tr("TRAVEL (سياحة وسفر)", "TRAVEL (Trip / Tourism)")}</SelectItem>
+                      <SelectItem value="CASH">💵 {tr("CASH (مكافأة نقدية)", "CASH (Cash Reward)")}</SelectItem>
+                      <SelectItem value="BADGE">🏅 {tr("BADGE (شارة تميز)", "BADGE (Excellence Badge)")}</SelectItem>
+                      <SelectItem value="PHYSICAL_GIFT">🎁 {tr("PHYSICAL GIFT (هدية عينية)", "PHYSICAL GIFT (Physical Gift)")}</SelectItem>
+                      <SelectItem value="COACHING">🎓 {tr("COACHING (تدريب VIP)", "COACHING (VIP Coaching)")}</SelectItem>
+                      <SelectItem value="OTHER">✨ {tr("OTHER (أخرى)", "OTHER (Other)")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -767,7 +764,7 @@ export default function AdminChallenges() {
                       <SelectValue placeholder="Select Directs Type" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      <SelectItem value="ANY">{isRtl ? 'ANY (أي باقة)' : 'ANY (Any Package)'}</SelectItem>
+                      <SelectItem value="ANY">{tr("ANY (أي باقة)", "ANY (Any Package)")}</SelectItem>
                       <SelectItem value="CORE">CORE ($50)</SelectItem>
                       <SelectItem value="FLOW">FLOW ($150+)</SelectItem>
                       <SelectItem value="GROW">GROW ($500+)</SelectItem>
@@ -820,12 +817,12 @@ export default function AdminChallenges() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {isRtl ? 'تفاصيل الجائزة (Arabic)' : 'Arabic Reward Details'}
+                    {tr("تفاصيل الجائزة (Arabic)", "Arabic Reward Details")}
                   </Label>
                   <Input
                     value={formData.reward_title_ar}
                     onChange={(e) => setFormData({ ...formData, reward_title_ar: e.target.value })}
-                    placeholder={isRtl ? "مثال: رحلة فاخرة 5 نجوم إلى دبي شاملة التكاليف" : "e.g. 5-Star all-inclusive luxury retreat in Dubai"}
+                    placeholder={tr("مثال: رحلة فاخرة 5 نجوم إلى دبي شاملة التكاليف", "e.g. 5-Star all-inclusive luxury retreat in Dubai")}
                     className="rounded-xl text-sm"
                   />
                 </div>
@@ -834,7 +831,7 @@ export default function AdminChallenges() {
               {/* Campaign Image (File upload or URL) */}
               <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {isRtl ? 'صورة التحدي (Campaign Image)' : 'Campaign Image'}
+                  {tr("صورة التحدي (Campaign Image)", "Campaign Image")}
                 </Label>
                 <div className="flex flex-col sm:flex-row items-center gap-3">
                   <Input
@@ -847,12 +844,12 @@ export default function AdminChallenges() {
                   <Input
                     value={formData.image_url}
                     onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    placeholder={isRtl ? "أو رابط الصورة المباشر https://..." : "Or direct image URL https://..."}
+                    placeholder={tr("أو رابط الصورة المباشر https://...", "Or direct image URL https://...")}
                     className="rounded-xl text-xs"
                   />
                 </div>
                 {uploadingImage && (
-                  <p className="text-xs text-primary animate-pulse">{isRtl ? 'جاري رفع الصورة...' : 'Uploading image...'}</p>
+                  <p className="text-xs text-primary animate-pulse">{tr("جاري رفع الصورة...", "Uploading image...")}</p>
                 )}
                 {formData.image_url && (
                   <div className="mt-2 h-24 w-40 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative">
@@ -868,7 +865,7 @@ export default function AdminChallenges() {
                   onClick={() => setIsModalOpen(false)}
                   className="rounded-xl text-xs font-bold"
                 >
-                  {isRtl ? 'إلغاء' : 'Cancel'}
+                  {tr("إلغاء", "Cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -878,9 +875,9 @@ export default function AdminChallenges() {
                   {isSubmitting ? (
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : editingChallenge ? (
-                    isRtl ? 'حفظ التعديلات' : 'Save Changes'
+                    tr("حفظ التعديلات", "Save Changes")
                   ) : (
-                    isRtl ? 'إنشاء التحدي' : 'Create Campaign'
+                    tr("إنشاء التحدي", "Create Campaign")
                   )}
                 </Button>
               </DialogFooter>
@@ -894,10 +891,10 @@ export default function AdminChallenges() {
             <DialogHeader>
               <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <Eye className="h-5 w-5 text-primary" />
-                <span>{isRtl ? 'معاينة كيف يظهر التحدي للعضو' : 'Member View Preview'}</span>
+                <span>{tr("معاينة كيف يظهر التحدي للعضو", "Member View Preview")}</span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-400">
-                {isRtl ? 'هذا هو التصميم الكامل للشروط والصورة الذي يظهر في صفحة العضو.' : 'This is how the challenge card appears on the student dashboard.'}
+                {tr("هذا هو التصميم الكامل للشروط والصورة الذي يظهر في صفحة العضو.", "This is how the challenge card appears on the student dashboard.")}
               </DialogDescription>
             </DialogHeader>
 
@@ -934,7 +931,7 @@ export default function AdminChallenges() {
                   <div className="p-3 rounded-xl bg-linear-to-r from-amber-500/10 to-orange-500/10 border border-amber-200/50 dark:border-amber-900/40 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
                     <Gift className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
                     <div>
-                      <span className="font-bold">{isRtl ? 'المكافأة: ' : 'Reward: '}</span>
+                      <span className="font-bold">{tr("المكافأة: ", "Reward: ")}</span>
                       <span>{previewChallenge.reward_title || `$${previewChallenge.reward_amount} USD`}</span>
                     </div>
                   </div>
@@ -942,26 +939,26 @@ export default function AdminChallenges() {
                   {/* Conditions Details */}
                   <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs space-y-1.5">
                     <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider block">
-                      {isRtl ? 'شروط التأهل:' : 'Qualification Rules:'}
+                      {tr("شروط التأهل:", "Qualification Rules:")}
                     </span>
                     <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                      <span>{isRtl ? 'المبيعات المطلوبة:' : 'Target Sales:'}</span>
+                      <span>{tr("المبيعات المطلوبة:", "Target Sales:")}</span>
                       <strong className="text-primary">{previewChallenge.target_sales}</strong>
                     </div>
                     {Number(previewChallenge.target_revenue) > 0 && (
                       <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                        <span>{isRtl ? 'حجم المبيعات المطلوبة:' : 'Target Revenue:'}</span>
+                        <span>{tr("حجم المبيعات المطلوبة:", "Target Revenue:")}</span>
                         <strong className="text-emerald-600">${Number(previewChallenge.target_revenue).toFixed(2)} USD</strong>
                       </div>
                     )}
                     {previewChallenge.required_directs > 0 && (
                       <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                        <span>{isRtl ? 'المباشرين المطلوبين:' : 'Required Directs:'}</span>
+                        <span>{tr("المباشرين المطلوبين:", "Required Directs:")}</span>
                         <strong className="text-indigo-600">{previewChallenge.required_directs} ({previewChallenge.directs_type})</strong>
                       </div>
                     )}
                     <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                      <span>{isRtl ? 'أقصى نسبة من الفريق الواحد:' : 'Max from single leg:'}</span>
+                      <span>{tr("أقصى نسبة من الفريق الواحد:", "Max from single leg:")}</span>
                       <strong>{previewChallenge.leg_limit_percent}%</strong>
                     </div>
                   </div>
@@ -969,14 +966,14 @@ export default function AdminChallenges() {
                   {/* Progress Example */}
                   <div className="space-y-1.5 pt-1">
                     <div className="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
-                      <span>{isRtl ? 'التقدم' : 'Progress'} (1 / {previewChallenge.target_sales})</span>
+                      <span>{tr("التقدم", "Progress")} (1 / {previewChallenge.target_sales})</span>
                       <span>33%</span>
                     </div>
                     <Progress value={33} className="h-2 rounded-full" />
                   </div>
 
                   <Button className="w-full rounded-xl text-xs font-bold gap-1 mt-2 bg-primary text-white">
-                    <span>{isRtl ? 'مشاركة الرابط لإنجاز التحدي' : 'Share link to complete challenge'}</span>
+                    <span>{tr("مشاركة الرابط لإنجاز التحدي", "Share link to complete challenge")}</span>
                     <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
                   </Button>
                 </div>
@@ -991,12 +988,10 @@ export default function AdminChallenges() {
             <DialogHeader>
               <DialogTitle className="text-lg font-black text-rose-600 flex items-center gap-2">
                 <AlertCircle className="h-5 w-5" />
-                <span>{isRtl ? 'تأكيد حذف التحدي' : 'Confirm Deletion'}</span>
+                <span>{tr("تأكيد حذف التحدي", "Confirm Deletion")}</span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500 mt-2">
-                {isRtl
-                  ? 'هل أنت متأكد من رغبتك في حذف هذا التحدي نهائياً؟ لن يتمكن الأعضاء من رؤيته بعد الآن.'
-                  : 'Are you sure you want to permanently delete this challenge campaign? Members will no longer see it.'}
+                {tr("هل أنت متأكد من رغبتك في حذف هذا التحدي نهائياً؟ لن يتمكن الأعضاء من رؤيته بعد الآن.", "Are you sure you want to permanently delete this challenge campaign? Members will no longer see it.")}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="gap-2 mt-4">
@@ -1006,14 +1001,14 @@ export default function AdminChallenges() {
                 onClick={() => setDeleteConfirmId(null)}
                 className="rounded-xl text-xs font-bold"
               >
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button
                 size="sm"
                 onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
                 className="rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"
               >
-                {isRtl ? 'نعم، حذف التحدي' : 'Delete Campaign'}
+                {tr("نعم، حذف التحدي", "Delete Campaign")}
               </Button>
             </DialogFooter>
           </DialogContent>

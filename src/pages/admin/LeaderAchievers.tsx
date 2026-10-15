@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +25,7 @@ export default function LeaderAchievers() {
       const res = await adminAffiliateService.getRankAchievers();
       setAchievers(res.achievers || []);
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل تحميل قائمة منجزي الرتب' : 'Failed to load rank achievers list');
+      toast.error(tr("فشل تحميل قائمة منجزي الرتب", "Failed to load rank achievers list"));
     } finally {
       setLoading(false);
     }
@@ -41,17 +42,15 @@ export default function LeaderAchievers() {
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500 shrink-0" />
-              <span>{isRtl ? 'قائمة منجزي الرتب القيادية' : 'Leader Achievers'}</span>
+              <span>{tr("قائمة منجزي الرتب القيادية", "Leader Achievers")}</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              {isRtl
-                ? 'سجل الشرف لكبار القادة والمسوقين الذين استوفوا الشروط وحققوا الرتب القيادية في المنصة.'
-                : 'Honor roll of top leaders and affiliates who qualified and achieved leadership ranks on the platform.'}
+              {tr("سجل الشرف لكبار القادة والمسوقين الذين استوفوا الشروط وحققوا الرتب القيادية في المنصة.", "Honor roll of top leaders and affiliates who qualified and achieved leadership ranks on the platform.")}
             </p>
           </div>
 
           <div className="px-5 py-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-xs font-bold">
-            {isRtl ? 'إجمالي الإنجازات:' : 'Total Achievements:'} <strong className="font-mono text-base">{achievers.length}</strong>
+            {tr("إجمالي الإنجازات:", "Total Achievements:")} <strong className="font-mono text-base">{achievers.length}</strong>
           </div>
         </div>
 
@@ -61,13 +60,13 @@ export default function LeaderAchievers() {
             <table className="w-full text-xs text-left rtl:text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 font-bold border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="p-4">{isRtl ? 'القائد / العضو' : 'Leader / Member'}</th>
-                  <th className="p-4">{isRtl ? 'الرتبة المحققة' : 'Achieved Rank'}</th>
-                  <th className="p-4">{isRtl ? 'حجم المبيعات المباشرة' : 'Direct Sales Volume'}</th>
-                  <th className="p-4">{isRtl ? 'حجم مبيعات الفريق' : 'Team Turnover Volume'}</th>
-                  <th className="p-4">{isRtl ? 'قيمة المكافأة' : 'Reward Amount'}</th>
-                  <th className="p-4">{isRtl ? 'تاريخ الإنجاز' : 'Achievement Date'}</th>
-                  <th className="p-4 text-center">{isRtl ? 'حالة المكافأة' : 'Reward Status'}</th>
+                  <th className="p-4">{tr("القائد / العضو", "Leader / Member")}</th>
+                  <th className="p-4">{tr("الرتبة المحققة", "Achieved Rank")}</th>
+                  <th className="p-4">{tr("حجم المبيعات المباشرة", "Direct Sales Volume")}</th>
+                  <th className="p-4">{tr("حجم مبيعات الفريق", "Team Turnover Volume")}</th>
+                  <th className="p-4">{tr("قيمة المكافأة", "Reward Amount")}</th>
+                  <th className="p-4">{tr("تاريخ الإنجاز", "Achievement Date")}</th>
+                  <th className="p-4 text-center">{tr("حالة المكافأة", "Reward Status")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -75,13 +74,13 @@ export default function LeaderAchievers() {
                   <tr>
                     <td colSpan={7} className="p-12 text-center text-slate-400">
                       <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                      {isRtl ? 'جاري تحميل المنجزين...' : 'Loading achievers...'}
+                      {tr("جاري تحميل المنجزين...", "Loading achievers...")}
                     </td>
                   </tr>
                 ) : achievers.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-12 text-center text-slate-400">
-                      {isRtl ? 'لا يوجد أعضاء حققوا رتباً قيادية حتى الآن.' : 'No members have achieved leadership ranks yet.'}
+                      {tr("لا يوجد أعضاء حققوا رتباً قيادية حتى الآن.", "No members have achieved leadership ranks yet.")}
                     </td>
                   </tr>
                 ) : (
@@ -108,7 +107,7 @@ export default function LeaderAchievers() {
                       <td className="p-4">
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-white font-bold text-xs shadow-xs" style={{ backgroundColor: a.rank_color || '#6366f1' }}>
                           <Award className="h-3.5 w-3.5" />
-                          <span>{a.rank_name} ({isRtl ? `مستوى ${a.rank_level}` : `Lvl ${a.rank_level}`})</span>
+                          <span>{a.rank_name} ({tr("مستوى ${a.rank_level}", "Lvl ${a.rank_level}")})</span>
                         </div>
                       </td>
 
@@ -135,7 +134,7 @@ export default function LeaderAchievers() {
                       {/* Reward Status */}
                       <td className="p-4 text-center">
                         <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700">
-                          {a.reward_paid ? (isRtl ? 'مدفوعة ✓' : 'PAID ✓') : (isRtl ? 'ممنوحة' : 'GRANTED')}
+                          {a.reward_paid ? (tr("مدفوعة ✓", "PAID ✓")) : (tr("ممنوحة", "GRANTED"))}
                         </span>
                       </td>
                     </tr>

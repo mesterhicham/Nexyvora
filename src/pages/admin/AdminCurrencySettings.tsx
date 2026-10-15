@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -88,7 +89,7 @@ export default function AdminCurrencySettings() {
       setAuditLogs(logsRes.auditLogs || []);
     } catch (err: any) {
       console.error(err);
-      toast.error(isRtl ? 'فشل تحميل بيانات العملات' : 'Failed to load currency settings');
+      toast.error(tr("فشل تحميل بيانات العملات", "Failed to load currency settings"));
     } finally {
       setLoading(false);
     }
@@ -132,12 +133,12 @@ export default function AdminCurrencySettings() {
         bank_instructions: rule.bank_instructions || null,
         bank_instructions_ar: rule.bank_instructions_ar || null
       });
-      toast.success(isRtl ? `تم حفظ إعدادات ${rule.country_name_ar || rule.country_name} بنجاح` : `Updated ${rule.country_name} settings`);
+      toast.success(tr("تم حفظ إعدادات ${rule.country_name_ar || rule.country_name} بنجاح", "Updated ${rule.country_name} settings"));
       // Reload logs to show new entry
       const logsRes = await currencyService.getAdminAuditLogs({ limit: 100 });
       setAuditLogs(logsRes.auditLogs || []);
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (isRtl ? 'فشل حفظ الإعدادات' : 'Failed to save settings'));
+      toast.error(err.response?.data?.error || (tr("فشل حفظ الإعدادات", "Failed to save settings")));
     } finally {
       setSavingCountry(null);
     }
@@ -145,7 +146,7 @@ export default function AdminCurrencySettings() {
 
   const handleCreateCountry = async () => {
     if (!newCountry.country_code || !newCountry.country_name || !newCountry.currency_code) {
-      return toast.error(isRtl ? 'يرجى ملء جميع الحقول الإلزامية' : 'Please fill all required fields');
+      return toast.error(tr("يرجى ملء جميع الحقول الإلزامية", "Please fill all required fields"));
     }
 
     try {
@@ -156,7 +157,7 @@ export default function AdminCurrencySettings() {
         usd_rate: parseFloat(newCountry.usd_rate) || 1.0,
         usdt_rate: parseFloat(newCountry.usdt_rate) || 1.0,
       });
-      toast.success(isRtl ? 'تمت إضافة الدولة بنجاح' : 'Country rule added successfully');
+      toast.success(tr("تمت إضافة الدولة بنجاح", "Country rule added successfully"));
       setIsAddOpen(false);
       setNewCountry({
         country_code: '',
@@ -180,7 +181,7 @@ export default function AdminCurrencySettings() {
       });
       loadAll();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (isRtl ? 'فشلت إضافة الدولة' : 'Failed to add country'));
+      toast.error(err.response?.data?.error || (tr("فشلت إضافة الدولة", "Failed to add country")));
     } finally {
       setAddingSubmitting(false);
     }
@@ -224,13 +225,11 @@ export default function AdminCurrencySettings() {
                 <Globe className="h-6 w-6" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                {isRtl ? 'إعدادات العملات وطرق الدفع حسب الدولة' : 'Country Currency & Payment Settings'}
+                {tr("إعدادات العملات وطرق الدفع حسب الدولة", "Country Currency & Payment Settings")}
               </h1>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {isRtl 
-                ? 'تحكم ذكي في العملة المعروضة، أسعار الصرف اليدوية، تفعيل USDT، وبوابات الدفع المتاحة لكل دولة مع سجل تدقيق متكامل.' 
-                : 'Manage localized currencies, manual exchange rates, USDT toggles, and payment gateways with a complete audit log.'}
+              {tr("تحكم ذكي في العملة المعروضة، أسعار الصرف اليدوية، تفعيل USDT، وبوابات الدفع المتاحة لكل دولة مع سجل تدقيق متكامل.", "Manage localized currencies, manual exchange rates, USDT toggles, and payment gateways with a complete audit log.")}
             </p>
           </div>
 
@@ -243,7 +242,7 @@ export default function AdminCurrencySettings() {
               className="rounded-xl border-slate-200 dark:border-slate-800"
             >
               <RefreshCw className={`h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0 ${loading ? 'animate-spin' : ''}`} />
-              {isRtl ? 'تحديث' : 'Refresh'}
+              {tr("تحديث", "Refresh")}
             </Button>
             <Button
               size="sm"
@@ -251,7 +250,7 @@ export default function AdminCurrencySettings() {
               className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md shadow-blue-500/20"
             >
               <Plus className="h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0" />
-              {isRtl ? 'إضافة دولة جديدة' : 'Add Country Rule'}
+              {tr("إضافة دولة جديدة", "Add Country Rule")}
             </Button>
           </div>
         </div>
@@ -261,12 +260,10 @@ export default function AdminCurrencySettings() {
           <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
           <div className="space-y-1">
             <p className="font-bold">
-              {isRtl ? 'ملاحظة محاسبية وأمنية هامة:' : 'Crucial Accounting & Security Rule:'}
+              {tr("ملاحظة محاسبية وأمنية هامة:", "Crucial Accounting & Security Rule:")}
             </p>
             <p className="text-slate-600 dark:text-slate-300">
-              {isRtl 
-                ? 'العملة الأساسية في قاعدة البيانات وسجلات الأرباح هي دائماً الدولار (USD). تغيير أسعار الصرف هنا يؤثر ديناميكياً فقط على واجهات العرض والشراء دون المساس بأرصدة المستخدمين السابقة. بالنسبة للجزائر (DZ)، تم فرض حظر أمني صارم يمنع إظهار أو استخدام USDT تحت أي ظرف.' 
-                : 'Internal accounting balance is strictly kept in USD. Rate changes here dynamically update display and checkout without altering past records. For Algeria (DZ), USDT is strictly prohibited across frontend and backend.'}
+              {tr("العملة الأساسية في قاعدة البيانات وسجلات الأرباح هي دائماً الدولار (USD). تغيير أسعار الصرف هنا يؤثر ديناميكياً فقط على واجهات العرض والشراء دون المساس بأرصدة المستخدمين السابقة. بالنسبة للجزائر (DZ)، تم فرض حظر أمني صارم يمنع إظهار أو استخدام USDT تحت أي ظرف.", "Internal accounting balance is strictly kept in USD. Rate changes here dynamically update display and checkout without altering past records. For Algeria (DZ), USDT is strictly prohibited across frontend and backend.")}
             </p>
           </div>
         </div>
@@ -276,12 +273,12 @@ export default function AdminCurrencySettings() {
           <TabsList className="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl">
             <TabsTrigger value="rules" className="rounded-xl font-bold flex items-center gap-2">
               <Coins className="h-4 w-4" />
-              <span>{isRtl ? 'قواعد العملات وأسعار الصرف' : 'Currency & Exchange Rules'}</span>
+              <span>{tr("قواعد العملات وأسعار الصرف", "Currency & Exchange Rules")}</span>
               <Badge variant="secondary" className="text-[10px] py-0 px-1.5">{rules.length}</Badge>
             </TabsTrigger>
             <TabsTrigger value="audit" className="rounded-xl font-bold flex items-center gap-2">
               <History className="h-4 w-4" />
-              <span>{isRtl ? 'سجل التدقيق (Audit Log)' : 'Audit Trail'}</span>
+              <span>{tr("سجل التدقيق (Audit Log)", "Audit Trail")}</span>
               <Badge variant="secondary" className="text-[10px] py-0 px-1.5">{auditLogs.length}</Badge>
             </TabsTrigger>
           </TabsList>
@@ -292,7 +289,7 @@ export default function AdminCurrencySettings() {
               <div className="relative w-full sm:w-80">
                 <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
-                  placeholder={isRtl ? 'بحث باسم الدولة أو الرمز...' : 'Search country or code...'}
+                  placeholder={tr("بحث باسم الدولة أو الرمز...", "Search country or code...")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 rtl:pr-9 rtl:pl-3 rounded-xl border-slate-200 dark:border-slate-800"
@@ -326,19 +323,19 @@ export default function AdminCurrencySettings() {
                             </Badge>
                           </div>
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            {isRtl ? 'العملة المعروضة:' : 'Currency:'}{' '}
+                            {tr("العملة المعروضة:", "Currency:")}{' '}
                             <strong className="text-slate-800 dark:text-slate-200">{rule.currency_code} ({rule.currency_symbol})</strong>
                           </p>
                           {isAlgeria && (
                             <div className="mt-1 flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
                               <ShieldCheck className="h-3.5 w-3.5" />
-                              <span>{isRtl ? 'نظام دينار حصري (حظر تام لـ USDT)' : 'Strict DZD Only (USDT Blocked)'}</span>
+                              <span>{tr("نظام دينار حصري (حظر تام لـ USDT)", "Strict DZD Only (USDT Blocked)")}</span>
                             </div>
                           )}
                           {isMorocco && (
                             <div className="mt-1 flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400">
                               <CheckCircle2 className="h-3.5 w-3.5" />
-                              <span>{isRtl ? 'عرض مزدوج: درهم مغربي + معادل USDT' : 'Dual Display: MAD + USDT'}</span>
+                              <span>{tr("عرض مزدوج: درهم مغربي + معادل USDT", "Dual Display: MAD + USDT")}</span>
                             </div>
                           )}
                         </div>
@@ -393,7 +390,7 @@ export default function AdminCurrencySettings() {
                           {isAlgeria ? (
                             <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500/10 text-red-600 text-[10px] font-black" title="ممنوع ومقفل للجزائر">
                               <Lock className="h-3 w-3" />
-                              <span>{isRtl ? 'محظور' : 'Banned'}</span>
+                              <span>{tr("محظور", "Banned")}</span>
                             </div>
                           ) : (
                             <Switch
@@ -406,7 +403,7 @@ export default function AdminCurrencySettings() {
                         {/* Bank Transfer Toggle */}
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                            {isRtl ? 'بنك' : 'Bank'}
+                            {tr("بنك", "Bank")}
                           </span>
                           <Switch
                             checked={!!rule.bank_transfer_enabled}
@@ -456,7 +453,7 @@ export default function AdminCurrencySettings() {
                             className="rounded-xl border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-blue-950/50"
                           >
                             <Landmark className="h-3.5 w-3.5 mr-1 rtl:ml-1 rtl:mr-0 text-blue-600" />
-                            {isRtl ? 'بيانات البنك المحلي' : 'Local Bank Info'}
+                            {tr("بيانات البنك المحلي", "Local Bank Info")}
                             {expandedBankCountry === rule.country_code ? (
                               <ChevronUp className="h-3.5 w-3.5 ml-1 rtl:mr-1 rtl:ml-0" />
                             ) : (
@@ -474,7 +471,7 @@ export default function AdminCurrencySettings() {
                             className="rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-bold hover:scale-102 active:scale-98 transition-all"
                           >
                             <Save className={`h-3.5 w-3.5 mr-1 rtl:ml-1 rtl:mr-0 ${isSaving ? 'animate-spin' : ''}`} />
-                            {isSaving ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ' : 'Save')}
+                            {isSaving ? (tr("جاري الحفظ...", "Saving...")) : (tr("حفظ", "Save"))}
                           </Button>
                         </div>
                       </div>
@@ -490,21 +487,21 @@ export default function AdminCurrencySettings() {
                               <Landmark className="h-4 w-4" />
                             </div>
                             <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
-                              {isRtl ? `بيانات الحساب البنكي والتحويل اليدوي (${rule.country_name_ar || rule.country_name})` : `Local Bank & Manual Payment Details (${rule.country_name})`}
+                              {tr("بيانات الحساب البنكي والتحويل اليدوي (${rule.country_name_ar || rule.country_name})", "Local Bank & Manual Payment Details (${rule.country_name})")}
                             </span>
                           </div>
                           <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200">
-                            {isRtl ? 'يظهر لمستخدمي هذه الدولة عند الإيداع' : 'Shown to students of this country'}
+                            {tr("يظهر لمستخدمي هذه الدولة عند الإيداع", "Shown to students of this country")}
                           </Badge>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                           <div className="space-y-1">
                             <Label className="text-[11px] font-bold text-slate-500">
-                              {isRtl ? 'اسم البنك / جهة الدفع' : 'Bank / Institution Name'}
+                              {tr("اسم البنك / جهة الدفع", "Bank / Institution Name")}
                             </Label>
                             <Input
-                              placeholder={isRtl ? 'مثال: بنك المغرب، بريدي موب، الإمارات دبي الوطني' : 'e.g. Attijariwafa Bank, BaridiMob, Emirates NBD'}
+                              placeholder={tr("مثال: بنك المغرب، بريدي موب، الإمارات دبي الوطني", "e.g. Attijariwafa Bank, BaridiMob, Emirates NBD")}
                               value={rule.bank_name || ''}
                               onChange={(e) => handleRuleChange(rule.country_code, 'bank_name', e.target.value)}
                               className="text-xs h-9 rounded-xl font-medium"
@@ -513,7 +510,7 @@ export default function AdminCurrencySettings() {
 
                           <div className="space-y-1">
                             <Label className="text-[11px] font-bold text-slate-500">
-                              {isRtl ? 'اسم صاحب الحساب (المستفيد)' : 'Account Holder / Beneficiary Name'}
+                              {tr("اسم صاحب الحساب (المستفيد)", "Account Holder / Beneficiary Name")}
                             </Label>
                             <Input
                               placeholder="e.g. Nextvora Academy LLC"
@@ -525,7 +522,7 @@ export default function AdminCurrencySettings() {
 
                           <div className="space-y-1">
                             <Label className="text-[11px] font-bold text-slate-500">
-                              {isRtl ? 'رقم الحساب / RIB / RIP' : 'Account Number / RIB / RIP'}
+                              {tr("رقم الحساب / RIB / RIP", "Account Number / RIB / RIP")}
                             </Label>
                             <Input
                               placeholder="001 00600 0001234567 89"
@@ -537,7 +534,7 @@ export default function AdminCurrencySettings() {
 
                           <div className="space-y-1">
                             <Label className="text-[11px] font-bold text-slate-500">
-                              {isRtl ? 'رقم الآيبان الدولي (IBAN)' : 'IBAN'}
+                              {tr("رقم الآيبان الدولي (IBAN)", "IBAN")}
                             </Label>
                             <Input
                               placeholder="MA64 0077... or AE07 0260..."
@@ -549,7 +546,7 @@ export default function AdminCurrencySettings() {
 
                           <div className="space-y-1">
                             <Label className="text-[11px] font-bold text-slate-500">
-                              {isRtl ? 'كود السويفت (SWIFT / BIC)' : 'SWIFT / BIC Code'}
+                              {tr("كود السويفت (SWIFT / BIC)", "SWIFT / BIC Code")}
                             </Label>
                             <Input
                               placeholder="e.g. BCMAMAMC, BNALFZAL, EBILAEAD"
@@ -561,10 +558,10 @@ export default function AdminCurrencySettings() {
 
                           <div className="space-y-1 sm:col-span-2 lg:col-span-1">
                             <Label className="text-[11px] font-bold text-slate-500">
-                              {isRtl ? 'تعليمات التحويل للعميل (بالعربية)' : 'Payment Instructions (Arabic)'}
+                              {tr("تعليمات التحويل للعميل (بالعربية)", "Payment Instructions (Arabic)")}
                             </Label>
                             <Input
-                              placeholder={isRtl ? 'يرجى التحويل بالعملة المحلية وإرفاق الوصل...' : 'Transfer in local currency and attach receipt...'}
+                              placeholder={tr("يرجى التحويل بالعملة المحلية وإرفاق الوصل...", "Transfer in local currency and attach receipt...")}
                               value={rule.bank_instructions_ar || ''}
                               onChange={(e) => handleRuleChange(rule.country_code, 'bank_instructions_ar', e.target.value)}
                               className="text-xs h-9 rounded-xl font-medium"
@@ -585,32 +582,30 @@ export default function AdminCurrencySettings() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-base font-black text-slate-900 dark:text-white">
-                    {isRtl ? 'سجل تدقيق تعديلات العملات وأسعار الصرف' : 'Currency & Payment Audit Trail'}
+                    {tr("سجل تدقيق تعديلات العملات وأسعار الصرف", "Currency & Payment Audit Trail")}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {isRtl 
-                      ? 'توثيق كامل لكافة التعديلات الإدارية المتضمنة المسؤول، الحقل المعدل، القيمة القديمة والجديدة، والتاريخ وعنوان IP.' 
-                      : 'Immutable trail of administrative updates with old vs new values, admin identity, and IP address.'}
+                    {tr("توثيق كامل لكافة التعديلات الإدارية المتضمنة المسؤول، الحقل المعدل، القيمة القديمة والجديدة، والتاريخ وعنوان IP.", "Immutable trail of administrative updates with old vs new values, admin identity, and IP address.")}
                   </p>
                 </div>
               </div>
 
               {auditLogs.length === 0 ? (
                 <div className="text-center py-12 text-slate-400 text-sm">
-                  {isRtl ? 'لا توجد سجلات تدقيق حتى الآن.' : 'No audit entries yet.'}
+                  {tr("لا توجد سجلات تدقيق حتى الآن.", "No audit entries yet.")}
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-left rtl:text-right">
                     <thead className="text-[11px] font-black uppercase text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                       <tr>
-                        <th className="p-3">{isRtl ? 'التاريخ والوقت' : 'Date & Time'}</th>
-                        <th className="p-3">{isRtl ? 'الأدمن' : 'Admin'}</th>
-                        <th className="p-3">{isRtl ? 'الدولة' : 'Country'}</th>
-                        <th className="p-3">{isRtl ? 'الحقل' : 'Field'}</th>
-                        <th className="p-3">{isRtl ? 'القيمة السابقة' : 'Old Value'}</th>
-                        <th className="p-3">{isRtl ? 'القيمة الجديدة' : 'New Value'}</th>
-                        <th className="p-3">{isRtl ? 'عنوان IP' : 'IP Address'}</th>
+                        <th className="p-3">{tr("التاريخ والوقت", "Date & Time")}</th>
+                        <th className="p-3">{tr("الأدمن", "Admin")}</th>
+                        <th className="p-3">{tr("الدولة", "Country")}</th>
+                        <th className="p-3">{tr("الحقل", "Field")}</th>
+                        <th className="p-3">{tr("القيمة السابقة", "Old Value")}</th>
+                        <th className="p-3">{tr("القيمة الجديدة", "New Value")}</th>
+                        <th className="p-3">{tr("عنوان IP", "IP Address")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -652,18 +647,16 @@ export default function AdminCurrencySettings() {
           <DialogContent className="sm:max-w-lg rounded-3xl p-6">
             <DialogHeader className={isRtl ? 'text-right' : 'text-left'}>
               <DialogTitle className="text-xl font-black">
-                {isRtl ? 'إضافة قاعدة عملة لدولة جديدة' : 'Add New Country Currency Rule'}
+                {tr("إضافة قاعدة عملة لدولة جديدة", "Add New Country Currency Rule")}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                {isRtl 
-                  ? 'أدخل بيانات الدولة وكود العملة وسعر الصرف المقابل للدولار الأمريكي.' 
-                  : 'Define country ISO code, local currency, and exchange rate to USD.'}
+                {tr("أدخل بيانات الدولة وكود العملة وسعر الصرف المقابل للدولار الأمريكي.", "Define country ISO code, local currency, and exchange rate to USD.")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-1">
-                <Label className="text-xs font-bold">{isRtl ? 'كود الدولة (ISO)' : 'Country Code (ISO)'}</Label>
+                <Label className="text-xs font-bold">{tr("كود الدولة (ISO)", "Country Code (ISO)")}</Label>
                 <Input
                   placeholder="e.g. AE, SA, EG"
                   maxLength={5}
@@ -674,7 +667,7 @@ export default function AdminCurrencySettings() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-bold">{isRtl ? 'اسم الدولة بالإنجليزية' : 'Country Name (EN)'}</Label>
+                <Label className="text-xs font-bold">{tr("اسم الدولة بالإنجليزية", "Country Name (EN)")}</Label>
                 <Input
                   placeholder="e.g. United Arab Emirates"
                   value={newCountry.country_name}
@@ -684,7 +677,7 @@ export default function AdminCurrencySettings() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-bold">{isRtl ? 'اسم الدولة بالعربية' : 'Country Name (AR)'}</Label>
+                <Label className="text-xs font-bold">{tr("اسم الدولة بالعربية", "Country Name (AR)")}</Label>
                 <Input
                   placeholder="مثال: الإمارات العربية المتحدة"
                   value={newCountry.country_name_ar}
@@ -694,7 +687,7 @@ export default function AdminCurrencySettings() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-bold">{isRtl ? 'كود العملة (ISO)' : 'Currency Code'}</Label>
+                <Label className="text-xs font-bold">{tr("كود العملة (ISO)", "Currency Code")}</Label>
                 <Input
                   placeholder="e.g. AED, SAR, EGP"
                   maxLength={5}
@@ -705,7 +698,7 @@ export default function AdminCurrencySettings() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-bold">{isRtl ? 'رمز العملة' : 'Currency Symbol'}</Label>
+                <Label className="text-xs font-bold">{tr("رمز العملة", "Currency Symbol")}</Label>
                 <Input
                   placeholder="e.g. د.إ, ر.س, ج.م"
                   value={newCountry.currency_symbol}
@@ -715,7 +708,7 @@ export default function AdminCurrencySettings() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-bold">{isRtl ? 'سعر صرف USD' : '1 USD Rate'}</Label>
+                <Label className="text-xs font-bold">{tr("سعر صرف USD", "1 USD Rate")}</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -726,7 +719,7 @@ export default function AdminCurrencySettings() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-bold">{isRtl ? 'سعر صرف USDT' : '1 USDT Rate'}</Label>
+                <Label className="text-xs font-bold">{tr("سعر صرف USDT", "1 USDT Rate")}</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -738,8 +731,8 @@ export default function AdminCurrencySettings() {
 
               <div className="flex items-center justify-between col-span-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 mt-2">
                 <div className="space-y-0.5">
-                  <span className="text-xs font-bold">{isRtl ? 'تفعيل USDT لهذه الدولة' : 'Enable USDT for this country'}</span>
-                  <p className="text-[10px] text-slate-400">{isRtl ? 'إمكانية الإيداع والسحب والشراء بـ USDT' : 'Allow deposits & purchases via USDT'}</p>
+                  <span className="text-xs font-bold">{tr("تفعيل USDT لهذه الدولة", "Enable USDT for this country")}</span>
+                  <p className="text-[10px] text-slate-400">{tr("إمكانية الإيداع والسحب والشراء بـ USDT", "Allow deposits & purchases via USDT")}</p>
                 </div>
                 <Switch
                   checked={newCountry.usdt_enabled}
@@ -751,14 +744,14 @@ export default function AdminCurrencySettings() {
               <div className="col-span-2 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-2">
                   <Landmark className="h-4 w-4 text-blue-600" />
-                  {isRtl ? 'بيانات البنك والتحويل المحلي (اختياري)' : 'Local Bank Details (Optional)'}
+                  {tr("بيانات البنك والتحويل المحلي (اختياري)", "Local Bank Details (Optional)")}
                 </span>
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'اسم البنك' : 'Bank Name'}</Label>
+                    <Label className="text-[10px] font-bold text-slate-500">{tr("اسم البنك", "Bank Name")}</Label>
                     <Input
-                      placeholder={isRtl ? 'مثال: التجاري وفا بنك، بريدي موب' : 'e.g. Emirates NBD, Attijariwafa'}
+                      placeholder={tr("مثال: التجاري وفا بنك، بريدي موب", "e.g. Emirates NBD, Attijariwafa")}
                       value={newCountry.bank_name}
                       onChange={(e) => setNewCountry({ ...newCountry, bank_name: e.target.value })}
                       className="text-xs h-8 rounded-lg"
@@ -766,7 +759,7 @@ export default function AdminCurrencySettings() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'اسم صاحب الحساب' : 'Account Holder'}</Label>
+                    <Label className="text-[10px] font-bold text-slate-500">{tr("اسم صاحب الحساب", "Account Holder")}</Label>
                     <Input
                       placeholder="e.g. Nextvora LLC"
                       value={newCountry.account_holder}
@@ -776,7 +769,7 @@ export default function AdminCurrencySettings() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'رقم الحساب / RIP' : 'Account Number / RIP'}</Label>
+                    <Label className="text-[10px] font-bold text-slate-500">{tr("رقم الحساب / RIP", "Account Number / RIP")}</Label>
                     <Input
                       placeholder="001 002 0001234567 89"
                       value={newCountry.account_number}
@@ -786,7 +779,7 @@ export default function AdminCurrencySettings() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'رقم الآيبان (IBAN)' : 'IBAN'}</Label>
+                    <Label className="text-[10px] font-bold text-slate-500">{tr("رقم الآيبان (IBAN)", "IBAN")}</Label>
                     <Input
                       placeholder="AE07 0260..."
                       value={newCountry.iban}
@@ -796,9 +789,9 @@ export default function AdminCurrencySettings() {
                   </div>
 
                   <div className="col-span-2 space-y-1">
-                    <Label className="text-[10px] font-bold text-slate-500">{isRtl ? 'تعليمات التحويل بالعربية' : 'Payment Instructions (AR)'}</Label>
+                    <Label className="text-[10px] font-bold text-slate-500">{tr("تعليمات التحويل بالعربية", "Payment Instructions (AR)")}</Label>
                     <Input
-                      placeholder={isRtl ? 'يرجى التحويل بالعملة المحلية وإرفاق صورة الوصل...' : 'Transfer in local currency and attach receipt...'}
+                      placeholder={tr("يرجى التحويل بالعملة المحلية وإرفاق صورة الوصل...", "Transfer in local currency and attach receipt...")}
                       value={newCountry.bank_instructions_ar}
                       onChange={(e) => setNewCountry({ ...newCountry, bank_instructions_ar: e.target.value })}
                       className="text-xs h-8 rounded-lg"
@@ -810,14 +803,14 @@ export default function AdminCurrencySettings() {
 
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl">
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button
                 onClick={handleCreateCountry}
                 disabled={addingSubmitting}
                 className="rounded-xl bg-blue-600 text-white font-bold"
               >
-                {addingSubmitting ? (isRtl ? 'جاري الإضافة...' : 'Adding...') : (isRtl ? 'إضافة الدولة' : 'Add Country')}
+                {addingSubmitting ? (tr("جاري الإضافة...", "Adding...")) : (tr("إضافة الدولة", "Add Country"))}
               </Button>
             </DialogFooter>
           </DialogContent>

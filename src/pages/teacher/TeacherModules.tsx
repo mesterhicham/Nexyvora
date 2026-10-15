@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -61,7 +62,7 @@ export default function TeacherModules() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm(isRtl ? 'هل أنت متأكد من رغبتك في حذف هذا المقرر؟' : 'Are you sure you want to delete this module?')) {
+    if (confirm(tr("هل أنت متأكد من رغبتك في حذف هذا المقرر؟", "Are you sure you want to delete this module?"))) {
       setDeletingId(id);
       try {
         await deleteModule.mutateAsync(id);
@@ -84,7 +85,7 @@ export default function TeacherModules() {
           className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
         >
           <Plus className="h-4 w-4" />
-          <span>{isRtl ? 'إضافة مقرر جديد' : 'Add New Module'}</span>
+          <span>{tr("إضافة مقرر جديد", "Add New Module")}</span>
         </Button>
       </div>
       
@@ -134,14 +135,14 @@ export default function TeacherModules() {
                       <Clock className="h-3.5 w-3.5 text-primary" />
                       {t('table.hours', 'الحجم الساعي')}
                     </span>
-                    <span className="font-bold text-slate-900 dark:text-white">{m.hours || 0} {isRtl ? 'ساعة' : 'hours'}</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{m.hours || 0} {tr("ساعة", "hours")}</span>
                   </div>
 
                   {m.specialty_name && (
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 font-medium">
                         <Layers className="h-3.5 w-3.5 text-primary" />
-                        {isRtl ? 'التخصص' : 'Specialty'}
+                        {tr("التخصص", "Specialty")}
                       </span>
                       <span className="font-semibold text-slate-900 dark:text-white">{m.specialty_name}</span>
                     </div>
@@ -157,17 +158,17 @@ export default function TeacherModules() {
             <BookOpen className="h-10 w-10" />
           </div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-            {isRtl ? 'لا توجد مقررات دراسية مضافة حتى الآن' : 'No modules added yet'}
+            {tr("لا توجد مقررات دراسية مضافة حتى الآن", "No modules added yet")}
           </h3>
           <p className="text-xs text-slate-600 dark:text-slate-400 mb-6 max-w-sm mx-auto">
-            {isRtl ? 'يمكنك الآن إضافة مقرراتك الدراسية وتحديد عدد الساعات والتخصص بسهولة.' : 'You can now create and manage your course modules with ease.'}
+            {tr("يمكنك الآن إضافة مقرراتك الدراسية وتحديد عدد الساعات والتخصص بسهولة.", "You can now create and manage your course modules with ease.")}
           </p>
           <Button 
             onClick={() => setIsAddModalOpen(true)}
             className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold mx-auto"
           >
             <Plus className="h-4 w-4" />
-            <span>{isRtl ? 'إضافة مقررك الأول' : 'Create First Module'}</span>
+            <span>{tr("إضافة مقررك الأول", "Create First Module")}</span>
           </Button>
         </div>
       )}
@@ -177,7 +178,7 @@ export default function TeacherModules() {
         <div className="mt-10">
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
             <Users className="h-5 w-5 text-primary" />
-            <span>{isRtl ? 'الدفعات المرتبطة' : 'My Cohorts'}</span>
+            <span>{tr("الدفعات المرتبطة", "My Cohorts")}</span>
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {data.cohorts.map((c: any) => (
@@ -196,21 +197,21 @@ export default function TeacherModules() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg font-bold">
               <Sparkles className="h-5 w-5 text-primary" />
-              <span>{isRtl ? 'إضافة مقرر دراسي جديد' : 'Add New Module'}</span>
+              <span>{tr("إضافة مقرر دراسي جديد", "Add New Module")}</span>
             </DialogTitle>
             <DialogDescription className="text-xs">
-              {isRtl ? 'أدخل معلومات المقرر ليتم ربطه بحسابك الأكاديمي مباشرة.' : 'Enter the module details to link it with your teaching profile.'}
+              {tr("أدخل معلومات المقرر ليتم ربطه بحسابك الأكاديمي مباشرة.", "Enter the module details to link it with your teaching profile.")}
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleCreateModule} className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label htmlFor="module-name" className="text-xs font-semibold text-slate-900 dark:text-white">
-                {isRtl ? 'اسم المقرر *' : 'Module Name *'}
+                {tr("اسم المقرر *", "Module Name *")}
               </Label>
               <Input
                 id="module-name"
-                placeholder={isRtl ? 'مثال: محاسبة الشركات' : 'e.g. Corporate Accounting'}
+                placeholder={tr("مثال: محاسبة الشركات", "e.g. Corporate Accounting")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -221,7 +222,7 @@ export default function TeacherModules() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="module-code" className="text-xs font-semibold text-slate-900 dark:text-white">
-                  {isRtl ? 'كود المقرر *' : 'Module Code *'}
+                  {tr("كود المقرر *", "Module Code *")}
                 </Label>
                 <Input
                   id="module-code"
@@ -235,7 +236,7 @@ export default function TeacherModules() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="module-hours" className="text-xs font-semibold text-slate-900 dark:text-white">
-                  {isRtl ? 'عدد الساعات' : 'Total Hours'}
+                  {tr("عدد الساعات", "Total Hours")}
                 </Label>
                 <Input
                   id="module-hours"
@@ -251,14 +252,14 @@ export default function TeacherModules() {
 
             <div className="space-y-1.5">
               <Label htmlFor="module-specialty" className="text-xs font-semibold text-slate-900 dark:text-white">
-                {isRtl ? 'التخصص (اختياري)' : 'Specialty (Optional)'}
+                {tr("التخصص (اختياري)", "Specialty (Optional)")}
               </Label>
               <Select value={specialtyId} onValueChange={setSpecialtyId}>
                 <SelectTrigger id="module-specialty" className="w-full text-sm">
-                  <SelectValue placeholder={isRtl ? 'اختر التخصص...' : 'Select specialty...'} />
+                  <SelectValue placeholder={tr("اختر التخصص...", "Select specialty...")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">{isRtl ? 'بدون تخصص / عام' : 'General / None'}</SelectItem>
+                  <SelectItem value="none">{tr("بدون تخصص / عام", "General / None")}</SelectItem>
                   {specialties?.map((sp: any) => (
                     <SelectItem key={sp.id} value={sp.id}>
                       {sp.name}
@@ -283,7 +284,7 @@ export default function TeacherModules() {
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               >
                 {createModule.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isRtl ? 'حفظ المقرر' : 'Save Module'}
+                {tr("حفظ المقرر", "Save Module")}
               </Button>
             </DialogFooter>
           </form>

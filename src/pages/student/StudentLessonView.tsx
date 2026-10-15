@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { tr } from '@/utils/tr';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -132,9 +133,9 @@ export default function StudentLessonView() {
     return (
       <DashboardLayout role="student">
         <div className="text-center py-12">
-          <p className="text-muted-foreground">{isRtl ? 'الدرس غير موجود' : 'Lesson not found'}</p>
+          <p className="text-muted-foreground">{tr("الدرس غير موجود", "Lesson not found")}</p>
           <Button className="mt-4" onClick={() => navigate('/student/lessons')}>
-            {isRtl ? 'العودة للدروس' : 'Back to Lessons'}
+            {tr("العودة للدروس", "Back to Lessons")}
           </Button>
         </div>
       </DashboardLayout>
@@ -152,7 +153,7 @@ export default function StudentLessonView() {
           className="mb-2"
         >
           <ArrowLeft className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2 rtl:rotate-180" />
-          {isRtl ? 'العودة للدروس' : 'Back to Lessons'}
+          {tr("العودة للدروس", "Back to Lessons")}
         </Button>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -175,23 +176,23 @@ export default function StudentLessonView() {
                     <div className="aspect-video flex flex-col items-center justify-center bg-muted rounded-t-lg">
                       <FileText className="h-16 w-16 text-primary mb-4" />
                       <h3 className="text-xl font-semibold mb-2">{currentContent.title}</h3>
-                      <p className="text-muted-foreground mb-4">{isRtl ? 'ملف PDF' : 'PDF Document'}</p>
+                      <p className="text-muted-foreground mb-4">{tr("ملف PDF", "PDF Document")}</p>
                       {isContentUnlocked(selectedContentIndex) ? (
                         <Button onClick={handlePdfOpen}>
                           <ExternalLink className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                          {isRtl ? 'فتح الملف' : 'Open File'}
+                          {tr("فتح الملف", "Open File")}
                         </Button>
                       ) : (
                         <div className="text-center">
                           <Lock className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">{isRtl ? 'أكمل المحتوى السابق للفتح' : 'Complete previous content to unlock'}</p>
+                          <p className="text-sm text-muted-foreground">{tr("أكمل المحتوى السابق للفتح", "Complete previous content to unlock")}</p>
                         </div>
                       )}
                     </div>
                   )
                 ) : (
                   <div className="aspect-video flex items-center justify-center bg-muted rounded-t-lg">
-                    <p className="text-muted-foreground">{isRtl ? 'لا يوجد محتوى متاح' : 'No content available'}</p>
+                    <p className="text-muted-foreground">{tr("لا يوجد محتوى متاح", "No content available")}</p>
                   </div>
                 )}
                 
@@ -211,17 +212,17 @@ export default function StudentLessonView() {
                         disabled={selectedContentIndex === 0}
                       >
                         <ChevronRight className="h-4 w-4 ml-2 rtl:ml-0 rtl:mr-2" />
-                        {isRtl ? 'السابق' : 'Previous'}
+                        {tr("السابق", "Previous")}
                       </Button>
                       <span className="text-sm text-muted-foreground">
-                        {selectedContentIndex + 1} {isRtl ? 'من' : 'of'} {content.length}
+                        {selectedContentIndex + 1} {tr("من", "of")} {content.length}
                       </span>
                       <Button
                         variant="outline"
                         onClick={goToNext}
                         disabled={selectedContentIndex === content.length - 1 || !isContentUnlocked(selectedContentIndex + 1)}
                       >
-                        {isRtl ? 'التالي' : 'Next'}
+                        {tr("التالي", "Next")}
                         <ChevronLeft className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
                       </Button>
                     </div>
@@ -236,7 +237,7 @@ export default function StudentLessonView() {
             <div className="lg:w-80">
               <Card>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold mb-4">{isRtl ? 'محتويات الدرس' : 'Lesson Contents'}</h3>
+                  <h3 className="font-semibold mb-4">{tr("محتويات الدرس", "Lesson Contents")}</h3>
                   <ScrollArea className="h-[400px]">
                     <div className="space-y-2">
                       {content.map((item, index) => {
@@ -281,13 +282,13 @@ export default function StudentLessonView() {
                                 "text-xs",
                                 isActive ? "text-primary-foreground/70" : "text-muted-foreground"
                               )}>
-                                {item.content_type === 'video' ? (isRtl ? 'فيديو' : 'Video') : 'PDF'}
-                                {item.duration_seconds && (isRtl ? ` • ${Math.floor(item.duration_seconds / 60)} دقيقة` : ` • ${Math.floor(item.duration_seconds / 60)} min`)}
+                                {item.content_type === 'video' ? (tr("فيديو", "Video")) : 'PDF'}
+                                {item.duration_seconds && (tr(" • ${Math.floor(item.duration_seconds / 60)} دقيقة", " • ${Math.floor(item.duration_seconds / 60)} min"))}
                               </p>
                             </div>
                             {itemProgress?.completed && (
                               <Badge variant="secondary" className="text-xs">
-                                {isRtl ? 'مكتمل' : 'Completed'}
+                                {tr("مكتمل", "Completed")}
                               </Badge>
                             )}
                           </button>

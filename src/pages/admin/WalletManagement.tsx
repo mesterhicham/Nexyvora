@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,7 +69,7 @@ export default function WalletManagement() {
       setMembers(res.members || []);
       setStats(res.stats || { totalMembers: 0, membersWithBalance: 0, totalBalances: 0, totalCommissionsPaid: 0 });
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل تحميل بيانات المحافظ' : 'Failed to load wallet data');
+      toast.error(tr("فشل تحميل بيانات المحافظ", "Failed to load wallet data"));
     } finally {
       setLoading(false);
     }
@@ -99,13 +100,11 @@ export default function WalletManagement() {
         canWithdraw: newVal,
       });
       toast.success(
-        isRtl 
-          ? `تم ${newVal ? 'تفعيل' : 'تعطيل'} إمكانية السحب لـ ${user.name}`
-          : `Withdrawal access ${newVal ? 'enabled' : 'disabled'} for ${user.name}`
+        tr("تم ${newVal ? 'تفعيل' : 'تعطيل'} إمكانية السحب لـ ${user.name}", "Withdrawal access ${newVal ? 'enabled' : 'disabled'} for ${user.name}")
       );
       setMembers(prev => prev.map(m => m.id === user.id ? { ...m, can_withdraw: newVal ? 1 : 0 } : m));
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل تعديل حالة السحب' : 'Failed to update withdrawal status');
+      toast.error(tr("فشل تعديل حالة السحب", "Failed to update withdrawal status"));
     }
   };
 
@@ -118,7 +117,7 @@ export default function WalletManagement() {
 
   const handleActionSubmit = async () => {
     if (!amount || Number(amount) <= 0) {
-      return toast.error(isRtl ? 'يرجى تحديد مبلغ صالح' : 'Please specify a valid amount');
+      return toast.error(tr("يرجى تحديد مبلغ صالح", "Please specify a valid amount"));
     }
     if (!selectedUser || !actionType) return;
 
@@ -131,12 +130,12 @@ export default function WalletManagement() {
         note: note.trim() || undefined,
       });
 
-      toast.success(res.message || (isRtl ? 'تم تحديث رصيد العضو بنجاح' : 'Member balance updated successfully'));
+      toast.success(res.message || (tr("تم تحديث رصيد العضو بنجاح", "Member balance updated successfully")));
       setActionType(null);
       setSelectedUser(null);
       loadWallets();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (isRtl ? 'فشل تعديل رصيد المحفظة' : 'Failed to adjust wallet balance'));
+      toast.error(err.response?.data?.error || (tr("فشل تعديل رصيد المحفظة", "Failed to adjust wallet balance")));
     } finally {
       setActionLoading(false);
     }
@@ -384,27 +383,25 @@ export default function WalletManagement() {
                 {actionType === 'credit' ? (
                   <span className="text-emerald-600 flex items-center gap-2">
                     <Plus className="h-5 w-5" />
-                    {isRtl ? 'إضافة رصيد للمحفظة' : 'Credit Wallet Balance'}
+                    {tr("إضافة رصيد للمحفظة", "Credit Wallet Balance")}
                   </span>
                 ) : (
                   <span className="text-rose-600 flex items-center gap-2">
                     <Minus className="h-5 w-5" />
-                    {isRtl ? 'خصم رصيد من المحفظة' : 'Debit Wallet Balance'}
+                    {tr("خصم رصيد من المحفظة", "Debit Wallet Balance")}
                   </span>
                 )}
               </DialogTitle>
               <DialogDescription>
-                {isRtl 
-                  ? `تعديل الرصيد الأساسي لـ ${selectedUser?.name} (${selectedUser?.email})`
-                  : `Adjusting main balance for ${selectedUser?.name} (${selectedUser?.email})`}
+                {tr("تعديل الرصيد الأساسي لـ ${selectedUser?.name} (${selectedUser?.email})", "Adjusting main balance for ${selectedUser?.name} (${selectedUser?.email})")}
                 <br />
-                {isRtl ? 'الرصيد الحالي:' : 'Current Balance:'} <span className="font-mono font-bold text-emerald-600">${Number(selectedUser?.main_balance || 0).toFixed(2)} USD</span>
+                {tr("الرصيد الحالي:", "Current Balance:")} <span className="font-mono font-bold text-emerald-600">${Number(selectedUser?.main_balance || 0).toFixed(2)} USD</span>
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <Label className="text-xs font-semibold">{isRtl ? 'المبلغ ($ USD)' : 'Amount ($ USD)'}</Label>
+                <Label className="text-xs font-semibold">{tr("المبلغ ($ USD)", "Amount ($ USD)")}</Label>
                 <div className="relative">
                   <Input
                     type="number"
@@ -420,9 +417,9 @@ export default function WalletManagement() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-semibold">{isRtl ? 'ملاحظة / سبب العملية (اختياري)' : 'Note / Reason (Optional)'}</Label>
+                <Label className="text-xs font-semibold">{tr("ملاحظة / سبب العملية (اختياري)", "Note / Reason (Optional)")}</Label>
                 <Textarea
-                  placeholder={isRtl ? 'اكتب سبب الإضافة أو الخصم لتسجيله في كشف الحساب المالي...' : 'Enter reason for audit and statement records...'}
+                  placeholder={tr("اكتب سبب الإضافة أو الخصم لتسجيله في كشف الحساب المالي...", "Enter reason for audit and statement records...")}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   className="rounded-xl text-xs min-h-[70px]"
@@ -432,7 +429,7 @@ export default function WalletManagement() {
 
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setActionType(null)} className="rounded-xl">
-                {isRtl ? 'إلغاء' : 'Cancel'}
+                {tr("إلغاء", "Cancel")}
               </Button>
               <Button
                 onClick={handleActionSubmit}
@@ -443,7 +440,7 @@ export default function WalletManagement() {
                     : 'bg-rose-600 hover:bg-rose-700'
                 }`}
               >
-                {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (isRtl ? 'تأكيد العملية' : 'Confirm Action')}
+                {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (tr("تأكيد العملية", "Confirm Action"))}
               </Button>
             </DialogFooter>
           </DialogContent>

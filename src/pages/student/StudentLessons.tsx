@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { tr } from '@/utils/tr';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -37,7 +38,7 @@ export default function StudentLessons() {
         <Card>
           <CardContent className="py-12 text-center">
             <PlayCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">{isRtl ? 'لا توجد دروس متاحة حالياً' : 'No lessons available currently'}</p>
+            <p className="text-muted-foreground">{tr("لا توجد دروس متاحة حالياً", "No lessons available currently")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -77,7 +78,7 @@ export default function StudentLessons() {
                           {lesson.duration_minutes && (
                             <span className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
-                              {lesson.duration_minutes} {isRtl ? 'دقيقة' : 'min'}
+                              {lesson.duration_minutes} {tr("دقيقة", "min")}
                             </span>
                           )}
                         </div>
@@ -90,13 +91,13 @@ export default function StudentLessons() {
                           {videoCount > 0 && (
                             <Badge variant="secondary" className="flex items-center gap-1">
                               <PlayCircle className="h-3 w-3" />
-                              {videoCount} {isRtl ? 'فيديو' : 'videos'}
+                              {videoCount} {tr("فيديو", "videos")}
                             </Badge>
                           )}
                           {pdfCount > 0 && (
                             <Badge variant="secondary" className="flex items-center gap-1">
                               <FileText className="h-3 w-3" />
-                              {pdfCount} {isRtl ? 'ملف' : 'files'}
+                              {pdfCount} {tr("ملف", "files")}
                             </Badge>
                           )}
                         </div>
@@ -104,8 +105,8 @@ export default function StudentLessons() {
                       
                       <StatusBadge 
                         status={
-                          lesson.status === 'completed' ? (isRtl ? 'مكتمل' : 'Completed') : 
-                          lesson.status === 'in_progress' ? (isRtl ? 'جاري' : 'In Progress') : (isRtl ? 'مجدول' : 'Scheduled')
+                          lesson.status === 'completed' ? (tr("مكتمل", "Completed")) : 
+                          lesson.status === 'in_progress' ? (tr("جاري", "In Progress")) : (tr("مجدول", "Scheduled"))
                         } 
                         variant={getStatusVariant(lesson.status || 'scheduled')} 
                       />
@@ -117,7 +118,7 @@ export default function StudentLessons() {
                           onClick={() => navigate(`/student/lessons/${lesson.id}`)}
                         >
                           <Eye className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                          {isRtl ? 'مشاهدة' : 'View'}
+                          {tr("مشاهدة", "View")}
                         </Button>
                       )}
                     </div>

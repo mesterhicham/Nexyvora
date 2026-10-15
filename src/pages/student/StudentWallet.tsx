@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { tr } from '@/utils/tr';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -135,7 +136,7 @@ export default function StudentWallet() {
         const walletRes = await affiliateService.getWallet();
         if (walletRes?.wallet?.balance !== undefined && walletData?.wallet?.balance !== undefined) {
           if (Number(walletRes.wallet.balance) > Number(walletData.wallet.balance)) {
-            toast.success(isRtl ? '🎉 تم استلام التحويل وشحن رصيدك بنجاح!' : 'Deposit received and balance credited!');
+            toast.success(tr("🎉 تم استلام التحويل وشحن رصيدك بنجاح!", "Deposit received and balance credited!"));
             loadData();
             setActivePaymentOrder(null);
             setIsDepositOpen(false);
@@ -161,15 +162,15 @@ export default function StudentWallet() {
         (d.activeAttempt && d.activeAttempt.provider_payment_id === activePaymentOrder.paymentId)
       );
       if (match && match.status === 'completed') {
-        toast.success(isRtl ? '🎉 تم تأكيد المعاملة وإضافة الرصيد بنجاح!' : 'Transaction confirmed and credited!');
+        toast.success(tr("🎉 تم تأكيد المعاملة وإضافة الرصيد بنجاح!", "Transaction confirmed and credited!"));
         loadData();
         setActivePaymentOrder(null);
         setIsDepositOpen(false);
       } else {
-        toast.info(isRtl ? 'المعاملة قيد التدقيق على شبكة البلوكشين. سيتم شحن رصيدك تلقائياً فور وصول التحويل.' : 'Transaction is being monitored on the blockchain. Your wallet will be credited automatically.');
+        toast.info(tr("المعاملة قيد التدقيق على شبكة البلوكشين. سيتم شحن رصيدك تلقائياً فور وصول التحويل.", "Transaction is being monitored on the blockchain. Your wallet will be credited automatically."));
       }
     } catch (e) {
-      toast.error(isRtl ? 'فشل فحص الحالة' : 'Failed to check status');
+      toast.error(tr("فشل فحص الحالة", "Failed to check status"));
     } finally {
       setIsCheckingPayment(false);
     }
@@ -207,7 +208,7 @@ export default function StudentWallet() {
   const copyToClipboard = (text: string, fieldId: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldId);
-    toast.success(t('wallet.copied', isRtl ? 'تم النسخ بنجاح!' : 'Copied to clipboard!'));
+    toast.success(t('wallet.copied', tr("تم النسخ بنجاح!", "Copied to clipboard!")));
     setTimeout(() => setCopiedField(null), 2000);
   };
 
@@ -247,7 +248,7 @@ export default function StudentWallet() {
         setPaymentDetails(fillDetailsFromSettings('bank_transfer', settings));
       }
     } catch (err) {
-      toast.error(t('common.error', isRtl ? 'فشل تحميل بيانات المحفظة' : 'Failed to load wallet data'));
+      toast.error(t('common.error', tr("فشل تحميل بيانات المحفظة", "Failed to load wallet data")));
     } finally {
       setLoading(false);
     }
@@ -330,17 +331,17 @@ export default function StudentWallet() {
         : `$${minWithdrawal} USD`;
 
     if (!amt || amt < minWithdrawal) {
-      return toast.error(`${t('wallet.minWithdrawalNotice', isRtl ? 'الحد الأدنى للسحب هو' : 'Minimum withdrawal is')} ${minWithdrawalText}`);
+      return toast.error(`${t('wallet.minWithdrawalNotice', tr("الحد الأدنى للسحب هو", "Minimum withdrawal is"))} ${minWithdrawalText}`);
     }
 
     if (amt > (walletData?.wallet?.balance || 0)) {
-      return toast.error(t('packages.insufficientBalance', isRtl ? 'الرصيد المتاح غير كافٍ' : 'Insufficient available balance'));
+      return toast.error(t('packages.insufficientBalance', tr("الرصيد المتاح غير كافٍ", "Insufficient available balance")));
     }
 
     if (!paymentDetails.trim()) {
       return toast.error(isAlgeria 
-        ? (isRtl ? 'يرجى كتابة تفاصيل الحساب البنكي أو البريدي' : 'Please provide bank account details')
-        : t('wallet.accountDetails', isRtl ? 'يرجى كتابة تفاصيل الحساب أو عنوان محفظة USDT' : 'Please provide account details or USDT wallet address'));
+        ? (tr("يرجى كتابة تفاصيل الحساب البنكي أو البريدي", "Please provide bank account details"))
+        : t('wallet.accountDetails', tr("يرجى كتابة تفاصيل الحساب أو عنوان محفظة USDT", "Please provide account details or USDT wallet address")));
     }
 
     try {
@@ -351,13 +352,13 @@ export default function StudentWallet() {
         paymentMethod: methodLabel,
         paymentDetails
       });
-      toast.success(res.message || t('common.success', isRtl ? 'تم تقديم طلب السحب بنجاح' : 'Withdrawal request submitted successfully'));
+      toast.success(res.message || t('common.success', tr("تم تقديم طلب السحب بنجاح", "Withdrawal request submitted successfully")));
       setIsWithdrawOpen(false);
       setWithdrawAmount('');
       setPaymentDetails('');
       loadData();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || t('common.error', isRtl ? 'فشل تقديم طلب السحب' : 'Failed to submit withdrawal request'));
+      toast.error(err.response?.data?.error || t('common.error', tr("فشل تقديم طلب السحب", "Failed to submit withdrawal request")));
     } finally {
       setSubmitting(false);
     }
@@ -368,7 +369,7 @@ export default function StudentWallet() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      return toast.error(isRtl ? 'حجم الملف يجب ألا يتجاوز 5 ميغابايت' : 'File size must be under 5MB');
+      return toast.error(tr("حجم الملف يجب ألا يتجاوز 5 ميغابايت", "File size must be under 5MB"));
     }
 
     try {
@@ -377,13 +378,13 @@ export default function StudentWallet() {
       const url = res.url || res.fileUrl || res.path || (res.filename ? `/uploads/${res.filename}` : '');
       if (url) {
         setDepositReceiptUrl(url);
-        toast.success(isRtl ? 'تم رفع صورة الوصل بنجاح!' : 'Receipt uploaded successfully!');
+        toast.success(tr("تم رفع صورة الوصل بنجاح!", "Receipt uploaded successfully!"));
       } else {
-        toast.error(isRtl ? 'فشل معالجة رابط الملف المرفوع' : 'Failed to process uploaded file URL');
+        toast.error(tr("فشل معالجة رابط الملف المرفوع", "Failed to process uploaded file URL"));
       }
     } catch (err: any) {
       console.error('[handleReceiptUpload]', err);
-      toast.error(err.response?.data?.error || (isRtl ? 'فشل رفع صورة الوصل' : 'Failed to upload receipt'));
+      toast.error(err.response?.data?.error || (tr("فشل رفع صورة الوصل", "Failed to upload receipt")));
     } finally {
       setUploadingReceipt(false);
       if (e.target) e.target.value = '';
@@ -393,21 +394,21 @@ export default function StudentWallet() {
   const handleDepositSubmit = async () => {
     const amt = Number(depositAmount);
     if (!amt || amt <= 0) {
-      return toast.error(t('wallet.amount', isRtl ? 'يرجى كتابة مبلغ إيداع صحيح أكبر من 0' : 'Please enter a valid deposit amount greater than 0'));
+      return toast.error(t('wallet.amount', tr("يرجى كتابة مبلغ إيداع صحيح أكبر من 0", "Please enter a valid deposit amount greater than 0")));
     }
 
     if (selectedDepositMethod?.min_deposit && amt < selectedDepositMethod.min_deposit) {
-      return toast.error(`${t('wallet.minDepositNotice', isRtl ? 'الحد الأدنى للإيداع لهذه الطريقة هو' : 'Minimum deposit for this method is')} $${selectedDepositMethod.min_deposit} USD`);
+      return toast.error(`${t('wallet.minDepositNotice', tr("الحد الأدنى للإيداع لهذه الطريقة هو", "Minimum deposit for this method is"))} $${selectedDepositMethod.min_deposit} USD`);
     }
 
     const isCrypto = selectedDepositMethod?.type === 'nowpayments_crypto' || selectedDepositMethod?.provider === 'nowpayments';
 
     if (!isCrypto) {
       if (!depositReference.trim()) {
-        return toast.error(isRtl ? 'يرجى كتابة رقم العملية أو المعاملة (Reference / TxID)' : 'Please enter transaction reference / TxID');
+        return toast.error(tr("يرجى كتابة رقم العملية أو المعاملة (Reference / TxID)", "Please enter transaction reference / TxID"));
       }
       if (!depositReceiptUrl.trim()) {
-        return toast.error(isRtl ? 'يرجى رفع صورة وصل التحويل البنكي لإتمام طلب الإيداع' : 'Please upload the bank transfer receipt image to complete your deposit request');
+        return toast.error(tr("يرجى رفع صورة وصل التحويل البنكي لإتمام طلب الإيداع", "Please upload the bank transfer receipt image to complete your deposit request"));
       }
     }
 
@@ -424,9 +425,9 @@ export default function StudentWallet() {
 
       if (res.payment) {
         setActivePaymentOrder(res.payment);
-        toast.success(isRtl ? 'تم إنشاء عنوان الدفع المخصص لك بنجاح!' : 'Payment order created successfully!');
+        toast.success(tr("تم إنشاء عنوان الدفع المخصص لك بنجاح!", "Payment order created successfully!"));
       } else {
-        toast.success(res.message || t('common.success', isRtl ? 'تم إرسال طلب الإيداع بنجاح' : 'Deposit request submitted successfully'));
+        toast.success(res.message || t('common.success', tr("تم إرسال طلب الإيداع بنجاح", "Deposit request submitted successfully")));
         setIsDepositOpen(false);
       }
 
@@ -436,7 +437,7 @@ export default function StudentWallet() {
       setDepositReceiptUrl('');
       loadData();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || t('common.error', isRtl ? 'فشل إرسال طلب الإيداع' : 'Failed to submit deposit request'));
+      toast.error(err.response?.data?.error || t('common.error', tr("فشل إرسال طلب الإيداع", "Failed to submit deposit request")));
     } finally {
       setSubmittingDeposit(false);
     }
@@ -470,11 +471,11 @@ export default function StudentWallet() {
 
           {/* Total Balance + Eye Toggle */}
           <div className="flex items-center justify-center gap-2 text-white/90 text-xs sm:text-sm font-medium">
-            <span>{t('wallet.totalBalance', isRtl ? 'إجمالي الرصيد' : 'Total Balance')}</span>
+            <span>{t('wallet.totalBalance', tr("إجمالي الرصيد", "Total Balance"))}</span>
             <button
               onClick={() => setShowBalance(!showBalance)}
               className="p-1 hover:text-white transition-colors"
-              title={showBalance ? (isRtl ? 'إخفاء الرصيد' : 'Hide Balance') : (isRtl ? 'إظهار الرصيد' : 'Show Balance')}
+              title={showBalance ? (tr("إخفاء الرصيد", "Hide Balance")) : (tr("إظهار الرصيد", "Show Balance"))}
             >
               {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </button>
@@ -490,7 +491,7 @@ export default function StudentWallet() {
             {isAlgeria ? (
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 mt-2.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs sm:text-sm font-bold text-white shadow-xs">
                 <span>{showBalance ? `≈ $${Number(wallet.balance || 0).toFixed(2)} USD` : '•••••• USD'}</span>
-                <span className="text-[11px] text-blue-100/80 font-normal">({isRtl ? `1$ = ${usdRate} دج` : `1 USD = ${usdRate} DZD`})</span>
+                <span className="text-[11px] text-blue-100/80 font-normal">({tr("1$ = ${usdRate} دج", "1 USD = ${usdRate} DZD")})</span>
               </div>
             ) : formatBalance(wallet.balance || 0, showBalance).secondary && (
               <p className="text-[11px] sm:text-xs text-blue-100/75 mt-1 font-medium">
@@ -510,7 +511,7 @@ export default function StudentWallet() {
                 <ArrowDownLeft className="h-6 w-6 stroke-[2.5]" />
               </div>
               <span className="text-xs sm:text-sm font-bold text-white mt-2 tracking-tight">
-                {t('wallet.depositBtn', isRtl ? 'إيداع' : 'Deposit')}
+                {t('wallet.depositBtn', tr("إيداع", "Deposit"))}
               </span>
             </button>
 
@@ -523,7 +524,7 @@ export default function StudentWallet() {
                 <ArrowUpRight className="h-6 w-6 stroke-[2.5]" />
               </div>
               <span className="text-xs sm:text-sm font-bold text-white mt-2 tracking-tight">
-                {t('wallet.withdrawBtn', isRtl ? 'سحب' : 'Withdraw')}
+                {t('wallet.withdrawBtn', tr("سحب", "Withdraw"))}
               </span>
             </button>
           </div>
@@ -533,7 +534,7 @@ export default function StudentWallet() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">{t('wallet.pendingBalance', isRtl ? 'الرصيد المعلق' : 'Pending Balance')}</span>
+              <span className="text-xs font-semibold text-slate-400">{t('wallet.pendingBalance', tr("الرصيد المعلق", "Pending Balance"))}</span>
               <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
                 <Clock className="h-4 w-4" />
               </div>
@@ -556,13 +557,13 @@ export default function StudentWallet() {
               )}
             </div>
             <p className="text-[10px] text-slate-400 mt-0.5">
-              {t('wallet.pendingDesc', isRtl ? 'يتحول لمتاح بعد انتهاء فترة الأمان' : 'Unlocks after clearance period')}
+              {t('wallet.pendingDesc', tr("يتحول لمتاح بعد انتهاء فترة الأمان", "Unlocks after clearance period"))}
             </p>
           </Card>
 
           <Card className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">{t('wallet.totalEarned', isRtl ? 'إجمالي الأرباح' : 'Total Earned')}</span>
+              <span className="text-xs font-semibold text-slate-400">{t('wallet.totalEarned', tr("إجمالي الأرباح", "Total Earned"))}</span>
               <div className="p-2 rounded-xl bg-primary/10 text-primary">
                 <TrendingUp className="h-4 w-4" />
               </div>
@@ -585,13 +586,13 @@ export default function StudentWallet() {
               )}
             </div>
             <p className="text-[10px] text-slate-400 mt-0.5">
-              {t('wallet.totalEarnedDesc', isRtl ? 'مجموع عمولات أجيال الفريق' : 'Team generations commission total')}
+              {t('wallet.totalEarnedDesc', tr("مجموع عمولات أجيال الفريق", "Team generations commission total"))}
             </p>
           </Card>
 
           <Card className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">{t('wallet.totalWithdrawn', isRtl ? 'إجمالي المسحوبات' : 'Total Withdrawn')}</span>
+              <span className="text-xs font-semibold text-slate-400">{t('wallet.totalWithdrawn', tr("إجمالي المسحوبات", "Total Withdrawn"))}</span>
               <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600">
                 <CheckCircle2 className="h-4 w-4" />
               </div>
@@ -614,7 +615,7 @@ export default function StudentWallet() {
               )}
             </div>
             <p className="text-[10px] text-slate-400 mt-0.5">
-              {t('wallet.totalWithdrawnDesc', isRtl ? 'تم سحبها وتحويلها بنجاح' : 'Successfully withdrawn & processed')}
+              {t('wallet.totalWithdrawnDesc', tr("تم سحبها وتحويلها بنجاح", "Successfully withdrawn & processed"))}
             </p>
           </Card>
         </div>
@@ -638,7 +639,7 @@ export default function StudentWallet() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">DZD</h4>
-                    <p className="text-[10px] text-slate-400">{isRtl ? 'الدينار الجزائري' : 'Algerian Dinar'}</p>
+                    <p className="text-[10px] text-slate-400">{tr("الدينار الجزائري", "Algerian Dinar")}</p>
                   </div>
                 </div>
                 <div className="text-right rtl:text-left">
@@ -646,7 +647,7 @@ export default function StudentWallet() {
                     {(Math.round(Number(wallet.balance || 0) * usdRate)).toLocaleString()} DZD
                   </p>
                   <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                    {isRtl ? 'الرصيد بالدينار (متاح)' : 'Available Balance (DZD)'}
+                    {tr("الرصيد بالدينار (متاح)", "Available Balance (DZD)")}
                   </p>
                 </div>
               </div>
@@ -659,7 +660,7 @@ export default function StudentWallet() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">USD</h4>
-                    <p className="text-[10px] text-slate-400">{isRtl ? 'الدولار الأمريكي' : 'US Dollar'}</p>
+                    <p className="text-[10px] text-slate-400">{tr("الدولار الأمريكي", "US Dollar")}</p>
                   </div>
                 </div>
                 <div className="text-right rtl:text-left">
@@ -667,7 +668,7 @@ export default function StudentWallet() {
                     ${Number(wallet.balance || 0).toFixed(2)} USD
                   </p>
                   <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
-                    {isRtl ? 'الرصيد المعادل بالدولار' : 'USD Equivalent'}
+                    {tr("الرصيد المعادل بالدولار", "USD Equivalent")}
                   </p>
                 </div>
               </div>
@@ -680,7 +681,7 @@ export default function StudentWallet() {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">MAD</h4>
-                  <p className="text-[10px] text-slate-400">{isRtl ? 'الدرهم المغربي' : 'Moroccan Dirham'}</p>
+                  <p className="text-[10px] text-slate-400">{tr("الدرهم المغربي", "Moroccan Dirham")}</p>
                 </div>
               </div>
               <div className="text-right rtl:text-left">
@@ -700,7 +701,7 @@ export default function StudentWallet() {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">USD</h4>
-                  <p className="text-[10px] text-slate-400">{isRtl ? 'الدولار الأمريكي' : 'US Dollar'}</p>
+                  <p className="text-[10px] text-slate-400">{tr("الدولار الأمريكي", "US Dollar")}</p>
                 </div>
               </div>
               <div className="text-right rtl:text-left">
@@ -708,7 +709,7 @@ export default function StudentWallet() {
                   ${Number(wallet.balance || 0).toFixed(2)}
                 </p>
                 <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                  {isRtl ? 'الرصيد المتاح' : 'Available Balance'}
+                  {tr("الرصيد المتاح", "Available Balance")}
                 </p>
               </div>
             </div>
@@ -719,13 +720,13 @@ export default function StudentWallet() {
         <Tabs defaultValue="commissions" className="space-y-4">
           <TabsList className="w-full sm:w-auto grid grid-cols-3 rounded-2xl p-1 bg-slate-100 dark:bg-slate-800 h-auto gap-1">
             <TabsTrigger value="commissions" className="rounded-xl text-[11px] sm:text-xs font-bold px-2 sm:px-4 py-1.5 sm:py-2 truncate">
-              {t('wallet.commissionsTab', isRtl ? 'العمولات' : 'Commissions')} ({commissions.length})
+              {t('wallet.commissionsTab', tr("العمولات", "Commissions"))} ({commissions.length})
             </TabsTrigger>
             <TabsTrigger value="deposits" className="rounded-xl text-[11px] sm:text-xs font-bold px-2 sm:px-4 py-1.5 sm:py-2 truncate">
-              {t('wallet.depositsTab', isRtl ? 'الإيداع' : 'Deposits')} ({deposits.length})
+              {t('wallet.depositsTab', tr("الإيداع", "Deposits"))} ({deposits.length})
             </TabsTrigger>
             <TabsTrigger value="withdrawals" className="rounded-xl text-[11px] sm:text-xs font-bold px-2 sm:px-4 py-1.5 sm:py-2 truncate">
-              {t('wallet.withdrawalsTab', isRtl ? 'السحب' : 'Withdrawals')} ({withdrawals.length})
+              {t('wallet.withdrawalsTab', tr("السحب", "Withdrawals"))} ({withdrawals.length})
             </TabsTrigger>
           </TabsList>
 
@@ -736,21 +737,21 @@ export default function StudentWallet() {
                 <table className="w-full text-xs text-left rtl:text-right">
                   <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold border-b border-slate-100 dark:border-slate-800">
                     <tr>
-                      <th className="p-4">{t('wallet.depositDate', isRtl ? 'التاريخ' : 'Date')}</th>
-                      <th className="p-4">{t('wallet.buyer', isRtl ? 'المشتري' : 'Buyer')}</th>
-                      <th className="p-4">{t('wallet.package', isRtl ? 'الباقة' : 'Package')}</th>
-                      <th className="p-4">{t('wallet.generationLevel', isRtl ? 'مستوى الجيل' : 'Generation Level')}</th>
-                      <th className="p-4">{t('wallet.saleAmount', isRtl ? 'قيمة المبيعة' : 'Sale Amount')}</th>
-                      <th className="p-4">{t('wallet.rate', isRtl ? 'نسبة الربح' : 'Rate')}</th>
-                      <th className="p-4">{t('wallet.receivedCommission', isRtl ? 'العمولة المستلمة' : 'Commission Earned')}</th>
-                      <th className="p-4">{t('wallet.statusCol', isRtl ? 'الحالة' : 'Status')}</th>
+                      <th className="p-4">{t('wallet.depositDate', tr("التاريخ", "Date"))}</th>
+                      <th className="p-4">{t('wallet.buyer', tr("المشتري", "Buyer"))}</th>
+                      <th className="p-4">{t('wallet.package', tr("الباقة", "Package"))}</th>
+                      <th className="p-4">{t('wallet.generationLevel', tr("مستوى الجيل", "Generation Level"))}</th>
+                      <th className="p-4">{t('wallet.saleAmount', tr("قيمة المبيعة", "Sale Amount"))}</th>
+                      <th className="p-4">{t('wallet.rate', tr("نسبة الربح", "Rate"))}</th>
+                      <th className="p-4">{t('wallet.receivedCommission', tr("العمولة المستلمة", "Commission Earned"))}</th>
+                      <th className="p-4">{t('wallet.statusCol', tr("الحالة", "Status"))}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {commissions.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="p-8 text-center text-slate-400">
-                          {t('wallet.noCommissions', isRtl ? 'لا توجد عمولات مسجلة بعد. شارك رابط إحالتك وابدأ في بناء فريقك!' : 'No commissions recorded yet. Share your referral link and build your team!')}
+                          {t('wallet.noCommissions', tr("لا توجد عمولات مسجلة بعد. شارك رابط إحالتك وابدأ في بناء فريقك!", "No commissions recorded yet. Share your referral link and build your team!"))}
                         </td>
                       </tr>
                     ) : (
@@ -767,7 +768,7 @@ export default function StudentWallet() {
                           </td>
                           <td className="p-4">
                             <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold">
-                              {t('team.gen', isRtl ? 'الجيل' : 'Gen')} {comm.generation_level}
+                              {t('team.gen', tr("الجيل", "Gen"))} {comm.generation_level}
                             </span>
                           </td>
                           <td className="p-4 font-medium text-slate-600 dark:text-slate-300 font-mono">
@@ -786,7 +787,7 @@ export default function StudentWallet() {
                           </td>
                           <td className="p-4">
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
-                              {t('common.status', isRtl ? 'متاح' : 'Available')}
+                              {t('common.status', tr("متاح", "Available"))}
                             </span>
                           </td>
                         </tr>
@@ -805,12 +806,12 @@ export default function StudentWallet() {
                 <table className="w-full text-xs text-left rtl:text-right">
                   <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold border-b border-slate-100 dark:border-slate-800">
                     <tr>
-                      <th className="p-4">{t('wallet.depositDate', isRtl ? 'تاريخ الطلب' : 'Request Date')}</th>
-                      <th className="p-4">{t('wallet.depositAmountCol', isRtl ? 'المبلغ المودع' : 'Amount Deposited')}</th>
-                      <th className="p-4">{t('wallet.depositMethodCol', isRtl ? 'وسيلة الإيداع' : 'Deposit Method')}</th>
-                      <th className="p-4">{t('wallet.depositRefCol', isRtl ? 'رقم المعاملة / المرجع' : 'Transaction Ref / TxID')}</th>
-                      <th className="p-4">{t('wallet.notesCol', isRtl ? 'الملاحظات' : 'Notes')}</th>
-                      <th className="p-4">{t('wallet.statusCol', isRtl ? 'الحالة' : 'Status')}</th>
+                      <th className="p-4">{t('wallet.depositDate', tr("تاريخ الطلب", "Request Date"))}</th>
+                      <th className="p-4">{t('wallet.depositAmountCol', tr("المبلغ المودع", "Amount Deposited"))}</th>
+                      <th className="p-4">{t('wallet.depositMethodCol', tr("وسيلة الإيداع", "Deposit Method"))}</th>
+                      <th className="p-4">{t('wallet.depositRefCol', tr("رقم المعاملة / المرجع", "Transaction Ref / TxID"))}</th>
+                      <th className="p-4">{t('wallet.notesCol', tr("الملاحظات", "Notes"))}</th>
+                      <th className="p-4">{t('wallet.statusCol', tr("الحالة", "Status"))}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -818,7 +819,7 @@ export default function StudentWallet() {
                       <tr>
                         <td colSpan={6} className="p-12 text-center text-slate-400">
                           <Wallet className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                          {t('wallet.noDeposits', isRtl ? 'لم تقم بتقديم أي طلب شحن رصيد حتى الآن.' : 'No deposit requests submitted yet.')}
+                          {t('wallet.noDeposits', tr("لم تقم بتقديم أي طلب شحن رصيد حتى الآن.", "No deposit requests submitted yet."))}
                         </td>
                       </tr>
                     ) : (
@@ -864,7 +865,7 @@ export default function StudentWallet() {
                                   className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline font-bold mt-1 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800"
                                 >
                                   <Coins className="h-3 w-3 text-emerald-500" />
-                                  <span>{isRtl ? 'عرض محفظة الإيداع' : 'View Dedicated Wallet'}</span>
+                                  <span>{tr("عرض محفظة الإيداع", "View Dedicated Wallet")}</span>
                                 </button>
                               )}
                               {meta.receiptUrl && (
@@ -875,7 +876,7 @@ export default function StudentWallet() {
                                   className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline font-bold mt-1"
                                 >
                                   <ExternalLink className="h-3 w-3" />
-                                  {t('wallet.viewReceipt', isRtl ? 'وصل التحويل' : 'Receipt')}
+                                  {t('wallet.viewReceipt', tr("وصل التحويل", "Receipt"))}
                                 </a>
                               )}
                             </td>
@@ -890,9 +891,9 @@ export default function StudentWallet() {
                                   ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400'
                                   : 'bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400'
                               }`}>
-                                {dep.status === 'completed' ? t('wallet.statusCompleted', isRtl ? 'تم الشحن والإضافة ✓' : 'Completed ✓') : 
-                                 dep.status === 'rejected' ? t('wallet.statusRejected', isRtl ? 'مرفوض' : 'Rejected') : 
-                                 t('wallet.statusPending', isRtl ? 'قيد التدقيق' : 'Pending Review')}
+                                {dep.status === 'completed' ? t('wallet.statusCompleted', tr("تم الشحن والإضافة ✓", "Completed ✓")) : 
+                                 dep.status === 'rejected' ? t('wallet.statusRejected', tr("مرفوض", "Rejected")) : 
+                                 t('wallet.statusPending', tr("قيد التدقيق", "Pending Review"))}
                               </span>
                             </td>
                           </tr>
@@ -912,18 +913,18 @@ export default function StudentWallet() {
                 <table className="w-full text-xs text-left rtl:text-right">
                   <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold border-b border-slate-100 dark:border-slate-800">
                     <tr>
-                      <th className="p-4">{t('wallet.depositDate', isRtl ? 'تاريخ الطلب' : 'Request Date')}</th>
-                      <th className="p-4">{t('wallet.depositAmountCol', isRtl ? 'المبلغ' : 'Amount')}</th>
-                      <th className="p-4">{t('wallet.payoutMethod', isRtl ? 'وسيلة السحب' : 'Payout Method')}</th>
-                      <th className="p-4">{t('wallet.accountDetails', isRtl ? 'تفاصيل الحساب' : 'Account Details')}</th>
-                      <th className="p-4">{t('wallet.statusCol', isRtl ? 'الحالة' : 'Status')}</th>
+                      <th className="p-4">{t('wallet.depositDate', tr("تاريخ الطلب", "Request Date"))}</th>
+                      <th className="p-4">{t('wallet.depositAmountCol', tr("المبلغ", "Amount"))}</th>
+                      <th className="p-4">{t('wallet.payoutMethod', tr("وسيلة السحب", "Payout Method"))}</th>
+                      <th className="p-4">{t('wallet.accountDetails', tr("تفاصيل الحساب", "Account Details"))}</th>
+                      <th className="p-4">{t('wallet.statusCol', tr("الحالة", "Status"))}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {withdrawals.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="p-8 text-center text-slate-400">
-                          {t('wallet.noWithdrawals', isRtl ? 'لم تقم بتقديم أي طلب سحب حتى الآن.' : 'No withdrawal requests submitted yet.')}
+                          {t('wallet.noWithdrawals', tr("لم تقم بتقديم أي طلب سحب حتى الآن.", "No withdrawal requests submitted yet."))}
                         </td>
                       </tr>
                     ) : (
@@ -954,9 +955,9 @@ export default function StudentWallet() {
                                 ? 'bg-rose-100 text-rose-600'
                                 : 'bg-amber-100 text-amber-600'
                             }`}>
-                              {w.status === 'completed' ? t('wallet.statusCompleted', isRtl ? 'تم الدفع ✓' : 'Paid ✓') : 
-                               w.status === 'rejected' ? t('wallet.statusRejected', isRtl ? 'مرفوض' : 'Rejected') : 
-                               t('wallet.statusPending', isRtl ? 'قيد المراجعة' : 'Pending Review')}
+                              {w.status === 'completed' ? t('wallet.statusCompleted', tr("تم الدفع ✓", "Paid ✓")) : 
+                               w.status === 'rejected' ? t('wallet.statusRejected', tr("مرفوض", "Rejected")) : 
+                               t('wallet.statusPending', tr("قيد المراجعة", "Pending Review"))}
                             </span>
                           </td>
                         </tr>
@@ -980,10 +981,10 @@ export default function StudentWallet() {
                 </div>
                 <div>
                   <DialogTitle className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight">
-                    {t('wallet.depositModalTitle', isRtl ? 'إيداع وشحن رصيد المحفظة' : 'Deposit & Top Up Balance')}
+                    {t('wallet.depositModalTitle', tr("إيداع وشحن رصيد المحفظة", "Deposit & Top Up Balance"))}
                   </DialogTitle>
                   <DialogDescription className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 leading-snug">
-                    {t('wallet.depositModalDesc', isRtl ? 'قم بشحن رصيدك لاستخدامه في تفعيل الباقات فوراً.' : 'Top up your wallet to activate courses and packages instantly.')}
+                    {t('wallet.depositModalDesc', tr("قم بشحن رصيدك لاستخدامه في تفعيل الباقات فوراً.", "Top up your wallet to activate courses and packages instantly."))}
                   </DialogDescription>
                 </div>
               </div>
@@ -995,10 +996,10 @@ export default function StudentWallet() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                    {t('wallet.amount', isRtl ? 'المبلغ ($ USD)' : 'Amount ($ USD)')}
+                    {t('wallet.amount', tr("المبلغ ($ USD)", "Amount ($ USD)"))}
                   </Label>
                   <span className="text-[10px] text-slate-400 font-medium">
-                    {isRtl ? 'الحد الأدنى' : 'Minimum'}{' '}
+                    {tr("الحد الأدنى", "Minimum")}{' '}
                     {isAlgeria ? `$10 (${(10 * usdRate).toLocaleString()} دج)` : '$10'}
                   </span>
                 </div>
@@ -1018,7 +1019,7 @@ export default function StudentWallet() {
                   <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-transparent border border-emerald-500/20 space-y-1.5 shadow-xs">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-600 dark:text-slate-300 font-medium">
-                        {isRtl ? 'المبلغ بالدينار الجزائري (المطلوب تحويله):' : 'Amount in Algerian Dinar (To Pay):'}
+                        {tr("المبلغ بالدينار الجزائري (المطلوب تحويله):", "Amount in Algerian Dinar (To Pay):")}
                       </span>
                       <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono">
                         {(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} DZD
@@ -1026,21 +1027,21 @@ export default function StudentWallet() {
                     </div>
                     <div className="flex items-center justify-between text-xs pt-1 border-t border-emerald-500/10">
                       <span className="text-slate-500 dark:text-slate-400 font-medium">
-                        {isRtl ? 'الرصيد المضاف لحسابك بالدولار:' : 'Credited to your Wallet:'}
+                        {tr("الرصيد المضاف لحسابك بالدولار:", "Credited to your Wallet:")}
                       </span>
                       <span className="text-xs font-bold text-blue-600 dark:text-blue-400 font-mono">
                         ${Number(depositAmount).toFixed(2)} USD
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
-                      <span>{isRtl ? 'سعر الصرف المعتمد للمنصة:' : 'Official Platform Rate:'}</span>
+                      <span>{tr("سعر الصرف المعتمد للمنصة:", "Official Platform Rate:")}</span>
                       <span className="font-bold text-slate-600 dark:text-slate-300">1 USD = {usdRate} DZD</span>
                     </div>
                   </div>
                 ) : (
                   depositAmount && Number(depositAmount) > 0 && hasLocalCurrency && currencyCode !== 'USD' && (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[11px] font-bold text-primary">
-                      <span>{isRtl ? 'المبلغ المعادل بالعملة المحلية:' : 'Local Currency Equivalent:'}</span>
+                      <span>{tr("المبلغ المعادل بالعملة المحلية:", "Local Currency Equivalent:")}</span>
                       <span className="font-extrabold font-mono">
                         {Math.round(Number(depositAmount) * usdRate).toLocaleString()} {currencyCode}
                       </span>
@@ -1063,7 +1064,7 @@ export default function StudentWallet() {
                         }`}
                       >
                         <span>+${val}</span>
-                        {dzdVal && <span className="opacity-80 font-normal">({dzdVal} {isRtl ? 'دج' : 'DA'})</span>}
+                        {dzdVal && <span className="opacity-80 font-normal">({dzdVal} {tr("دج", "DA")})</span>}
                       </button>
                     );
                   })}
@@ -1073,7 +1074,7 @@ export default function StudentWallet() {
               {/* Dynamic Payment Method Picker */}
               <div className="space-y-1.5">
                 <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                  {t('wallet.paymentMethod', isRtl ? 'وسيلة الدفع والشحن' : 'Payment & Deposit Method')}
+                  {t('wallet.paymentMethod', tr("وسيلة الدفع والشحن", "Payment & Deposit Method"))}
                 </Label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {depositMethodsList.map((m: any) => {
@@ -1105,7 +1106,7 @@ export default function StudentWallet() {
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2 text-[11px]">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                    {t('wallet.platformAccountDetails', isRtl ? 'بيانات الاستلام والتفعيل:' : 'Payment Details & Instructions:')}
+                    {t('wallet.platformAccountDetails', tr("بيانات الاستلام والتفعيل:", "Payment Details & Instructions:"))}
                   </span>
                   <Badge variant="outline" className="text-[10px] font-bold border-primary/30 text-primary bg-primary/5">
                     {selectedDepositMethod?.type === 'nowpayments_crypto' ? 'NOWPayments (USDT BEP20)' :
@@ -1119,32 +1120,28 @@ export default function StudentWallet() {
                   <div className="space-y-2.5 p-3 rounded-xl bg-gradient-to-br from-amber-500/10 via-emerald-500/5 to-transparent border border-amber-500/20">
                     <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-xs">
                       <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
-                      <span>{isRtl ? 'نظام الإيداع الآمن بمحفظة مخصصة (NOWPayments)' : 'Secure Dedicated Wallet Deposit (NOWPayments)'}</span>
+                      <span>{tr("نظام الإيداع الآمن بمحفظة مخصصة (NOWPayments)", "Secure Dedicated Wallet Deposit (NOWPayments)")}</span>
                     </div>
 
                     <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                      {isRtl 
-                        ? 'عند النقر على زر المتابعة بالأسفل، سيقوم النظام تلقائياً بإنشاء محفظة رقمية فريدة ومخصصة لمعاملتك صالحة لمدة 20 دقيقة، مع الشحن التلقائي الفوري فور تأكيد البلوكشين.'
-                        : 'Clicking confirm will generate a unique, dedicated cryptocurrency wallet for your transaction valid for 20 minutes, with instant automatic settlement upon blockchain confirmation.'}
+                      {tr("عند النقر على زر المتابعة بالأسفل، سيقوم النظام تلقائياً بإنشاء محفظة رقمية فريدة ومخصصة لمعاملتك صالحة لمدة 20 دقيقة، مع الشحن التلقائي الفوري فور تأكيد البلوكشين.", "Clicking confirm will generate a unique, dedicated cryptocurrency wallet for your transaction valid for 20 minutes, with instant automatic settlement upon blockchain confirmation.")}
                     </p>
 
                     <div className="grid grid-cols-2 gap-1.5 pt-1">
                       <div className="p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-[10px]">
-                        <span className="text-slate-400 block font-medium">{isRtl ? 'الشبكة المدعومة:' : 'Supported Network:'}</span>
+                        <span className="text-slate-400 block font-medium">{tr("الشبكة المدعومة:", "Supported Network:")}</span>
                         <span className="font-bold text-emerald-600 dark:text-emerald-400">BNB Smart Chain (BEP20)</span>
                       </div>
                       <div className="p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-[10px]">
-                        <span className="text-slate-400 block font-medium">{isRtl ? 'صلاحية التعيير:' : 'Renewal Cycle:'}</span>
-                        <span className="font-bold text-amber-600 dark:text-amber-400">20 {isRtl ? 'دقيقة لكل عنوان' : 'Minutes per address'}</span>
+                        <span className="text-slate-400 block font-medium">{tr("صلاحية التعيير:", "Renewal Cycle:")}</span>
+                        <span className="font-bold text-amber-600 dark:text-amber-400">20 {tr("دقيقة لكل عنوان", "Minutes per address")}</span>
                       </div>
                     </div>
 
                     <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[10px] text-blue-700 dark:text-blue-300 flex items-start gap-1.5">
                       <ShieldCheck className="h-3.5 w-3.5 shrink-0 mt-0.5 text-blue-500" />
                       <span>
-                        {isRtl 
-                          ? 'حماية كاملة: يتم تسجيل جميع محاولات الإيداع في سجل المعاملات، وتظل العناوين السابقة صالحة ومربوطة بحسابك حتى بعد التجديد.'
-                          : 'Full security: All deposit attempts are audited, and previous addresses remain valid and linked to your account even after renewal.'}
+                        {tr("حماية كاملة: يتم تسجيل جميع محاولات الإيداع في سجل المعاملات، وتظل العناوين السابقة صالحة ومربوطة بحسابك حتى بعد التجديد.", "Full security: All deposit attempts are audited, and previous addresses remain valid and linked to your account even after renewal.")}
                       </span>
                     </div>
                   </div>
@@ -1155,31 +1152,29 @@ export default function StudentWallet() {
                     {isAlgeria && depositAmount && Number(depositAmount) > 0 && (
                       <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-800 dark:text-amber-300 space-y-1">
                         <div className="flex items-center justify-between font-bold">
-                          <span>{isRtl ? 'المبلغ المطلوب إرساله (BaridiMob / البنك):' : 'Amount to transfer via BaridiMob:'}</span>
+                          <span>{tr("المبلغ المطلوب إرساله (BaridiMob / البنك):", "Amount to transfer via BaridiMob:")}</span>
                           <span className="text-sm font-black text-amber-700 dark:text-amber-400 font-mono">
                             {(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} DZD
                           </span>
                         </div>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                          {isRtl 
-                            ? `سيتم شحن حسابك بمبلغ $${Number(depositAmount).toFixed(2)} USD تلقائياً فور مراجعة وصل التحويل.` 
-                            : `Your account will be credited with $${Number(depositAmount).toFixed(2)} USD automatically once receipt is verified.`}
+                          {tr("سيتم شحن حسابك بمبلغ $${Number(depositAmount).toFixed(2)} USD تلقائياً فور مراجعة وصل التحويل.", "Your account will be credited with $${Number(depositAmount).toFixed(2)} USD automatically once receipt is verified.")}
                         </p>
                       </div>
                     )}
                     {selectedDepositMethod.bank_name && (
                       <div className="text-[10px] text-slate-500">
-                        {t('wallet.bankName', isRtl ? 'البنك' : 'Bank')}: <span className="font-bold text-slate-800 dark:text-slate-200">{selectedDepositMethod.bank_name}</span>
+                        {t('wallet.bankName', tr("البنك", "Bank"))}: <span className="font-bold text-slate-800 dark:text-slate-200">{selectedDepositMethod.bank_name}</span>
                       </div>
                     )}
                     {selectedDepositMethod.account_holder && (
                       <div className="text-[10px] text-slate-500">
-                        {t('wallet.accountHolder', isRtl ? 'اسم المستفيد' : 'Beneficiary Name')}: <span className="font-bold text-slate-800 dark:text-slate-200">{selectedDepositMethod.account_holder}</span>
+                        {t('wallet.accountHolder', tr("اسم المستفيد", "Beneficiary Name"))}: <span className="font-bold text-slate-800 dark:text-slate-200">{selectedDepositMethod.account_holder}</span>
                       </div>
                     )}
                     {selectedDepositMethod.account_number && (
                       <div>
-                        <span className="text-slate-400 block text-[10px]">{t('wallet.iban', isRtl ? 'رقم الحساب / RIP / الحساب البنكي:' : 'Account Number / RIP:')}</span>
+                        <span className="text-slate-400 block text-[10px]">{t('wallet.iban', tr("رقم الحساب / RIP / الحساب البنكي:", "Account Number / RIP:"))}</span>
                         <div className="flex items-center justify-between font-mono font-bold bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 mt-0.5">
                           <span className="text-slate-800 dark:text-slate-200 text-xs truncate mr-2 rtl:ml-2 rtl:mr-0 select-all">{selectedDepositMethod.account_number}</span>
                           <Button 
@@ -1190,14 +1185,14 @@ export default function StudentWallet() {
                             onClick={() => copyToClipboard(selectedDepositMethod.account_number, 'bank_acc')}
                           >
                             {copiedField === 'bank_acc' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                            {t('wallet.copy', isRtl ? 'نسخ' : 'Copy')}
+                            {t('wallet.copy', tr("نسخ", "Copy"))}
                           </Button>
                         </div>
                       </div>
                     )}
                     {selectedDepositMethod.iban && selectedDepositMethod.iban !== selectedDepositMethod.account_number && (
                       <div>
-                        <span className="text-slate-400 block text-[10px]">{isRtl ? 'رقم الآيبان (IBAN):' : 'IBAN Number:'}</span>
+                        <span className="text-slate-400 block text-[10px]">{tr("رقم الآيبان (IBAN):", "IBAN Number:")}</span>
                         <div className="flex items-center justify-between font-mono font-bold bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 mt-0.5">
                           <span className="text-slate-800 dark:text-slate-200 text-xs truncate mr-2 rtl:ml-2 rtl:mr-0 select-all">{selectedDepositMethod.iban}</span>
                           <Button 
@@ -1208,7 +1203,7 @@ export default function StudentWallet() {
                             onClick={() => copyToClipboard(selectedDepositMethod.iban, 'bank_iban')}
                           >
                             {copiedField === 'bank_iban' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                            {t('wallet.copy', isRtl ? 'نسخ' : 'Copy')}
+                            {t('wallet.copy', tr("نسخ", "Copy"))}
                           </Button>
                         </div>
                       </div>
@@ -1230,7 +1225,7 @@ export default function StudentWallet() {
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-bold text-xs">
                       <CreditCard className="h-4 w-4 text-primary" />
-                      <span>{t('wallet.instantCard', isRtl ? 'الدفع الآمن بالبطاقة البنكية' : 'Instant Secure Card Payment')}</span>
+                      <span>{t('wallet.instantCard', tr("الدفع الآمن بالبطاقة البنكية", "Instant Secure Card Payment"))}</span>
                     </div>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400">
                       {isRtl ? (selectedDepositMethod.instructions_ar || selectedDepositMethod.instructions || 'ادفع فوراً باستخدام بطاقتك البنكية (Visa / MasterCard). الدفع آمن ومحمي بأعلى معايير التشفير.')
@@ -1238,7 +1233,7 @@ export default function StudentWallet() {
                     </p>
                     <div className="flex items-center gap-2 text-[10px] text-emerald-600 font-semibold mt-1">
                       <CheckCircle2 className="h-3 w-3" />
-                      <span>{t('wallet.instantActivation', isRtl ? 'يتم التحقق والشحن الفوري للرصيد' : 'Instant verification & balance credit')}</span>
+                      <span>{t('wallet.instantActivation', tr("يتم التحقق والشحن الفوري للرصيد", "Instant verification & balance credit"))}</span>
                     </div>
                   </div>
                 )}
@@ -1263,7 +1258,7 @@ export default function StudentWallet() {
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                       </span>
                       <span className="text-xs font-black text-emerald-800 dark:text-emerald-300">
-                        {isRtl ? 'محفظة الإيداع المخصصة جاهزة' : 'Dedicated Wallet Ready'}
+                        {tr("محفظة الإيداع المخصصة جاهزة", "Dedicated Wallet Ready")}
                       </span>
                     </div>
                     <Badge variant="outline" className="font-mono text-[10px] bg-white dark:bg-slate-900 border-emerald-300 dark:border-emerald-700 font-bold">
@@ -1276,7 +1271,7 @@ export default function StudentWallet() {
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1.5">
                         <Clock className={`h-3.5 w-3.5 ${orderTimeLeft < 300 ? 'text-rose-500 animate-pulse' : 'text-amber-500'}`} />
-                        {isRtl ? 'الوقت المتبقي لصلاحية هذا العنوان:' : 'Address Validity Remaining:'}
+                        {tr("الوقت المتبقي لصلاحية هذا العنوان:", "Address Validity Remaining:")}
                       </span>
                       <span className={`font-mono text-sm font-black ${
                         orderTimeLeft < 300 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
@@ -1294,16 +1289,14 @@ export default function StudentWallet() {
                       />
                     </div>
                     <p className="text-[10px] text-slate-400 leading-tight">
-                      {isRtl 
-                        ? 'يتم تعيير وتجديد العنوان تلقائياً كل 20 دقيقة. جميع العناوين المخصصة لك تظل صالحة ومربوطة بحسابك حتى بعد التجديد.'
-                        : 'The address renews automatically every 20 minutes. All addresses previously generated for your session remain valid and safely credited.'}
+                      {tr("يتم تعيير وتجديد العنوان تلقائياً كل 20 دقيقة. جميع العناوين المخصصة لك تظل صالحة ومربوطة بحسابك حتى بعد التجديد.", "The address renews automatically every 20 minutes. All addresses previously generated for your session remain valid and safely credited.")}
                     </p>
                   </div>
 
                   {/* Amount to Send */}
                   <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
                     <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold block mb-0.5">
-                      {isRtl ? 'المبلغ المطلوب إرساله بالضبط:' : 'Exact Amount to Send:'}
+                      {tr("المبلغ المطلوب إرساله بالضبط:", "Exact Amount to Send:")}
                     </span>
                     <div className="text-xl sm:text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 tracking-tight">
                       {activePaymentOrder.payAmount} <span className="text-xs uppercase">{activePaymentOrder.payCurrency || 'USDT'}</span>
@@ -1328,7 +1321,7 @@ export default function StudentWallet() {
                       {/* Address details */}
                       <div className="flex-1 w-full space-y-1.5 text-center sm:text-left sm:rtl:text-right">
                         <span className="text-[10px] text-slate-400 block font-medium">
-                          {isRtl ? 'عنوان محفظة الإيداع المخصصة لك:' : 'Your Dedicated Deposit Address:'}
+                          {tr("عنوان محفظة الإيداع المخصصة لك:", "Your Dedicated Deposit Address:")}
                         </span>
                         <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/80 font-mono text-[11px] font-bold text-slate-800 dark:text-slate-200 break-all select-all border border-slate-200 dark:border-slate-700">
                           {activePaymentOrder.payAddress}
@@ -1340,7 +1333,7 @@ export default function StudentWallet() {
                           className="w-full sm:w-auto h-7 px-3 text-xs gap-1.5 font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
                         >
                           {copiedField === 'nowpay_address' ? <Check className="h-3.5 w-3.5 text-white" /> : <Copy className="h-3.5 w-3.5" />}
-                          {copiedField === 'nowpay_address' ? (isRtl ? 'تم نسخ العنوان!' : 'Copied!') : (isRtl ? 'نسخ العنوان' : 'Copy Address')}
+                          {copiedField === 'nowpay_address' ? (tr("تم نسخ العنوان!", "Copied!")) : (tr("نسخ العنوان", "Copy Address"))}
                         </Button>
                       </div>
                     </div>
@@ -1357,7 +1350,7 @@ export default function StudentWallet() {
                       className="w-full text-xs font-bold gap-1.5 rounded-xl h-8 border-emerald-300 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
                     >
                       <RefreshCw className={`h-3.5 w-3.5 ${isCheckingPayment ? 'animate-spin' : ''}`} />
-                      {isRtl ? 'فحص حالة الدفع الآن' : 'Check Payment Status'}
+                      {tr("فحص حالة الدفع الآن", "Check Payment Status")}
                     </Button>
                   </div>
                 </div>
@@ -1370,9 +1363,7 @@ export default function StudentWallet() {
                       <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[10px] sm:text-[11px] text-blue-700 dark:text-blue-300 flex items-start gap-2">
                         <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
                         <span>
-                          {t('wallet.receiptProofRequired', isRtl 
-                            ? 'يرجى إرفاق صورة واضحة لوصل التحويل البنكي ورقم المعاملة لإتمام طلب الإيداع وتأكيده فوراً.' 
-                            : 'Receipt image and transaction reference are mandatory for bank deposits.')}
+                          {t('wallet.receiptProofRequired', tr("يرجى إرفاق صورة واضحة لوصل التحويل البنكي ورقم المعاملة لإتمام طلب الإيداع وتأكيده فوراً.", "Receipt image and transaction reference are mandatory for bank deposits."))}
                         </span>
                       </div>
 
@@ -1380,7 +1371,7 @@ export default function StudentWallet() {
                       <div className="space-y-1">
                         <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between">
                           <span>
-                            {t('wallet.reference', isRtl ? 'رقم المعاملة / كود الحوالة البنكية' : 'Transaction Reference / TxID')} <span className="text-rose-500">*</span>
+                            {t('wallet.reference', tr("رقم المعاملة / كود الحوالة البنكية", "Transaction Reference / TxID"))} <span className="text-rose-500">*</span>
                           </span>
                         </Label>
                         <Input
@@ -1395,10 +1386,10 @@ export default function StudentWallet() {
                       <div className="space-y-1.5">
                         <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between">
                           <span>
-                            {t('wallet.receiptProofTitle', isRtl ? 'صورة وصل التحويل البنكي' : 'Bank Transfer Receipt Proof')} <span className="text-rose-500">*</span>
+                            {t('wallet.receiptProofTitle', tr("صورة وصل التحويل البنكي", "Bank Transfer Receipt Proof"))} <span className="text-rose-500">*</span>
                           </span>
                           <span className="text-[10px] text-slate-400 font-normal">
-                            {t('wallet.uploadReceiptHint', isRtl ? 'PNG, JPG, PDF بحد أقصى 5MB' : 'PNG, JPG, PDF up to 5MB')}
+                            {t('wallet.uploadReceiptHint', tr("PNG, JPG, PDF بحد أقصى 5MB", "PNG, JPG, PDF up to 5MB"))}
                           </span>
                         </Label>
 
@@ -1418,7 +1409,7 @@ export default function StudentWallet() {
                               </div>
                               <div className="truncate">
                                 <span className="text-emerald-700 dark:text-emerald-300 font-bold block truncate text-[11px]">
-                                  {t('wallet.receiptUploadedSuccess', isRtl ? 'تم إرفاق صورة الوصل بنجاح ✓' : 'Receipt attached successfully ✓')}
+                                  {t('wallet.receiptUploadedSuccess', tr("تم إرفاق صورة الوصل بنجاح ✓", "Receipt attached successfully ✓"))}
                                 </span>
                                 <span className="text-slate-400 text-[9px] sm:text-[10px] block truncate font-mono">
                                   {depositReceiptUrl.split('/').pop()}
@@ -1433,7 +1424,7 @@ export default function StudentWallet() {
                                 className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-[10px] font-bold text-primary hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center gap-1"
                               >
                                 <ExternalLink className="h-3 w-3" />
-                                {t('wallet.viewReceipt', isRtl ? 'معاينة' : 'View')}
+                                {t('wallet.viewReceipt', tr("معاينة", "View"))}
                               </a>
                               <Button
                                 type="button"
@@ -1441,7 +1432,7 @@ export default function StudentWallet() {
                                 variant="ghost"
                                 onClick={() => setDepositReceiptUrl('')}
                                 className="h-7 w-7 p-0 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                                title={t('wallet.removeReceipt', isRtl ? 'حذف الوصل' : 'Remove')}
+                                title={t('wallet.removeReceipt', tr("حذف الوصل", "Remove"))}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -1456,7 +1447,7 @@ export default function StudentWallet() {
                               <div className="flex flex-col items-center justify-center gap-1.5 py-1.5">
                                 <Loader2 className="w-5 h-5 text-primary animate-spin" />
                                 <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                                  {t('wallet.uploadingReceipt', isRtl ? 'جاري رفع صورة الوصل...' : 'Uploading receipt...')}
+                                  {t('wallet.uploadingReceipt', tr("جاري رفع صورة الوصل...", "Uploading receipt..."))}
                                 </span>
                               </div>
                             ) : (
@@ -1465,10 +1456,10 @@ export default function StudentWallet() {
                                   <Upload className="h-4 w-4" />
                                 </div>
                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                                  {t('wallet.uploadReceiptPrompt', isRtl ? 'انقر لاختيار أو رفع صورة الوصل' : 'Click to select or upload receipt image')}
+                                  {t('wallet.uploadReceiptPrompt', tr("انقر لاختيار أو رفع صورة الوصل", "Click to select or upload receipt image"))}
                                 </span>
                                 <span className="text-[10px] text-slate-400">
-                                  {t('wallet.uploadReceiptHint', isRtl ? 'PNG, JPG, WebP أو PDF (الحد الأقصى 5MB)' : 'PNG, JPG, WebP or PDF (up to 5MB)')}
+                                  {t('wallet.uploadReceiptHint', tr("PNG, JPG, WebP أو PDF (الحد الأقصى 5MB)", "PNG, JPG, WebP or PDF (up to 5MB)"))}
                                 </span>
                               </div>
                             )}
@@ -1479,10 +1470,10 @@ export default function StudentWallet() {
                       {/* Optional Notes */}
                       <div className="space-y-1">
                         <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                          {isRtl ? 'ملاحظات إضافية (اختياري)' : 'Additional Notes (Optional)'}
+                          {tr("ملاحظات إضافية (اختياري)", "Additional Notes (Optional)")}
                         </Label>
                         <Input
-                          placeholder={isRtl ? 'مثال: تم التحويل من حساب السيد...' : 'e.g. Transferred from account...'}
+                          placeholder={tr("مثال: تم التحويل من حساب السيد...", "e.g. Transferred from account...")}
                           value={depositNotes}
                           onChange={(e) => setDepositNotes(e.target.value)}
                           className="rounded-xl text-xs h-8 bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
@@ -1502,7 +1493,7 @@ export default function StudentWallet() {
                 onClick={() => { setIsDepositOpen(false); setActivePaymentOrder(null); }} 
                 className="rounded-xl text-xs h-8 sm:h-9 px-3"
               >
-                {activePaymentOrder ? (isRtl ? 'إغلاق ومتابعة' : 'Close') : (isRtl ? 'إلغاء' : 'Cancel')}
+                {activePaymentOrder ? (tr("إغلاق ومتابعة", "Close")) : (tr("إلغاء", "Cancel"))}
               </Button>
               {!activePaymentOrder && (
                 <Button 
@@ -1513,12 +1504,10 @@ export default function StudentWallet() {
                 >
                   {submittingDeposit ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
                   {selectedDepositMethod?.type === 'nowpayments_crypto'
-                    ? (isRtl ? 'إنشاء طلب دفع عبر NOWPayments' : 'Create NOWPayments Order')
+                    ? (tr("إنشاء طلب دفع عبر NOWPayments", "Create NOWPayments Order"))
                     : isAlgeria && depositAmount && Number(depositAmount) > 0
-                    ? (isRtl 
-                        ? `تأكيد الشحن: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} دج ($${Number(depositAmount).toFixed(2)})`
-                        : `Confirm Deposit: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} DZD ($${Number(depositAmount).toFixed(2)} USD)`)
-                    : (isRtl ? 'تأكيد إرسال طلب الشحن' : 'Confirm Deposit Request')}
+                    ? (tr("تأكيد الشحن: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} دج ($${Number(depositAmount).toFixed(2)})", "Confirm Deposit: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} DZD ($${Number(depositAmount).toFixed(2)} USD)"))
+                    : (tr("تأكيد إرسال طلب الشحن", "Confirm Deposit Request"))}
                 </Button>
               )}
             </div>
@@ -1536,10 +1525,10 @@ export default function StudentWallet() {
                 </div>
                 <div>
                   <DialogTitle className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight">
-                    {t('wallet.withdrawModalTitle', isRtl ? 'طلب سحب أرباح' : 'Request Profit Payout')}
+                    {t('wallet.withdrawModalTitle', tr("طلب سحب أرباح", "Request Profit Payout"))}
                   </DialogTitle>
                   <DialogDescription className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-1.5">
-                    <span>{t('wallet.availableBalance', isRtl ? 'الرصيد المتاح' : 'Available Balance')}:</span>
+                    <span>{t('wallet.availableBalance', tr("الرصيد المتاح", "Available Balance"))}:</span>
                     {isAlgeria ? (
                       <span className="font-extrabold text-emerald-600 font-mono">
                         {(Math.round(Number(wallet.balance || 0) * usdRate)).toLocaleString()} DZD
@@ -1560,10 +1549,10 @@ export default function StudentWallet() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                    {t('wallet.withdrawAmount', isRtl ? 'المبلغ المراد سحبه ($ USD)' : 'Withdraw Amount ($ USD)')}
+                    {t('wallet.withdrawAmount', tr("المبلغ المراد سحبه ($ USD)", "Withdraw Amount ($ USD)"))}
                   </Label>
                   <span className="text-[10px] text-slate-400 font-medium">
-                    {t('wallet.minWithdrawalNotice', isRtl ? 'الحد الأدنى' : 'Minimum')}{' '}
+                    {t('wallet.minWithdrawalNotice', tr("الحد الأدنى", "Minimum"))}{' '}
                     {isAlgeria 
                       ? `$${selectedWithdrawMethod?.min_withdrawal || minWithdraw} (${((selectedWithdrawMethod?.min_withdrawal || minWithdraw) * usdRate).toLocaleString()} DZD)`
                       : `$${selectedWithdrawMethod?.min_withdrawal || minWithdraw}`}
@@ -1586,7 +1575,7 @@ export default function StudentWallet() {
                   <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-transparent border border-emerald-500/20 space-y-1.5 shadow-xs">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-600 dark:text-slate-300 font-medium">
-                        {isRtl ? 'المبلغ الذي ستستلمه بالدينار (BaridiMob / البنك):' : 'Payout in Algerian Dinar:'}
+                        {tr("المبلغ الذي ستستلمه بالدينار (BaridiMob / البنك):", "Payout in Algerian Dinar:")}
                       </span>
                       <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono">
                         {(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} DZD
@@ -1594,21 +1583,21 @@ export default function StudentWallet() {
                     </div>
                     <div className="flex items-center justify-between text-xs pt-1 border-t border-emerald-500/10">
                       <span className="text-slate-500 dark:text-slate-400 font-medium">
-                        {isRtl ? 'المبلغ المخصوم من رصيدك بالدولار:' : 'Deducted from Wallet:'}
+                        {tr("المبلغ المخصوم من رصيدك بالدولار:", "Deducted from Wallet:")}
                       </span>
                       <span className="text-xs font-bold text-rose-500 font-mono">
                         -${Number(withdrawAmount).toFixed(2)} USD
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
-                      <span>{isRtl ? 'سعر الصرف المعتمد:' : 'Exchange Rate:'}</span>
+                      <span>{tr("سعر الصرف المعتمد:", "Exchange Rate:")}</span>
                       <span className="font-bold text-slate-600 dark:text-slate-300">1 USD = {usdRate} DZD</span>
                     </div>
                   </div>
                 ) : (
                   withdrawAmount && Number(withdrawAmount) > 0 && hasLocalCurrency && currencyCode !== 'USD' && (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                      <span>{isRtl ? 'المبلغ المعادل بالعملة المحلية:' : 'Local Currency Equivalent:'}</span>
+                      <span>{tr("المبلغ المعادل بالعملة المحلية:", "Local Currency Equivalent:")}</span>
                       <span className="font-extrabold font-mono">
                         {Math.round(Number(withdrawAmount) * usdRate).toLocaleString()} {currencyCode}
                       </span>
@@ -1620,7 +1609,7 @@ export default function StudentWallet() {
               {/* Dynamic Withdrawal Method Picker */}
               <div className="space-y-1.5">
                 <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                  {t('wallet.payoutMethod', isRtl ? 'وسيلة استلام الأرباح' : 'Payout Method')}
+                  {t('wallet.payoutMethod', tr("وسيلة استلام الأرباح", "Payout Method"))}
                 </Label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {withdrawMethodsList.map((m: any) => {
@@ -1652,16 +1641,16 @@ export default function StudentWallet() {
                 <div className="flex items-center justify-between">
                   <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
                     {selectedWithdrawMethod?.type === 'nowpayments_crypto'
-                      ? t('wallet.cryptoWithdrawAddress', isRtl ? 'عنوان محفظتك USDT (شبكة BEP20)' : 'Your USDT Wallet Address (BEP20 Network)')
+                      ? t('wallet.cryptoWithdrawAddress', tr("عنوان محفظتك USDT (شبكة BEP20)", "Your USDT Wallet Address (BEP20 Network)"))
                       : selectedWithdrawMethod?.type === 'bank_transfer'
-                      ? t('wallet.bankDetailsWithdraw', isRtl ? 'بيانات الحساب البنكي (Bank Details)' : 'Bank Account Details')
-                      : t('wallet.accountDetails', isRtl ? 'بيانات وتفاصيل الحساب' : 'Account Details')}
+                      ? t('wallet.bankDetailsWithdraw', tr("بيانات الحساب البنكي (Bank Details)", "Bank Account Details"))
+                      : t('wallet.accountDetails', tr("بيانات وتفاصيل الحساب", "Account Details"))}
                   </Label>
                   <Link 
                     to="/student/profile" 
                     className="text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline font-bold"
                   >
-                    {t('nav.settings', isRtl ? 'الإعدادات' : 'Settings')}
+                    {t('nav.settings', tr("الإعدادات", "Settings"))}
                   </Link>
                 </div>
                 <Textarea
@@ -1669,7 +1658,7 @@ export default function StudentWallet() {
                     selectedWithdrawMethod?.type === 'nowpayments_crypto'
                       ? "0x... (USDT BEP20 Wallet Address on BNB Smart Chain)"
                       : selectedWithdrawMethod?.type === 'bank_transfer'
-                      ? (isRtl ? "اسم البنك، اسم المستفيد، رقم الحساب أو IBAN، كود السويفت إن وجد..." : "Bank name, beneficiary name, account number or IBAN, SWIFT...")
+                      ? (tr("اسم البنك، اسم المستفيد، رقم الحساب أو IBAN، كود السويفت إن وجد...", "Bank name, beneficiary name, account number or IBAN, SWIFT..."))
                       : "IBAN, CCP, USDT Address, or Account details..."
                   }
                   value={paymentDetails}
@@ -1678,7 +1667,7 @@ export default function StudentWallet() {
                 />
                 {selectedWithdrawMethod?.type === 'nowpayments_crypto' && (
                   <p className="text-[10px] text-amber-600 font-medium">
-                    {isRtl ? '⚠️ يرجى التأكد أن العنوان على شبكة BNB Smart Chain (BEP20) لاستلام أرباحك مباشرة وبأمان.' : '⚠️ Please make sure the address is on BNB Smart Chain (BEP20) to receive your funds safely.'}
+                    {tr("⚠️ يرجى التأكد أن العنوان على شبكة BNB Smart Chain (BEP20) لاستلام أرباحك مباشرة وبأمان.", "⚠️ Please make sure the address is on BNB Smart Chain (BEP20) to receive your funds safely.")}
                   </p>
                 )}
               </div>
@@ -1692,7 +1681,7 @@ export default function StudentWallet() {
                 onClick={() => setIsWithdrawOpen(false)} 
                 className="rounded-xl text-xs h-8 sm:h-9 px-3"
               >
-                {t('common.cancel', isRtl ? 'إلغاء' : 'Cancel')}
+                {t('common.cancel', tr("إلغاء", "Cancel"))}
               </Button>
               <Button 
                 onClick={handleWithdrawSubmit} 
@@ -1702,10 +1691,8 @@ export default function StudentWallet() {
               >
                 {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
                 {isAlgeria && withdrawAmount && Number(withdrawAmount) > 0
-                  ? (isRtl 
-                      ? `سحب ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} دج ($${Number(withdrawAmount).toFixed(2)})` 
-                      : `Withdraw ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} DZD ($${Number(withdrawAmount).toFixed(2)})`)
-                  : t('wallet.submitWithdraw', isRtl ? 'إرسال طلب السحب' : 'Submit Withdrawal Request')}
+                  ? (tr("سحب ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} دج ($${Number(withdrawAmount).toFixed(2)})", "Withdraw ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} DZD ($${Number(withdrawAmount).toFixed(2)})"))
+                  : t('wallet.submitWithdraw', tr("إرسال طلب السحب", "Submit Withdrawal Request"))}
               </Button>
             </div>
           </DialogContent>

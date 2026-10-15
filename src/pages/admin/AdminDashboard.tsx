@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -176,14 +177,14 @@ export default function AdminDashboard() {
               <div>
                 <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                   <TrendingUp className="h-4.5 w-4.5 text-primary" />
-                  <span>{isRtl ? 'نمو تسجيلات الطلاب والأعضاء' : 'Student & Member Growth'}</span>
+                  <span>{tr("نمو تسجيلات الطلاب والأعضاء", "Student & Member Growth")}</span>
                 </CardTitle>
                 <CardDescription className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-                  {isRtl ? 'حركة التسجيل الشهرية للطلاب خلال الأشهر الأخيرة' : 'Monthly registration activity over recent period'}
+                  {tr("حركة التسجيل الشهرية للطلاب خلال الأشهر الأخيرة", "Monthly registration activity over recent period")}
                 </CardDescription>
               </div>
               <Badge variant="outline" className="text-[11px] font-bold rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-purple-600 px-2 py-0.5">
-                {stats.isLoading ? '...' : `${stats.totalStudents || stats.totalMembers} ${isRtl ? 'عضو مسجل' : 'Registered'}`}
+                {stats.isLoading ? '...' : `${stats.totalStudents || stats.totalMembers} ${tr("عضو مسجل", "Registered")}`}
               </Badge>
             </CardHeader>
             <CardContent className="pt-4 pb-3 px-3 sm:px-5">
@@ -215,7 +216,7 @@ export default function AdminDashboard() {
                       <Area 
                         type="monotone" 
                         dataKey="count" 
-                        name={isRtl ? 'الأعضاء الجدد' : 'New Members'} 
+                        name={tr("الأعضاء الجدد", "New Members")} 
                         stroke="#8b5cf6" 
                         strokeWidth={2} 
                         fillOpacity={1} 
@@ -236,7 +237,7 @@ export default function AdminDashboard() {
                 <span>{t('admin.cashFlowSummary')}</span>
               </CardTitle>
               <CardDescription className="text-[11px] text-slate-400 mt-0.5">
-                {isRtl ? 'المبيعات مقارنة بالسحوبات والأرصدة' : 'Sales vs Withdrawals & Balances'}
+                {tr("المبيعات مقارنة بالسحوبات والأرصدة", "Sales vs Withdrawals & Balances")}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-3 pb-3 px-4 sm:px-5 space-y-2 flex-1 flex flex-col justify-between">
@@ -248,14 +249,14 @@ export default function AdminDashboard() {
               </div>
 
               <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-xs">
-                <span className="text-slate-500 font-bold">{isRtl ? 'مبيعات الدورات:' : 'Course Sales:'}</span>
+                <span className="text-slate-500 font-bold">{tr("مبيعات الدورات:", "Course Sales:")}</span>
                 <strong className="font-mono text-slate-900 dark:text-white text-xs sm:text-sm">
                   ${Number(stats.courseSales || 0).toFixed(2)}
                 </strong>
               </div>
 
               <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-xs">
-                <span className="text-slate-500 font-bold">{isRtl ? 'إجمالي إيداعات المحافظ:' : 'Total Wallet Deposits:'}</span>
+                <span className="text-slate-500 font-bold">{tr("إجمالي إيداعات المحافظ:", "Total Wallet Deposits:")}</span>
                 <strong className="font-mono text-teal-600 dark:text-teal-400 text-xs sm:text-sm">
                   ${Number(stats.totalDeposits || 0).toFixed(2)}
                 </strong>
@@ -300,7 +301,7 @@ export default function AdminDashboard() {
               <span>{t('admin.quickManagementHub')}</span>
             </CardTitle>
             <CardDescription className="text-[11px] text-slate-400 mt-0.5">
-              {isRtl ? 'الوصول السريع والمباشر إلى جميع وحدات التحكم والعمليات' : 'Direct shortcuts to all platform core modules and controls'}
+              {tr("الوصول السريع والمباشر إلى جميع وحدات التحكم والعمليات", "Direct shortcuts to all platform core modules and controls")}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4 pb-4 px-4 sm:px-5">

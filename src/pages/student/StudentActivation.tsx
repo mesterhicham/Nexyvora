@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { tr } from '@/utils/tr';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -81,7 +82,7 @@ export default function StudentActivation() {
 
       if (pkgRes.hasActivePackage) {
         setHasActivePackage(true);
-        toast.success(isRtl ? 'حسابك مفعل بالفعل! جاري نقلك للوحة التحكم...' : 'Account is active! Redirecting...');
+        toast.success(tr("حسابك مفعل بالفعل! جاري نقلك للوحة التحكم...", "Account is active! Redirecting..."));
         setTimeout(() => navigate('/student'), 1200);
         return;
       }
@@ -103,11 +104,11 @@ export default function StudentActivation() {
 
       if (showToast) {
         if (pkgRes.hasActivePackage) {
-          toast.success(isRtl ? 'تهانينا! تم تفعيل عضويتك بنجاح.' : 'Membership activated successfully!');
+          toast.success(tr("تهانينا! تم تفعيل عضويتك بنجاح.", "Membership activated successfully!"));
         } else if (pkgRes.pendingPackage) {
-          toast.info(isRtl ? 'الطلب لا يزال قيد المراجعة والتدقيق من طرف الإدارة.' : 'Request is still under review.');
+          toast.info(tr("الطلب لا يزال قيد المراجعة والتدقيق من طرف الإدارة.", "Request is still under review."));
         } else {
-          toast.info(isRtl ? 'لم يتم العثور على طلبات معلقة.' : 'No pending requests found.');
+          toast.info(tr("لم يتم العثور على طلبات معلقة.", "No pending requests found."));
         }
       }
     } catch (err) {
@@ -143,7 +144,7 @@ export default function StudentActivation() {
       try {
         const res = await packageService.checkNowPaymentsPayment(activePaymentOrder.orderId);
         if (res.status === 'active') {
-          toast.success(isRtl ? '🎉 تم استلام الدفع بنجاح وتفعيل عضويتك الرسمية في الأكاديمية!' : 'Payment confirmed! Your membership is active!');
+          toast.success(tr("🎉 تم استلام الدفع بنجاح وتفعيل عضويتك الرسمية في الأكاديمية!", "Payment confirmed! Your membership is active!"));
           clearInterval(pollInterval);
           clearInterval(timerInterval);
           setTimeout(() => navigate('/student'), 1200);
@@ -161,7 +162,7 @@ export default function StudentActivation() {
 
   const handleCreateCryptoOrder = async () => {
     if (!communityPackage) {
-      return toast.error(isRtl ? 'تعذر تحديد باقة المجتمع' : 'Community package not found');
+      return toast.error(tr("تعذر تحديد باقة المجتمع", "Community package not found"));
     }
 
     try {
@@ -173,13 +174,13 @@ export default function StudentActivation() {
 
       if (res.payment) {
         setActivePaymentOrder(res.payment);
-        toast.success(isRtl ? 'تم إنشاء محفظة دفع مخصصة لك (USDT BEP20) بنجاح!' : 'Dedicated USDT (BEP20) wallet created!');
+        toast.success(tr("تم إنشاء محفظة دفع مخصصة لك (USDT BEP20) بنجاح!", "Dedicated USDT (BEP20) wallet created!"));
       } else if (res.status === 'active') {
-        toast.success(isRtl ? 'حسابك مفعل بالفعل!' : 'Account is active!');
+        toast.success(tr("حسابك مفعل بالفعل!", "Account is active!"));
         navigate('/student');
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (isRtl ? 'فشل إنشاء محفظة الدفع عبر NOWPayments' : 'Failed to create payment order'));
+      toast.error(err.response?.data?.error || (tr("فشل إنشاء محفظة الدفع عبر NOWPayments", "Failed to create payment order")));
     } finally {
       setIsCreatingCryptoOrder(false);
     }
@@ -191,13 +192,13 @@ export default function StudentActivation() {
       setIsCheckingPayment(true);
       const res = await packageService.checkNowPaymentsPayment(activePaymentOrder.orderId);
       if (res.status === 'active') {
-        toast.success(isRtl ? '🎉 تم تأكيد الدفع وتفعيل حسابك بنجاح! جاري تحويلك...' : 'Payment confirmed and account activated! Redirecting...');
+        toast.success(tr("🎉 تم تأكيد الدفع وتفعيل حسابك بنجاح! جاري تحويلك...", "Payment confirmed and account activated! Redirecting..."));
         setTimeout(() => navigate('/student'), 1000);
       } else {
-        toast.info(res.message || (isRtl ? 'المعاملة قيد التدقيق على شبكة البلوكشين. سيتم تفعيل حسابك فور وصول التحويل.' : 'Transaction is being monitored on the blockchain.'));
+        toast.info(res.message || (tr("المعاملة قيد التدقيق على شبكة البلوكشين. سيتم تفعيل حسابك فور وصول التحويل.", "Transaction is being monitored on the blockchain.")));
       }
     } catch (err: any) {
-      toast.error(isRtl ? 'فشل فحص حالة الدفع' : 'Failed to check payment status');
+      toast.error(tr("فشل فحص حالة الدفع", "Failed to check payment status"));
     } finally {
       setIsCheckingPayment(false);
     }
@@ -206,7 +207,7 @@ export default function StudentActivation() {
   const copyToClipboard = (text: string, fieldId: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldId);
-    toast.success(isRtl ? 'تم النسخ إلى الحافظة!' : 'Copied to clipboard!');
+    toast.success(tr("تم النسخ إلى الحافظة!", "Copied to clipboard!"));
     setTimeout(() => setCopiedField(null), 2000);
   };
 
@@ -215,7 +216,7 @@ export default function StudentActivation() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      return toast.error(isRtl ? 'حجم الملف يجب ألا يتجاوز 5 ميغابايت' : 'File size must be under 5MB');
+      return toast.error(tr("حجم الملف يجب ألا يتجاوز 5 ميغابايت", "File size must be under 5MB"));
     }
 
     const formData = new FormData();
@@ -228,9 +229,9 @@ export default function StudentActivation() {
       });
       const url = res.data.url || res.data.fileUrl || res.data.path;
       setReceiptUrl(url);
-      toast.success(isRtl ? 'تم رفع صورة الوصل بنجاح!' : 'Receipt uploaded successfully!');
+      toast.success(tr("تم رفع صورة الوصل بنجاح!", "Receipt uploaded successfully!"));
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (isRtl ? 'فشل رفع صورة الوصل' : 'Failed to upload receipt'));
+      toast.error(err.response?.data?.error || (tr("فشل رفع صورة الوصل", "Failed to upload receipt")));
     } finally {
       setUploadingReceipt(false);
     }
@@ -238,16 +239,16 @@ export default function StudentActivation() {
 
   const handleSubmitActivation = async () => {
     if (!communityPackage) {
-      return toast.error(isRtl ? 'تعذر تحديد باقة المجتمع' : 'Community package not found');
+      return toast.error(tr("تعذر تحديد باقة المجتمع", "Community package not found"));
     }
 
     if (paymentMethod === 'wallet') {
       if (walletBalance < 30) {
-        return toast.error(isRtl ? `رصيد المحفظة غير كافٍ ($${walletBalance.toFixed(2)} USD). يرجى اختيار وسيلة دفع أخرى.` : 'Insufficient wallet balance');
+        return toast.error(tr("رصيد المحفظة غير كافٍ ($${walletBalance.toFixed(2)} USD). يرجى اختيار وسيلة دفع أخرى.", "Insufficient wallet balance"));
       }
     } else {
       if (!paymentReference.trim()) {
-        return toast.error(isRtl ? 'يرجى إدخال رقم العملية / الحوالة أو TxID' : 'Transaction reference / TxID is required');
+        return toast.error(tr("يرجى إدخال رقم العملية / الحوالة أو TxID", "Transaction reference / TxID is required"));
       }
     }
 
@@ -262,15 +263,15 @@ export default function StudentActivation() {
       });
 
       if (res.status === 'active') {
-        toast.success(res.message || (isRtl ? 'تم تفعيل باقة المجتمع بنجاح!' : 'Community package activated!'));
+        toast.success(res.message || (tr("تم تفعيل باقة المجتمع بنجاح!", "Community package activated!")));
         setTimeout(() => navigate('/student'), 1000);
       } else {
-        toast.success(res.message || (isRtl ? 'تم إرسال طلب التفعيل بنجاح وهو قيد المراجعة!' : 'Activation request submitted for review!'));
+        toast.success(res.message || (tr("تم إرسال طلب التفعيل بنجاح وهو قيد المراجعة!", "Activation request submitted for review!")));
         setShowEditForm(false);
         loadData();
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (isRtl ? 'فشل إرسال طلب التفعيل' : 'Failed to submit activation request'));
+      toast.error(err.response?.data?.error || (tr("فشل إرسال طلب التفعيل", "Failed to submit activation request")));
     } finally {
       setSubmitting(false);
     }
@@ -286,7 +287,7 @@ export default function StudentActivation() {
   };
 
   const localBankFromRule = (rule && (rule.bank_name || rule.account_number)) ? {
-    name: rule.bank_name || (isRtl ? 'تحويل بنكي محلي' : 'Local Bank Transfer'),
+    name: rule.bank_name || (tr("تحويل بنكي محلي", "Local Bank Transfer")),
     bank_name: rule.bank_name,
     account_number: rule.account_number || '',
     rib_iban: rule.account_number || rule.iban || '',
@@ -300,12 +301,12 @@ export default function StudentActivation() {
   const bankMethod = localBankFromRule 
     || availableMethods.find((m: any) => m.type === 'bank_transfer' || m.bank_name) 
     || {
-      name: isRtl ? 'تحويل بنكي محلي' : 'Bank Transfer',
+      name: tr("تحويل بنكي محلي", "Bank Transfer"),
       bank_name: isAlgeria ? 'BaridiMob' : (isMorocco ? 'Attijariwafa Bank' : 'Local Bank'),
       account_number: '',
       rib_iban: '',
       account_holder: '',
-      instructions_ar: isRtl ? 'يرجى التحويل بالعملة المحلية إلى الحساب أعلاه وإرفاق صورة الوصل.' : 'Please transfer the amount in local currency and attach the receipt.'
+      instructions_ar: tr("يرجى التحويل بالعملة المحلية إلى الحساب أعلاه وإرفاق صورة الوصل.", "Please transfer the amount in local currency and attach the receipt.")
     };
 
   if (loading) {
@@ -313,7 +314,7 @@ export default function StudentActivation() {
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-6">
         <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
         <p className="text-sm font-bold text-slate-300">
-          {isRtl ? 'جاري التحقق من حالة حسابك...' : 'Checking account status...'}
+          {tr("جاري التحقق من حالة حسابك...", "Checking account status...")}
         </p>
       </div>
     );
@@ -332,7 +333,7 @@ export default function StudentActivation() {
               NEXYVORA
             </span>
             <span className="text-[10px] text-primary font-bold tracking-widest uppercase">
-              {isRtl ? 'بوابة التفعيل الإلزامية' : 'Activation Gate'}
+              {tr("بوابة التفعيل الإلزامية", "Activation Gate")}
             </span>
           </div>
         </div>
@@ -350,7 +351,7 @@ export default function StudentActivation() {
             className="rounded-xl border-slate-800 hover:bg-slate-800 text-slate-300 text-xs gap-1.5 h-8.5 px-3"
           >
             <LogOut className="w-3.5 h-3.5 text-rose-400" />
-            <span>{isRtl ? 'تسجيل الخروج' : 'Sign Out'}</span>
+            <span>{tr("تسجيل الخروج", "Sign Out")}</span>
           </Button>
         </div>
       </header>
@@ -366,15 +367,13 @@ export default function StudentActivation() {
                   <Clock className="w-8 h-8 animate-pulse" />
                 </div>
                 <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs px-3 py-1 font-bold mb-3 mx-auto">
-                  {isRtl ? 'الحالة: قيد المراجعة والتدقيق' : 'Status: Under Admin Review'}
+                  {tr("الحالة: قيد المراجعة والتدقيق", "Status: Under Admin Review")}
                 </Badge>
                 <CardTitle className="text-2xl sm:text-3xl font-black text-white">
-                  {isRtl ? 'طلب تفعيل عضويتك قيد المعالجة' : 'Your Activation Request Is Under Review'}
+                  {tr("طلب تفعيل عضويتك قيد المعالجة", "Your Activation Request Is Under Review")}
                 </CardTitle>
                 <CardDescription className="text-slate-300 max-w-xl mx-auto text-xs sm:text-sm mt-2">
-                  {isRtl 
-                    ? 'شكراً لك! لقد استلمنا إشعار تحويل رسوم باقة المجتمع ($30 USD). يقوم فريق الإدارة حالياً بمراجعة وصل الدفع، وسيتم فتح النظام بالكامل فور التأكيد.'
-                    : 'Thank you! We received your Community package ($30 USD) payment proof. Our team is verifying your payment and your full access will unlock upon approval.'}
+                  {tr("شكراً لك! لقد استلمنا إشعار تحويل رسوم باقة المجتمع ($30 USD). يقوم فريق الإدارة حالياً بمراجعة وصل الدفع، وسيتم فتح النظام بالكامل فور التأكيد.", "Thank you! We received your Community package ($30 USD) payment proof. Our team is verifying your payment and your full access will unlock upon approval.")}
                 </CardDescription>
               </CardHeader>
 
@@ -382,40 +381,40 @@ export default function StudentActivation() {
                 {/* Details Breakdown */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 text-xs">
                   <div>
-                    <span className="text-slate-400 block mb-1">{isRtl ? 'الباقة المطلوبة:' : 'Package:'}</span>
+                    <span className="text-slate-400 block mb-1">{tr("الباقة المطلوبة:", "Package:")}</span>
                     <span className="font-bold text-white text-sm">
                       {isRtl ? (pendingPackage.package_name_ar || pendingPackage.package_name) : (pendingPackage.package_name || pendingPackage.package_name_ar)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block mb-1">{isRtl ? 'المبلغ المدفوع:' : 'Amount Paid:'}</span>
+                    <span className="text-slate-400 block mb-1">{tr("المبلغ المدفوع:", "Amount Paid:")}</span>
                     <span className="font-mono font-bold text-emerald-400 text-sm">
                       ${Number(pendingPackage.amount_paid || 30).toFixed(2)} USD
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block mb-1">{isRtl ? 'طريقة الدفع:' : 'Payment Method:'}</span>
+                    <span className="text-slate-400 block mb-1">{tr("طريقة الدفع:", "Payment Method:")}</span>
                     <span className="font-bold text-slate-200">
                       {pendingPackage.payment_method === 'usdt' ? 'USDT (Crypto)' :
-                       pendingPackage.payment_method === 'bank_transfer' ? (isRtl ? 'تحويل بنكي' : 'Bank Transfer') :
+                       pendingPackage.payment_method === 'bank_transfer' ? (tr("تحويل بنكي", "Bank Transfer")) :
                        pendingPackage.payment_method}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block mb-1">{isRtl ? 'رقم العملية / TxID:' : 'TxID / Reference:'}</span>
+                    <span className="text-slate-400 block mb-1">{tr("رقم العملية / TxID:", "TxID / Reference:")}</span>
                     <span className="font-mono font-bold text-slate-200 break-all">
                       {pendingPackage.payment_reference || 'N/A'}
                     </span>
                   </div>
                   {pendingPackage.notes && (
                     <div className="sm:col-span-2">
-                      <span className="text-slate-400 block mb-1">{isRtl ? 'الملاحظات / اسم المرسل:' : 'Notes / Sender:'}</span>
+                      <span className="text-slate-400 block mb-1">{tr("الملاحظات / اسم المرسل:", "Notes / Sender:")}</span>
                       <span className="text-slate-300 italic">{pendingPackage.notes}</span>
                     </div>
                   )}
                   {pendingPackage.receipt_url && (
                     <div className="sm:col-span-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                      <span className="text-slate-400">{isRtl ? 'صورة الوصل المرفقة:' : 'Attached Receipt:'}</span>
+                      <span className="text-slate-400">{tr("صورة الوصل المرفقة:", "Attached Receipt:")}</span>
                       <a
                         href={pendingPackage.receipt_url}
                         target="_blank"
@@ -423,7 +422,7 @@ export default function StudentActivation() {
                         className="inline-flex items-center gap-1.5 text-primary hover:underline font-bold text-xs"
                       >
                         <ImageIcon className="w-3.5 h-3.5" />
-                        {isRtl ? 'معاينة الوصل' : 'View Receipt'}
+                        {tr("معاينة الوصل", "View Receipt")}
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
@@ -437,7 +436,7 @@ export default function StudentActivation() {
                     className="w-full sm:w-auto h-11 px-6 rounded-2xl font-bold bg-primary hover:bg-primary/90 text-white gap-2 shadow-lg shadow-primary/20"
                   >
                     <RefreshCw className="w-4 h-4" />
-                    <span>{isRtl ? 'تحديث حالة التفعيل الآن' : 'Refresh Activation Status'}</span>
+                    <span>{tr("تحديث حالة التفعيل الآن", "Refresh Activation Status")}</span>
                   </Button>
 
                   <Button
@@ -445,7 +444,7 @@ export default function StudentActivation() {
                     onClick={() => setShowEditForm(true)}
                     className="w-full sm:w-auto h-11 px-6 rounded-2xl font-bold border-slate-800 hover:bg-slate-800 text-slate-300 text-xs"
                   >
-                    {isRtl ? 'تعديل بيانات أو وصل الدفع' : 'Update Payment Proof'}
+                    {tr("تعديل بيانات أو وصل الدفع", "Update Payment Proof")}
                   </Button>
                 </div>
               </CardContent>
@@ -458,15 +457,13 @@ export default function StudentActivation() {
             <div className="text-center space-y-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>{isRtl ? 'الخطوة الأولى الإلزامية لتفعيل العضوية' : 'Step 1: Mandatory Membership Activation'}</span>
+                <span>{tr("الخطوة الأولى الإلزامية لتفعيل العضوية", "Step 1: Mandatory Membership Activation")}</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                {isRtl ? 'تفعيل عضوية المجتمع الرسمية' : 'Activate Official Community Membership'}
+                {tr("تفعيل عضوية المجتمع الرسمية", "Activate Official Community Membership")}
               </h1>
               <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-                {isRtl
-                  ? 'للبدء في تصفح النظام، حضور الدورات، تفعيل رابط الإحالة وجني العمولات بنسبة 50% ($15 USD)، يرجى إتمام سداد رسوم عضوية المجتمع ($30 USD).'
-                  : 'To browse the platform, access academy training, activate referral earnings (50% / $15 USD direct bonus), please complete your $30 Community Membership.'}
+                {tr("للبدء في تصفح النظام، حضور الدورات، تفعيل رابط الإحالة وجني العمولات بنسبة 50% ($15 USD)، يرجى إتمام سداد رسوم عضوية المجتمع ($30 USD).", "To browse the platform, access academy training, activate referral earnings (50% / $15 USD direct bonus), please complete your $30 Community Membership.")}
               </p>
             </div>
 
@@ -477,10 +474,10 @@ export default function StudentActivation() {
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-sm text-white mb-1">
-                  {isRtl ? 'الأكاديمية والتدريبات' : 'Academy & Training'}
+                  {tr("الأكاديمية والتدريبات", "Academy & Training")}
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {isRtl ? 'ورشات مباشرة أسبوعية ومحتوى تدريبي استثماري مخصص للأعضاء.' : 'Live weekly workshops and exclusive educational tracks.'}
+                  {tr("ورشات مباشرة أسبوعية ومحتوى تدريبي استثماري مخصص للأعضاء.", "Live weekly workshops and exclusive educational tracks.")}
                 </p>
               </div>
 
@@ -489,10 +486,10 @@ export default function StudentActivation() {
                   <Users className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-sm text-white mb-1">
-                  {isRtl ? 'بناء الفريق والعمولات' : 'Affiliate & Team'}
+                  {tr("بناء الفريق والعمولات", "Affiliate & Team")}
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {isRtl ? 'احصل على عمولة 50% ($15 USD) فورية لكل عضو مباشر ينضم عبرك.' : 'Earn 50% ($15 USD) direct bonus for every direct member registered.'}
+                  {tr("احصل على عمولة 50% ($15 USD) فورية لكل عضو مباشر ينضم عبرك.", "Earn 50% ($15 USD) direct bonus for every direct member registered.")}
                 </p>
               </div>
 
@@ -501,10 +498,10 @@ export default function StudentActivation() {
                   <Trophy className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-sm text-white mb-1">
-                  {isRtl ? 'الرتب وأحواض البونص' : 'Ranks & Bonus Pools'}
+                  {tr("الرتب وأحواض البونص", "Ranks & Bonus Pools")}
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {isRtl ? 'فتح مسار الرتب القيادية وتقاسم أرباح الشركة الشهرية.' : 'Unlock leadership ranks and share 2% monthly company profits.'}
+                  {tr("فتح مسار الرتب القيادية وتقاسم أرباح الشركة الشهرية.", "Unlock leadership ranks and share 2% monthly company profits.")}
                 </p>
               </div>
 
@@ -513,10 +510,10 @@ export default function StudentActivation() {
                   <Wallet className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-sm text-white mb-1">
-                  {isRtl ? 'المحفظة وسحب الأرباح' : 'Wallet & Payouts'}
+                  {tr("المحفظة وسحب الأرباح", "Wallet & Payouts")}
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {isRtl ? 'إيداع وسحب أرباحك وعمولاتك بكل سهولة وأمان عبر USDT أو البنك.' : 'Fast, reliable withdrawals of your commissions via USDT or Bank.'}
+                  {tr("إيداع وسحب أرباحك وعمولاتك بكل سهولة وأمان عبر USDT أو البنك.", "Fast, reliable withdrawals of your commissions via USDT or Bank.")}
                 </p>
               </div>
             </div>
@@ -527,10 +524,10 @@ export default function StudentActivation() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <CardTitle className="text-xl sm:text-2xl font-black text-white">
-                      {isRtl ? 'اختر وسيلة الدفع لتفعيل الباقة' : 'Select Payment Method for Activation'}
+                      {tr("اختر وسيلة الدفع لتفعيل الباقة", "Select Payment Method for Activation")}
                     </CardTitle>
                     <CardDescription className="text-xs sm:text-sm text-slate-400 mt-1">
-                      {isRtl ? `المبلغ المطلوب سداده: ${formatDualPrice(30)} فقط (لمرة واحدة سنوياً).` : `Required amount: ${formatDualPrice(30)} (Annual validity).`}
+                      {tr("المبلغ المطلوب سداده: ${formatDualPrice(30)} فقط (لمرة واحدة سنوياً).", "Required amount: ${formatDualPrice(30)} (Annual validity).")}
                     </CardDescription>
                   </div>
                   <div className="px-5 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono font-black text-lg self-start sm:self-auto">
@@ -595,7 +592,7 @@ export default function StudentActivation() {
                       </div>
                       <div>
                         <span className="font-bold text-xs sm:text-sm block text-white">
-                          {isRtl ? 'تحويل بنكي / يدوي' : 'Bank Transfer'}
+                          {tr("تحويل بنكي / يدوي", "Bank Transfer")}
                         </span>
                         <span className="text-[10px] text-slate-400 block font-mono truncate max-w-[130px]">
                           {bankMethod.bank_name || (isAlgeria ? 'BaridiMob / RIP' : (isMorocco ? 'CIH / Attijariwafa' : 'Local Bank'))}
@@ -623,7 +620,7 @@ export default function StudentActivation() {
                       </div>
                       <div>
                         <span className="font-bold text-xs sm:text-sm block text-white">
-                          {isRtl ? 'رصيد المنصة' : 'Wallet Balance'}
+                          {tr("رصيد المنصة", "Wallet Balance")}
                         </span>
                         <span className="text-[10px] text-emerald-400 block font-mono font-bold">
                           ${walletBalance.toFixed(2)} USD
@@ -647,7 +644,7 @@ export default function StudentActivation() {
                               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                             </span>
                             <span className="text-xs sm:text-sm font-black text-emerald-300">
-                              {isRtl ? 'محفظة الدفع المخصصة جاهزة (NOWPayments)' : 'Dedicated NOWPayments Wallet Ready'}
+                              {tr("محفظة الدفع المخصصة جاهزة (NOWPayments)", "Dedicated NOWPayments Wallet Ready")}
                             </span>
                           </div>
                           <Badge variant="outline" className="font-mono text-[11px] bg-slate-950 border-emerald-500/40 text-emerald-300 font-bold px-2.5 py-0.5">
@@ -660,7 +657,7 @@ export default function StudentActivation() {
                           <div className="flex items-center justify-between text-xs">
                             <span className="text-slate-400 font-bold flex items-center gap-1.5">
                               <Clock className={`h-4 w-4 ${orderTimeLeft < 300 ? 'text-rose-500 animate-pulse' : 'text-amber-400'}`} />
-                              {isRtl ? 'الوقت المتبقي لصلاحية هذا العنوان:' : 'Address Validity Remaining:'}
+                              {tr("الوقت المتبقي لصلاحية هذا العنوان:", "Address Validity Remaining:")}
                             </span>
                             <span className={`font-mono text-sm sm:text-base font-black ${
                               orderTimeLeft < 300 ? 'text-rose-400' : 'text-emerald-400'
@@ -678,16 +675,14 @@ export default function StudentActivation() {
                             />
                           </div>
                           <p className="text-[11px] text-slate-400 leading-tight">
-                            {isRtl 
-                              ? 'العنوان صالح ومخصص لك لمدة 20 دقيقة. بمجرد إرسال المبلغ، يقوم النظام برصد المعاملة عبر البلوكشين وتفعيل حسابك تلقائياً دون أي انتظار.'
-                              : 'The address is active for 20 minutes. Once sent, the blockchain confirms and your account activates automatically.'}
+                            {tr("العنوان صالح ومخصص لك لمدة 20 دقيقة. بمجرد إرسال المبلغ، يقوم النظام برصد المعاملة عبر البلوكشين وتفعيل حسابك تلقائياً دون أي انتظار.", "The address is active for 20 minutes. Once sent, the blockchain confirms and your account activates automatically.")}
                           </p>
                         </div>
 
                         {/* Amount to Send */}
                         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
                           <span className="text-xs text-emerald-400 font-bold block mb-1">
-                            {isRtl ? 'المبلغ المطلوب إرساله بالضبط:' : 'Exact Amount to Send:'}
+                            {tr("المبلغ المطلوب إرساله بالضبط:", "Exact Amount to Send:")}
                           </span>
                           <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight">
                             {activePaymentOrder.payAmount || 30} <span className="text-sm font-sans uppercase">USDT</span>
@@ -709,7 +704,7 @@ export default function StudentActivation() {
 
                           <div className="flex-1 w-full space-y-2 text-center sm:text-start">
                             <span className="text-xs text-slate-400 block font-medium">
-                              {isRtl ? 'عنوان محفظة الإيداع المخصصة لك (BEP20):' : 'Your Dedicated Deposit Address (BEP20):'}
+                              {tr("عنوان محفظة الإيداع المخصصة لك (BEP20):", "Your Dedicated Deposit Address (BEP20):")}
                             </span>
                             <div className="p-2.5 rounded-xl bg-slate-900 font-mono text-xs font-bold text-slate-200 break-all select-all border border-slate-800">
                               {activePaymentOrder.payAddress}
@@ -722,7 +717,7 @@ export default function StudentActivation() {
                                 className="h-8 px-3 text-xs gap-1.5 font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-900/30"
                               >
                                 {copiedField === 'nowpay_address' ? <Check className="h-3.5 w-3.5 text-white" /> : <Copy className="h-3.5 w-3.5" />}
-                                <span>{copiedField === 'nowpay_address' ? (isRtl ? 'تم نسخ العنوان!' : 'Copied!') : (isRtl ? 'نسخ العنوان' : 'Copy Address')}</span>
+                                <span>{copiedField === 'nowpay_address' ? (tr("تم نسخ العنوان!", "Copied!")) : (tr("نسخ العنوان", "Copy Address"))}</span>
                               </Button>
 
                               <Button
@@ -734,7 +729,7 @@ export default function StudentActivation() {
                                 className="h-8 px-2.5 text-[11px] text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-xl"
                               >
                                 <RefreshCw className={`w-3 h-3 mr-1 ${isCreatingCryptoOrder ? 'animate-spin' : ''}`} />
-                                <span>{isRtl ? 'تجديد العنوان' : 'Renew Address'}</span>
+                                <span>{tr("تجديد العنوان", "Renew Address")}</span>
                               </Button>
                             </div>
                           </div>
@@ -749,16 +744,14 @@ export default function StudentActivation() {
                             className="w-full sm:flex-1 h-11 rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-lg shadow-emerald-900/40"
                           >
                             <RefreshCw className={`w-4 h-4 ${isCheckingPayment ? 'animate-spin' : ''}`} />
-                            <span>{isRtl ? 'فحص حالة الدفع والتفعيل الآن' : 'Check Payment & Activation Status'}</span>
+                            <span>{tr("فحص حالة الدفع والتفعيل الآن", "Check Payment & Activation Status")}</span>
                           </Button>
                         </div>
 
                         <div className="text-center">
                           <p className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
-                            {isRtl 
-                              ? 'يقوم النظام بمراقبة وصول التحويل تلقائياً كل 6 ثوانٍ وسيتم تفعيل حسابك فوراً.'
-                              : 'Auto-monitoring every 6s. Your account will unlock automatically upon confirmation.'}
+                            {tr("يقوم النظام بمراقبة وصول التحويل تلقائياً كل 6 ثوانٍ وسيتم تفعيل حسابك فوراً.", "Auto-monitoring every 6s. Your account will unlock automatically upon confirmation.")}
                           </p>
                         </div>
                       </div>
@@ -769,12 +762,10 @@ export default function StudentActivation() {
                         </div>
                         <div className="space-y-1">
                           <h3 className="text-base font-bold text-white">
-                            {isRtl ? 'الدفع الآلي عبر USDT BEP20 (NOWPayments)' : 'Automated Payment via USDT BEP20 (NOWPayments)'}
+                            {tr("الدفع الآلي عبر USDT BEP20 (NOWPayments)", "Automated Payment via USDT BEP20 (NOWPayments)")}
                           </h3>
                           <p className="text-xs text-slate-400 max-w-md mx-auto">
-                            {isRtl 
-                              ? 'انقر على الزر أدناه لإنشاء محفظة دفع مخصصة لك بالكامل. بمجرد إرسال $30 USDT عبر شبكة BEP20، سيتم تفعيل حسابك فوراً وبشكل تلقائي دون انتظار المراجعة اليدوية!'
-                              : 'Click below to generate your dedicated wallet. Once sent, activation happens automatically without manual review!'}
+                            {tr("انقر على الزر أدناه لإنشاء محفظة دفع مخصصة لك بالكامل. بمجرد إرسال $30 USDT عبر شبكة BEP20، سيتم تفعيل حسابك فوراً وبشكل تلقائي دون انتظار المراجعة اليدوية!", "Click below to generate your dedicated wallet. Once sent, activation happens automatically without manual review!")}
                           </p>
                         </div>
                         <Button
@@ -786,12 +777,12 @@ export default function StudentActivation() {
                           {isCreatingCryptoOrder ? (
                             <>
                               <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>{isRtl ? 'جاري إنشاء محفظة الدفع...' : 'Creating dedicated wallet...'}</span>
+                              <span>{tr("جاري إنشاء محفظة الدفع...", "Creating dedicated wallet...")}</span>
                             </>
                           ) : (
                             <>
                               <Sparkles className="w-4 h-4" />
-                              <span>{isRtl ? 'إنشاء محفظة الدفع المخصصة (USDT BEP20)' : 'Generate Dedicated BEP20 Wallet'}</span>
+                              <span>{tr("إنشاء محفظة الدفع المخصصة (USDT BEP20)", "Generate Dedicated BEP20 Wallet")}</span>
                             </>
                           )}
                         </Button>
@@ -804,25 +795,25 @@ export default function StudentActivation() {
                   <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-white text-sm">
-                        {isRtl ? 'بيانات الحساب البنكي الرسمي:' : 'Official Bank Details:'}
+                        {tr("بيانات الحساب البنكي الرسمي:", "Official Bank Details:")}
                       </span>
                       <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[10px]">
-                        {isRtl ? 'حساب تجاري موثق' : 'Verified Merchant'}
+                        {tr("حساب تجاري موثق", "Verified Merchant")}
                       </Badge>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800">
                       <div>
-                        <span className="text-slate-400 block text-[10px]">{isRtl ? 'اسم البنك / الجهة:' : 'Bank Name:'}</span>
+                        <span className="text-slate-400 block text-[10px]">{tr("اسم البنك / الجهة:", "Bank Name:")}</span>
                         <span className="font-bold text-white text-xs">{bankMethod.bank_name || (isAlgeria ? 'BaridiMob' : 'Local Bank')}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[10px]">{isRtl ? 'اسم صاحب الحساب:' : 'Account Holder:'}</span>
+                        <span className="text-slate-400 block text-[10px]">{tr("اسم صاحب الحساب:", "Account Holder:")}</span>
                         <span className="font-bold text-white text-xs">{bankMethod.account_holder || '—'}</span>
                       </div>
                       <div className="sm:col-span-2 flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
                         <div>
-                          <span className="text-slate-400 block text-[10px]">{isRtl ? 'رقم الحساب / RIP / الحساب البنكي:' : 'Account Number / RIP:'}</span>
+                          <span className="text-slate-400 block text-[10px]">{tr("رقم الحساب / RIP / الحساب البنكي:", "Account Number / RIP:")}</span>
                           <span className="font-mono font-bold text-slate-200 text-xs">{bankMethod.account_number || bankMethod.rib_iban || '—'}</span>
                         </div>
                         {(bankMethod.account_number || bankMethod.rib_iban) && (
@@ -833,7 +824,7 @@ export default function StudentActivation() {
                             className="h-8 px-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 shrink-0 gap-1 font-bold text-xs"
                           >
                             {copiedField === 'rib' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                            <span>{copiedField === 'rib' ? (isRtl ? 'تم!' : 'Copied!') : (isRtl ? 'نسخ' : 'Copy')}</span>
+                            <span>{copiedField === 'rib' ? (tr("تم!", "Copied!")) : (tr("نسخ", "Copy"))}</span>
                           </Button>
                         )}
                       </div>
@@ -841,7 +832,7 @@ export default function StudentActivation() {
                       {bankMethod.iban && bankMethod.iban !== bankMethod.account_number && (
                         <div className="sm:col-span-2 flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
                           <div>
-                            <span className="text-slate-400 block text-[10px]">{isRtl ? 'رقم الآيبان الدولي (IBAN):' : 'IBAN Number:'}</span>
+                            <span className="text-slate-400 block text-[10px]">{tr("رقم الآيبان الدولي (IBAN):", "IBAN Number:")}</span>
                             <span className="font-mono font-bold text-slate-200 text-xs">{bankMethod.iban}</span>
                           </div>
                           <Button
@@ -851,7 +842,7 @@ export default function StudentActivation() {
                             className="h-8 px-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 shrink-0 gap-1 font-bold text-xs"
                           >
                             {copiedField === 'iban' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                            <span>{copiedField === 'iban' ? (isRtl ? 'تم!' : 'Copied!') : (isRtl ? 'نسخ' : 'Copy')}</span>
+                            <span>{copiedField === 'iban' ? (tr("تم!", "Copied!")) : (tr("نسخ", "Copy"))}</span>
                           </Button>
                         </div>
                       )}
@@ -870,9 +861,7 @@ export default function StudentActivation() {
                       </p>
                     ) : (
                       <p className="text-[11px] text-slate-400 leading-relaxed">
-                        💡 {isRtl 
-                          ? `قم بتحويل ${formatDualPrice(30)}، ثم اكتب رقم الحوالة واسم صاحب الحساب وأرفق صورة الوصل أدناه.`
-                          : 'Transfer the equivalent of $30 USD, enter the reference number and sender name, and upload the bank slip.'}
+                        💡 {tr("قم بتحويل ${formatDualPrice(30)}، ثم اكتب رقم الحوالة واسم صاحب الحساب وأرفق صورة الوصل أدناه.", "Transfer the equivalent of $30 USD, enter the reference number and sender name, and upload the bank slip.")}
                       </p>
                     )}
                   </div>
@@ -882,7 +871,7 @@ export default function StudentActivation() {
                   <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-white text-sm">
-                        {isRtl ? 'الدفع الفوري من رصيد المحفظة:' : 'Instant Wallet Activation:'}
+                        {tr("الدفع الفوري من رصيد المحفظة:", "Instant Wallet Activation:")}
                       </span>
                       <span className="font-mono font-bold text-emerald-400 text-sm">
                         ${walletBalance.toFixed(2)} USD
@@ -893,18 +882,14 @@ export default function StudentActivation() {
                       <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-2.5">
                         <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
                         <span>
-                          {isRtl 
-                            ? 'رصيدك متاح وكافٍ لتفعيل باقة المجتمع فوراً دون الحاجة لمراجعة أو إرفاق وصل!'
-                            : 'Your wallet balance is sufficient. Activation will take place immediately upon clicking confirm!'}
+                          {tr("رصيدك متاح وكافٍ لتفعيل باقة المجتمع فوراً دون الحاجة لمراجعة أو إرفاق وصل!", "Your wallet balance is sufficient. Activation will take place immediately upon clicking confirm!")}
                         </span>
                       </div>
                     ) : (
                       <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center gap-2.5">
                         <AlertCircle className="w-5 h-5 shrink-0 text-rose-400" />
                         <span>
-                          {isRtl 
-                            ? `رصيد محفظتك المتاح هو $${walletBalance.toFixed(2)} USD والمبلغ المطلوب هو $30.00 USD. يرجى اختيار USDT أو تحويل بنكي لإتمام التفعيل.`
-                            : `Current wallet balance is $${walletBalance.toFixed(2)}. $30.00 is required. Please choose USDT or Bank Transfer.`}
+                          {tr("رصيد محفظتك المتاح هو $${walletBalance.toFixed(2)} USD والمبلغ المطلوب هو $30.00 USD. يرجى اختيار USDT أو تحويل بنكي لإتمام التفعيل.", "Current wallet balance is $${walletBalance.toFixed(2)}. $30.00 is required. Please choose USDT or Bank Transfer.")}
                         </span>
                       </div>
                     )}
@@ -917,7 +902,7 @@ export default function StudentActivation() {
                     {/* Reference / TxID */}
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold text-slate-300">
-                        {isRtl ? 'رقم المعاملة / كود التحويل البنكي' : 'Transaction Reference / Transfer Code'} <span className="text-rose-400">*</span>
+                        {tr("رقم المعاملة / كود التحويل البنكي", "Transaction Reference / Transfer Code")} <span className="text-rose-400">*</span>
                       </Label>
                       <Input
                         placeholder="Ref: e.g. V-982314 or 20261015-889"
@@ -930,10 +915,10 @@ export default function StudentActivation() {
                     {/* Sender Name / Notes */}
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold text-slate-300">
-                        {isRtl ? 'اسم المرسل أو ملاحظات إضافية (اختياري)' : 'Sender Name / Extra Notes (Optional)'}
+                        {tr("اسم المرسل أو ملاحظات إضافية (اختياري)", "Sender Name / Extra Notes (Optional)")}
                       </Label>
                       <Input
-                        placeholder={isRtl ? 'مثال: محمد العمري - حوالة بنكية' : 'e.g. John Doe - Bank transfer note'}
+                        placeholder={tr("مثال: محمد العمري - حوالة بنكية", "e.g. John Doe - Bank transfer note")}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
@@ -943,7 +928,7 @@ export default function StudentActivation() {
                     {/* Receipt Upload */}
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold text-slate-300">
-                        {isRtl ? 'صورة وصل التحويل (مستحسن لتسريع المراجعة)' : 'Receipt Proof Screenshot (Recommended)'}
+                        {tr("صورة وصل التحويل (مستحسن لتسريع المراجعة)", "Receipt Proof Screenshot (Recommended)")}
                       </Label>
 
                       <input
@@ -959,7 +944,7 @@ export default function StudentActivation() {
                           <div className="flex items-center gap-2 truncate">
                             <FileCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                             <span className="text-emerald-300 font-bold truncate">
-                              {isRtl ? 'تم إرفاق وصل التحويل بنجاح' : 'Receipt attached'}
+                              {tr("تم إرفاق وصل التحويل بنجاح", "Receipt attached")}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -969,7 +954,7 @@ export default function StudentActivation() {
                               rel="noreferrer"
                               className="text-[11px] text-primary hover:underline font-bold"
                             >
-                              {isRtl ? 'عرض' : 'View'}
+                              {tr("عرض", "View")}
                             </a>
                             <Button
                               type="button"
@@ -978,7 +963,7 @@ export default function StudentActivation() {
                               onClick={() => setReceiptUrl('')}
                               className="h-7 text-[10px] text-rose-400 hover:text-rose-300 hover:bg-slate-900"
                             >
-                              {isRtl ? 'حذف' : 'Remove'}
+                              {tr("حذف", "Remove")}
                             </Button>
                           </div>
                         </div>
@@ -991,17 +976,17 @@ export default function StudentActivation() {
                             <div className="flex flex-col items-center justify-center gap-2">
                               <Loader2 className="w-6 h-6 text-primary animate-spin" />
                               <span className="text-xs text-slate-400">
-                                {isRtl ? 'جاري رفع الملف...' : 'Uploading receipt...'}
+                                {tr("جاري رفع الملف...", "Uploading receipt...")}
                               </span>
                             </div>
                           ) : (
                             <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
                               <Upload className="w-6 h-6 text-primary" />
                               <span className="text-xs font-bold text-slate-300">
-                                {isRtl ? 'انقر هنا لرفع صورة الوصل (PNG, JPG, PDF)' : 'Click to upload receipt image (PNG, JPG, PDF)'}
+                                {tr("انقر هنا لرفع صورة الوصل (PNG, JPG, PDF)", "Click to upload receipt image (PNG, JPG, PDF)")}
                               </span>
                               <span className="text-[10px] text-slate-500">
-                                {isRtl ? 'الحد الأقصى للملف: 5 ميغابايت' : 'Maximum file size: 5MB'}
+                                {tr("الحد الأقصى للملف: 5 ميغابايت", "Maximum file size: 5MB")}
                               </span>
                             </div>
                           )}
@@ -1022,15 +1007,15 @@ export default function StudentActivation() {
                       {submitting ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>{isRtl ? 'جاري إرسال الطلب...' : 'Submitting activation request...'}</span>
+                          <span>{tr("جاري إرسال الطلب...", "Submitting activation request...")}</span>
                         </>
                       ) : (
                         <>
                           <ShieldCheck className="w-4 h-4" />
                           <span>
                             {paymentMethod === 'wallet'
-                              ? (isRtl ? 'تفعيل فوري من رصيد المحفظة ($30 USD)' : 'Activate Instantly with Wallet ($30 USD)')
-                              : (isRtl ? 'تأكيد وإرسال طلب التفعيل البنكي ($30 USD)' : 'Confirm and Submit Bank Activation Request ($30 USD)')}
+                              ? (tr("تفعيل فوري من رصيد المحفظة ($30 USD)", "Activate Instantly with Wallet ($30 USD)"))
+                              : (tr("تأكيد وإرسال طلب التفعيل البنكي ($30 USD)", "Confirm and Submit Bank Activation Request ($30 USD)"))}
                           </span>
                         </>
                       )}
@@ -1043,19 +1028,17 @@ export default function StudentActivation() {
             {/* Support Contact Footer */}
             <div className="text-center text-xs text-slate-500 space-y-2 pb-6">
               <p>
-                {isRtl 
-                  ? '🔒 جميع المعاملات مشفرة وتخضع للرقابة المالية الآمنة عبر منصة Nexyvora.' 
-                  : '🔒 All transactions are secured and monitored on Nexyvora.'}
+                {tr("🔒 جميع المعاملات مشفرة وتخضع للرقابة المالية الآمنة عبر منصة Nexyvora.", "🔒 All transactions are secured and monitored on Nexyvora.")}
               </p>
               <p>
-                {isRtl ? 'هل تحتاج إلى مساعدة؟' : 'Need assistance?'}{' '}
+                {tr("هل تحتاج إلى مساعدة؟", "Need assistance?")}{' '}
                 <a 
                   href="https://wa.me/212600000000?text=Hello%20Nexyvora%20Support%2C%20I%20need%20help%20with%20Community%20Membership%20activation." 
                   target="_blank" 
                   rel="noreferrer"
                   className="text-primary hover:underline font-bold inline-flex items-center gap-1"
                 >
-                  {isRtl ? 'تواصل مع الدعم الفني عبر واتساب' : 'Chat with Support on WhatsApp'}
+                  {tr("تواصل مع الدعم الفني عبر واتساب", "Chat with Support on WhatsApp")}
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </p>

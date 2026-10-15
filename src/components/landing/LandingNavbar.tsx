@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Globe, Menu, X, ChevronDown, Check } from 'lucide-react';
@@ -55,12 +56,12 @@ export function LandingNavbar() {
   };
 
   const navLinks = [
-    { id: 'home', label: t('landing.nav.home') || (isRtl ? 'الرئيسية' : 'Accueil'), href: '#home' },
-    { id: 'programmes', label: t('landing.nav.programs') || (isRtl ? 'البرامج' : 'Programmes'), href: '#programmes' },
-    { id: 'formations', label: t('landing.nav.formations') || (isRtl ? 'التكوينات' : 'Formations'), href: '#programmes' },
-    { id: 'apropos', label: t('landing.nav.about') || (isRtl ? 'من نحن' : 'À propos'), href: '#apropos' },
-    { id: 'temoignages', label: t('landing.nav.testimonials') || (isRtl ? 'آراء الأعضاء' : 'Témoignages'), href: '#temoignages' },
-    { id: 'contact', label: t('landing.nav.contact') || (isRtl ? 'اتصل بنا' : 'Contact'), href: '#contact' },
+    { id: 'home', label: t('landing.nav.home') || (tr("الرئيسية", "Accueil")), href: '#home' },
+    { id: 'programmes', label: t('landing.nav.programs') || (tr("البرامج", "Programmes")), href: '#programmes' },
+    { id: 'formations', label: t('landing.nav.formations') || (tr("التكوينات", "Formations")), href: '#programmes' },
+    { id: 'apropos', label: t('landing.nav.about') || (tr("من نحن", "À propos")), href: '#apropos' },
+    { id: 'temoignages', label: t('landing.nav.testimonials') || (tr("آراء الأعضاء", "Témoignages")), href: '#temoignages' },
+    { id: 'contact', label: t('landing.nav.contact') || (tr("اتصل بنا", "Contact")), href: '#contact' },
   ];
 
   return (
@@ -139,7 +140,7 @@ export function LandingNavbar() {
               to="/auth"
               className="inline-flex items-center justify-center text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-full border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all duration-200"
             >
-              {t('landing.nav.signIn') || (isRtl ? 'تسجيل الدخول' : 'Se connecter')}
+              {t('landing.nav.signIn') || (tr("تسجيل الدخول", "Se connecter"))}
             </Link>
 
             {/* S'inscrire (Sign Up Pill Solid Purple) */}
@@ -147,7 +148,7 @@ export function LandingNavbar() {
               to="/auth"
               className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold text-white px-5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-md shadow-indigo-600/25 hover:shadow-lg hover:shadow-indigo-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
             >
-              {t('landing.nav.signUp') || (isRtl ? 'إنشاء حساب' : "S'inscrire")}
+              {t('landing.nav.signUp') || (tr("إنشاء حساب", "S'inscrire"))}
             </Link>
           </div>
 
@@ -205,14 +206,14 @@ export function LandingNavbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="w-full text-center py-2.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200"
             >
-              {t('landing.nav.signIn') || (isRtl ? 'تسجيل الدخول' : 'Se connecter')}
+              {t('landing.nav.signIn') || (tr("تسجيل الدخول", "Se connecter"))}
             </Link>
             <Link
               to="/auth"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full text-center py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-sm font-semibold text-white shadow-md shadow-indigo-600/30"
             >
-              {t('landing.nav.signUp') || (isRtl ? 'إنشاء حساب' : "S'inscrire")}
+              {t('landing.nav.signUp') || (tr("إنشاء حساب", "S'inscrire"))}
             </Link>
           </div>
         </div>

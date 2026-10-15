@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { tr } from '@/utils/tr';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -160,9 +161,9 @@ export default function StudentFormations() {
         certificateRef.current,
         `certificate-${certificateData.enrollmentId.slice(0, 8)}.pdf`
       );
-      toast.success(isRtl ? 'تم تنزيل الشهادة بنجاح!' : 'Certificate downloaded successfully!');
+      toast.success(tr("تم تنزيل الشهادة بنجاح!", "Certificate downloaded successfully!"));
     } catch (error) {
-      toast.error(isRtl ? 'فشل إنشاء الشهادة' : 'Failed to generate certificate');
+      toast.error(tr("فشل إنشاء الشهادة", "Failed to generate certificate"));
     } finally {
       setIsGeneratingCertificate(false);
     }
@@ -171,8 +172,8 @@ export default function StudentFormations() {
   return (
     <DashboardLayout role="student">
       <PageHeader 
-        title={isRtl ? 'المسارات التكوينية' : 'Formations'} 
-        breadcrumbs={[{ label: t('nav.dashboard'), href: '/student' }, { label: isRtl ? 'المسارات' : 'Formations' }]} 
+        title={tr("المسارات التكوينية", "Formations")} 
+        breadcrumbs={[{ label: t('nav.dashboard'), href: '/student' }, { label: tr("المسارات", "Formations") }]} 
       />
 
       {/* Package Tier Status & Upgrade Notice Banner */}
@@ -181,22 +182,20 @@ export default function StudentFormations() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white">
-                CORE $50 — {isRtl ? 'الأساس' : 'Foundation'}
+                CORE $50 — {tr("الأساس", "Foundation")}
               </span>
               <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                {isRtl ? 'اشتراك العضوية وتفعيل الأرباح' : 'Active Membership'}
+                {tr("اشتراك العضوية وتفعيل الأرباح", "Active Membership")}
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              {isRtl 
-                ? 'باقتك الحالية تتيح لك مشاهدة الفيديوهات التعريفية بالمشروع وتفعيل رابط الإحالة. لفتح دورات المستوى 1 (التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي)، قم بالترقية إلى باقة FLOW بفارق السعر فقط ($100).' 
-                : 'Your current package grants access to project orientation videos and activates referral earnings. Upgrade to FLOW ($150) to unlock Level 1 (E-Commerce & Digital Business).'}
+              {tr("باقتك الحالية تتيح لك مشاهدة الفيديوهات التعريفية بالمشروع وتفعيل رابط الإحالة. لفتح دورات المستوى 1 (التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي)، قم بالترقية إلى باقة FLOW بفارق السعر فقط ($100).", "Your current package grants access to project orientation videos and activates referral earnings. Upgrade to FLOW ($150) to unlock Level 1 (E-Commerce & Digital Business).")}
             </p>
           </div>
           <Link to="/student/packages" className="shrink-0">
             <Button className="rounded-2xl font-bold bg-primary hover:bg-primary/90 text-white gap-2 shadow-xs">
               <Sparkles className="h-4 w-4" />
-              <span>{isRtl ? 'ترقية إلى FLOW (المستوى 1)' : 'Upgrade to FLOW'}</span>
+              <span>{tr("ترقية إلى FLOW (المستوى 1)", "Upgrade to FLOW")}</span>
               <ArrowUpRight className="h-4 w-4" />
             </Button>
           </Link>
@@ -208,22 +207,20 @@ export default function StudentFormations() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-600 text-white">
-                FLOW $150 — {isRtl ? 'المستوى 1' : 'Level 1'}
+                FLOW $150 — {tr("المستوى 1", "Level 1")}
               </span>
               <span className="text-xs font-bold text-blue-800 dark:text-blue-300">
-                {isRtl ? 'التجارة الإلكترونية والبيزنس الرقمي' : 'E-Commerce & Digital Business'}
+                {tr("التجارة الإلكترونية والبيزنس الرقمي", "E-Commerce & Digital Business")}
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              {isRtl 
-                ? 'دورات المستوى 1 مفعلة في حسابك! للانتقال إلى المرحلة التالية وبناء وكلاء وأتمتة الذكاء الاصطناعي، قم بالترقية إلى باقة GROW (المستوى 2).' 
-                : 'Level 1 courses are unlocked! To build AI Agents and autonomous workflows, upgrade to GROW ($500).'}
+              {tr("دورات المستوى 1 مفعلة في حسابك! للانتقال إلى المرحلة التالية وبناء وكلاء وأتمتة الذكاء الاصطناعي، قم بالترقية إلى باقة GROW (المستوى 2).", "Level 1 courses are unlocked! To build AI Agents and autonomous workflows, upgrade to GROW ($500).")}
             </p>
           </div>
           <Link to="/student/packages" className="shrink-0">
             <Button className="rounded-2xl font-bold bg-blue-600 hover:bg-blue-700 text-white gap-2 shadow-xs">
               <Sparkles className="h-4 w-4" />
-              <span>{isRtl ? 'ترقية إلى GROW (المستوى 2)' : 'Upgrade to GROW'}</span>
+              <span>{tr("ترقية إلى GROW (المستوى 2)", "Upgrade to GROW")}</span>
               <ArrowUpRight className="h-4 w-4" />
             </Button>
           </Link>
@@ -235,22 +232,20 @@ export default function StudentFormations() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-600 text-white">
-                GROW $500 — {isRtl ? 'المستوى 2' : 'Level 2'}
+                GROW $500 — {tr("المستوى 2", "Level 2")}
               </span>
               <span className="text-xs font-bold text-purple-800 dark:text-purple-300">
-                {isRtl ? 'الذكاء الاصطناعي والأتمتة' : 'AI & Automation'}
+                {tr("الذكاء الاصطناعي والأتمتة", "AI & Automation")}
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              {isRtl 
-                ? 'دورات المستويين 1 و 2 مفعلة بالكامل! للحصول على البرمجة المتقدمة وبناء SaaS والجلستين الشهريتين للمرافقة الخاصة، بادر بالترقية إلى PRIME (المستوى 3 VIP).' 
-                : 'Levels 1 & 2 unlocked! Upgrade to PRIME ($1000) for advanced AI building, SaaS, and 2 monthly 1-on-1 mentorship sessions.'}
+              {tr("دورات المستويين 1 و 2 مفعلة بالكامل! للحصول على البرمجة المتقدمة وبناء SaaS والجلستين الشهريتين للمرافقة الخاصة، بادر بالترقية إلى PRIME (المستوى 3 VIP).", "Levels 1 & 2 unlocked! Upgrade to PRIME ($1000) for advanced AI building, SaaS, and 2 monthly 1-on-1 mentorship sessions.")}
             </p>
           </div>
           <Link to="/student/packages" className="shrink-0">
             <Button className="rounded-2xl font-bold bg-purple-600 hover:bg-purple-700 text-white gap-2 shadow-xs">
               <Sparkles className="h-4 w-4" />
-              <span>{isRtl ? 'ترقية إلى PRIME (المستوى 3 VIP)' : 'Upgrade to PRIME VIP'}</span>
+              <span>{tr("ترقية إلى PRIME (المستوى 3 VIP)", "Upgrade to PRIME VIP")}</span>
               <ArrowUpRight className="h-4 w-4" />
             </Button>
           </Link>
@@ -261,16 +256,16 @@ export default function StudentFormations() {
         <TabsList>
           <TabsTrigger value="browse" className="gap-2">
             <ShoppingCart className="h-4 w-4" />
-            {isRtl ? 'تصفح الدورات' : 'Browse Courses'}
+            {tr("تصفح الدورات", "Browse Courses")}
           </TabsTrigger>
           <TabsTrigger value="my-courses" className="gap-2">
             <BookOpen className="h-4 w-4" />
-            {isRtl ? 'دوراتي' : 'My Courses'} ({myFormations.length})
+            {tr("دوراتي", "My Courses")} ({myFormations.length})
           </TabsTrigger>
           {pendingEnrollments.length > 0 && (
             <TabsTrigger value="pending" className="gap-2">
               <Clock className="h-4 w-4" />
-              {isRtl ? 'قيد المراجعة' : 'Pending'} ({pendingEnrollments.length})
+              {tr("قيد المراجعة", "Pending")} ({pendingEnrollments.length})
             </TabsTrigger>
           )}
         </TabsList>
@@ -303,14 +298,14 @@ export default function StudentFormations() {
                   </div>
                   <Button onClick={() => { setSelectedFormation(formation); setShowPaymentModal(true); }}>
                     <ShoppingCart className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    {isRtl ? 'تسجيل' : 'Enroll'}
+                    {tr("تسجيل", "Enroll")}
                   </Button>
                 </CardFooter>
               </Card>
             ))}
             {availableFormations.length === 0 && (
               <div className="col-span-full text-center py-12 text-muted-foreground">
-                {isRtl ? 'لا توجد مسارات متاحة حالياً.' : 'No formations available at the moment.'}
+                {tr("لا توجد مسارات متاحة حالياً.", "No formations available at the moment.")}
               </div>
             )}
           </div>
@@ -340,13 +335,13 @@ export default function StudentFormations() {
                 <CardFooter className="flex gap-2">
                   <Button className="flex-1" onClick={() => openWatchModal(enrollment)}>
                     <Play className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    {isRtl ? 'متابعة' : 'Continue'}
+                    {tr("متابعة", "Continue")}
                   </Button>
                   <Button 
                     variant="outline" 
                     size="icon"
                     onClick={() => handleDownloadCertificate(enrollment)}
-                    title={isRtl ? 'تحميل الشهادة' : 'Download Certificate'}
+                    title={tr("تحميل الشهادة", "Download Certificate")}
                   >
                     <Award className="h-4 w-4" />
                   </Button>
@@ -355,7 +350,7 @@ export default function StudentFormations() {
             ))}
             {myFormations.length === 0 && (
               <div className="col-span-full text-center py-12 text-muted-foreground">
-                {isRtl ? 'لم تسجل في أي مسار تكويني بعد.' : "You haven't enrolled in any formations yet."}
+                {tr("لم تسجل في أي مسار تكويني بعد.", "You haven't enrolled in any formations yet.")}
               </div>
             )}
           </div>
@@ -368,14 +363,12 @@ export default function StudentFormations() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="line-clamp-2">{enrollment.formation_title}</CardTitle>
-                    <Badge variant="secondary">{isRtl ? 'في انتظار التأكيد' : 'Pending Payment'}</Badge>
+                    <Badge variant="secondary">{tr("في انتظار التأكيد", "Pending Payment")}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground text-sm">
-                    {isRtl 
-                      ? 'يتم مراجعة دفعتك من طرف الإدارة. ستحصل على الوصول فور اعتمادها.' 
-                      : "Your payment is being reviewed. You'll get access once it's approved."}
+                    {tr("يتم مراجعة دفعتك من طرف الإدارة. ستحصل على الوصول فور اعتمادها.", "Your payment is being reviewed. You'll get access once it's approved.")}
                   </p>
                 </CardContent>
               </Card>
@@ -389,51 +382,51 @@ export default function StudentFormations() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {isRtl ? `تسجيل في ${selectedFormation?.title}` : `Enroll in ${selectedFormation?.title}`}
+              {tr("تسجيل في ${selectedFormation?.title}", "Enroll in ${selectedFormation?.title}")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-lg font-bold">
-                {isRtl ? 'المجموع:' : 'Total:'} {selectedFormation?.price} {selectedFormation?.currency}
+                {tr("المجموع:", "Total:")} {selectedFormation?.price} {selectedFormation?.currency}
               </p>
             </div>
             <div>
-              <Label>{isRtl ? 'طريقة الدفع' : 'Payment Method'}</Label>
+              <Label>{tr("طريقة الدفع", "Payment Method")}</Label>
               <Select value={paymentData.method} onValueChange={(value) => setPaymentData({ ...paymentData, method: value })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bank_transfer">{isRtl ? 'تحويل بنكي' : 'Bank Transfer'}</SelectItem>
-                  <SelectItem value="mobile_payment">{isRtl ? 'دفع إلكتروني' : 'Mobile Payment'}</SelectItem>
-                  <SelectItem value="cash">{isRtl ? 'نقداً' : 'Cash'}</SelectItem>
+                  <SelectItem value="bank_transfer">{tr("تحويل بنكي", "Bank Transfer")}</SelectItem>
+                  <SelectItem value="mobile_payment">{tr("دفع إلكتروني", "Mobile Payment")}</SelectItem>
+                  <SelectItem value="cash">{tr("نقداً", "Cash")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>{isRtl ? 'رقم الإشعار أو المعاملة (اختياري)' : 'Reference Number (optional)'}</Label>
+              <Label>{tr("رقم الإشعار أو المعاملة (اختياري)", "Reference Number (optional)")}</Label>
               <Input 
                 value={paymentData.reference} 
                 onChange={(e) => setPaymentData({ ...paymentData, reference: e.target.value })} 
-                placeholder={isRtl ? 'رقم المعاملة' : 'Transaction reference'}
+                placeholder={tr("رقم المعاملة", "Transaction reference")}
               />
             </div>
             <div>
-              <Label>{isRtl ? 'ملاحظات (اختياري)' : 'Notes (optional)'}</Label>
+              <Label>{tr("ملاحظات (اختياري)", "Notes (optional)")}</Label>
               <Input 
                 value={paymentData.notes} 
                 onChange={(e) => setPaymentData({ ...paymentData, notes: e.target.value })} 
-                placeholder={isRtl ? 'أي ملاحظات إضافية' : 'Any additional notes'}
+                placeholder={tr("أي ملاحظات إضافية", "Any additional notes")}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPaymentModal(false)}>
-              {isRtl ? 'إلغاء' : 'Cancel'}
+              {tr("إلغاء", "Cancel")}
             </Button>
             <Button onClick={handlePurchase} disabled={submitPayment.isPending}>
               {submitPayment.isPending 
-                ? (isRtl ? 'جاري المعالجة...' : 'Processing...') 
-                : (isRtl ? 'تأكيد الدفع' : 'Submit Payment')}
+                ? (tr("جاري المعالجة...", "Processing...")) 
+                : (tr("تأكيد الدفع", "Submit Payment"))}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -470,25 +463,25 @@ export default function StudentFormations() {
                     >
                       <FileText className="h-16 w-16 text-primary" />
                       <p className="font-medium">{currentContent.title}</p>
-                      <Button>{isRtl ? 'فتح ملف PDF' : 'Open PDF'}</Button>
+                      <Button>{tr("فتح ملف PDF", "Open PDF")}</Button>
                     </a>
                   ) : (
                     <div className="text-center p-6">
                       <Lock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p>{isRtl ? 'أكمل المحتوى السابق للفتح' : 'Complete the previous content to unlock'}</p>
+                      <p>{tr("أكمل المحتوى السابق للفتح", "Complete the previous content to unlock")}</p>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                  <p className="text-muted-foreground">{isRtl ? 'اختر محتوى من القائمة' : 'Select content from the list'}</p>
+                  <p className="text-muted-foreground">{tr("اختر محتوى من القائمة", "Select content from the list")}</p>
                 </div>
               )}
             </div>
 
             {/* Content List */}
             <div className="space-y-2">
-              <h4 className="font-medium mb-4">{isRtl ? 'محتوى الدورة' : 'Course Content'}</h4>
+              <h4 className="font-medium mb-4">{tr("محتوى الدورة", "Course Content")}</h4>
               {formationContent?.map((content, index) => {
                 const isUnlocked = isContentUnlocked(index);
                 const contentProgress = progress?.find(p => p.content_id === content.id);
@@ -536,7 +529,7 @@ export default function StudentFormations() {
       <Dialog open={showCertificateModal} onOpenChange={setShowCertificateModal}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>{isRtl ? 'شهادة إتمام الدورة' : 'Course Completion Certificate'}</DialogTitle>
+            <DialogTitle>{tr("شهادة إتمام الدورة", "Course Completion Certificate")}</DialogTitle>
           </DialogHeader>
           <div className="flex justify-center py-4">
             <div className="transform scale-[0.6] origin-top">
@@ -557,13 +550,13 @@ export default function StudentFormations() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCertificateModal(false)}>
-              {isRtl ? 'إغلاق' : 'Close'}
+              {tr("إغلاق", "Close")}
             </Button>
             <Button onClick={generateCertificate} disabled={isGeneratingCertificate}>
               <Download className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
               {isGeneratingCertificate 
-                ? (isRtl ? 'جاري الإنشاء...' : 'Generating...') 
-                : (isRtl ? 'تحميل PDF' : 'Download PDF')}
+                ? (tr("جاري الإنشاء...", "Generating...")) 
+                : (tr("تحميل PDF", "Download PDF"))}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -583,11 +576,11 @@ function FormationStats({ formationId, isRtl }: { formationId: string; isRtl?: b
     <div className="flex gap-4 text-sm text-muted-foreground">
       <div className="flex items-center gap-1">
         <Video className="h-4 w-4" />
-        <span>{videoCount} {isRtl ? 'فيديو' : 'videos'}</span>
+        <span>{videoCount} {tr("فيديو", "videos")}</span>
       </div>
       <div className="flex items-center gap-1">
         <FileText className="h-4 w-4" />
-        <span>{pdfCount} {isRtl ? 'ملف PDF' : 'PDFs'}</span>
+        <span>{pdfCount} {tr("ملف PDF", "PDFs")}</span>
       </div>
     </div>
   );

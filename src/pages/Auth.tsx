@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -119,13 +120,13 @@ export default function Auth() {
         } else {
           setSponsorInfo({
             valid: false,
-            error: res?.error || (isRtl ? 'كود الإحالة غير صالح أو غير موجود' : 'Invalid or inactive referral code')
+            error: res?.error || (tr("كود الإحالة غير صالح أو غير موجود", "Invalid or inactive referral code"))
           });
         }
       } catch (err: any) {
         setSponsorInfo({
           valid: false,
-          error: err?.response?.data?.error || (isRtl ? 'كود الإحالة غير مسجل في النظام' : 'Referral code not found')
+          error: err?.response?.data?.error || (tr("كود الإحالة غير مسجل في النظام", "Referral code not found"))
         });
       } finally {
         setValidatingRef(false);
@@ -164,16 +165,16 @@ export default function Auth() {
     }
 
     if (!isLogin) {
-      if (!fullName.trim()) newErrors.fullName = isRtl ? 'الاسم الكامل مطلوب' : 'Full name is required';
-      if (!city.trim()) newErrors.city = isRtl ? 'المدينة مطلوبة' : 'City is required';
-      if (!country) newErrors.country = isRtl ? 'الدولة مطلوبة' : 'Country is required';
+      if (!fullName.trim()) newErrors.fullName = tr("الاسم الكامل مطلوب", "Full name is required");
+      if (!city.trim()) newErrors.city = tr("المدينة مطلوبة", "City is required");
+      if (!country) newErrors.country = tr("الدولة مطلوبة", "Country is required");
       if (!whatsappNumber.trim()) {
-        newErrors.whatsapp = isRtl ? 'رقم الواتساب مطلوب للتواصل' : 'WhatsApp number is required';
+        newErrors.whatsapp = tr("رقم الواتساب مطلوب للتواصل", "WhatsApp number is required");
       }
       if (!referralCode.trim()) {
-        newErrors.referralCode = isRtl ? 'كود الإحالة إجباري للتسجيل في المنصة' : 'Referral code is mandatory for registration';
+        newErrors.referralCode = tr("كود الإحالة إجباري للتسجيل في المنصة", "Referral code is mandatory for registration");
       } else if (sponsorInfo && !sponsorInfo.valid) {
-        newErrors.referralCode = sponsorInfo.error || (isRtl ? 'كود الإحالة المدخل غير صحيح' : 'Invalid referral code');
+        newErrors.referralCode = sponsorInfo.error || (tr("كود الإحالة المدخل غير صحيح", "Invalid referral code"));
       }
     }
 
@@ -199,9 +200,9 @@ export default function Auth() {
 
         const { error } = await signIn(email.trim(), password);
         if (error) {
-          toast.error(error.message || (isRtl ? 'فشل تسجيل الدخول، تأكد من بياناتك' : 'Login failed, please check your credentials'));
+          toast.error(error.message || (tr("فشل تسجيل الدخول، تأكد من بياناتك", "Login failed, please check your credentials")));
         } else {
-          toast.success(t('auth.loginSuccess') || (isRtl ? 'تم تسجيل الدخول بنجاح!' : 'Successfully signed in!'));
+          toast.success(t('auth.loginSuccess') || (tr("تم تسجيل الدخول بنجاح!", "Successfully signed in!")));
         }
       } else {
         const { error } = await signUp(
@@ -217,14 +218,14 @@ export default function Auth() {
           referralCode.trim()
         );
         if (error) {
-          toast.error(error.message || (isRtl ? 'فشل إنشاء الحساب' : 'Signup failed'));
+          toast.error(error.message || (tr("فشل إنشاء الحساب", "Signup failed")));
         } else {
           try {
             await authService.sendEmailOtp(email.trim(), 'registration', fullName.trim());
           } catch (otpErr) {
             console.warn('[Auth] Initial OTP dispatch note:', otpErr);
           }
-          toast.success(isRtl ? 'تم إنشاء الحساب وإرسال رمز التحقق (OTP) إلى بريدك!' : 'Account created! Verification code sent to your email.');
+          toast.success(tr("تم إنشاء الحساب وإرسال رمز التحقق (OTP) إلى بريدك!", "Account created! Verification code sent to your email."));
           setIsEmailVerificationOpen(true);
         }
       }
@@ -241,7 +242,7 @@ export default function Auth() {
           <Loader2 className="absolute h-8 w-8 animate-spin text-indigo-400" />
         </div>
         <p className="mt-4 text-xs font-mono tracking-widest text-indigo-300 uppercase">
-          {isRtl ? 'جاري التحقق من الجلسة...' : 'Authenticating Session...'}
+          {tr("جاري التحقق من الجلسة...", "Authenticating Session...")}
         </p>
       </div>
     );
@@ -339,7 +340,7 @@ export default function Auth() {
           ) : (
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
           )}
-          <span>{t('common.backToHome') || (isRtl ? 'العودة للرئيسية' : 'Back to Home')}</span>
+          <span>{t('common.backToHome') || (tr("العودة للرئيسية", "Back to Home"))}</span>
         </Link>
 
         <div className="flex items-center gap-3">
@@ -390,13 +391,13 @@ export default function Auth() {
           <div className="text-center mb-5">
             <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               {isLogin 
-                ? (isRtl ? 'مرحباً بعودتك' : 'Welcome back')
-                : (isRtl ? 'إنشاء حساب جديد' : 'Create your account')}
+                ? (tr("مرحباً بعودتك", "Welcome back"))
+                : (tr("إنشاء حساب جديد", "Create your account"))}
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
               {isLogin
-                ? (isRtl ? 'سجّل الدخول إلى حسابك وتابع مسيرتك التعليمية' : 'Sign in to your account and continue your journey')
-                : (isRtl ? 'انضم إلى منصة نكستفورا وابدأ رحلتك التعليمية' : 'Join Nexyvora platform and start your journey')}
+                ? (tr("سجّل الدخول إلى حسابك وتابع مسيرتك التعليمية", "Sign in to your account and continue your journey"))
+                : (tr("انضم إلى منصة نكستفورا وابدأ رحلتك التعليمية", "Join Nexyvora platform and start your journey"))}
             </p>
           </div>
 
@@ -410,13 +411,13 @@ export default function Auth() {
                     {/* Full Name */}
                     <div className="space-y-1 text-left rtl:text-right">
                       <Label htmlFor="fullName" className="text-xs font-medium text-slate-300">
-                        {isRtl ? 'الاسم الكامل' : 'Full Name'} <span className="text-rose-400">*</span>
+                        {tr("الاسم الكامل", "Full Name")} <span className="text-rose-400">*</span>
                       </Label>
                       <div className="relative group">
                         <User className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                         <Input
                           id="fullName"
-                          placeholder={isRtl ? 'أدخل اسمك الكامل' : 'Enter your full name'}
+                          placeholder={tr("أدخل اسمك الكامل", "Enter your full name")}
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           className="h-11 pl-10 rtl:pl-4 rtl:pr-10 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all"
@@ -429,11 +430,11 @@ export default function Auth() {
                     <div className="grid grid-cols-2 gap-2.5">
                       <div className="space-y-1 text-left rtl:text-right">
                         <Label htmlFor="country" className="text-xs font-medium text-slate-300">
-                          {isRtl ? 'الدولة' : 'Country'} <span className="text-rose-400">*</span>
+                          {tr("الدولة", "Country")} <span className="text-rose-400">*</span>
                         </Label>
                         <Select value={country} onValueChange={setCountry}>
                           <SelectTrigger className="h-11 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all">
-                            <SelectValue placeholder={isRtl ? 'اختر الدولة' : 'Select country'} />
+                            <SelectValue placeholder={tr("اختر الدولة", "Select country")} />
                           </SelectTrigger>
                           <SelectContent className="max-h-60 bg-slate-900 border-slate-700 text-white">
                             {COUNTRIES.map((c) => (
@@ -447,13 +448,13 @@ export default function Auth() {
 
                       <div className="space-y-1 text-left rtl:text-right">
                         <Label htmlFor="city" className="text-xs font-medium text-slate-300">
-                          {isRtl ? 'المدينة' : 'City'} <span className="text-rose-400">*</span>
+                          {tr("المدينة", "City")} <span className="text-rose-400">*</span>
                         </Label>
                         <div className="relative group">
                           <MapPin className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                           <Input
                             id="city"
-                            placeholder={isRtl ? 'المدينة' : 'City'}
+                            placeholder={tr("المدينة", "City")}
                             value={city}
                             onChange={(e) => setCity(e.target.value)}
                             className="h-11 pl-10 rtl:pl-4 rtl:pr-10 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all"
@@ -466,7 +467,7 @@ export default function Auth() {
                     {/* WhatsApp */}
                     <div className="space-y-1 text-left rtl:text-right">
                       <Label htmlFor="whatsapp" className="text-xs font-medium text-slate-300">
-                        {isRtl ? 'رقم الواتساب للتواصل' : 'WhatsApp Number'} <span className="text-rose-400">*</span>
+                        {tr("رقم الواتساب للتواصل", "WhatsApp Number")} <span className="text-rose-400">*</span>
                       </Label>
                       <div className="relative group">
                         <MessageCircle className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-400 group-focus-within:text-emerald-300 transition-colors pointer-events-none" />
@@ -487,11 +488,11 @@ export default function Auth() {
                       <div className="flex items-center justify-between">
                         <Label htmlFor="referralCode" className="text-xs font-bold text-indigo-200 flex items-center gap-1.5">
                           <Users className="w-3.5 h-3.5 text-indigo-400" />
-                          <span>{isRtl ? 'كود الإحالة' : 'Referral Code'}</span>
+                          <span>{tr("كود الإحالة", "Referral Code")}</span>
                           <span className="text-rose-400 font-bold">*</span>
                         </Label>
                         <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300">
-                          {isRtl ? 'إجباري' : 'Mandatory'}
+                          {tr("إجباري", "Mandatory")}
                         </span>
                       </div>
 
@@ -499,7 +500,7 @@ export default function Auth() {
                         <Share2 className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 group-focus-within:text-indigo-300 transition-colors pointer-events-none" />
                         <Input
                           id="referralCode"
-                          placeholder={isRtl ? 'أدخل كود الإحالة (مثال: NV123456)' : 'Enter referral code (e.g. NV123456)'}
+                          placeholder={tr("أدخل كود الإحالة (مثال: NV123456)", "Enter referral code (e.g. NV123456)")}
                           value={referralCode}
                           onChange={(e) => {
                             const val = e.target.value.trim().toUpperCase();
@@ -531,7 +532,7 @@ export default function Auth() {
                         <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs animate-in fade-in duration-200">
                           <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
                           <span className="truncate">
-                            {isRtl ? 'المحيل المعتمد:' : 'Verified Sponsor:'}{' '}
+                            {tr("المحيل المعتمد:", "Verified Sponsor:")}{' '}
                             <strong className="text-white font-semibold">{sponsorInfo.sponsorName}</strong>
                           </span>
                         </div>
@@ -552,9 +553,7 @@ export default function Auth() {
                       )}
                       {!referralCode && !errors.referralCode && (
                         <p className="text-[10px] text-slate-400">
-                          {isRtl 
-                            ? 'يجب إدخال كود إحالة صالح للانضمام إلى منصة Nexyvora.' 
-                            : 'A valid referral code is required to register on Nexyvora.'}
+                          {tr("يجب إدخال كود إحالة صالح للانضمام إلى منصة Nexyvora.", "A valid referral code is required to register on Nexyvora.")}
                         </p>
                       )}
                     </div>
@@ -565,7 +564,7 @@ export default function Auth() {
                 {/* Email Address */}
                 <div className="space-y-1.5 text-left rtl:text-right">
                   <Label htmlFor="email" className="text-xs font-medium text-slate-300">
-                    {isRtl ? 'البريد الإلكتروني' : 'Email Address'}
+                    {tr("البريد الإلكتروني", "Email Address")}
                   </Label>
                   <div className="relative group">
                     <Mail className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
@@ -588,7 +587,7 @@ export default function Auth() {
                 {/* Password with Show/Hide Toggle */}
                 <div className="space-y-1.5 text-left rtl:text-right">
                   <Label htmlFor="password" className="text-xs font-medium text-slate-300">
-                    {isRtl ? 'كلمة المرور' : 'Password'}
+                    {tr("كلمة المرور", "Password")}
                   </Label>
                   <div className="relative group">
                     <Lock className="absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
@@ -596,7 +595,7 @@ export default function Auth() {
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete={isLogin ? "current-password" : "new-password"}
-                      placeholder={isRtl ? 'أدخل كلمة المرور' : 'Enter your password'}
+                      placeholder={tr("أدخل كلمة المرور", "Enter your password")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className={`h-11 sm:h-12 pl-10 pr-10 rtl:pl-10 rtl:pr-10 bg-[#070b18]/90 hover:bg-[#0a0f22] border-white/[0.08] hover:border-white/20 text-white placeholder:text-slate-500 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all ${
@@ -627,7 +626,7 @@ export default function Auth() {
                         className="rounded-md border-slate-700 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                       />
                       <Label htmlFor="remember-me" className="text-slate-300 cursor-pointer select-none">
-                        {isRtl ? 'تذكرني' : 'Remember me'}
+                        {tr("تذكرني", "Remember me")}
                       </Label>
                     </div>
 
@@ -636,7 +635,7 @@ export default function Auth() {
                       onClick={() => setIsForgotPasswordOpen(true)}
                       className="text-xs font-medium text-blue-400 hover:text-blue-300 hover:underline transition-colors cursor-pointer"
                     >
-                      {isRtl ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
+                      {tr("نسيت كلمة المرور؟", "Forgot password?")}
                     </button>
                   </div>
                 )}
@@ -651,11 +650,11 @@ export default function Auth() {
                   {loading ? (
                     <div className="relative z-10 flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>{isRtl ? 'جاري التحقق...' : 'Processing...'}</span>
+                      <span>{tr("جاري التحقق...", "Processing...")}</span>
                     </div>
                   ) : (
                     <div className="relative z-10 flex items-center gap-2">
-                      <span>{isLogin ? (isRtl ? 'تسجيل الدخول' : 'Log In') : (isRtl ? 'إنشاء الحساب' : 'Sign Up')}</span>
+                      <span>{isLogin ? (tr("تسجيل الدخول", "Log In")) : (tr("إنشاء الحساب", "Sign Up"))}</span>
                       {isRtl ? (
                         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                       ) : (
@@ -671,14 +670,14 @@ export default function Auth() {
                     <div className="w-full border-t border-white/[0.08]" />
                   </div>
                   <span className="relative px-3 bg-[#0c1224] text-[11px] text-slate-500 lowercase font-medium">
-                    {isRtl ? 'أو' : 'or'}
+                    {tr("أو", "or")}
                   </span>
                 </div>
 
                 {/* Security Badge Exactly like Reference Image */}
                 <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 font-normal pt-2">
                   <ShieldCheck className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <span>{isRtl ? 'بياناتك آمنة ومحمية بالكامل' : 'Your data is secure and protected'}</span>
+                  <span>{tr("بياناتك آمنة ومحمية بالكامل", "Your data is secure and protected")}</span>
                 </div>
 
                 {/* Mode Switcher */}
@@ -686,24 +685,24 @@ export default function Auth() {
                   <p className="text-xs text-slate-400">
                     {isLogin ? (
                       <>
-                        {isRtl ? 'ليس لديك حساب بعد؟' : "Don't have an account?"}{' '}
+                        {tr("ليس لديك حساب بعد؟", "Don't have an account?")}{' '}
                         <button
                           type="button"
                           onClick={() => { setIsLogin(false); setErrors({}); }}
                           className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-colors cursor-pointer"
                         >
-                          {isRtl ? 'إنشاء حساب جديد' : 'Sign Up'}
+                          {tr("إنشاء حساب جديد", "Sign Up")}
                         </button>
                       </>
                     ) : (
                       <>
-                        {isRtl ? 'لديك حساب بالفعل؟' : 'Already have an account?'}{' '}
+                        {tr("لديك حساب بالفعل؟", "Already have an account?")}{' '}
                         <button
                           type="button"
                           onClick={() => { setIsLogin(true); setErrors({}); }}
                           className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-colors cursor-pointer"
                         >
-                          {isRtl ? 'تسجيل الدخول' : 'Log In'}
+                          {tr("تسجيل الدخول", "Log In")}
                         </button>
                       </>
                     )}
@@ -722,7 +721,7 @@ export default function Auth() {
         <span>© {new Date().getFullYear()} Nexyvora. All rights reserved.</span>
         <span>•</span>
         <Link to="/policies" className="hover:text-slate-300 transition-colors">
-          {isRtl ? 'الشروط والسياسات' : 'Terms & Policies'}
+          {tr("الشروط والسياسات", "Terms & Policies")}
         </Link>
       </footer>
 

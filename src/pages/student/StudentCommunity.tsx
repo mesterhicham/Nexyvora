@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -118,7 +119,7 @@ export default function StudentCommunity() {
       });
       setPosts(res.posts || []);
     } catch (err) {
-      toast.error(isRtl ? 'فشل تحميل منشورات المجتمع' : 'Failed to load community posts');
+      toast.error(tr("فشل تحميل منشورات المجتمع", "Failed to load community posts"));
     } finally {
       setLoading(false);
     }
@@ -127,7 +128,7 @@ export default function StudentCommunity() {
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newContent.trim()) {
-      return toast.error(isRtl ? 'يرجى كتابة عنوان وتفاصيل المنشور' : 'Please provide title and content');
+      return toast.error(tr("يرجى كتابة عنوان وتفاصيل المنشور", "Please provide title and content"));
     }
 
     try {
@@ -137,13 +138,13 @@ export default function StudentCommunity() {
         title: newTitle.trim(),
         content: newContent.trim()
       });
-      toast.success(isRtl ? 'تم نشر مشاركتك بنجاح في مجتمع رواد الأعمال!' : 'Post published successfully!');
+      toast.success(tr("تم نشر مشاركتك بنجاح في مجتمع رواد الأعمال!", "Post published successfully!"));
       setIsCreateOpen(false);
       setNewTitle('');
       setNewContent('');
       loadPosts();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (isRtl ? 'فشل نشر المشاركة' : 'Failed to publish post'));
+      toast.error(err.response?.data?.error || (tr("فشل نشر المشاركة", "Failed to publish post")));
     } finally {
       setCreating(false);
     }
@@ -194,7 +195,7 @@ export default function StudentCommunity() {
       const res = await communityService.getComments(post.id);
       setComments(res.comments || []);
     } catch (err) {
-      toast.error(isRtl ? 'فشل تحميل التعليقات' : 'Failed to load comments');
+      toast.error(tr("فشل تحميل التعليقات", "Failed to load comments"));
     } finally {
       setLoadingComments(false);
     }
@@ -213,9 +214,9 @@ export default function StudentCommunity() {
         setActivePost(curr => curr ? { ...curr, comments_count: curr.comments_count + 1 } : null);
       }
       setNewCommentText('');
-      toast.success(isRtl ? 'تم إضافة تعليقك' : 'Comment added');
+      toast.success(tr("تم إضافة تعليقك", "Comment added"));
     } catch (err: any) {
-      toast.error(err.response?.data?.error || (isRtl ? 'فشل إضافة التعليق' : 'Failed to add comment'));
+      toast.error(err.response?.data?.error || (tr("فشل إضافة التعليق", "Failed to add comment")));
     } finally {
       setSendingComment(false);
     }
@@ -238,12 +239,10 @@ export default function StudentCommunity() {
                 <span>Nexyvora Official Community Hub</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                {isRtl ? 'مجتمع رواد الأعمال وقادة Nexyvora' : 'Nexyvora Leaders & Builders Community'}
+                {tr("مجتمع رواد الأعمال وقادة Nexyvora", "Nexyvora Leaders & Builders Community")}
               </h1>
               <p className="text-xs sm:text-sm text-purple-200/90 max-w-2xl leading-relaxed">
-                {isRtl
-                  ? 'منصتك الموحدة لتبادل الخبرات، مناقشة مشاريع الذكاء الاصطناعي والتجارة الإلكترونية، والتواصل المباشر مع أعضاء وشبكة رواد الأعمال.'
-                  : 'Your unified space to exchange insights, discuss AI automation projects, network, and grow your digital empire.'}
+                {tr("منصتك الموحدة لتبادل الخبرات، مناقشة مشاريع الذكاء الاصطناعي والتجارة الإلكترونية، والتواصل المباشر مع أعضاء وشبكة رواد الأعمال.", "Your unified space to exchange insights, discuss AI automation projects, network, and grow your digital empire.")}
               </p>
             </div>
 
@@ -252,7 +251,7 @@ export default function StudentCommunity() {
               className="rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black h-12 px-6 shadow-lg shadow-amber-500/20 gap-2 shrink-0"
             >
               <PlusCircle className="h-5 w-5" />
-              <span>{isRtl ? 'إضافة منشور جديد' : 'New Discussion'}</span>
+              <span>{tr("إضافة منشور جديد", "New Discussion")}</span>
             </Button>
           </div>
         </div>
@@ -289,7 +288,7 @@ export default function StudentCommunity() {
                 sortBy === 'latest' ? 'bg-slate-100 dark:bg-slate-800 text-purple-600' : 'text-slate-500'
               }`}
             >
-              {isRtl ? 'الأحدث' : 'Latest'}
+              {tr("الأحدث", "Latest")}
             </button>
             <button
               onClick={() => setSortBy('popular')}
@@ -297,7 +296,7 @@ export default function StudentCommunity() {
                 sortBy === 'popular' ? 'bg-slate-100 dark:bg-slate-800 text-purple-600' : 'text-slate-500'
               }`}
             >
-              {isRtl ? 'الأكثر تفاعلاً' : 'Popular'}
+              {tr("الأكثر تفاعلاً", "Popular")}
             </button>
           </div>
         </div>
@@ -309,19 +308,19 @@ export default function StudentCommunity() {
             {loading ? (
               <div className="p-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-purple-600 mb-3" />
-                <p className="text-xs text-slate-400 font-medium">{isRtl ? 'جاري تحميل نقاشات المجتمع...' : 'Loading community feed...'}</p>
+                <p className="text-xs text-slate-400 font-medium">{tr("جاري تحميل نقاشات المجتمع...", "Loading community feed...")}</p>
               </div>
             ) : posts.length === 0 ? (
               <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
                 <MessageSquare className="h-10 w-10 text-slate-300 mx-auto" />
                 <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  {isRtl ? 'لا توجد منشورات في هذا القسم بعد' : 'No posts in this channel yet'}
+                  {tr("لا توجد منشورات في هذا القسم بعد", "No posts in this channel yet")}
                 </h3>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  {isRtl ? 'كن أول من يشارك فكرة أو سؤالاً مفيداً لزملائك في المجتمع!' : 'Be the first to share an insight or question with the community!'}
+                  {tr("كن أول من يشارك فكرة أو سؤالاً مفيداً لزملائك في المجتمع!", "Be the first to share an insight or question with the community!")}
                 </p>
                 <Button onClick={() => setIsCreateOpen(true)} className="rounded-xl text-xs font-bold">
-                  {isRtl ? 'ابدأ نقاشاً جديداً' : 'Start Discussion'}
+                  {tr("ابدأ نقاشاً جديداً", "Start Discussion")}
                 </Button>
               </div>
             ) : (
@@ -381,7 +380,7 @@ export default function StudentCommunity() {
                         {post.is_pinned && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-black">
                             <Pin className="h-3 w-3" />
-                            <span>{isRtl ? 'مثبت' : 'Pinned'}</span>
+                            <span>{tr("مثبت", "Pinned")}</span>
                           </span>
                         )}
                         <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400">
@@ -424,7 +423,7 @@ export default function StudentCommunity() {
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
                           <MessageCircle className="h-4 w-4" />
-                          <span>{post.comments_count} {isRtl ? 'تعليق' : 'Comments'}</span>
+                          <span>{post.comments_count} {tr("تعليق", "Comments")}</span>
                         </button>
                       </div>
 
@@ -432,10 +431,10 @@ export default function StudentCommunity() {
                         type="button"
                         onClick={() => {
                           navigator.clipboard.writeText(window.location.href);
-                          toast.success(isRtl ? 'تم نسخ رابط المنشور!' : 'Post link copied!');
+                          toast.success(tr("تم نسخ رابط المنشور!", "Post link copied!"));
                         }}
                         className="p-2 rounded-xl text-slate-400 hover:text-purple-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        title={isRtl ? 'مشاركة المنشور' : 'Share'}
+                        title={tr("مشاركة المنشور", "Share")}
                       >
                         <Share2 className="h-4 w-4" />
                       </button>
@@ -456,10 +455,10 @@ export default function StudentCommunity() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                    {isRtl ? 'قنوات مجتمع Nexyvora الرسمية' : 'Official VIP Channels'}
+                    {tr("قنوات مجتمع Nexyvora الرسمية", "Official VIP Channels")}
                   </h3>
                   <p className="text-[10px] text-slate-400">
-                    {isRtl ? 'انضم لقنوات التيليجرام والنقاشات المباشرة' : 'Join Telegram channels & live community discussions'}
+                    {tr("انضم لقنوات التيليجرام والنقاشات المباشرة", "Join Telegram channels & live community discussions")}
                   </p>
                 </div>
               </div>
@@ -473,7 +472,7 @@ export default function StudentCommunity() {
                 >
                   <div className="flex items-center gap-2">
                     <Send className="h-4 w-4" />
-                    <span>{isRtl ? 'قناة التحديثات على Telegram' : 'Official Telegram Channel'}</span>
+                    <span>{tr("قناة التحديثات على Telegram", "Official Telegram Channel")}</span>
                   </div>
                   <ExternalLink className="h-3.5 w-3.5 opacity-70" />
                 </a>
@@ -486,7 +485,7 @@ export default function StudentCommunity() {
                 >
                   <div className="flex items-center gap-2">
                     <MessageCircle className="h-4 w-4" />
-                    <span>{isRtl ? 'جروب نقاشات القادة VIP' : 'VIP Leaders Chat Group'}</span>
+                    <span>{tr("جروب نقاشات القادة VIP", "VIP Leaders Chat Group")}</span>
                   </div>
                   <ExternalLink className="h-3.5 w-3.5 opacity-70" />
                 </a>
@@ -496,20 +495,20 @@ export default function StudentCommunity() {
             {/* Community Values & Rules */}
             <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 shadow-xs">
               <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">
-                {isRtl ? 'ميثاق مجتمع Nexyvora' : 'Community Guidelines'}
+                {tr("ميثاق مجتمع Nexyvora", "Community Guidelines")}
               </h4>
               <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>{isRtl ? 'تبادل المعرفة ومساعدة الأعضاء الجدد في الفريق.' : 'Share actionable insights & support fellow members.'}</span>
+                  <span>{tr("تبادل المعرفة ومساعدة الأعضاء الجدد في الفريق.", "Share actionable insights & support fellow members.")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>{isRtl ? 'التركيز على بناء المشاريع الرقمية والذكاء الاصطناعي.' : 'Focus on building digital projects & AI tools.'}</span>
+                  <span>{tr("التركيز على بناء المشاريع الرقمية والذكاء الاصطناعي.", "Focus on building digital projects & AI tools.")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>{isRtl ? 'الاحترام المتبادل وتجنب الإعلانات العشوائية خارج المنظومة.' : 'Mutual respect and no external spam.'}</span>
+                  <span>{tr("الاحترام المتبادل وتجنب الإعلانات العشوائية خارج المنظومة.", "Mutual respect and no external spam.")}</span>
                 </li>
               </ul>
             </Card>
@@ -522,17 +521,17 @@ export default function StudentCommunity() {
             <form onSubmit={handleCreatePost} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="text-lg sm:text-xl font-bold">
-                  {isRtl ? 'إنشاء منشور أو نقاش جديد' : 'Create New Discussion'}
+                  {tr("إنشاء منشور أو نقاش جديد", "Create New Discussion")}
                 </DialogTitle>
                 <DialogDescription className="text-xs">
-                  {isRtl ? 'شارك أفكارك وتجاربك أو اطرح سؤالاً لمجتمع Nexyvora' : 'Share your ideas or ask a question'}
+                  {tr("شارك أفكارك وتجاربك أو اطرح سؤالاً لمجتمع Nexyvora", "Share your ideas or ask a question")}
                 </DialogDescription>
               </DialogHeader>
 
               {/* Channel Selector */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {isRtl ? 'اختر قناة النقاش' : 'Select Channel'}
+                  {tr("اختر قناة النقاش", "Select Channel")}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {CHANNELS.filter(c => c.id !== 'all').map((ch) => (
@@ -556,12 +555,12 @@ export default function StudentCommunity() {
               {/* Title */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {isRtl ? 'عنوان المنشور' : 'Post Title'}
+                  {tr("عنوان المنشور", "Post Title")}
                 </label>
                 <Input
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder={isRtl ? 'مثال: كيف أطلقت أول خدمة ذكاء اصطناعي بنجاح...' : 'e.g. How I launched my first AI automation service...'}
+                  placeholder={tr("مثال: كيف أطلقت أول خدمة ذكاء اصطناعي بنجاح...", "e.g. How I launched my first AI automation service...")}
                   className="rounded-2xl text-xs sm:text-sm font-semibold"
                   required
                 />
@@ -570,12 +569,12 @@ export default function StudentCommunity() {
               {/* Content */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {isRtl ? 'محتوى وتفاصيل المنشور' : 'Content'}
+                  {tr("محتوى وتفاصيل المنشور", "Content")}
                 </label>
                 <Textarea
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  placeholder={isRtl ? 'اكتب تفاصيل المشاركة هنا...' : 'Write your post content here...'}
+                  placeholder={tr("اكتب تفاصيل المشاركة هنا...", "Write your post content here...")}
                   rows={5}
                   className="rounded-2xl text-xs sm:text-sm leading-relaxed"
                   required
@@ -589,7 +588,7 @@ export default function StudentCommunity() {
                   onClick={() => setIsCreateOpen(false)}
                   className="rounded-2xl text-xs"
                 >
-                  {isRtl ? 'إلغاء' : 'Cancel'}
+                  {tr("إلغاء", "Cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -597,7 +596,7 @@ export default function StudentCommunity() {
                   className="rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-6 shadow-md shadow-purple-500/20"
                 >
                   {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  <span>{isRtl ? 'نشر في المجتمع' : 'Publish'}</span>
+                  <span>{tr("نشر في المجتمع", "Publish")}</span>
                 </Button>
               </div>
             </form>
@@ -624,11 +623,11 @@ export default function StudentCommunity() {
                   {loadingComments ? (
                     <div className="text-center py-8 text-slate-400">
                       <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-purple-600" />
-                      <span className="text-xs">{isRtl ? 'جاري تحميل التعليقات...' : 'Loading comments...'}</span>
+                      <span className="text-xs">{tr("جاري تحميل التعليقات...", "Loading comments...")}</span>
                     </div>
                   ) : comments.length === 0 ? (
                     <p className="text-center text-xs text-slate-400 py-8">
-                      {isRtl ? 'لا توجد تعليقات بعد. كن أول من يعلق!' : 'No comments yet. Be the first to comment!'}
+                      {tr("لا توجد تعليقات بعد. كن أول من يعلق!", "No comments yet. Be the first to comment!")}
                     </p>
                   ) : (
                     comments.map((comm) => (
@@ -667,7 +666,7 @@ export default function StudentCommunity() {
                   <Input
                     value={newCommentText}
                     onChange={(e) => setNewCommentText(e.target.value)}
-                    placeholder={isRtl ? 'اكتب تعليقك هنا...' : 'Write your comment...'}
+                    placeholder={tr("اكتب تعليقك هنا...", "Write your comment...")}
                     className="rounded-2xl text-xs"
                     disabled={sendingComment}
                   />
