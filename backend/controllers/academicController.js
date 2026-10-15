@@ -792,7 +792,7 @@ exports.getAllTeachers = async (req, res) => {
                 p.avatar_url,
                 COALESCE(t.specialty, 'General') as specialty,
                 t.experience,
-                t.bio,
+                COALESCE(t.bio, p.bio) as bio,
                 t.hire_date,
                 COALESCE(t.status, 'active') as status,
                 COALESCE(t.created_at, u.created_at) as created_at
@@ -1004,11 +1004,12 @@ exports.updateTeacher = async (req, res) => {
     } = req.body;
 
     try {
-        // 1. Get teacher user_id
-        const [tRows] = await db.execute('SELECT user_id FROM teachers WHERE id = ?', [id]);
+        // 1. Get teacher (id could be teacher.id or user_id)
+        const [tRows] = await db.execute('SELECT id, user_id FROM teachers WHERE id = ? OR user_id = ?', [id, id]);
         if (tRows.length === 0) {
             return res.status(404).json({ error: 'Teacher not found' });
         }
+        const realTeacherId = tRows[0].id;
         const userId = tRows[0].user_id;
 
         // 2. Update teachers table
@@ -1028,7 +1029,7 @@ exports.updateTeacher = async (req, res) => {
 
         if (teacherUpdates.length > 0) {
             teacherUpdates.push('updated_at = NOW()');
-            teacherValues.push(id);
+            teacherValues.push(realTeacherId);
             await db.execute(`UPDATE teachers SET ${teacherUpdates.join(', ')} WHERE id = ?`, teacherValues);
         }
 
@@ -1040,7 +1041,17 @@ exports.updateTeacher = async (req, res) => {
             if (fullName !== undefined) { profileUpdates.push('full_name = ?'); profileValues.push(fullName); }
             if (phone !== undefined) { profileUpdates.push('phone = ?'); profileValues.push(phone); }
             if (city !== undefined) { profileUpdates.push('city = ?'); profileValues.push(city); }
-            if (country !== undefined) { profileUpdates.push('country = ?'); profileValues.push(country); }
+            if (country !== undefined) { 
+                profileUpdates.push('country = ?'); 
+                profileValues.push(country); 
+                let countryCode = 'GLOBAL';
+                const cLower = (country || '').toLowerCase().trim();
+                if (cLower.includes('algeria') || cLower.includes('algérie') || cLower.includes('الجزائر') || cLower === 'dz') countryCode = 'DZ';
+                else if (cLower.includes('morocco') || cLower.includes('maroc') || cLower.includes('المغرب') || cLower === 'ma') countryCode = 'MA';
+                else if (country.trim().length === 2) countryCode = country.trim().toUpperCase();
+                profileUpdates.push('country_code = ?');
+                profileValues.push(countryCode);
+            }
             if (whatsappNumber !== undefined) { profileUpdates.push('whatsapp_number = ?'); profileValues.push(whatsappNumber); }
             if (avatarUrl !== undefined) { profileUpdates.push('avatar_url = ?'); profileValues.push(avatarUrl); }
             if (bio !== undefined) { profileUpdates.push('bio = ?'); profileValues.push(bio); }
@@ -1050,9 +1061,14 @@ exports.updateTeacher = async (req, res) => {
                 profileValues.push(userId);
                 await db.execute(`UPDATE profiles SET ${profileUpdates.join(', ')} WHERE id = ?`, profileValues);
             }
+
+            // Sync user status if status changed
+            if (status !== undefined) {
+                await db.execute('UPDATE users SET status = ? WHERE id = ?', [status, userId]);
+            }
         }
 
-        res.json({ message: 'Teacher updated successfully', id });
+        res.json({ message: 'Teacher updated successfully', id: realTeacherId });
     } catch (err) {
         console.error('[updateTeacher]', err);
         res.status(500).json({ error: err.message });
@@ -1062,17 +1078,32 @@ exports.updateTeacher = async (req, res) => {
 exports.deleteTeacher = async (req, res) => {
     const { id } = req.params;
     try {
-        const [rows] = await db.execute('SELECT user_id FROM teachers WHERE id = ?', [id]);
-        const userId = rows[0]?.user_id;
+        const [rows] = await db.execute('SELECT id, user_id FROM teachers WHERE id = ? OR user_id = ?', [id, id]);
+        
+        if (rows.length === 0) {
+            const [uRows] = await db.execute('SELECT id FROM users WHERE id = ? AND role = "teacher"', [id]);
+            if (uRows.length > 0) {
+                await db.execute('DELETE FROM profiles WHERE id = ?', [id]);
+                await db.execute('DELETE FROM user_roles WHERE user_id = ?', [id]);
+                await db.execute('DELETE FROM users WHERE id = ?', [id]);
+                return res.json({ message: 'Teacher deleted successfully' });
+            }
+            return res.status(404).json({ error: 'Teacher not found' });
+        }
 
-        await db.execute('DELETE FROM teachers WHERE id = ?', [id]);
+        const realTeacherId = rows[0].id;
+        const userId = rows[0].user_id;
+
+        await db.execute('DELETE FROM teachers WHERE id = ?', [realTeacherId]);
 
         if (userId) {
             await db.execute('DELETE FROM profiles WHERE id = ?', [userId]);
+            await db.execute('DELETE FROM user_roles WHERE user_id = ?', [userId]);
             await db.execute('DELETE FROM users WHERE id = ?', [userId]);
         }
         res.json({ message: 'Teacher deleted successfully' });
     } catch (err) {
+        console.error('[deleteTeacher]', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -1096,17 +1127,29 @@ exports.createTeacher = async (req, res) => {
         const userId = crypto.randomUUID();
         const teacherId = crypto.randomUUID();
         const today = new Date().toISOString().split('T')[0];
+        const affiliateCode = 'NV' + crypto.randomInt(100000, 1000000);
 
         // 1. Insert into users table
         await db.execute(
-            'INSERT INTO users (id, email, password, role) VALUES (?, ?, ?, ?)',
-            [userId, email, hashedPassword, 'teacher']
+            `INSERT INTO users (id, email, password, role, affiliate_code, status, affiliate_status, affiliate_enabled, token_version)
+             VALUES (?, ?, ?, ?, ?, ?, 'active', 1, 1)`,
+            [userId, email, hashedPassword, 'teacher', affiliateCode, status || 'active']
         );
 
         // 2. Insert into profiles table
+        let countryCode = 'GLOBAL';
+        const cLower = (country || '').toLowerCase().trim();
+        if (cLower.includes('algeria') || cLower.includes('algérie') || cLower.includes('الجزائر') || cLower === 'dz') {
+            countryCode = 'DZ';
+        } else if (cLower.includes('morocco') || cLower.includes('maroc') || cLower.includes('المغرب') || cLower === 'ma') {
+            countryCode = 'MA';
+        } else if (country && country.trim().length === 2) {
+            countryCode = country.trim().toUpperCase();
+        }
+
         await db.execute(
-            'INSERT INTO profiles (id, email, full_name, city, country, whatsapp_number) VALUES (?, ?, ?, ?, ?, ?)',
-            [userId, email, fullName, city || '', country || '', whatsappNumber || '']
+            'INSERT INTO profiles (id, email, full_name, city, country, country_code, whatsapp_number) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [userId, email, fullName, city || '', country || '', countryCode, whatsappNumber || '']
         );
 
         // 3. Insert into user_roles table
@@ -1115,10 +1158,20 @@ exports.createTeacher = async (req, res) => {
             [crypto.randomUUID(), userId, 'teacher']
         );
 
-        // 4. Insert into teachers table
+        // 4. Initialize wallet (safe fallback if table exists)
+        try {
+            await db.execute(
+                'INSERT INTO user_wallets (id, user_id, balance, pending_balance, total_earned, total_withdrawn) VALUES (?, ?, 0.00, 0.00, 0.00, 0.00)',
+                [crypto.randomUUID(), userId]
+            );
+        } catch (wErr) {
+            console.warn('[createTeacher] Wallet initialization skipped or already initialized:', wErr.message);
+        }
+
+        // 5. Insert into teachers table
         await db.execute(
-            'INSERT INTO teachers (id, user_id, specialty, experience, hire_date, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [teacherId, userId, specialty || '', experience || '', today, status || 'active']
+            'INSERT INTO teachers (id, user_id, specialty, experience, hire_date, status, bio) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [teacherId, userId, specialty || '', experience || '', today, status || 'active', '']
         );
 
         res.status(201).json({

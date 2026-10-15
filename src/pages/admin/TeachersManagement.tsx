@@ -175,9 +175,8 @@ export default function TeachersManagement() {
       });
       setAddFormErrors({});
       refetch();
-      toast.success(tr("تم إضافة الأستاذ الجديد بنجاح", "Teacher added successfully"));
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || err.message || 'Failed to create teacher');
+    } catch {
+      // Error is handled with localized toast in useCreateTeacher mutation
     }
   };
 
