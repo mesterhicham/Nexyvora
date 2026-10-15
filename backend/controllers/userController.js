@@ -64,41 +64,52 @@ exports.getProfile = async (req, res) => {
 
         // If teacher, attach teacher details
         if (user.role === 'teacher') {
-            const [teachers] = await db.execute('SELECT id, specialty, experience, degree, bio as teacher_bio, certifications, status as teacher_status FROM teachers WHERE user_id = ?', [userId]);
-            if (teachers.length > 0) {
-                const t = teachers[0];
-                responseData.specialty = t.specialty || '';
-                responseData.experience = t.experience || '';
-                responseData.degree = t.degree || '';
-                responseData.teacher_bio = t.teacher_bio || '';
-                responseData.teacher_status = t.teacher_status || 'active';
-                try {
-                    responseData.certifications = typeof t.certifications === 'string' ? JSON.parse(t.certifications) : (t.certifications || []);
-                } catch (e) {
-                    responseData.certifications = [];
+            try {
+                const [teachers] = await db.execute('SELECT id, specialty, experience, degree, bio as teacher_bio, certifications, status as teacher_status FROM teachers WHERE user_id = ?', [userId]);
+                if (teachers.length > 0) {
+                    const t = teachers[0];
+                    responseData.specialty = t.specialty || '';
+                    responseData.experience = t.experience || '';
+                    responseData.degree = t.degree || '';
+                    responseData.teacher_bio = t.teacher_bio || '';
+                    responseData.teacher_status = t.teacher_status || 'active';
+                    try {
+                        responseData.certifications = typeof t.certifications === 'string' ? JSON.parse(t.certifications) : (t.certifications || []);
+                    } catch (e) {
+                        responseData.certifications = [];
+                    }
                 }
+            } catch (tErr) {
+                console.warn('[getProfile] Teacher join warning:', tErr.message);
             }
         }
 
         // If student, attach student details
         if (user.role === 'student') {
-            const [students] = await db.execute(`
-                SELECT s.id as student_id, s.cohort_id, s.enrollment_date, s.status as student_status,
-                       c.name as cohort_name, p.name as program_name
-                FROM students s
-                LEFT JOIN cohorts c ON s.cohort_id = c.id
-                LEFT JOIN programs p ON c.program_id = p.id
-                WHERE s.user_id = ?
-            `, [userId]);
-            if (students.length > 0) {
-                const s = students[0];
-                responseData.cohort_id = s.cohort_id;
-                responseData.cohort_name = s.cohort_name;
-                responseData.program_name = s.program_name;
-                responseData.enrollment_date = s.enrollment_date;
-                responseData.student_status = s.student_status;
+            try {
+                const [students] = await db.execute(`
+                    SELECT s.id as student_id, s.cohort_id, s.enrollment_date, s.status as student_status,
+                           c.name as cohort_name, sp.name as specialty_name, p.name as program_name
+                    FROM students s
+                    LEFT JOIN cohorts c ON s.cohort_id = c.id
+                    LEFT JOIN specialties sp ON c.specialty_id = sp.id
+                    LEFT JOIN programs p ON sp.program_id = p.id
+                    WHERE s.user_id = ?
+                `, [userId]);
+                if (students.length > 0) {
+                    const s = students[0];
+                    responseData.cohort_id = s.cohort_id;
+                    responseData.cohort_name = s.cohort_name;
+                    responseData.specialty_name = s.specialty_name;
+                    responseData.program_name = s.program_name;
+                    responseData.enrollment_date = s.enrollment_date;
+                    responseData.student_status = s.student_status;
+                }
+            } catch (sErr) {
+                console.warn('[getProfile] Student join warning:', sErr.message);
             }
         }
+
 
         res.json(responseData);
     } catch (err) {
