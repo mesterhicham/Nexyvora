@@ -9,13 +9,15 @@ import { Loader2 } from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  role: UserRole;
+  role?: UserRole;
 }
 
 export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, role: userRole, loading } = useAuth();
   const navigate = useNavigate();
+
+  const effectiveRole = role || (userRole as UserRole) || 'student';
 
   useEffect(() => {
     if (!loading && !user) {
@@ -40,20 +42,20 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <DashboardSidebar 
-        role={role} 
+        role={effectiveRole} 
         isOpen={sidebarOpen} 
         onToggle={() => setSidebarOpen(!sidebarOpen)} 
       />
       
       <div className="lg:ms-64 lg:ltr:ml-64 lg:rtl:mr-64 min-w-0 overflow-x-hidden">
-        <TopBar role={role} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        <TopBar role={effectiveRole} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <main className="p-3 sm:p-4 lg:p-6 min-w-0 overflow-x-hidden pb-24 md:pb-6">
           {children}
         </main>
       </div>
 
       {/* Mobile & PWA Native Navigation Bar */}
-      <MobileBottomNav role={role} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <MobileBottomNav role={effectiveRole} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
     </div>
   );
 }

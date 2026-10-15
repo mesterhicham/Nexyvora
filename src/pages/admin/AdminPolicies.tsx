@@ -416,7 +416,7 @@ export default function AdminPolicies() {
   const currentContent = policyForms[activePolicyId]?.[activeLang] ?? '';
 
   return (
-    <DashboardLayout>
+    <DashboardLayout role="admin">
       <div className="space-y-6 pb-12">
         
         {/* Header with Quick Actions */}
