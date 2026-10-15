@@ -185,6 +185,14 @@ function DashboardRedirect() {
   return <Navigate to="/student" replace />;
 }
 
+function ProfileRedirect() {
+  const { user, role, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/auth" replace />;
+  return <Navigate to={`/${role || 'student'}/profile`} replace />;
+}
+
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -318,8 +326,10 @@ const App = () => (
                 <Route path="/student/profile" element={<ProfileSettings />} />
               </Route>
               {/* Shared Routes */}
+              <Route path="/profile" element={<ProfileRedirect />} />
               <Route path="/meeting/:meetingId" element={<MeetingRoom />} />
               <Route path="*" element={<NotFound />} />
+
             </Routes>
           </CurrencyProvider>
         </AuthProvider>

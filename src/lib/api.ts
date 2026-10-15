@@ -9,12 +9,13 @@ export const getApiBaseUrl = () => {
 
 export const resolveAssetUrl = (url?: string | null): string | undefined => {
     if (!url) return undefined;
-    if (url.startsWith('http://localhost:5001') || url.startsWith('http://127.0.0.1:5001')) {
-        return url.replace(/^https?:\/\/[^/]+:5001/, '');
+    if (url.startsWith('http://localhost:5001') || url.startsWith('http://127.0.0.1:5001') || url.startsWith('http://localhost:5000') || url.startsWith('http://127.0.0.1:5000')) {
+        return url.replace(/^https?:\/\/[^/]+:(5000|5001)/, '');
     }
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
     return url.startsWith('/') ? url : `/${url}`;
 };
+
 
 const api = axios.create({
     baseURL: getApiBaseUrl(),

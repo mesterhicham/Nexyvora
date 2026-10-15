@@ -7,9 +7,11 @@ router.use(auth);
 
 router.get('/profile', userController.getProfile);
 router.put('/profile', userController.updateProfile);
+router.post('/change-password', userController.changePassword);
 router.delete('/account', userController.deleteAccount);
 router.get('/stats/admin', authorize('admin'), userController.getAdminStats);
 router.get('/stats/student', authorize('student'), userController.getStudentStats);
 router.get('/stats/teacher', authorize('teacher'), userController.getTeacherStats);
 
 module.exports = router;
+

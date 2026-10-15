@@ -7,6 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePWAInstall } from '@/contexts/PWAInstallContext';
 import { PlatformLogo } from '@/components/PlatformLogo';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { resolveAssetUrl } from '@/lib/api';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
 
 interface TopBarProps {
   role: UserRole;
@@ -137,10 +140,20 @@ export function TopBar({ role, onMenuClick }: TopBarProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2.5 p-1 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-gradient-to-tr from-violet-600 to-purple-500 text-white flex items-center justify-center font-bold text-xs shadow-sm shadow-purple-500/20">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
+                  <Avatar className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl ring-2 ring-purple-500/20 shadow-xs">
+                    {user?.avatar_url && (
+                      <AvatarImage 
+                        src={resolveAssetUrl(user.avatar_url)} 
+                        alt={displayName} 
+                        className="object-cover rounded-2xl" 
+                      />
+                    )}
+                    <AvatarFallback className="rounded-2xl bg-gradient-to-tr from-violet-600 to-purple-500 text-white font-bold text-xs">
+                      {displayName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                 </Button>
+
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-xl border-slate-100 dark:border-slate-800">
                 <DropdownMenuLabel className="px-3 py-2">

@@ -8,8 +8,19 @@ interface User {
   email: string;
   role: AppRole | null;
   full_name?: string;
+  avatar_url?: string | null;
+  phone?: string;
+  whatsapp_number?: string;
+  city?: string;
   country?: string;
   country_code?: string;
+  affiliateCode?: string;
+  referrerId?: string;
+  kyc_status?: string;
+  user_metadata?: {
+    full_name?: string;
+    avatar_url?: string | null;
+  };
 }
 
 interface AuthContextType {
@@ -19,6 +30,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string, city?: string, country?: string, whatsappNumber?: string, role?: string, specialty?: string, experience?: string, referralCode?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   isImpersonating: boolean;
   impersonateUser: (token: string, studentUser: any) => void;
   stopImpersonation: () => void;
@@ -41,21 +53,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const fullUser: User = {
         id: profileData.id,
         email: profileData.email,
-        full_name: profileData.full_name,
+        full_name: profileData.full_name || storedUser.full_name,
         role: profileData.role || storedUser.role || null,
-        country: profileData.country,
-        country_code: profileData.country_code
+        avatar_url: profileData.avatar_url || storedUser.avatar_url,
+        phone: profileData.phone || profileData.whatsapp_number || storedUser.phone,
+        whatsapp_number: profileData.whatsapp_number || profileData.phone || storedUser.whatsapp_number,
+        city: profileData.city || storedUser.city,
+        country: profileData.country || storedUser.country,
+        country_code: profileData.country_code || storedUser.country_code,
+        affiliateCode: profileData.affiliate_code || storedUser.affiliateCode,
+        referrerId: profileData.referrer_id || storedUser.referrerId,
+        kyc_status: profileData.kyc_status || storedUser.kyc_status,
+        user_metadata: {
+          full_name: profileData.full_name || storedUser.full_name,
+          avatar_url: profileData.avatar_url || storedUser.avatar_url
+        }
       };
 
       setUser(fullUser);
+      localStorage.setItem('user', JSON.stringify(fullUser));
     } catch (error) {
       console.error('Failed to fetch profile', error);
-      // Only sign out if we're sure it's an auth error (interceptor handles 401)
-      // If it's a profile-not-found for an existing user, we might want to stay logged in but show error
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -162,6 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signOut,
+      refreshProfile: fetchProfile,
       isImpersonating,
       impersonateUser,
       stopImpersonation

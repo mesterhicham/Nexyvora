@@ -1,52 +1,272 @@
 const db = require('../config/db');
+const bcrypt = require('bcryptjs');
 
-// --- COMMON ---
+// --- HELPER TO STANDARDIZE COUNTRY CODE ---
+function resolveCountryCode(country) {
+    if (!country) return null;
+    const cLower = String(country).toLowerCase().trim();
+    if (cLower.includes('algeria') || cLower.includes('algérie') || cLower.includes('الجزائر') || cLower === 'dz') {
+        return 'DZ';
+    } else if (cLower.includes('morocco') || cLower.includes('maroc') || cLower.includes('المغرب') || cLower === 'ma') {
+        return 'MA';
+    } else if (country.trim().length === 2) {
+        return country.trim().toUpperCase();
+    }
+    return 'GLOBAL';
+}
+
+// --- COMMON: GET USER PROFILE ---
 exports.getProfile = async (req, res) => {
     try {
-        const [rows] = await db.execute(`
-            SELECT p.*, u.role, u.status as user_status, u.affiliate_code, u.referrer_id 
-            FROM profiles p 
-            JOIN users u ON p.id = u.id 
-            WHERE p.id = ?
-        `, [req.user.id]);
-        if (rows.length === 0) return res.status(404).json({ error: 'Profile not found' });
-        res.json(rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
+        const userId = req.user.id;
 
-exports.updateProfile = async (req, res) => {
-    const { full_name, phone, address, city, country, bio, date_of_birth, avatar_url } = req.body;
-    try {
-        let countryCode = undefined;
-        if (country) {
-            const cLower = country.toLowerCase().trim();
-            if (cLower.includes('algeria') || cLower.includes('algérie') || cLower.includes('الجزائر') || cLower === 'dz') {
-                countryCode = 'DZ';
-            } else if (cLower.includes('morocco') || cLower.includes('maroc') || cLower.includes('المغرب') || cLower === 'ma') {
-                countryCode = 'MA';
-            } else if (country.trim().length === 2) {
-                countryCode = country.trim().toUpperCase();
-            } else {
-                countryCode = 'GLOBAL';
+        // Ensure user exists in users table
+        const [users] = await db.execute('SELECT id, email, role, status as user_status, affiliate_code, referrer_id, kyc_status FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) {
+            return res.status(404).json({ error: 'User account not found' });
+        }
+        const user = users[0];
+
+        // Ensure profile row exists
+        let [profileRows] = await db.execute('SELECT * FROM profiles WHERE id = ?', [userId]);
+        if (profileRows.length === 0) {
+            // Auto-heal missing profile row
+            await db.execute(
+                'INSERT INTO profiles (id, email, full_name, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
+                [userId, user.email, user.email.split('@')[0]]
+            );
+            [profileRows] = await db.execute('SELECT * FROM profiles WHERE id = ?', [userId]);
+        }
+        const profile = profileRows[0];
+
+        // Build base profile response
+        const responseData = {
+            id: profile.id,
+            email: user.email,
+            role: user.role,
+            user_status: user.user_status,
+            affiliate_code: user.affiliate_code,
+            referrer_id: user.referrer_id,
+            kyc_status: user.kyc_status || 'unverified',
+            full_name: profile.full_name || '',
+            avatar_url: profile.avatar_url || null,
+            phone: profile.phone || profile.whatsapp_number || '',
+            whatsapp_number: profile.whatsapp_number || profile.phone || '',
+            city: profile.city || '',
+            country: profile.country || '',
+            country_code: profile.country_code || resolveCountryCode(profile.country),
+            address: profile.address || '',
+            bio: profile.bio || '',
+            date_of_birth: profile.date_of_birth || null,
+            created_at: profile.created_at,
+            updated_at: profile.updated_at
+        };
+
+        // If teacher, attach teacher details
+        if (user.role === 'teacher') {
+            const [teachers] = await db.execute('SELECT id, specialty, experience, degree, bio as teacher_bio, certifications, status as teacher_status FROM teachers WHERE user_id = ?', [userId]);
+            if (teachers.length > 0) {
+                const t = teachers[0];
+                responseData.specialty = t.specialty || '';
+                responseData.experience = t.experience || '';
+                responseData.degree = t.degree || '';
+                responseData.teacher_bio = t.teacher_bio || '';
+                responseData.teacher_status = t.teacher_status || 'active';
+                try {
+                    responseData.certifications = typeof t.certifications === 'string' ? JSON.parse(t.certifications) : (t.certifications || []);
+                } catch (e) {
+                    responseData.certifications = [];
+                }
             }
         }
 
-        await db.execute(
-            `UPDATE profiles SET 
-                full_name = ?, phone = ?, address = ?, city = ?, country = ?, 
-                country_code = COALESCE(?, country_code),
-                bio = ?, date_of_birth = ?, avatar_url = ?, updated_at = NOW() 
-             WHERE id = ?`,
-            [full_name, phone, address, city, country, countryCode || null, bio, date_of_birth, avatar_url, req.user.id]
-        );
-        res.json({ message: 'Profile updated successfully' });
+        // If student, attach student details
+        if (user.role === 'student') {
+            const [students] = await db.execute(`
+                SELECT s.id as student_id, s.cohort_id, s.enrollment_date, s.status as student_status,
+                       c.name as cohort_name, p.name as program_name
+                FROM students s
+                LEFT JOIN cohorts c ON s.cohort_id = c.id
+                LEFT JOIN programs p ON c.program_id = p.id
+                WHERE s.user_id = ?
+            `, [userId]);
+            if (students.length > 0) {
+                const s = students[0];
+                responseData.cohort_id = s.cohort_id;
+                responseData.cohort_name = s.cohort_name;
+                responseData.program_name = s.program_name;
+                responseData.enrollment_date = s.enrollment_date;
+                responseData.student_status = s.student_status;
+            }
+        }
+
+        res.json(responseData);
     } catch (err) {
+        console.error('[getProfile] Error:', err);
         res.status(500).json({ error: err.message });
     }
 };
 
+// --- COMMON: UPDATE USER PROFILE ---
+exports.updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const body = req.body || {};
+
+        // Security check: Never allow changing sensitive fields via updateProfile
+        delete body.id;
+        delete body.role;
+        delete body.status;
+        delete body.user_status;
+        delete body.password;
+        delete body.affiliate_code;
+        delete body.referrer_id;
+        delete body.email_verified;
+
+        // Prepare profile table fields
+        const profileUpdates = [];
+        const profileValues = [];
+
+        if (body.full_name !== undefined) {
+            profileUpdates.push('full_name = ?');
+            profileValues.push(body.full_name ? String(body.full_name).trim() : null);
+        }
+
+        if (body.phone !== undefined || body.whatsapp_number !== undefined) {
+            const phoneVal = (body.phone !== undefined ? body.phone : body.whatsapp_number);
+            const cleanPhone = phoneVal ? String(phoneVal).trim() : null;
+            profileUpdates.push('phone = ?');
+            profileValues.push(cleanPhone);
+            profileUpdates.push('whatsapp_number = ?');
+            profileValues.push(cleanPhone);
+        }
+
+        if (body.address !== undefined) {
+            profileUpdates.push('address = ?');
+            profileValues.push(body.address ? String(body.address).trim() : null);
+        }
+
+        if (body.city !== undefined) {
+            profileUpdates.push('city = ?');
+            profileValues.push(body.city ? String(body.city).trim() : null);
+        }
+
+        if (body.country !== undefined) {
+            const cleanCountry = body.country ? String(body.country).trim() : null;
+            profileUpdates.push('country = ?');
+            profileValues.push(cleanCountry);
+            const countryCode = resolveCountryCode(cleanCountry);
+            profileUpdates.push('country_code = ?');
+            profileValues.push(countryCode);
+        }
+
+        if (body.bio !== undefined) {
+            profileUpdates.push('bio = ?');
+            profileValues.push(body.bio ? String(body.bio).trim() : null);
+        }
+
+        if (body.date_of_birth !== undefined) {
+            profileUpdates.push('date_of_birth = ?');
+            profileValues.push(body.date_of_birth ? body.date_of_birth : null);
+        }
+
+        if (body.avatar_url !== undefined) {
+            profileUpdates.push('avatar_url = ?');
+            profileValues.push(body.avatar_url ? String(body.avatar_url).trim() : null);
+        }
+
+        if (profileUpdates.length > 0) {
+            profileUpdates.push('updated_at = NOW()');
+            profileValues.push(userId);
+
+            const sql = `UPDATE profiles SET ${profileUpdates.join(', ')} WHERE id = ?`;
+            await db.execute(sql, profileValues);
+        }
+
+        // If user is a teacher, also update teachers table if teacher fields provided
+        if (req.user.role === 'teacher') {
+            const teacherUpdates = [];
+            const teacherValues = [];
+
+            if (body.specialty !== undefined) {
+                teacherUpdates.push('specialty = ?');
+                teacherValues.push(body.specialty ? String(body.specialty).trim() : null);
+            }
+            if (body.experience !== undefined) {
+                teacherUpdates.push('experience = ?');
+                teacherValues.push(body.experience ? String(body.experience).trim() : null);
+            }
+            if (body.degree !== undefined) {
+                teacherUpdates.push('degree = ?');
+                teacherValues.push(body.degree ? String(body.degree).trim() : null);
+            }
+            if (body.bio !== undefined || body.teacher_bio !== undefined) {
+                const bioVal = body.teacher_bio !== undefined ? body.teacher_bio : body.bio;
+                teacherUpdates.push('bio = ?');
+                teacherValues.push(bioVal ? String(bioVal).trim() : null);
+            }
+
+            if (teacherUpdates.length > 0) {
+                const [existingT] = await db.execute('SELECT id FROM teachers WHERE user_id = ?', [userId]);
+                if (existingT.length > 0) {
+                    teacherValues.push(userId);
+                    await db.execute(`UPDATE teachers SET ${teacherUpdates.join(', ')} WHERE user_id = ?`, teacherValues);
+                } else {
+                    await db.execute(
+                        'INSERT INTO teachers (id, user_id, specialty, experience, degree, bio, status, created_at) VALUES (UUID(), ?, ?, ?, ?, ?, "active", NOW())',
+                        [userId, body.specialty || null, body.experience || null, body.degree || null, body.bio || null]
+                    );
+                }
+            }
+        }
+
+        // Return updated profile
+        return exports.getProfile(req, res);
+    } catch (err) {
+        console.error('[updateProfile] Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// --- COMMON: CHANGE PASSWORD ---
+exports.changePassword = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'كلمة المرور الحالية وكلمة المرور الجديدة مطلوبتان / Current and new password are required' });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: 'يجب أن تتكون كلمة المرور الجديدة من 8 أحرف على الأقل / New password must be at least 8 characters' });
+        }
+
+        const [users] = await db.execute('SELECT id, password FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) {
+            return res.status(404).json({ error: 'المستخدم غير موجود / User not found' });
+        }
+
+        const user = users[0];
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: 'كلمة المرور الحالية غير صحيحة / Current password is incorrect' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.execute(
+            'UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?',
+            [hashedPassword, userId]
+        );
+
+        res.json({ message: 'تم تغيير كلمة المرور بنجاح / Password changed successfully' });
+    } catch (err) {
+        console.error('[changePassword] Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// --- COMMON: DELETE ACCOUNT ---
 exports.deleteAccount = async (req, res) => {
     try {
         await db.execute('DELETE FROM users WHERE id = ?', [req.user.id]);
@@ -55,6 +275,7 @@ exports.deleteAccount = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
 
 // --- ADMIN DASHBOARD ---
 exports.getAdminStats = async (req, res) => {
