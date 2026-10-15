@@ -90,6 +90,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
     hire_date: '',
     experience: '',
     bio: '',
+    newPassword: '',
   });
 
   // Certifications list state
@@ -156,8 +157,10 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
         hire_date: formData.hire_date || null,
         experience: formData.experience.trim() || null,
         bio: formData.bio.trim() || null,
+        password: formData.newPassword.trim() || undefined,
         certifications,
       });
+      setFormData(prev => ({ ...prev, newPassword: '' }));
       refetch();
     } catch {
       // Handled by mutation hook toast
@@ -653,6 +656,24 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                     placeholder={tr("نبذة عامة تظهر في ملف المدرس...", "Public bio displayed on instructor profile...")}
                     className="rounded-xl"
                   />
+                </div>
+
+                {/* Reset Password */}
+                <div className="space-y-1.5 p-3.5 rounded-2xl bg-muted/40 border border-border">
+                  <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <span>{tr("تعيين / تغيير كلمة المرور للأستاذ (اختياري)", "Set / Change Instructor Password (Optional)")}</span>
+                  </Label>
+                  <Input
+                    type="password"
+                    value={formData.newPassword || ''}
+                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                    placeholder={tr("اتركها فارغة إذا كنت لا ترغب بتغييرها (8 أحرف على الأقل)", "Leave blank to keep current (min 8 chars)")}
+                    className="rounded-xl text-xs bg-background"
+                    autoComplete="new-password"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    {tr("يمكن للمدير تعيين كلمة مرور جديدة ومشاركتها مع الأستاذ لتسجيل الدخول مباشرة.", "Admin can set a new password and share it with the instructor to log in directly.")}
+                  </p>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-3 border-t border-border">

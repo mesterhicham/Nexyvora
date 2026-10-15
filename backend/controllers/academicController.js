@@ -1000,7 +1000,8 @@ exports.updateTeacher = async (req, res) => {
         city, 
         country, 
         whatsappNumber,
-        avatarUrl
+        avatarUrl,
+        password
     } = req.body;
 
     try {
@@ -1065,6 +1066,12 @@ exports.updateTeacher = async (req, res) => {
             // Sync user status if status changed
             if (status !== undefined) {
                 await db.execute('UPDATE users SET status = ? WHERE id = ?', [status, userId]);
+            }
+
+            // Update password if admin specified a new password
+            if (password && password.trim().length >= 8) {
+                const hashedPassword = await bcrypt.hash(password.trim(), 12);
+                await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
             }
         }
 
@@ -1131,8 +1138,8 @@ exports.createTeacher = async (req, res) => {
 
         // 1. Insert into users table
         await db.execute(
-            `INSERT INTO users (id, email, password, role, affiliate_code, status, affiliate_status, affiliate_enabled, token_version)
-             VALUES (?, ?, ?, ?, ?, ?, 'active', 1, 1)`,
+            `INSERT INTO users (id, email, password, role, email_verified, affiliate_code, status, affiliate_status, affiliate_enabled, token_version)
+             VALUES (?, ?, ?, ?, 1, ?, ?, 'active', 1, 1)`,
             [userId, email, hashedPassword, 'teacher', affiliateCode, status || 'active']
         );
 
@@ -1148,7 +1155,7 @@ exports.createTeacher = async (req, res) => {
         }
 
         await db.execute(
-            'INSERT INTO profiles (id, email, full_name, city, country, country_code, whatsapp_number) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO profiles (id, email, full_name, city, country, country_code, whatsapp_number, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
             [userId, email, fullName, city || '', country || '', countryCode, whatsappNumber || '']
         );
 

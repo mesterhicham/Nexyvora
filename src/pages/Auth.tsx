@@ -33,7 +33,8 @@ import {
   CheckCircle2,
   Users,
   Share2,
-  AlertCircle
+  AlertCircle,
+  GraduationCap
 } from 'lucide-react';
 import { z } from 'zod';
 
@@ -45,14 +46,15 @@ export default function Auth() {
   const isRtl = i18n.language === 'ar';
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, role, signIn, signUp, loading: authLoading } = useAuth();
+  const { user, role, signIn, signUp, signOut, loading: authLoading } = useAuth();
 
   const mode = searchParams.get('mode');
+  const roleParam = searchParams.get('role');
   const refParam = searchParams.get('ref') || searchParams.get('referralCode');
   const redirectPath = searchParams.get('redirect');
 
   // View state
-  const [isLogin, setIsLogin] = useState(refParam ? false : mode !== 'signup');
+  const [isLogin, setIsLogin] = useState(roleParam === 'teacher' ? true : (refParam ? false : mode !== 'signup'));
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => {
     return localStorage.getItem('remember_me') === 'true';
@@ -136,9 +138,14 @@ export default function Auth() {
     return () => clearTimeout(timer);
   }, [referralCode, isLogin, isRtl]);
 
-  // Auto redirect if already authenticated
+  // Auto redirect if already authenticated with matching role
   useEffect(() => {
     if (user && role) {
+      // If user is logged in as another role (e.g. admin) but explicitly navigated to teacher portal, switch user
+      if (roleParam && roleParam !== role) {
+        signOut();
+        return;
+      }
       if (redirectPath) {
         navigate(redirectPath);
         return;
@@ -146,7 +153,7 @@ export default function Auth() {
       const defaultPath = role === 'admin' ? '/admin' : role === 'teacher' ? '/teacher' : '/student';
       navigate(defaultPath);
     }
-  }, [user, role, navigate, redirectPath]);
+  }, [user, role, navigate, redirectPath, roleParam, signOut]);
 
   // Form validation
   const validateForm = () => {
@@ -386,6 +393,13 @@ export default function Auth() {
               <User className="w-5 h-5" />
             </div>
           </div>
+
+          {(roleParam === 'teacher' || redirectPath?.includes('/teacher')) && (
+            <div className="mb-4 py-1.5 px-3 rounded-full bg-gradient-to-r from-purple-500/15 via-indigo-500/15 to-blue-500/15 border border-purple-500/30 text-purple-300 text-xs text-center font-bold flex items-center justify-center gap-2">
+              <GraduationCap className="w-4 h-4 text-purple-400" />
+              <span>{tr("بوابة دخول طاقم التدريس والأساتذة", "Instructor & Teacher Portal")}</span>
+            </div>
+          )}
 
           {/* Card Welcome Title & Subtitle */}
           <div className="text-center mb-5">

@@ -19,7 +19,10 @@ const requireApprovedTeacher = async (req, res, next) => {
 
     try {
         const [rows] = await db.query('SELECT status FROM teachers WHERE user_id = ?', [req.user.id]);
-        if (rows.length === 0 || rows[0].status !== 'approved') {
+        const teacherStatus = (rows[0]?.status || '').toLowerCase().trim();
+        
+        // Accept both 'active' and 'approved' as valid working teacher statuses
+        if (rows.length === 0 || (teacherStatus !== 'approved' && teacherStatus !== 'active')) {
             const currentStatus = rows[0]?.status || 'pending';
             return res.status(403).json({ 
                 error: `حساب الأستاذ في حالة (${currentStatus}) وغير معتمد بعد من قِبل الإدارة / Teacher account is ${currentStatus} and pending administrator approval.`,

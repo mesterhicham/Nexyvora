@@ -3,9 +3,14 @@ const db = require('../config/db');
 // --- COMMON ---
 exports.getProfile = async (req, res) => {
     try {
-        const [profiles] = await db.execute('SELECT * FROM profiles WHERE id = ?', [req.user.id]);
-        if (profiles.length === 0) return res.status(404).json({ error: 'Profile not found' });
-        res.json(profiles[0]);
+        const [rows] = await db.execute(`
+            SELECT p.*, u.role, u.status as user_status, u.affiliate_code, u.referrer_id 
+            FROM profiles p 
+            JOIN users u ON p.id = u.id 
+            WHERE p.id = ?
+        `, [req.user.id]);
+        if (rows.length === 0) return res.status(404).json({ error: 'Profile not found' });
+        res.json(rows[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

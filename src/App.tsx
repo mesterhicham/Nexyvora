@@ -162,7 +162,10 @@ function RequireRole({ allowedRoles }: { allowedRoles: string[] }) {
       </div>
     );
   }
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) {
+    const isTeacherRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/teacher');
+    return <Navigate to={isTeacherRoute ? "/auth?role=teacher&redirect=/teacher" : "/auth"} replace />;
+  }
   if (!role || !allowedRoles.includes(role)) return <Navigate to="/dashboard" replace />;
   return <Outlet />;
 }
@@ -199,6 +202,7 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<DashboardRedirect />} />
               <Route path="/login" element={<Navigate to="/auth" replace />} />
+              <Route path="/teacher/login" element={<Navigate to="/auth?role=teacher&redirect=/teacher" replace />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin-setup" element={<AdminSetup />} />
               <Route path="/verify-diploma" element={<VerifyDiploma />} />
