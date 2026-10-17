@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Loader2, User, Camera, Lock, Eye, EyeOff, Building2, CreditCard, 
   DollarSign, CheckCircle2, Shield, GraduationCap, UserCheck, 
-  Copy, Check, Phone, MapPin, Calendar, Globe, Sparkles, AlertCircle
+  Copy, Check, Phone, MapPin, Calendar, Globe, Sparkles, AlertCircle, Award
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -46,6 +46,8 @@ export default function ProfileSettings() {
     queryKey: ['profile'],
     queryFn: userService.getProfile,
   });
+
+  const userRole = role || profile?.role || 'student';
 
   // State
   const [formData, setFormData] = useState({
@@ -364,7 +366,6 @@ export default function ProfileSettings() {
     );
   }
 
-  const userRole = role || profile?.role || 'student';
   const roleBadgeConfig = {
     admin: {
       label: tr("مسؤول النظام (Admin)", "System Administrator", "Administrateur Système"),
@@ -425,8 +426,8 @@ export default function ProfileSettings() {
         </div>
 
         {/* HERO PROFILE CARD */}
-        <Card className="border border-slate-800/80 bg-gradient-to-b from-slate-900/90 to-slate-950/90 backdrop-blur-md shadow-2xl rounded-3xl overflow-hidden relative">
-          <div className="h-28 bg-gradient-to-r from-violet-600/30 via-indigo-600/20 to-purple-800/30 border-b border-white/5 relative">
+        <Card className="border border-slate-800/80 bg-gradient-to-b from-[#120422] via-slate-900/90 to-slate-950/90 backdrop-blur-md shadow-2xl rounded-3xl overflow-hidden relative">
+          <div className="h-28 bg-gradient-to-r from-[#170529] via-[#3b0764] to-[#1e0836] border-b border-amber-500/20 relative">
             <div className="absolute top-3 right-3 flex items-center gap-2">
               <Badge className="bg-slate-950/80 backdrop-blur-md text-slate-300 border-white/10 font-mono text-[11px]">
                 ID: {profile?.id?.slice(0, 8)}...
@@ -448,9 +449,9 @@ export default function ProfileSettings() {
                 <Avatar className="h-28 w-28 sm:h-32 sm:w-32 rounded-3xl ring-4 ring-slate-950 border-2 border-white/15 shadow-2xl bg-slate-900 overflow-hidden">
                   {avatarPreview ? (
                     <AvatarImage 
-                      src={avatarPreview} 
-                      alt={profile?.full_name || user?.email} 
-                      className="object-cover w-full h-full"
+                    src={avatarPreview} 
+                    alt={profile?.full_name || user?.email} 
+                    className="object-cover w-full h-full"
                     />
                   ) : null}
                   <AvatarFallback className={`rounded-3xl bg-gradient-to-tr ${roleBadgeConfig.avatarBg} text-white font-black text-3xl shadow-inner`}>
@@ -461,7 +462,7 @@ export default function ProfileSettings() {
                 {/* Upload overlay button */}
                 <label 
                   htmlFor="avatar-file-input" 
-                  className={`absolute -bottom-1 -right-1 p-2.5 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white cursor-pointer shadow-lg shadow-purple-600/40 ring-4 ring-slate-950 transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center ${avatarUploading ? 'opacity-70 pointer-events-none' : ''}`}
+                  className={`absolute -bottom-1 -right-1 p-2.5 rounded-2xl bg-gradient-to-tr from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white cursor-pointer shadow-lg shadow-purple-600/40 ring-4 ring-slate-950 transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center ${avatarUploading ? 'opacity-70 pointer-events-none' : ''}`}
                   title={tr("تغيير الصورة الشخصية (JPG, PNG, WEBP)", "Change Avatar (JPG, PNG, WEBP)", "Changer la photo (JPG, PNG, WEBP)")}
                 >
                   {avatarUploading ? (
@@ -490,7 +491,9 @@ export default function ProfileSettings() {
                     </h2>
                     <p className="text-sm font-medium text-slate-400 flex items-center justify-center sm:justify-start gap-1.5 mt-0.5">
                       <span>{profile?.email || user?.email}</span>
-                      <Lock className="h-3 w-3 text-slate-500" title={tr("البريد الإلكتروني مرتبط بتسجيل الدخول", "Email bound to authentication", "Email lié à l'authentification")} />
+                      <span title={tr("البريد الإلكتروني مرتبط بتسجيل الدخول", "Email bound to authentication", "Email lié à l'authentification")}>
+                        <Lock className="h-3 w-3 text-slate-500" />
+                      </span>
                     </p>
                   </div>
 
@@ -545,7 +548,7 @@ export default function ProfileSettings() {
           <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl h-auto gap-1">
             <TabsTrigger 
               value="personal" 
-              className="rounded-xl py-2.5 font-bold text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white transition-all gap-1.5"
+              className="rounded-xl py-2.5 font-bold text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all gap-1.5 shadow-sm"
             >
               <User className="h-4 w-4" />
               <span>{tr("المعلومات الشخصية", "Personal Info", "Informations Personnelles")}</span>
@@ -553,7 +556,7 @@ export default function ProfileSettings() {
             
             <TabsTrigger 
               value="security" 
-              className="rounded-xl py-2.5 font-bold text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white transition-all gap-1.5"
+              className="rounded-xl py-2.5 font-bold text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all gap-1.5 shadow-sm"
             >
               <Lock className="h-4 w-4" />
               <span>{tr("الأمان وكلمة المرور", "Security & Password", "Sécurité & Mot de Passe")}</span>
@@ -561,7 +564,7 @@ export default function ProfileSettings() {
             
             <TabsTrigger 
               value="payout" 
-              className="rounded-xl py-2.5 font-bold text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white transition-all gap-1.5"
+              className="rounded-xl py-2.5 font-bold text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-600 data-[state=active]:to-amber-500 data-[state=active]:text-white transition-all gap-1.5 shadow-sm"
             >
               <CreditCard className="h-4 w-4" />
               <span>{tr("استلام الأرباح", "Payout Settings", "Paiements & Retraits")}</span>
@@ -569,7 +572,7 @@ export default function ProfileSettings() {
             
             <TabsTrigger 
               value="account" 
-              className="rounded-xl py-2.5 font-bold text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:text-white transition-all gap-1.5"
+              className="rounded-xl py-2.5 font-bold text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:text-white transition-all gap-1.5 shadow-sm"
             >
               <Shield className="h-4 w-4" />
               <span>{tr("إعدادات الحساب", "Account", "Compte")}</span>
@@ -808,7 +811,7 @@ export default function ProfileSettings() {
                   <Button 
                     type="submit" 
                     disabled={updateProfileMutation.isPending}
-                    className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-xl px-6 py-2.5 shadow-lg shadow-purple-600/20 transition-all active:scale-95 ml-auto"
+                    className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold rounded-xl px-6 py-2.5 shadow-lg shadow-purple-600/30 transition-all active:scale-95 ml-auto"
                   >
                     {updateProfileMutation.isPending ? (
                       <>
@@ -951,7 +954,7 @@ export default function ProfileSettings() {
                   <Button 
                     type="submit" 
                     disabled={changePasswordMutation.isPending}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6 py-2.5 shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
+                    className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold rounded-xl px-6 py-2.5 shadow-lg shadow-purple-600/25 transition-all active:scale-95"
                   >
                     {changePasswordMutation.isPending ? (
                       <>
