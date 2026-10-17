@@ -68,40 +68,40 @@ export default function StudentBonusPool() {
       <div className="space-y-6 max-w-7xl mx-auto p-4 sm:p-6" dir={isRtl ? 'rtl' : 'ltr'}>
         
         {/* Hero Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-2xl border border-amber-500/20">
-          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#170529] via-[#2e1065] to-[#170529] p-6 sm:p-8 text-white shadow-2xl border border-amber-500/30">
+          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-400/30">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-400/40">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span>{tr("نظام الأحواض المالية للقيادة", "Global Leadership Bonus Pools")}</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
                 BONUS POOL
               </h1>
-              <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
+              <p className="text-sm text-purple-200/90 max-w-2xl leading-relaxed">
                 {tr("شارك في أرباح المنصة الشهرية! يتم فتح الأحواض تلقائياً فور تحقيق شروط الرتبة المؤهلة، وتُقسّم الأرباح بالتساوي بين القادة المؤهلين كل شهر.", "Share in platform monthly profits! Pools are automatically unlocked once you meet the rank requirements, with profits distributed equally among qualifiers every month.")}
               </p>
             </div>
 
             {/* Quick Stats Badges */}
             <div className="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
-              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 min-w-[130px]">
-                <span className="text-xs text-slate-400 block">{tr("أرباحك المستلمة", "Total Earned")}</span>
-                <span className="text-xl sm:text-2xl font-black text-amber-400 mt-0.5 block">
+              <div className="p-4 rounded-2xl bg-black/30 backdrop-blur-md border border-amber-500/25 min-w-[130px] shadow-lg">
+                <span className="text-xs text-slate-300 block">{tr("أرباحك المستلمة", "Total Earned")}</span>
+                <span className="text-xl sm:text-2xl font-black text-amber-400 mt-0.5 block font-mono">
                   ${totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
-                <span className="text-[10px] text-slate-400">USD</span>
+                <span className="text-[10px] text-amber-300/80 font-bold">USD</span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 min-w-[130px]">
-                <span className="text-xs text-slate-400 block">{tr("الأحواض المفتوحة", "Unlocked Pools")}</span>
-                <span className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5 block">
+              <div className="p-4 rounded-2xl bg-black/30 backdrop-blur-md border border-amber-500/25 min-w-[130px] shadow-lg">
+                <span className="text-xs text-slate-300 block">{tr("الأحواض المفتوحة", "Unlocked Pools")}</span>
+                <span className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5 block font-mono">
                   {unlockedCount} / {pools.length}
                 </span>
-                <span className="text-[10px] text-slate-400">{tr("أحواض نشطة", "Active Pools")}</span>
+                <span className="text-[10px] text-emerald-300/80 font-bold">{tr("أحواض نشطة", "Active Pools")}</span>
               </div>
             </div>
           </div>
@@ -163,29 +163,38 @@ export default function StudentBonusPool() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 flex-wrap">
           <Button
-            variant={activeTab === 'pools' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('pools')}
-            className="flex items-center gap-2 font-bold"
+            className={`flex items-center gap-2 font-bold text-xs sm:text-sm rounded-xl h-10 px-4 transition-all ${
+              activeTab === 'pools'
+                ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md shadow-purple-500/25'
+                : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
           >
             <Coins className="w-4 h-4" />
             <span>{tr("الأحواض وحالة الفتح التلقائي", "Bonus Pools")}</span>
           </Button>
 
           <Button
-            variant={activeTab === 'my_payouts' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('my_payouts')}
-            className="flex items-center gap-2 font-bold"
+            className={`flex items-center gap-2 font-bold text-xs sm:text-sm rounded-xl h-10 px-4 transition-all ${
+              activeTab === 'my_payouts'
+                ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md shadow-purple-500/25'
+                : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
           >
             <History className="w-4 h-4" />
-            <span>{tr("سجل أرباحي (${myPayouts.length})", "My Payouts (${myPayouts.length})")}</span>
+            <span>{tr(`سجل أرباحي (${myPayouts.length})`, `My Payouts (${myPayouts.length})`)}</span>
           </Button>
 
           <Button
-            variant={activeTab === 'global_history' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('global_history')}
-            className="flex items-center gap-2 font-bold"
+            className={`flex items-center gap-2 font-bold text-xs sm:text-sm rounded-xl h-10 px-4 transition-all ${
+              activeTab === 'global_history'
+                ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md shadow-purple-500/25'
+                : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
           >
             <Calendar className="w-4 h-4" />
             <span>{tr("أرشيف توزيعات الحوض", "Pool Distribution History")}</span>
@@ -218,8 +227,8 @@ export default function StudentBonusPool() {
                       key={pool.id}
                       className={`relative overflow-hidden rounded-3xl border-2 transition-all p-6 shadow-xl ${
                         isUnlocked 
-                          ? 'border-emerald-500/50 bg-gradient-to-br from-slate-950 via-emerald-950/40 to-slate-900 text-white shadow-emerald-950/20'
-                          : 'border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 text-white shadow-slate-950/50'
+                          ? 'border-amber-400/60 bg-gradient-to-br from-[#1b0633] via-[#2e1065] to-[#4c1d95] text-white shadow-2xl shadow-purple-950/40'
+                          : 'border-slate-800 dark:border-slate-800/80 bg-gradient-to-br from-[#120422] via-[#1e0836] to-[#0d0216] text-white shadow-xl shadow-purple-950/30'
                       }`}
                     >
                       {/* Header with Title and Unlock Status Badge */}
@@ -233,8 +242,8 @@ export default function StudentBonusPool() {
                               {pool.pool_percentage}% {tr("شهرياً", "Monthly")}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-300">
-                            {tr("مخصص لرتبة: ${pool.rank_name_ar}", "Target Rank: ${pool.rank_name}")}
+                          <p className="text-xs text-purple-200/80 font-medium">
+                            {tr(`مخصص لرتبة: ${pool.rank_name_ar || pool.rank_name}`, `Target Rank: ${pool.rank_name || pool.rank_name_ar}`)}
                           </p>
                         </div>
 
@@ -264,7 +273,7 @@ export default function StudentBonusPool() {
                           </div>
                           {pool.current_rollover > 0 && (
                             <span className="text-xs text-amber-300 font-medium mt-1 block">
-                              {tr("(يتضمن $${pool.current_rollover.toFixed(2)} مرحل من الشهر السابق)", "(Includes $${pool.current_rollover.toFixed(2)} rollover)")}
+                              {tr(`(يتضمن $${Number(pool.current_rollover || 0).toFixed(2)} مرحل من الشهر السابق)`, `(Includes $${Number(pool.current_rollover || 0).toFixed(2)} rollover)`)}
                             </span>
                           )}
                         </div>
@@ -294,7 +303,7 @@ export default function StudentBonusPool() {
                           </p>
                           {pool.user_earned_total > 0 && (
                             <div className="pt-1 text-[11px] text-emerald-200 font-semibold border-t border-emerald-500/20">
-                              {tr("إجمالي ما استلمته من هذا الحوض سابقاً: $${pool.user_earned_total.toFixed(2)} USD", "Total previously earned: $${pool.user_earned_total.toFixed(2)} USD")}
+                              {tr(`إجمالي ما استلمته من هذا الحوض سابقاً: $${Number(pool.user_earned_total || 0).toFixed(2)} USD`, `Total previously earned: $${Number(pool.user_earned_total || 0).toFixed(2)} USD`)}
                             </div>
                           )}
                         </div>
@@ -317,8 +326,8 @@ export default function StudentBonusPool() {
                             </div>
                             <Progress value={progress?.direct_percentage} className="h-2 bg-slate-800" />
                             {progress?.direct_needed > 0 && (
-                              <span className="text-[10px] text-amber-300/90 block">
-                                {tr("ينقصك ${progress.direct_needed} إحالة مباشرة لفتح الحوض", "${progress.direct_needed} direct sales needed to unlock")}
+                              <span className="text-[10px] text-amber-300/90 block font-medium">
+                                {tr(`ينقصك ${progress.direct_needed} إحالة مباشرة لفتح الحوض`, `${progress.direct_needed} direct sales needed to unlock`)}
                               </span>
                             )}
                           </div>
@@ -333,8 +342,8 @@ export default function StudentBonusPool() {
                             </div>
                             <Progress value={progress?.turnover_percentage} className="h-2 bg-slate-800" />
                             {progress?.turnover_needed > 0 && (
-                              <span className="text-[10px] text-amber-300/90 block">
-                                {tr("ينقصك $${progress.turnover_needed.toLocaleString()} USD مبيعات فريق", "$${progress.turnover_needed.toLocaleString()} team turnover needed")}
+                              <span className="text-[10px] text-amber-300/90 block font-medium">
+                                {tr(`ينقصك $${Number(progress.turnover_needed || 0).toLocaleString()} USD مبيعات فريق`, `$${Number(progress.turnover_needed || 0).toLocaleString()} team turnover needed`)}
                               </span>
                             )}
                           </div>
