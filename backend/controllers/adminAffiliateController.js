@@ -460,7 +460,6 @@ exports.approveDeposit = async (req, res) => {
                 userId: userPkg.user_id,
                 targetPackage,
                 saleAmount: Number(userPkg.amount_paid),
-                upgradedFromId: userPkg.upgraded_from_package_id,
                 paymentMethod: userPkg.payment_method,
                 paymentReference: userPkg.payment_reference
             });
@@ -523,7 +522,6 @@ exports.approveDeposit = async (req, res) => {
                     userId: userPkg.user_id,
                     targetPackage,
                     saleAmount: Number(userPkg.amount_paid),
-                    upgradedFromId: userPkg.upgraded_from_package_id,
                     paymentMethod: userPkg.payment_method,
                     paymentReference: userPkg.payment_reference
                 });
@@ -886,7 +884,16 @@ exports.updateKycStatus = async (req, res) => {
  */
 exports.getAdminRanks = async (req, res) => {
     try {
-        const [ranks] = await db.query('SELECT * FROM ranks ORDER BY level ASC');
+        const [ranks] = await db.query(`
+            SELECT r.*, 
+                   req.name AS required_rank_name, 
+                   req.name_ar AS required_rank_name_ar,
+                   req.level AS required_rank_level,
+                   (SELECT COUNT(*) FROM leader_achievers la WHERE la.rank_id = r.id) AS achievers_count
+            FROM ranks r
+            LEFT JOIN ranks req ON r.required_rank_id = req.id
+            ORDER BY r.level ASC
+        `);
         res.json({ ranks });
     } catch (err) {
         console.error('[getAdminRanks]', err);
@@ -894,30 +901,162 @@ exports.getAdminRanks = async (req, res) => {
     }
 };
 
+exports.createAdminRank = async (req, res) => {
+    const { 
+        name, 
+        name_ar, 
+        level,
+        tagline,
+        tagline_ar,
+        logo_url,
+        badge_icon,
+        min_direct_sales = 0,
+        min_team_turnover = 0,
+        required_rank_id = null,
+        required_rank_count = 0,
+        condition_operator = 'AND',
+        reward_bonus = 0,
+        reward_amount = 0,
+        gift_name = null,
+        gift_name_ar = null,
+        gift_image_url = null,
+        unlocked_generations = 2,
+        color_hex = '#6366f1',
+        is_active = 1
+    } = req.body;
+
+    if (!name || !name_ar) {
+        return res.status(400).json({ error: 'Rank name in English and Arabic are required' });
+    }
+
+    try {
+        // If level not provided, pick max(level) + 1
+        let rankLevel = Number(level);
+        if (isNaN(rankLevel) || rankLevel <= 0) {
+            const [maxRow] = await db.query('SELECT MAX(level) AS max_lvl FROM ranks');
+            rankLevel = (maxRow[0]?.max_lvl || 0) + 1;
+        }
+
+        // Check if level already taken
+        const [existing] = await db.query('SELECT id FROM ranks WHERE level = ?', [rankLevel]);
+        if (existing.length > 0) {
+            return res.status(400).json({ error: `Rank level ${rankLevel} is already used. Please choose another level.` });
+        }
+
+        const id = genUuid();
+        const bonusVal = reward_bonus !== undefined ? Number(reward_bonus) : (reward_amount !== undefined ? Number(reward_amount) : 0);
+        const gensVal = Math.min(10, Math.max(0, parseInt(unlocked_generations, 10) || 0));
+
+        await db.query(`
+            INSERT INTO ranks (
+                id, level, name, name_ar, tagline, tagline_ar, badge_icon, logo_url,
+                min_direct_sales, min_team_turnover, required_rank_id, required_rank_count, condition_operator,
+                reward_bonus, gift_name, gift_name_ar, gift_image_url, unlocked_generations, color_hex, is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            id, rankLevel, name, name_ar, tagline || null, tagline_ar || null, badge_icon || 'award', logo_url || null,
+            Number(min_direct_sales) || 0, Number(min_team_turnover) || 0, required_rank_id || null, Number(required_rank_count) || 0, condition_operator || 'AND',
+            bonusVal, gift_name || null, gift_name_ar || null, gift_image_url || null, gensVal, color_hex || '#6366f1', is_active ? 1 : 0
+        ]);
+
+        res.status(201).json({ message: 'Rank created successfully', rankId: id });
+    } catch (err) {
+        console.error('[createAdminRank]', err);
+        res.status(500).json({ error: 'Failed to create rank' });
+    }
+};
+
 exports.updateAdminRank = async (req, res) => {
     const { id } = req.params;
-    const { name, name_ar, min_direct_sales, min_team_turnover, reward_amount, reward_bonus, unlocked_generations, color_hex, badge_icon } = req.body;
+    const { 
+        name, 
+        name_ar, 
+        level,
+        tagline,
+        tagline_ar,
+        logo_url,
+        badge_icon,
+        min_direct_sales, 
+        min_team_turnover, 
+        required_rank_id,
+        required_rank_count,
+        condition_operator,
+        reward_amount, 
+        reward_bonus, 
+        gift_name,
+        gift_name_ar,
+        gift_image_url,
+        unlocked_generations, 
+        color_hex, 
+        is_active
+    } = req.body;
+
     const bonusVal = reward_bonus !== undefined ? Number(reward_bonus) : (reward_amount !== undefined ? Number(reward_amount) : 0);
     const gensVal = unlocked_generations !== undefined ? Math.min(10, Math.max(0, parseInt(unlocked_generations, 10))) : 0;
 
     try {
+        // Prevent setting required_rank_id to self (anti-loop)
+        if (required_rank_id === id) {
+            return res.status(400).json({ error: 'A rank cannot have itself as a required leadership rank' });
+        }
+
         await db.query(`
             UPDATE ranks
-            SET name = ?,
-                name_ar = ?,
-                min_direct_sales = ?,
-                min_team_turnover = ?,
+            SET name = COALESCE(?, name),
+                name_ar = COALESCE(?, name_ar),
+                tagline = ?,
+                tagline_ar = ?,
+                logo_url = ?,
+                badge_icon = COALESCE(?, badge_icon),
+                min_direct_sales = COALESCE(?, min_direct_sales),
+                min_team_turnover = COALESCE(?, min_team_turnover),
+                required_rank_id = ?,
+                required_rank_count = COALESCE(?, required_rank_count),
+                condition_operator = COALESCE(?, condition_operator),
                 reward_bonus = ?,
+                gift_name = ?,
+                gift_name_ar = ?,
+                gift_image_url = ?,
                 unlocked_generations = ?,
-                color_hex = ?,
-                badge_icon = ?
+                color_hex = COALESCE(?, color_hex),
+                is_active = COALESCE(?, is_active)
             WHERE id = ?
-        `, [name, name_ar, min_direct_sales, min_team_turnover, bonusVal, gensVal, color_hex, badge_icon, id]);
+        `, [
+            name, name_ar, tagline || null, tagline_ar || null, logo_url || null, badge_icon,
+            min_direct_sales, min_team_turnover, required_rank_id || null, required_rank_count, condition_operator,
+            bonusVal, gift_name || null, gift_name_ar || null, gift_image_url || null, gensVal, color_hex, is_active !== undefined ? (is_active ? 1 : 0) : 1, id
+        ]);
 
         res.json({ message: 'Rank updated successfully' });
     } catch (err) {
         console.error('[updateAdminRank]', err);
         res.status(500).json({ error: 'Failed to update rank' });
+    }
+};
+
+exports.deleteAdminRank = async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Check if any achiever exists for this rank
+        const [achievers] = await db.query('SELECT COUNT(*) AS cnt FROM leader_achievers WHERE rank_id = ?', [id]);
+        if (achievers[0]?.cnt > 0) {
+            // Safe deactivation: do not break existing historical achievers!
+            await db.query('UPDATE ranks SET is_active = 0 WHERE id = ?', [id]);
+            return res.json({ message: 'Rank has existing achievers and was safely deactivated instead of deleted' });
+        }
+
+        // Check if any other rank depends on this rank
+        const [deps] = await db.query('SELECT COUNT(*) AS cnt FROM ranks WHERE required_rank_id = ?', [id]);
+        if (deps[0]?.cnt > 0) {
+            await db.query('UPDATE ranks SET is_active = 0 WHERE id = ?', [id]);
+            return res.json({ message: 'Rank is required by other ranks and was safely deactivated instead of deleted' });
+        }
+
+        await db.query('DELETE FROM ranks WHERE id = ?', [id]);
+        res.json({ message: 'Rank deleted successfully' });
+    } catch (err) {
+        console.error('[deleteAdminRank]', err);
+        res.status(500).json({ error: 'Failed to delete rank' });
     }
 };
 
@@ -930,9 +1069,11 @@ exports.getAdminRankAchievers = async (req, res) => {
                 u.email AS user_email,
                 u.affiliate_code,
                 p.avatar_url,
+                r.name AS rank_name_en,
                 r.name_ar AS rank_name,
                 r.color_hex AS rank_color,
                 r.badge_icon AS rank_badge,
+                r.logo_url AS rank_logo,
                 r.level AS rank_level
             FROM leader_achievers la
             JOIN users u ON la.user_id = u.id

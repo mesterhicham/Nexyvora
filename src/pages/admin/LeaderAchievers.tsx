@@ -105,9 +105,13 @@ export default function LeaderAchievers() {
 
                       {/* Rank */}
                       <td className="p-4">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-white font-bold text-xs shadow-xs" style={{ backgroundColor: a.rank_color || '#6366f1' }}>
-                          <Award className="h-3.5 w-3.5" />
-                          <span>{a.rank_name} ({tr("مستوى ${a.rank_level}", "Lvl ${a.rank_level}")})</span>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-white font-bold text-xs shadow-xs" style={{ backgroundColor: a.rank_color || '#0284c7' }}>
+                          {a.rank_logo ? (
+                            <img src={a.rank_logo} alt="Rank Logo" className="h-4 w-4 object-contain" />
+                          ) : (
+                            <Award className="h-3.5 w-3.5" />
+                          )}
+                          <span>{isRtl ? a.rank_name : (a.rank_name_en || a.rank_name)} ({tr(`مستوى ${a.rank_level}`, `Lvl ${a.rank_level}`)})</span>
                         </div>
                       </td>
 

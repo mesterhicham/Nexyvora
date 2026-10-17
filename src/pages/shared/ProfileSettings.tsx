@@ -114,6 +114,21 @@ export default function ProfileSettings() {
     }
   }, [profile]);
 
+  const [studentRank, setStudentRank] = useState<any>(null);
+
+  // Load student rank if role is student
+  useEffect(() => {
+    if (userRole === 'student') {
+      affiliateService.getRanks()
+        .then(res => {
+          if (res?.userStats?.currentRank) {
+            setStudentRank(res.userStats.currentRank);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [userRole]);
+
   // Load payout settings
   useEffect(() => {
     let isMounted = true;
@@ -480,7 +495,26 @@ export default function ProfileSettings() {
                   </div>
 
                   {/* QUICK INFO BADGES */}
-                  <div className="flex items-center justify-center sm:justify-end gap-2 pt-2 sm:pt-0">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 pt-2 sm:pt-0">
+                    {studentRank && (
+                      <Badge 
+                        variant="outline" 
+                        className="gap-1.5 text-xs py-1 border shadow-xs text-white"
+                        style={{ 
+                          backgroundColor: `${studentRank.color_hex || '#0284c7'}22`, 
+                          borderColor: studentRank.color_hex || '#0284c7' 
+                        }}
+                      >
+                        {studentRank.logo_url ? (
+                          <img src={studentRank.logo_url} alt="Rank" className="h-4 w-4 object-contain" />
+                        ) : (
+                          <Award className="h-3.5 w-3.5" style={{ color: studentRank.color_hex }} />
+                        )}
+                        <span className="font-bold">
+                          {isRtl ? (studentRank.name_ar || studentRank.name) : studentRank.name}
+                        </span>
+                      </Badge>
+                    )}
                     {profile?.country && (
                       <Badge variant="outline" className="border-slate-800 bg-slate-950/60 text-slate-300 gap-1 text-xs">
                         <MapPin className="h-3 w-3 text-violet-400" />

@@ -2,6 +2,7 @@ const db = require('../config/db');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
 const nowpaymentsService = require('../services/nowpaymentsService');
+const rankService = require('../services/rankService');
 
 function genUuid() {
     return crypto.randomUUID();
@@ -10,18 +11,6 @@ function genUuid() {
 /**
  * Helper to compute effective unlocked generations for a user.
  * Formula: Math.max(packageUnlockedGenerations, rankUnlockedGenerations)
- * Packages:
- *   - CORE ($30): 0 gens
- *   - FLOW ($150): 1 gen (G1)
- *   - GROW ($500): 2 gens (G1+G2)
- *   - PRIME ($1000): 3 gens (G1+G2+G3)
- * Ranks:
- *   - Level 0 (Member): 0 gens
- *   - Level 1 (Bronze): 2 gens (G1+G2)
- *   - Level 2 (Silver): 3 gens (G1+G2+G3)
- *   - Level 3 (Gold): 4 gens (G1+G2+G3+G4)
- *   - Level 4 (Platinum): 6 gens (G1..G6)
- *   - Level 5 (Diamond VIP): 10 gens (G1..G10)
  */
 async function getUserEffectiveUnlockedGenerations(userId, conn) {
     // 1. Package unlocked generations
@@ -36,33 +25,20 @@ async function getUserEffectiveUnlockedGenerations(userId, conn) {
     const pkg = packRows[0] || null;
     const packageUnlocked = pkg ? Number(pkg.unlocked_generations || 0) : 0;
 
-    // 2. Rank qualification
-    const [ranks] = await conn.query('SELECT * FROM ranks ORDER BY level DESC');
-
-    const [salesRow] = await conn.query(`
-        SELECT COUNT(DISTINCT up.id) AS direct_sales
-        FROM users u
-        JOIN user_packages up ON u.id = up.user_id
-        WHERE u.referrer_id = ? AND up.status = 'active'
-    `, [userId]);
-    const directSales = Number(salesRow[0]?.direct_sales || 0);
-
-    const [turnoverRow] = await conn.query(`
-        SELECT SUM(sale_amount) AS turnover
-        FROM commissions
-        WHERE recipient_id = ?
-    `, [userId]);
-    const teamTurnover = Number(turnoverRow[0]?.turnover || 0);
-
+    // 2. Rank qualification (calculated dynamically through rank engine)
     let rankUnlocked = 0;
-    let qualifiedRank = ranks.find(r => r.level === 0) || null;
+    let qualifiedRank = null;
+    let directSales = 0;
+    let teamTurnover = 0;
 
-    for (const r of ranks) {
-        if (directSales >= r.min_direct_sales && teamTurnover >= Number(r.min_team_turnover)) {
-            qualifiedRank = r;
-            rankUnlocked = Number(r.unlocked_generations || 0);
-            break;
-        }
+    try {
+        const evalRes = await rankService.evaluateUserRankAndProgress(userId, conn, false);
+        qualifiedRank = evalRes.userStats.currentRank;
+        rankUnlocked = Number(qualifiedRank?.unlocked_generations || 0);
+        directSales = evalRes.userStats.directSales;
+        teamTurnover = evalRes.userStats.teamTurnover;
+    } catch (e) {
+        console.error('[packageController.getUserEffectiveUnlockedGenerations.rankError]', e);
     }
 
     const effective = Math.max(packageUnlocked, rankUnlocked);
@@ -141,23 +117,30 @@ exports.getPackageDetails = async (req, res) => {
  * Helper to activate a user_package, enroll student in courses, distribute commissions,
  * and send notifications. Can be called on immediate wallet payment or on admin approval.
  */
-async function processPackageActivation(connection, { userPackageId, userId, targetPackage, saleAmount, upgradedFromId, paymentMethod, paymentReference }) {
+async function processPackageActivation(connection, { userPackageId, userId, targetPackage, saleAmount, paymentMethod, paymentReference }) {
     // 1. Update user_package status to 'active'
     await connection.query(`
         UPDATE user_packages 
-        SET status = 'active', is_current = 1, amount_paid = ?,
+        SET status = 'active', amount_paid = ?,
             purchased_at = CURRENT_TIMESTAMP, 
             expires_at = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 YEAR)
         WHERE id = ?
     `, [saleAmount, userPackageId]);
 
-    // If upgrading, set any previous active packages for this user to upgraded
-    if (upgradedFromId) {
-        await connection.query(`
-            UPDATE user_packages 
-            SET status = 'upgraded', is_current = 0 
-            WHERE user_id = ? AND id != ? AND status = 'active'
-        `, [userId, userPackageId]);
+    // Keep all purchased packages in independent history (status = 'active').
+    // Update is_current = 1 strictly for the highest level active package of this user.
+    const [highestPackRows] = await connection.query(`
+        SELECT up.id 
+        FROM user_packages up
+        JOIN packages p ON up.package_id = p.id
+        WHERE up.user_id = ? AND up.status = 'active'
+        ORDER BY p.level DESC, up.purchased_at DESC
+        LIMIT 1
+    `, [userId]);
+
+    if (highestPackRows.length > 0) {
+        await connection.query('UPDATE user_packages SET is_current = 0 WHERE user_id = ?', [userId]);
+        await connection.query('UPDATE user_packages SET is_current = 1 WHERE id = ?', [highestPackRows[0].id]);
     }
 
     // 2. Enroll student in courses
@@ -192,6 +175,16 @@ async function processPackageActivation(connection, { userPackageId, userId, tar
     }
 
     // 3. Commission Engine
+    // Prevent duplicate commission payouts if this user_package has already had commissions distributed
+    const [existingCommissions] = await connection.query(
+        'SELECT id FROM commissions WHERE user_package_id = ? LIMIT 1',
+        [userPackageId]
+    );
+    if (existingCommissions.length > 0) {
+        console.warn(`[processPackageActivation] Commissions already paid for user_package ${userPackageId}. Skipping commission distribution to prevent duplicates.`);
+        return { distributedCommissions: [] };
+    }
+
     const [buyerRows] = await connection.query('SELECT id, referrer_id, email FROM users WHERE id = ?', [userId]);
     const buyer = buyerRows[0];
     const distributedCommissions = [];
@@ -496,7 +489,7 @@ exports.processPackageActivation = processPackageActivation;
 exports.getMyPackage = async (req, res) => {
     const userId = req.user.id;
     try {
-        // Find currently active package for user (valid within 1-year subscription window)
+        // Find currently highest active package for user (valid within 1-year subscription window)
         const [userPackages] = await db.query(`
             SELECT up.*, p.name AS package_name, p.name_ar AS package_name_ar, 
                    p.slug, p.price AS package_original_price, p.level, p.features, p.badge_text,
@@ -504,7 +497,7 @@ exports.getMyPackage = async (req, res) => {
             FROM user_packages up
             JOIN packages p ON up.package_id = p.id
             WHERE up.user_id = ? AND up.status = 'active' AND (up.expires_at IS NULL OR up.expires_at > CURRENT_TIMESTAMP)
-            ORDER BY p.level DESC
+            ORDER BY p.level DESC, up.purchased_at DESC
             LIMIT 1
         `, [userId]);
 
@@ -512,6 +505,23 @@ exports.getMyPackage = async (req, res) => {
         if (current && typeof current.features === 'string') {
             current.features = JSON.parse(current.features || '[]');
         }
+
+        // Fetch full independent purchases history for this user
+        const [purchasedPackages] = await db.query(`
+            SELECT up.id, up.package_id, up.amount_paid, up.payment_method, up.payment_reference, 
+                   up.receipt_url, up.notes, up.status, up.is_current, up.purchased_at, up.expires_at,
+                   p.name AS package_name, p.name_ar AS package_name_ar, p.slug, p.price AS package_price,
+                   p.level, p.unlocked_generations, p.badge_text, p.features
+            FROM user_packages up
+            JOIN packages p ON up.package_id = p.id
+            WHERE up.user_id = ?
+            ORDER BY up.purchased_at DESC
+        `, [userId]);
+
+        const formattedHistory = purchasedPackages.map(pkg => ({
+            ...pkg,
+            features: typeof pkg.features === 'string' ? JSON.parse(pkg.features || '[]') : (pkg.features || [])
+        }));
 
         // Also check if there is a pending package request
         const [pendingRows] = await db.query(`
@@ -529,30 +539,22 @@ exports.getMyPackage = async (req, res) => {
             pending.features = JSON.parse(pending.features || '[]');
         }
 
-        // Available upgrade options (packages of higher level)
-        let upgrades = [];
-        if (current) {
-            const [availableUpgrades] = await db.query(`
-                SELECT p.*, (p.price - ?) AS upgrade_price
-                FROM packages p
-                WHERE p.level > ? AND p.is_active = 1
-                ORDER BY p.level ASC
-            `, [current.package_original_price, current.level]);
+        // All active packages with full pricing and purchase status (no upgrade deductions)
+        const [allPkgs] = await db.query('SELECT * FROM packages WHERE is_active = 1 ORDER BY level ASC');
+        const activeOwnedPackageIds = new Set(
+            purchasedPackages.filter(p => p.status === 'active').map(p => p.package_id)
+        );
 
-            upgrades = availableUpgrades.map(pkg => ({
-                ...pkg,
-                upgrade_price: Math.max(0, Number(pkg.upgrade_price)),
-                features: typeof pkg.features === 'string' ? JSON.parse(pkg.features || '[]') : (pkg.features || [])
-            }));
-        } else {
-            // All packages available to purchase
-            const [allPkgs] = await db.query('SELECT * FROM packages WHERE is_active = 1 ORDER BY level ASC');
-            upgrades = allPkgs.map(pkg => ({
-                ...pkg,
-                upgrade_price: Number(pkg.price),
-                features: typeof pkg.features === 'string' ? JSON.parse(pkg.features || '[]') : (pkg.features || [])
-            }));
-        }
+        const availablePackages = allPkgs.map(pkg => ({
+            ...pkg,
+            price: Number(pkg.price),
+            upgrade_price: Number(pkg.price), // Keep for backwards compatibility
+            isPurchased: activeOwnedPackageIds.has(pkg.id),
+            features: typeof pkg.features === 'string' ? JSON.parse(pkg.features || '[]') : (pkg.features || [])
+        }));
+
+        // Available packages to purchase (those not yet owned)
+        const unpurchasedPackages = availablePackages.filter(pkg => !pkg.isPurchased);
 
         // Check if there is an active pending NOWPayments payment order
         let activeNowPaymentsOrder = null;
@@ -583,10 +585,13 @@ exports.getMyPackage = async (req, res) => {
 
         res.json({ 
             currentPackage: current, 
+            highestPackage: current,
             hasActivePackage: !!current, 
             pendingPackage: pending, 
             activeNowPaymentsOrder,
-            availableUpgrades: upgrades 
+            purchasedPackages: formattedHistory,
+            availablePackages,
+            availableUpgrades: unpurchasedPackages 
         });
     } catch (err) {
         console.error('[getMyPackage]', err);
@@ -595,7 +600,7 @@ exports.getMyPackage = async (req, res) => {
 };
 
 /**
- * Purchase or Upgrade a package (with transaction safety & 5-Generation Affiliate Commission Distribution)
+ * Purchase a package (Full price, independent purchase record, with transaction safety & Affiliate Commission Distribution)
  */
 exports.purchaseOrUpgradePackage = async (req, res) => {
     const userId = req.user.id;
@@ -618,43 +623,26 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
         }
         const targetPackage = targetPackages[0];
 
-        // 2. Check current active package
-        const [currentActive] = await connection.query(`
-            SELECT up.*, p.price AS current_price, p.level AS current_level
-            FROM user_packages up
-            JOIN packages p ON up.package_id = p.id
-            WHERE up.user_id = ? AND up.status = 'active'
-            ORDER BY p.level DESC
-            LIMIT 1
-        `, [userId]);
+        // 2. Prevent duplicate purchase: check if user already owns this package and it is active
+        const [existingOwned] = await connection.query(`
+            SELECT id FROM user_packages 
+            WHERE user_id = ? AND package_id = ? AND status = 'active'
+        `, [userId, targetPackage.id]);
 
-        let saleAmount = Number(targetPackage.price);
-        let upgradedFromId = null;
-
-        if (currentActive.length > 0) {
-            const current = currentActive[0];
-
-            if (current.package_id === targetPackage.id) {
-                await connection.rollback();
-                return res.status(400).json({ error: 'You already have this package active' });
-            }
-
-            if (targetPackage.level <= current.current_level) {
-                await connection.rollback();
-                return res.status(400).json({ error: 'Cannot downgrade to a lower or equal package' });
-            }
-
-            // Upgrade price difference
-            saleAmount = Math.max(0, Number(targetPackage.price) - Number(current.current_price));
-            upgradedFromId = current.package_id;
+        if (existingOwned.length > 0) {
+            await connection.rollback();
+            return res.status(400).json({ error: 'أنت تمتلك هذه الباقة بالفعل ومفعلة في حسابك.' });
         }
+
+        // Each package is purchased at its FULL price with NO deductions of previous packages
+        const saleAmount = Number(targetPackage.price);
 
         // 3. Handle Wallet vs Manual (Bank / USDT) Payment Methods
         const isWalletPayment = (paymentMethod === 'wallet');
         let paymentRefToSave = paymentReference;
 
         if (isWalletPayment) {
-            // Check wallet balance
+            // Check wallet balance against full package price
             const [walletRows] = await connection.query('SELECT * FROM user_wallets WHERE user_id = ? FOR UPDATE', [userId]);
             const wallet = walletRows[0];
             const currentBal = wallet ? Number(wallet.balance) : 0;
@@ -685,16 +673,16 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 balanceBefore,
                 balanceAfter,
                 paymentRefToSave,
-                upgradedFromId ? `ترقية باقة من رصيد المحفظة إلى ${targetPackage.name_ar || targetPackage.name}` : `شراء باقة من رصيد المحفظة: ${targetPackage.name_ar || targetPackage.name}`,
-                JSON.stringify({ packageId: targetPackage.id, paymentMethod: 'wallet', isUpgrade: !!upgradedFromId })
+                `شراء باقة ${targetPackage.name_ar || targetPackage.name} من رصيد المحفظة بالسعر الكامل ($${saleAmount})`,
+                JSON.stringify({ packageId: targetPackage.id, paymentMethod: 'wallet', isFullPurchase: true })
             ]);
 
-            // Create active user_package entry
+            // Create active user_package entry (stored independently)
             const newUserPackageId = genUuid();
             await connection.query(`
-                INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, upgraded_from_package_id, purchased_at, expires_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', 1, ?, CURRENT_TIMESTAMP, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 YEAR))
-            `, [newUserPackageId, userId, targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes, upgradedFromId]);
+                INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, purchased_at, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', 0, CURRENT_TIMESTAMP, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 YEAR))
+            `, [newUserPackageId, userId, targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes]);
 
             // Process activation (courses, commissions, notifications)
             const { distributedCommissions } = await processPackageActivation(connection, {
@@ -702,7 +690,6 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 userId,
                 targetPackage,
                 saleAmount,
-                upgradedFromId,
                 paymentMethod: 'wallet',
                 paymentReference: paymentRefToSave
             });
@@ -710,11 +697,10 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
             await connection.commit();
 
             return res.json({
-                message: upgradedFromId ? 'تم ترقية الباقة بنجاح من رصيد المحفظة!' : 'تم شراء وتفعيل الباقة بنجاح من رصيد المحفظة!',
+                message: 'تم شراء وتفعيل الباقة بنجاح من رصيد المحفظة بالسعر الكامل!',
                 status: 'active',
                 package: targetPackage,
                 amountPaid: saleAmount,
-                isUpgrade: !!upgradedFromId,
                 commissionsDistributed: distributedCommissions.length
             });
         } else if (paymentMethod === 'nowpayments_crypto' || paymentMethod === 'usdt') {
@@ -752,14 +738,14 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 await connection.query(`
                     UPDATE user_packages 
                     SET package_id = ?, amount_paid = ?, payment_method = 'nowpayments_crypto', payment_reference = ?,
-                        receipt_url = NULL, notes = 'NOWPayments USDT (BEP20)', upgraded_from_package_id = ?, purchased_at = CURRENT_TIMESTAMP
+                        receipt_url = NULL, notes = 'NOWPayments USDT (BEP20)', purchased_at = CURRENT_TIMESTAMP
                     WHERE id = ?
-                `, [targetPackage.id, saleAmount, initialPayment.paymentId, upgradedFromId, targetUserPackageId]);
+                `, [targetPackage.id, saleAmount, initialPayment.paymentId, targetUserPackageId]);
             } else {
                 await connection.query(`
-                    INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, upgraded_from_package_id, purchased_at)
-                    VALUES (?, ?, ?, ?, 'nowpayments_crypto', ?, NULL, 'NOWPayments USDT (BEP20)', 'pending', 0, ?, CURRENT_TIMESTAMP)
-                `, [targetUserPackageId, userId, targetPackage.id, saleAmount, initialPayment.paymentId, upgradedFromId]);
+                    INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, purchased_at)
+                    VALUES (?, ?, ?, ?, 'nowpayments_crypto', ?, NULL, 'NOWPayments USDT (BEP20)', 'pending', 0, CURRENT_TIMESTAMP)
+                `, [targetUserPackageId, userId, targetPackage.id, saleAmount, initialPayment.paymentId]);
             }
 
             const meta = {
@@ -767,8 +753,7 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 packageId: targetPackage.id,
                 userPackageId: targetUserPackageId,
                 paymentMethod: 'nowpayments_crypto',
-                isUpgrade: !!upgradedFromId,
-                upgradedFromId,
+                isFullPurchase: true,
                 active_attempt_id: attemptId,
                 active_payment_id: initialPayment.paymentId,
                 active_pay_address: initialPayment.payAddress,
@@ -788,7 +773,7 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 userId,
                 saleAmount,
                 initialPayment.paymentId,
-                upgradedFromId ? `طلب ترقية باقة عبر NOWPayments (USDT BEP20) إلى ${targetPackage.name_ar || targetPackage.name}` : `طلب تفعيل باقة عبر NOWPayments (USDT BEP20): ${targetPackage.name_ar || targetPackage.name}`,
+                `طلب شراء وتفعيل باقة عبر NOWPayments (USDT BEP20): ${targetPackage.name_ar || targetPackage.name} بالسعر الكامل ($${saleAmount})`,
                 JSON.stringify(meta)
             ]);
 
@@ -845,7 +830,6 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
             // Non-wallet payment (Bank Transfer): Create PENDING request
             paymentRefToSave = paymentReference || `PKG-${Date.now()}`;
 
-            // Check if user already has a pending package request for this or another package; if so, we can update or create
             const [existingPending] = await connection.query(`
                 SELECT id FROM user_packages WHERE user_id = ? AND status = 'pending'
             `, [userId]);
@@ -856,14 +840,14 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 await connection.query(`
                     UPDATE user_packages 
                     SET package_id = ?, amount_paid = ?, payment_method = ?, payment_reference = ?,
-                        receipt_url = ?, notes = ?, upgraded_from_package_id = ?, purchased_at = CURRENT_TIMESTAMP
+                        receipt_url = ?, notes = ?, purchased_at = CURRENT_TIMESTAMP
                     WHERE id = ?
-                `, [targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes, upgradedFromId, targetUserPackageId]);
+                `, [targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes, targetUserPackageId]);
             } else {
                 await connection.query(`
-                    INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, upgraded_from_package_id, purchased_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, ?, CURRENT_TIMESTAMP)
-                `, [targetUserPackageId, userId, targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes, upgradedFromId]);
+                    INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, purchased_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, CURRENT_TIMESTAMP)
+                `, [targetUserPackageId, userId, targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes]);
             }
 
             // Record pending transaction in ledger for reference
@@ -876,8 +860,8 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 userId,
                 saleAmount,
                 paymentRefToSave,
-                upgradedFromId ? `طلب ترقية باقة (${paymentMethod}) إلى ${targetPackage.name_ar || targetPackage.name} [قيد المراجعة]` : `طلب تفعيل باقة (${paymentMethod}): ${targetPackage.name_ar || targetPackage.name} [قيد المراجعة]`,
-                JSON.stringify({ packageId: targetPackage.id, paymentMethod, receiptUrl, notes, isUpgrade: !!upgradedFromId, userPackageId: targetUserPackageId })
+                `طلب شراء وتفعيل باقة (${paymentMethod}): ${targetPackage.name_ar || targetPackage.name} بالسعر الكامل ($${saleAmount}) [قيد المراجعة]`,
+                JSON.stringify({ packageId: targetPackage.id, paymentMethod, receiptUrl, notes, isFullPurchase: true, userPackageId: targetUserPackageId })
             ]);
 
             // Notify admin / log
@@ -885,7 +869,7 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
             await connection.query(`
                 INSERT INTO notifications (id, user_id, title, content, type, is_read, created_at)
                 VALUES (?, ?, 'تم استلام طلب تفعيل الباقة', ?, 'package', 0, CURRENT_TIMESTAMP)
-            `, [notifId, userId, `تم استلام طلب تفعيل باقة ${targetPackage.name_ar || targetPackage.name} بنجاح وإرفاق وصل التحويل. طلبك الآن قيد المراجعة والتدقيق وسوف يتم تفعيل حسابك فور مراجعة الإدارة.`]);
+            `, [notifId, userId, `تم استلام طلب تفعيل باقة ${targetPackage.name_ar || targetPackage.name} بنجاح وإرفاق وصل التحويل بالسعر الكامل ($${saleAmount}). طلبك الآن قيد المراجعة والتدقيق وسوف يتم تفعيل حسابك فور مراجعة الإدارة.`]);
 
             await connection.commit();
 

@@ -723,7 +723,6 @@ exports.handleGatewayWebhook = async (req, res) => {
                         userId: internalOrder.user_id,
                         targetPackage,
                         saleAmount: expected,
-                        upgradedFromId: meta.upgradedFromId || null,
                         paymentMethod: 'nowpayments_crypto',
                         paymentReference: parsed.paymentId || parsed.eventId
                     });

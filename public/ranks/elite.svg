@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b45309"/>
+      <stop offset="40%" stop-color="#78350f"/>
+      <stop offset="100%" stop-color="#1c1917"/>
+    </linearGradient>
+    <linearGradient id="goldRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="30%" stop-color="#eab308"/>
+      <stop offset="70%" stop-color="#ca8a04"/>
+      <stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+    <linearGradient id="goldIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+    <filter id="eliteGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <!-- Imperial Arched Shield -->
+  <path d="M100 10 C 160 10, 186 35, 186 95 C 186 142, 145 178, 100 192 C 55 178, 14 142, 14 95 C 14 35, 40 10, 100 10 Z" fill="url(#bg)" stroke="url(#goldRim)" stroke-width="7"/>
+  <path d="M100 22 C 150 22, 172 44, 172 95 C 172 136, 138 166, 100 178 C 62 166, 28 136, 28 95 C 28 44, 50 22, 100 22 Z" fill="none" stroke="#fef08a" stroke-width="2" opacity="0.6"/>
+  <!-- Grand Laurels & Master Crown -->
+  <!-- Crown -->
+  <polygon points="62,120 54,68 80,90 100,54 120,90 146,68 138,120" fill="url(#goldIcon)" filter="url(#eliteGlow)"/>
+  <circle cx="54" cy="64" r="5" fill="#ffffff"/>
+  <circle cx="100" cy="50" r="7" fill="#ffffff"/>
+  <circle cx="146" cy="64" r="5" fill="#ffffff"/>
+  <!-- Base Pedestal -->
+  <rect x="58" y="122" width="84" height="12" rx="4" fill="url(#goldIcon)"/>
+  <polygon points="100,138 90,154 110,154" fill="#ffffff"/>
+  <!-- Star -->
+  <polygon points="100,140 103,148 111,149 105,155 107,163 100,158 93,163 95,155 89,149 97,148" fill="#fef08a"/>
+</svg>

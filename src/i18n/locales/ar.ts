@@ -837,12 +837,12 @@ export const ar = {
     "amountPaid": "المبلغ المدفوع",
     "coursesIncluded": "الدورات المشمولة في الباقة",
     "myAffiliateLink": "رابط التسويق بالعمولة الخاص بك",
-    "availableUpgrades": "الترقيات المتاحة لك (بدفع فارق السعر فقط):",
-    "upgradeToThis": "ترقية لهذه الباقة",
+    "availableUpgrades": "باقات إضافية متاحة للشراء:",
+    "upgradeToThis": "شراء هذه الباقة",
     "store": "متجر الباقات",
     "viewDetails": "عرض التفاصيل",
-    "upgrade": "ترقية الباقة",
-    "unlockedGenerations": "الأجيال المفتوحة",
+    "upgrade": "شراء باقة",
+    "unlockedGenerations": "الأجيال المفتوحة للأرباح",
     "coursesAssigned": "الدورات المشمولة"
   },
   "challenges": {

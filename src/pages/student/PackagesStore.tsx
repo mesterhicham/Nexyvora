@@ -50,6 +50,7 @@ export default function PackagesStore() {
   const { isAlgeria, isMorocco, usdtEnabled, currencyCode, currencySymbol, convertToLocal, formatPrice, formatDualPrice } = useCurrency();
   const [packages, setPackages] = useState<any[]>([]);
   const [myPackage, setMyPackage] = useState<any>(null);
+  const [purchasedPackages, setPurchasedPackages] = useState<any[]>([]);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
@@ -67,12 +68,13 @@ export default function PackagesStore() {
       setLoading(true);
       const [pkgsRes, myPkgRes, walletRes] = await Promise.all([
         packageService.getAll(),
-        packageService.getMyPackage().catch(() => ({ currentPackage: null, availableUpgrades: [] })),
+        packageService.getMyPackage().catch(() => ({ currentPackage: null, purchasedPackages: [], availablePackages: [] })),
         affiliateService.getWallet().catch(() => ({ wallet: { balance: 0 } }))
       ]);
       const fetchedPkgs = pkgsRes.packages || [];
       setPackages(fetchedPkgs);
-      setMyPackage(myPkgRes?.currentPackage || null);
+      setMyPackage(myPkgRes?.currentPackage || myPkgRes?.highestPackage || null);
+      setPurchasedPackages(myPkgRes?.purchasedPackages || []);
       setWalletBalance(Number(walletRes?.wallet?.balance || 0));
 
       // Check if buy parameter was provided in URL e.g. ?buy=flow-150 or ?buy=2
@@ -95,29 +97,39 @@ export default function PackagesStore() {
     }
   };
 
+  const isPackagePurchased = (pkgId: string) => {
+    return purchasedPackages.some((p: any) => p.package_id === pkgId && p.status === 'active');
+  };
+
   const handleOpenBuy = (pkg: any) => {
+    if (isPackagePurchased(pkg.id)) {
+      return toast.info(tr("أنت تمتلك هذه الباقة بالفعل ومفعلة في حسابك.", "You already own this package."));
+    }
     setSelectedPackage(pkg);
     setPaymentMethod('wallet');
     setPaymentRef('');
     setIsBuyModalOpen(true);
   };
 
-  // Helper to compute display price (difference if upgrade)
+  // Each package is always purchased at its FULL price with no deductions
   const getPriceDisplay = (pkg: any) => {
-    if (!myPackage) return { price: Number(pkg.price), isUpgrade: false };
-    if (myPackage.package_id === pkg.id) return { price: 0, isCurrent: true };
-    if (pkg.level > myPackage.level) {
-      const diff = Math.max(0, Number(pkg.price) - Number(myPackage.package_original_price));
-      return { price: diff, isUpgrade: true };
-    }
-    return { price: Number(pkg.price), isLower: true };
+    const isOwned = isPackagePurchased(pkg.id);
+    return { 
+      price: Number(pkg.price), 
+      isCurrent: isOwned,
+      isOwned
+    };
   };
 
-  const requiredPrice = selectedPackage ? getPriceDisplay(selectedPackage).price : 0;
+  const requiredPrice = selectedPackage ? Number(selectedPackage.price) : 0;
   const canPayWithWallet = walletBalance >= requiredPrice;
 
   const handleConfirmPurchase = async () => {
     if (!selectedPackage) return;
+
+    if (isPackagePurchased(selectedPackage.id)) {
+      return toast.error(tr("أنت تمتلك هذه الباقة بالفعل ومفعلة في حسابك.", "You already own this package."));
+    }
 
     if (paymentMethod === 'wallet' && !canPayWithWallet) {
       return toast.error(tr("رصيد المحفظة غير كافٍ لإتمام عملية الشراء", "Insufficient wallet balance for this purchase"));
@@ -130,7 +142,7 @@ export default function PackagesStore() {
         paymentMethod,
         paymentReference: paymentMethod === 'wallet' ? `WALLET-${Date.now()}` : paymentRef
       });
-      toast.success(res.message || (tr("تمت العملية وتفعيل الباقة بنجاح! جاري تحويلك للأكاديمية...", "Package activated successfully! Redirecting to Academy...")));
+      toast.success(res.message || (tr("تم شراء وتفعيل الباقة بنجاح! جاري تحويلك للأكاديمية...", "Package activated successfully! Redirecting to Academy...")));
       setIsBuyModalOpen(false);
       loadData();
       setTimeout(() => {
@@ -175,8 +187,9 @@ export default function PackagesStore() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {packages.map((pkg) => {
-              const { price, isUpgrade, isCurrent, isLower } = getPriceDisplay(pkg);
-              const isCore = pkg.level === 1 || pkg.slug.includes('core');
+              const isOwned = isPackagePurchased(pkg.id);
+              const price = Number(pkg.price);
+              const isCore = pkg.level === 1 || pkg.slug.includes('core') || pkg.slug.includes('community');
               const isPopular = pkg.level === 2 || pkg.slug.includes('flow');
               const isGrow = pkg.level === 3 || pkg.slug.includes('grow');
               const isVIP = pkg.level === 4 || pkg.slug.includes('prime');
@@ -241,14 +254,10 @@ export default function PackagesStore() {
                           </p>
                         )}
                       </div>
-                      {isUpgrade && (
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1">
-                          {t('packages.upgradePrice')}
-                        </p>
-                      )}
-                      {isCurrent && (
-                        <p className="text-xs text-primary font-bold mt-1">
-                          {t('packages.currentPackageBadge')}
+                      {isOwned && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1 flex items-center justify-center gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span>{tr("مملوكة ومفعلة في حسابك", "Active & Owned")}</span>
                         </p>
                       )}
                     </div>
@@ -264,10 +273,12 @@ export default function PackagesStore() {
                           : Number(pkg.unlocked_generations) === 1 
                           ? (tr("يفتح أرباح الجيل 1", "Unlocks Gen 1 matching"))
                           : Number(pkg.unlocked_generations) === 2 
-                          ? (tr("يفتح أرباح الجيل 1 + 2", "Unlocks Gen 1 + 2 matching"))
+                          ? (tr("يفتح أرباح الجيل 1 والجيل 2", "Unlocks Gen 1 & 2 matching"))
                           : Number(pkg.unlocked_generations) === 3 
-                          ? (tr("يفتح أرباح الجيل 1 + 2 + 3", "Unlocks Gen 1 + 2 + 3 matching"))
-                          : (tr("يفتح أرباح حتى الجيل ${pkg.unlocked_generations}", "Unlocks up to Gen ${pkg.unlocked_generations}"))}
+                          ? (tr("يفتح أرباح الأجيال 1 و 2 و 3", "Unlocks Gen 1, 2 & 3 matching"))
+                          : Number(pkg.unlocked_generations) === 4 
+                          ? (tr("يفتح أرباح الأجيال 1 و 2 و 3 و 4 كاملة", "Unlocks Gen 1, 2, 3 & 4 matching"))
+                          : (tr(`يفتح أرباح حتى الجيل ${pkg.unlocked_generations}`, `Unlocks up to Gen ${pkg.unlocked_generations}`))}
                       </span>
                     </div>
 
@@ -287,13 +298,10 @@ export default function PackagesStore() {
                   </CardContent>
 
                   <CardFooter className="pt-4 pb-6">
-                    {isCurrent ? (
-                      <Button disabled className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold">
-                        {t('packages.currentActive')}
-                      </Button>
-                    ) : isLower ? (
-                      <Button disabled variant="outline" className="w-full rounded-2xl opacity-60 font-bold">
-                        {t('packages.includedInPack')}
+                    {isOwned ? (
+                      <Button disabled className="w-full rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-200 dark:border-emerald-800">
+                        <CheckCircle2 className="h-4 w-4 mr-1.5 rtl:ml-1.5" />
+                        {tr("مملوكة ومفعلة", "Active & Owned")}
                       </Button>
                     ) : (
                       <Button 
@@ -304,7 +312,7 @@ export default function PackagesStore() {
                             : 'bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20'
                         }`}
                       >
-                        {isUpgrade ? t('packages.upgradeNow') : t('packages.buyNow')}
+                        {tr("شراء الباقة الآن", "Buy Package Now")}
                         <ArrowUpRight className="h-4 w-4" />
                       </Button>
                     )}
@@ -515,17 +523,16 @@ export default function PackagesStore() {
           </div>
         </Card>
 
-        {/* Purchase / Upgrade Confirmation Modal */}
+        {/* Purchase Confirmation Modal */}
         <Dialog open={isBuyModalOpen} onOpenChange={setIsBuyModalOpen}>
           <DialogContent className="sm:max-w-md rounded-3xl p-6">
             <DialogHeader className={isRtl ? 'text-right' : 'text-left'}>
               <DialogTitle className="text-xl font-bold">
-                {myPackage ? t('packages.confirmModalTitleUpgrade') : t('packages.confirmModalTitleBuy')}
+                {t('packages.confirmModalTitleBuy', tr("تأكيد شراء الباقة", "Confirm Package Purchase"))}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
                 {isRtl ? (selectedPackage?.name_ar || selectedPackage?.name) : (selectedPackage?.name || selectedPackage?.name_ar)}{' '}
                 - <span className="font-bold text-slate-900 dark:text-white">{formatDualPrice(requiredPrice)}</span>
-                {myPackage && ` (${t('packages.upgradePrice')})`}
               </DialogDescription>
             </DialogHeader>
 
@@ -644,9 +651,9 @@ export default function PackagesStore() {
                 {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : paymentMethod === 'wallet' ? (
-                  myPackage ? t('packages.confirmUpgradeWallet') : t('packages.confirmPayWallet')
+                  t('packages.confirmPayWallet', tr("تأكيد الدفع من المحفظة", "Confirm Wallet Payment"))
                 ) : (
-                  t('packages.confirmPayExternal')
+                  t('packages.confirmPayExternal', tr("تأكيد طلب التفعيل", "Confirm Activation Request"))
                 )}
               </Button>
             </DialogFooter>

@@ -341,14 +341,14 @@ export default function StudentTeam() {
                               {t('team.lockedGenNotice', tr("هذا الجيل مقفل في خطتك الحالية", "This generation is locked in your current plan"))} ({t('team.gen', tr("الجيل", "Gen"))} {lvl})
                             </h4>
                             <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">
-                              {t('team.requireUpgradeToUnlock', tr("قم بترقية باقتك للاستفادة من عمولات هذا الجيل.", "Upgrade your package to unlock commissions from this generation."))}
+                              {t('team.requireHigherPackToUnlock', tr("قم بشراء باقة أعلى (FLOW أو GROW أو PRIME) للاستفادة من عمولات هذا الجيل.", "Purchase a higher package (FLOW, GROW, or PRIME) to unlock commissions from this generation."))}
                             </p>
                           </div>
                         </div>
                         <Link to="/student/packages" className="shrink-0">
                           <Button size="sm" className="rounded-xl font-bold text-xs bg-amber-600 hover:bg-amber-700 text-white gap-1 shadow-xs">
                             <ArrowUpRight className="h-3.5 w-3.5" />
-                            {t('packages.upgradeNow', tr("ترقية الباقة", "Upgrade Package"))}
+                            {tr("شراء باقة أعلى", "Buy Higher Package")}
                           </Button>
                         </Link>
                       </div>

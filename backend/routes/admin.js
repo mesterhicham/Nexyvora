@@ -93,7 +93,9 @@ router.post('/kyc/:id/status', adminAffiliate.updateKycStatus);
 
 // Leader Ranks & Achievers
 router.get('/ranks', adminAffiliate.getAdminRanks);
+router.post('/ranks', adminAffiliate.createAdminRank);
 router.put('/ranks/:id', adminAffiliate.updateAdminRank);
+router.delete('/ranks/:id', adminAffiliate.deleteAdminRank);
 router.get('/ranks/achievers', adminAffiliate.getAdminRankAchievers);
 
 // Generation Settings

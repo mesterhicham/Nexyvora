@@ -488,17 +488,35 @@ export default function StudentDashboard() {
             {/* Current Rank Card */}
             <Card className="rounded-[28px] border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
-                    <Award className="h-5 w-5" />
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="h-12 w-12 rounded-2xl flex items-center justify-center p-2 shadow-sm shrink-0"
+                    style={{ 
+                      backgroundColor: `${currentRank.color_hex || '#0284c7'}22`,
+                      border: `1.5px solid ${currentRank.color_hex || '#0284c7'}`
+                    }}
+                  >
+                    {currentRank.logo_url ? (
+                      <img src={currentRank.logo_url} alt="Rank" className="h-9 w-9 object-contain" />
+                    ) : (
+                      <Award className="h-6 w-6" style={{ color: currentRank.color_hex || '#0284c7' }} />
+                    )}
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {tr("رتبتي والترقيات", "Current Rank & Progression")}
+                    <div className="flex items-center gap-1.5">
+                      <span 
+                        className="px-2 py-0.2 rounded-md text-[9px] font-black uppercase text-white"
+                        style={{ backgroundColor: currentRank.color_hex || '#0284c7' }}
+                      >
+                        LEVEL {currentRank.level || 0}
+                      </span>
+                      <span className="text-[11px] font-bold text-slate-400">
+                        {tr("الرتبة الحالية", "Active Rank")}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
+                      {isRtl ? (currentRank.name_ar || currentRank.name) : currentRank.name}
                     </h3>
-                    <p className="text-[11px] text-slate-400">
-                      {isRtl ? (currentRank.name_ar || currentRank.name) : currentRank.name} (Level {currentRank.level || 1})
-                    </p>
                   </div>
                 </div>
                 <Button
@@ -507,7 +525,7 @@ export default function StudentDashboard() {
                   onClick={() => navigate('/student/ranks')}
                   className="text-xs text-primary font-bold hover:bg-primary/10 rounded-xl"
                 >
-                  <span>{tr("عرض السلم", "View All")}</span>
+                  <span>{tr("سلم الرتب", "View All")}</span>
                   <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
                 </Button>
               </div>
@@ -515,25 +533,43 @@ export default function StudentDashboard() {
               <div className="mt-4 space-y-3">
                 {nextRank ? (
                   <>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-slate-500">
-                        <span>{tr("المبيعات المباشرة المطلوبة", "Direct Sales")}: {ranksUserStats.directSales} / {nextRank.min_direct_sales}</span>
-                        <span className="font-bold text-slate-900 dark:text-white">{salesProgress}%</span>
-                      </div>
-                      <Progress value={salesProgress} className="h-2 rounded-full" />
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className="text-slate-500">{tr("الهدف القادم:", "Next Milestone:")}</span>
+                      <span className="text-indigo-600 dark:text-indigo-400">
+                        {isRtl ? (nextRank.name_ar || nextRank.name) : nextRank.name}
+                        {Number(nextRank.reward_bonus) > 0 && ` (+$${Number(nextRank.reward_bonus).toLocaleString()})`}
+                      </span>
                     </div>
 
+                    {/* Team Sales Requirement */}
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-slate-500">
-                        <span>{tr("حجم مبيعات الفريق المطلوب", "Team Turnover")}: ${Number(ranksUserStats.teamTurnover || 0).toFixed(2)} / ${Number(nextRank.min_team_turnover).toFixed(2)}</span>
-                        <span className="font-bold text-slate-900 dark:text-white">{turnoverProgress}%</span>
+                        <span>{tr("حجم مبيعات الفريق (Team Sales)", "Team Sales Volume")}: ${Number(ranksUserStats.teamTurnover || 0).toLocaleString()} / ${Number(nextRank.min_team_turnover).toLocaleString()}</span>
+                        <span className="font-bold text-slate-900 dark:text-white font-mono">
+                          {turnoverProgress}%
+                        </span>
                       </div>
                       <Progress value={turnoverProgress} className="h-2 rounded-full" />
                     </div>
+
+                    {/* Leadership Requirement */}
+                    {ranksUserStats.progress?.leadership && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs text-slate-500">
+                          <span>
+                            {tr("شرط القيادة:", "Leadership Req:")} {ranksUserStats.progress.leadership.currentCount} / {ranksUserStats.progress.leadership.requiredCount} {isRtl ? ranksUserStats.progress.leadership.requiredRankNameAr : ranksUserStats.progress.leadership.requiredRankName}
+                          </span>
+                          <span className="font-bold text-slate-900 dark:text-white font-mono">
+                            {ranksUserStats.progress.leadership.percent}%
+                          </span>
+                        </div>
+                        <Progress value={ranksUserStats.progress.leadership.percent} className="h-2 rounded-full" />
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs flex items-center gap-2">
-                    <Crown className="h-4 w-4" />
+                    <Crown className="h-4 w-4 text-amber-500" />
                     <span>{tr("أنت في أعلى رتبة بالمنصة! تهانينا لك!", "You have reached the highest platform rank!")}</span>
                   </div>
                 )}

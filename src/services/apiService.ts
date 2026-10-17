@@ -304,7 +304,9 @@ export const adminAffiliateService = {
         api.post(`/admin/kyc/${id}/status`, data).then(res => res.data),
 
     getRanks: () => api.get('/admin/ranks').then(res => res.data),
+    createRank: (data: any) => api.post('/admin/ranks', data).then(res => res.data),
     updateRank: (id: string, data: any) => api.put(`/admin/ranks/${id}`, data).then(res => res.data),
+    deleteRank: (id: string) => api.delete(`/admin/ranks/${id}`).then(res => res.data),
     getRankAchievers: () => api.get('/admin/ranks/achievers').then(res => res.data),
 
     getGenerationSettings: () => api.get('/admin/generation-settings').then(res => res.data),

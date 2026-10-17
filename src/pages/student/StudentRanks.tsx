@@ -15,9 +15,14 @@ import {
   Lock,
   Sparkles,
   Coins,
-  Calendar,
+  Clock,
+  Gift,
+  ArrowRight,
   TrendingUp,
-  Clock
+  Zap,
+  Target,
+  ChevronRight,
+  Users
 } from 'lucide-react';
 import { toast } from "sonner";
 
@@ -28,7 +33,6 @@ export default function StudentRanks() {
 
   const [data, setData] = useState<any>(null);
   const [poolsData, setPoolsData] = useState<any[]>([]);
-  const [pastPayouts, setPastPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,9 +48,8 @@ export default function StudentRanks() {
       ]);
       setData(res);
       setPoolsData(poolRes?.pools || []);
-      setPastPayouts(poolRes?.pastPayouts || []);
     } catch (err) {
-      toast.error('Failed to load ranks');
+      toast.error(tr("فشل تحميل بيانات الرتب", "Failed to load ranks"));
     } finally {
       setLoading(false);
     }
@@ -56,107 +59,412 @@ export default function StudentRanks() {
   const userStats = data?.userStats || {
     directSales: 0,
     teamTurnover: 0,
-    currentRank: { name: 'Member', name_ar: 'عضو', level: 1, color_hex: '#94a3b8' },
-    nextRank: null
+    downlineCount: 0,
+    currentRank: { name: 'Member', name_ar: 'عضو مسجل', level: 0, color_hex: '#64748b', logo_url: '/ranks/member.svg' },
+    nextRank: null,
+    progress: null
   };
 
   const currentRank = userStats.currentRank;
   const nextRank = userStats.nextRank;
+  const progress = userStats.progress;
 
-  // Calculate progress % towards next rank
-  let salesProgress = 100;
-  let turnoverProgress = 100;
+  const salesCurrent = Number(userStats.teamTurnover || 0);
+  const salesReq = nextRank ? Number(nextRank.min_team_turnover || 1) : 1;
+  const salesPercent = progress?.sales?.percent !== undefined 
+    ? progress.sales.percent 
+    : (nextRank ? Math.min(100, Math.round((salesCurrent / salesReq) * 100)) : 100);
 
-  if (nextRank) {
-    salesProgress = Math.min(100, Math.round((userStats.directSales / (nextRank.min_direct_sales || 1)) * 100));
-    turnoverProgress = Math.min(100, Math.round((userStats.teamTurnover / (Number(nextRank.min_team_turnover) || 1)) * 100));
-  }
+  const leadership = progress?.leadership;
+  const overallPercent = progress?.overallPercent !== undefined ? progress.overallPercent : salesPercent;
 
-  const getRankIcon = (level: number) => {
-    switch (level) {
-      case 1: return User;
-      case 2: return Shield;
-      case 3: return Award;
-      case 4: return Crown;
-      case 5: return Gem;
-      default: return Award;
+  const getRankLogoElement = (r: any, size = "h-14 w-14") => {
+    if (r?.logo_url) {
+      return (
+        <img 
+          src={r.logo_url} 
+          alt={r.name || 'Rank'} 
+          className={`${size} object-contain drop-shadow-lg`}
+          onError={(e) => {
+            (e.target as HTMLElement).style.display = 'none';
+          }}
+        />
+      );
     }
+    return <Award className={`${size} text-white`} />;
   };
 
   return (
     <DashboardLayout role="student">
-      <div className="space-y-8 pb-12">
-        {/* Header */}
-        <div className={isRtl ? 'text-right' : 'text-left'}>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
-            {t('ranks.title')}
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {t('ranks.subtitle')}
-          </p>
-        </div>
+      <div className="space-y-10 pb-16">
+        {/* Top Hero Banner - Inspiring Style Matching Reference */}
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 border border-slate-800 p-8 sm:p-12 text-center text-white shadow-2xl">
+          {/* Subtle Ambient Light Gradients */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-linear-to-b from-indigo-500/20 via-sky-500/10 to-transparent blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 left-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 right-10 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Current Rank Banner */}
-        <Card className="rounded-2xl border-2 border-primary/30 bg-linear-to-r from-primary/10 via-purple-500/5 to-white dark:from-slate-900 dark:to-slate-800 p-6 shadow-md">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className={`flex items-center gap-4 ${isRtl ? 'text-right' : 'text-left'}`}>
-              <div 
-                className="h-16 w-16 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0"
-                style={{ backgroundColor: currentRank.color_hex || '#7c3aed' }}
-              >
-                {(() => {
-                  const Icon = getRankIcon(currentRank.level);
-                  return <Icon className="h-8 w-8" />;
-                })()}
-              </div>
-              <div className="space-y-1">
-                <span className="text-xs font-semibold text-slate-400">
-                  {t('ranks.currentRank')}:
-                </span>
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white">
-                  {isRtl ? (currentRank.name_ar || currentRank.name) : (currentRank.name || currentRank.name_ar)}
-                </h2>
-                <p className="text-xs text-slate-500">
-                  {t('packages.level')} {currentRank.level} • {isRtl ? 'مبيعاتك المباشرة' : lang === 'fr' ? 'Ventes directes' : 'Direct sales'}: {userStats.directSales} • {isRtl ? 'حجم فريقك' : lang === 'fr' ? 'Volume d\'équipe' : 'Team volume'}: ${userStats.teamTurnover.toFixed(2)} USD
-                </p>
-              </div>
+          <div className="relative z-10 max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-xs font-black tracking-widest text-sky-400 uppercase">
+              <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+              <span>NEXYVORA • DREAM • LEARN • BUILD • GROW</span>
             </div>
 
-            {nextRank ? (
-              <div className="w-full md:w-80 p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xs space-y-3">
-                <div className="flex items-center justify-between text-xs font-bold">
-                  <span>{t('ranks.nextRank')}: {isRtl ? (nextRank.name_ar || nextRank.name) : (nextRank.name || nextRank.name_ar)}</span>
-                  <span className="text-primary font-mono">+${nextRank.reward_bonus} {t('ranks.rewardBonus')}</span>
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-linear-to-r from-white via-slate-100 to-amber-200">
+              {tr("رحلتك القيادية • مكافآتك الحصرية", "YOUR JOURNEY • YOUR REWARDS")}
+            </h1>
+
+            <p className="text-sm sm:text-base text-slate-400 font-medium tracking-wide">
+              {tr(
+                "أكثر من مجرد عمل • أسلوب حياة يفتح لك آفاقاً لا محدودة من النمو والريادة",
+                "More than a business • A lifestyle of possibilities"
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Current Rank & Next Target Progression Card */}
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+              {/* Current Rank Badge & Info */}
+              <div className="flex items-center gap-5">
+                <div 
+                  className="h-20 w-20 sm:h-24 sm:w-24 rounded-3xl flex items-center justify-center p-3 shadow-xl shrink-0 relative"
+                  style={{ 
+                    backgroundColor: `${currentRank.color_hex || '#0284c7'}22`,
+                    border: `2.5px solid ${currentRank.color_hex || '#0284c7'}`,
+                    boxShadow: `0 0 30px ${currentRank.color_hex || '#0284c7'}44`
+                  }}
+                >
+                  {getRankLogoElement(currentRank, "h-16 w-16 sm:h-18 sm:w-18")}
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-[11px] text-slate-400">
-                    <span>{t('ranks.directSalesReq')} ({userStats.directSales} / {nextRank.min_direct_sales})</span>
-                    <span>{salesProgress}%</span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span 
+                      className="px-2.5 py-0.5 rounded-md text-[11px] font-black uppercase text-white shadow-xs"
+                      style={{ backgroundColor: currentRank.color_hex || '#0284c7' }}
+                    >
+                      {tr(`المستوى ${currentRank.level}`, `LEVEL ${currentRank.level}`)}
+                    </span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {tr("رتبتك الحالية المعتمدة", "Your Active Rank")}
+                    </span>
                   </div>
-                  <Progress value={salesProgress} className="h-2 rounded-full" />
-                </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-[11px] text-slate-400">
-                    <span>{t('ranks.teamTurnoverReq')} (${userStats.teamTurnover} / ${nextRank.min_team_turnover})</span>
-                    <span>{turnoverProgress}%</span>
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                    {isRtl ? (currentRank.name_ar || currentRank.name) : currentRank.name}
+                  </h2>
+
+                  {(currentRank.tagline || currentRank.tagline_ar) && (
+                    <p className="text-xs italic text-slate-500 dark:text-slate-400">
+                      "{isRtl ? (currentRank.tagline_ar || currentRank.tagline) : (currentRank.tagline || currentRank.tagline_ar)}"
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
+                    <span>
+                      {tr("مبيعات الفريق المحققة:", "Team Sales Volume:")} <strong className="text-slate-900 dark:text-white font-mono">${salesCurrent.toLocaleString()} USD</strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {tr("أعضاء شبكتك المباشرة:", "Direct Referrals:")} <strong className="text-slate-900 dark:text-white font-mono">{userStats.directSales}</strong>
+                    </span>
                   </div>
-                  <Progress value={turnoverProgress} className="h-2 rounded-full" />
                 </div>
               </div>
-            ) : (
-              <div className="p-4 rounded-xl bg-amber-500/10 text-amber-600 font-bold text-xs flex items-center gap-2">
-                <Crown className="h-5 w-5" />
-                {isRtl ? 'لقد بلغت أعلى رتبة في المنصة! تهانينا لك!' : lang === 'fr' ? 'Félicitations ! Vous avez atteint le rang suprême !' : 'Congratulations! You have reached the highest rank!'}
+
+              {/* Next Milestone Box */}
+              {nextRank ? (
+                <div className="w-full lg:w-96 p-5 rounded-2xl bg-linear-to-br from-indigo-50/50 via-purple-50/30 to-white dark:from-slate-950 dark:to-slate-800/80 border border-indigo-100 dark:border-indigo-900/50 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+                      <Target className="w-4 h-4" />
+                      {tr("الهدف القادم للترقية:", "Next Rank Milestone:")}
+                    </span>
+                    <span className="text-slate-900 dark:text-white font-black">
+                      {isRtl ? (nextRank.name_ar || nextRank.name) : nextRank.name}
+                    </span>
+                  </div>
+
+                  {/* Cash Reward & Gift Announcement */}
+                  <div className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">{tr("المكافأة النقدية", "Cash Reward")}</span>
+                      <strong className="text-emerald-600 dark:text-emerald-400 font-mono text-sm">
+                        +${Number(nextRank.reward_bonus).toLocaleString()} USD
+                      </strong>
+                    </div>
+                    {(nextRank.gift_name || nextRank.gift_name_ar) && (
+                      <div className="text-right">
+                        <span className="text-slate-400 block text-[10px]">{tr("الهدية التكريمية", "Exclusive Gift")}</span>
+                        <strong className="text-amber-500 font-bold text-xs flex items-center gap-1">
+                          <Gift className="w-3.5 h-3.5" />
+                          {isRtl ? (nextRank.gift_name_ar || nextRank.gift_name) : (nextRank.gift_name || nextRank.gift_name_ar)}
+                        </strong>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Overall Progress Bar */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-slate-500">{tr("إجمالي التقدم نحو الترقية", "Overall Progress")}</span>
+                      <span className="text-indigo-600 dark:text-indigo-400 font-mono">{overallPercent}%</span>
+                    </div>
+                    <Progress value={overallPercent} className="h-2.5 rounded-full" />
+                  </div>
+                </div>
+              ) : (
+                <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-sm flex items-center gap-3">
+                  <Crown className="w-8 h-8 text-amber-500 shrink-0" />
+                  <div>
+                    <h4 className="font-black text-base">{tr("تهانينا الاستثنائية!", "Highest Rank Achieved!")}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {tr("لقد حققت أعلى رتبة قيادية في سلّم Nexyvora! أنت نموذج ملهم لكل المجتمع.", "You have reached the pinnacle rank of Nexyvora Elite! You are an inspiration.")}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Detailed Criteria Checklist for Next Rank */}
+            {nextRank && (
+              <div className="space-y-3 pt-2">
+                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-amber-500" />
+                  {tr(`شروط الوصول إلى رتبة ${isRtl ? nextRank.name_ar : nextRank.name}:`, `Qualification Requirements for ${nextRank.name}:`)}
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Condition 1: Team Sales */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {salesCurrent >= salesReq ? (
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center text-[10px] font-bold text-slate-400">1</div>
+                        )}
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                          {tr("حجم مبيعات الفريق (Team Sales)", "Team Sales Volume")}
+                        </span>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
+                        ${salesCurrent.toLocaleString()} / ${salesReq.toLocaleString()} USD
+                      </span>
+                    </div>
+
+                    <Progress value={salesPercent} className="h-2 rounded-full" />
+
+                    <div className="flex justify-between text-[11px] text-slate-400">
+                      <span>{salesCurrent >= salesReq ? tr("مكتمل ✓", "Completed ✓") : tr(`متبقي $${Math.max(0, salesReq - salesCurrent).toLocaleString()}`, `$${Math.max(0, salesReq - salesCurrent).toLocaleString()} remaining`)}</span>
+                      <span>{salesPercent}%</span>
+                    </div>
+                  </div>
+
+                  {/* Condition 2: Leadership Requirement */}
+                  {leadership ? (
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {leadership.isMet ? (
+                            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center text-[10px] font-bold text-slate-400">2</div>
+                          )}
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                            {tr(`قادة برتبة ${isRtl ? leadership.requiredRankNameAr : leadership.requiredRankName} في فريقك`, `Leaders with rank ${leadership.requiredRankName} in downline`)}
+                          </span>
+                        </div>
+                        <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
+                          {leadership.currentCount} / {leadership.requiredCount} {tr("قائد", "leaders")}
+                        </span>
+                      </div>
+
+                      <Progress value={leadership.percent} className="h-2 rounded-full" />
+
+                      <div className="flex justify-between text-[11px] text-slate-400">
+                        <span>{leadership.isMet ? tr("مكتمل ✓", "Completed ✓") : tr(`متبقي ${Math.max(0, leadership.requiredCount - leadership.currentCount)} قادة`, `${Math.max(0, leadership.requiredCount - leadership.currentCount)} remaining`)}</span>
+                        <span>{leadership.percent}%</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3 text-xs text-emerald-700 dark:text-emerald-300">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <span>{tr("لا يشترط وجود قادة إضافيين لهذه الرتبة، مبيعات الفريق وحدها كافية للتأهل!", "No extra downline leader conditions for this rank, Team Sales is sufficient!")}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
         </Card>
 
-        {/* Global Leadership Bonus Pools (Diamond Pool, etc.) */}
+        {/* The 8 Canonical Career Ranks (Matching Reference Visual Pedestal Grid) */}
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                {tr("سلّم الرتب القيادية وجوائز التفوق", "Leadership Career Ladder & Rewards")}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {tr(
+                  "في Nexyvora، تمثّل كل رتبة محطة نمو جديدة، وتمكيناً قيادياً حقيقياً، ومكافأة عينية ونقدية استثنائية.",
+                  "At Nexyvora, each rank represents a new stage of growth, leadership, and contribution to the community."
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Ranks Cards Pedestal Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {ranks.map((r: any) => {
+              const isCurrent = currentRank.level === r.level;
+              const isAchieved = currentRank.level >= r.level && r.level > 0;
+              const isNext = nextRank && nextRank.level === r.level;
+              const colorHex = r.color_hex || '#0284c7';
+
+              return (
+                <div 
+                  key={r.id}
+                  className={`relative rounded-3xl transition-all duration-300 flex flex-col justify-between overflow-hidden p-6 ${
+                    isCurrent 
+                      ? 'bg-linear-to-b from-slate-900 via-slate-950 to-slate-900 text-white border-2 shadow-2xl scale-[1.02]' 
+                      : isAchieved 
+                      ? 'bg-linear-to-b from-slate-900 via-slate-950 to-slate-900 text-white border border-emerald-500/40 shadow-lg' 
+                      : 'bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 text-white border border-slate-800 shadow-md opacity-95'
+                  }`}
+                  style={{
+                    borderColor: isCurrent ? colorHex : isAchieved ? '#10b981' : undefined,
+                    boxShadow: isCurrent ? `0 0 35px ${colorHex}44` : undefined
+                  }}
+                >
+                  {/* Top Glowing Ambient Aura */}
+                  <div 
+                    className="absolute -top-16 left-1/2 -translate-x-1/2 w-36 h-36 rounded-full blur-2xl opacity-30 pointer-events-none"
+                    style={{ backgroundColor: colorHex }}
+                  />
+
+                  {/* Current / Next Status Banner */}
+                  {isCurrent && (
+                    <div className="absolute top-3 right-3">
+                      <span 
+                        className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-slate-950 shadow-md"
+                        style={{ backgroundColor: colorHex }}
+                      >
+                        {tr("رتبتك الحالية", "CURRENT RANK")}
+                      </span>
+                    </div>
+                  )}
+
+                  {isNext && (
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-md">
+                        {tr("هدفك القادم", "NEXT GOAL")}
+                      </span>
+                    </div>
+                  )}
+
+                  {isAchieved && !isCurrent && (
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                        {tr("محققة ✓", "Achieved ✓")}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Card Content Top */}
+                  <div className="space-y-4 relative z-10 text-center">
+                    {/* Rank Logo Pedestal */}
+                    <div className="flex justify-center pt-2">
+                      <div 
+                        className="h-20 w-20 rounded-2xl flex items-center justify-center p-2.5 shadow-lg relative"
+                        style={{ 
+                          backgroundColor: `${colorHex}22`,
+                          border: `2px solid ${colorHex}`,
+                          boxShadow: `0 0 20px ${colorHex}33`
+                        }}
+                      >
+                        {getRankLogoElement(r, "h-14 w-14")}
+                      </div>
+                    </div>
+
+                    {/* Rank Name & Tagline */}
+                    <div>
+                      <h3 className="text-xl font-black uppercase tracking-wider text-white">
+                        {isRtl ? (r.name_ar || r.name) : r.name}
+                      </h3>
+                      {(r.tagline || r.tagline_ar) && (
+                        <p className="text-xs italic text-slate-400 mt-0.5">
+                          {isRtl ? (r.tagline_ar || r.tagline) : (r.tagline || r.tagline_ar)}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Criteria Box */}
+                    <div className="space-y-2 py-3 border-y border-white/10 text-xs">
+                      <div>
+                        <span className="text-[11px] text-slate-400 block">{tr("حجم مبيعات الفريق (Team Sales)", "Team Sales")}</span>
+                        <strong className="text-lg font-black font-mono text-white">
+                          ${Number(r.min_team_turnover).toLocaleString()}
+                        </strong>
+                      </div>
+
+                      <div className="pt-1">
+                        <span className="text-[11px] text-slate-400 block">{tr("شرط القيادة (Leadership Req)", "Leadership Requirement")}</span>
+                        <strong className="text-xs font-bold text-amber-400">
+                          {Number(r.required_rank_count || 0) > 0 && (r.required_rank_name || r.required_rank_name_ar) ? (
+                            `${r.required_rank_count} × ${isRtl ? (r.required_rank_name_ar || r.required_rank_name) : r.required_rank_name}`
+                          ) : (
+                            "—"
+                          )}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* Rewards & Gifts */}
+                    <div className="space-y-2 text-xs">
+                      {Number(r.reward_bonus) > 0 && (
+                        <div>
+                          <span className="text-[11px] text-slate-400 block">{tr("المكافأة النقدية (Cash Reward)", "Cash Reward")}</span>
+                          <strong className="text-base font-black font-mono text-emerald-400">
+                            +${Number(r.reward_bonus).toLocaleString()}
+                          </strong>
+                        </div>
+                      )}
+
+                      {(r.gift_name || r.gift_name_ar) && (
+                        <div className="pt-1">
+                          <span className="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                            <Gift className="w-3 h-3 text-amber-400" />
+                            {tr("الهدية (Gift)", "Gift")}
+                          </span>
+                          <strong className="text-xs font-bold text-amber-300 block">
+                            {isRtl ? (r.gift_name_ar || r.gift_name) : (r.gift_name || r.gift_name_ar)}
+                          </strong>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Card Bottom: Generations Footer */}
+                  <div className="mt-5 pt-3 border-t border-white/10 text-center text-[10px] text-slate-400 font-mono">
+                    <span>
+                      {tr("الأجيال المفتوحة في الشجرة:", "Unlocked Generations:")} {r.unlocked_generations === 0 ? 'Direct' : r.unlocked_generations === 10 ? 'All 1-10' : `Gens 1-${r.unlocked_generations}`}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Global Leadership Bonus Pools (Diamond Pool, etc.) - Preserved */}
         {poolsData.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div className={`space-y-1 ${isRtl ? 'text-right' : 'text-left'}`}>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-bold border border-amber-500/20">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
@@ -173,14 +481,12 @@ export default function StudentRanks() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {poolsData.map((pool: any) => {
                 const isEligible = pool.is_eligible;
-                const progress = pool.progress;
 
                 return (
                   <Card 
                     key={pool.id}
-                    className="relative overflow-hidden rounded-2xl border-2 border-amber-500/30 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-6 shadow-xl"
+                    className="relative overflow-hidden rounded-3xl border-2 border-amber-500/30 bg-linear-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-6 shadow-xl"
                   >
-                    {/* Top Glow & Details */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -190,7 +496,7 @@ export default function StudentRanks() {
                           </h3>
                         </div>
                         <p className="text-xs text-slate-300">
-                          {tr("مكافأة ${pool.pool_percentage}% شهرياً من صافي أرباح المنصة", "${pool.pool_percentage}% monthly share from net platform profits")}
+                          {tr(`مكافأة ${pool.pool_percentage}% شهرياً من صافي أرباح المنصة`, `${pool.pool_percentage}% monthly share from net platform profits`)}
                         </p>
                       </div>
 
@@ -202,25 +508,19 @@ export default function StudentRanks() {
                       </div>
                     </div>
 
-                    {/* Pot Display */}
-                    <div className="my-5 p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="my-5 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
                         <span className="text-xs text-slate-400 block">{tr("قيمة الحوض التقديرية الحالية", "Current Estimated Pool Pot")}</span>
                         <div className="text-2xl sm:text-3xl font-black text-white flex items-baseline gap-1 mt-0.5">
                           <span>${pool.estimated_current_amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                           <span className="text-xs font-semibold text-slate-400">USD</span>
                         </div>
-                        {pool.current_rollover > 0 && (
-                          <span className="text-xs text-amber-300 font-medium mt-1 block">
-                            {tr("(يتضمن $${pool.current_rollover.toFixed(2)} مرحل من الشهر السابق)", "(Includes $${pool.current_rollover.toFixed(2)} rolled over)")}
-                          </span>
-                        )}
                       </div>
 
                       <div className="sm:text-left text-xs text-slate-300 space-y-1">
                         <div className="flex items-center gap-1.5 text-slate-300">
                           <Clock className="w-3.5 h-3.5 text-amber-400" />
-                          <span>{tr("متبقي ${pool.days_left} أيام على نهاية الشهر", "${pool.days_left} days left this month")}</span>
+                          <span>{tr(`متبقي ${pool.days_left} أيام على نهاية الشهر`, `${pool.days_left} days left this month`)}</span>
                         </div>
                         <span className="text-slate-400 block text-[11px]">
                           {tr("التوزيع بالتساوي بين المؤهلين", "Split equally among qualifiers")}
@@ -228,54 +528,16 @@ export default function StudentRanks() {
                       </div>
                     </div>
 
-                    {/* Eligibility Status */}
                     {isEligible ? (
-                      <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs font-bold flex items-center gap-2.5">
+                      <div className="p-3.5 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs font-bold flex items-center gap-2.5">
                         <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                         <span>
                           {tr("مبروك! أنت مؤهل رسمياً لاستلام حصتك من أرباح هذا الحوض بنهاية هذا الشهر 🎉", "Congratulations! You are officially eligible to receive your share at the end of this month! 🎉")}
                         </span>
                       </div>
                     ) : (
-                      <div className="space-y-3 p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
-                        <div className="flex items-center justify-between text-slate-300">
-                          <span className="font-semibold">{tr("مؤشر أهليتك لدخول هذا الحوض:", "Qualification Progress:")}</span>
-                          <span className="text-amber-400 font-bold">
-                            {isRtl ? `رتبة ${pool.rank_name_ar}` : pool.rank_name}
-                          </span>
-                        </div>
-
-                        {/* Direct Sales Requirement */}
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-[11px]">
-                            <span className="text-slate-400">
-                              {tr("المبيعات المباشرة:", "Direct Sales:")} {progress?.user_direct_sales} / {progress?.min_direct_sales}
-                            </span>
-                            <span className="font-semibold text-slate-300">{progress?.direct_percentage}%</span>
-                          </div>
-                          <Progress value={progress?.direct_percentage} className="h-1.5 bg-slate-800" />
-                          {progress?.direct_needed > 0 && (
-                            <span className="text-[10px] text-slate-400 block">
-                              {tr("ينقصك ${progress.direct_needed} إحالة مباشرة", "${progress.direct_needed} direct sales needed")}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Team Turnover Requirement */}
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-[11px]">
-                            <span className="text-slate-400">
-                              {tr("مبيعات الفريق:", "Team Turnover:")} ${progress?.user_team_turnover?.toLocaleString()} / ${progress?.min_team_turnover?.toLocaleString()}
-                            </span>
-                            <span className="font-semibold text-slate-300">{progress?.turnover_percentage}%</span>
-                          </div>
-                          <Progress value={progress?.turnover_percentage} className="h-1.5 bg-slate-800" />
-                          {progress?.turnover_needed > 0 && (
-                            <span className="text-[10px] text-slate-400 block">
-                              {tr("ينقصك $${progress.turnover_needed.toLocaleString()} USD مبيعات فريق", "$${progress.turnover_needed.toLocaleString()} team turnover needed")}
-                            </span>
-                          )}
-                        </div>
+                      <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400">
+                        {tr(`تأهل لرتبة ${pool.rank_name_ar || pool.rank_name} للمشاركة التلقائية في هذا الحوض الربحي.`, `Qualify for ${pool.rank_name} to participate in this monthly pool.`)}
                       </div>
                     )}
                   </Card>
@@ -284,101 +546,6 @@ export default function StudentRanks() {
             </div>
           </div>
         )}
-
-        {/* Ranks Ladder */}
-        <div className="space-y-4">
-          <h2 className={`text-xl font-bold text-slate-900 dark:text-white ${isRtl ? 'text-right' : 'text-left'}`}>
-            {isRtl ? 'سلّم الرتب وشروط الوصول والمكافآت' : lang === 'fr' ? 'Échelle des rangs et conditions d\'accès' : 'Career Ranks & Qualification Milestones'}
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {ranks.map((r: any) => {
-              const Icon = getRankIcon(r.level);
-              const isAchieved = userStats.directSales >= r.min_direct_sales && userStats.teamTurnover >= Number(r.min_team_turnover);
-              const isCurrent = currentRank.level === r.level;
-
-              return (
-                <Card 
-                  key={r.id} 
-                  className={`rounded-2xl border transition-all p-5 space-y-4 relative ${
-                    isCurrent 
-                      ? 'border-2 border-primary shadow-lg shadow-primary/10 bg-white dark:bg-slate-900' 
-                      : isAchieved 
-                      ? 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/10' 
-                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-90'
-                  }`}
-                >
-                  {isCurrent && (
-                    <div className={`absolute -top-3 ${isRtl ? 'left-4' : 'right-4'}`}>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-primary text-white shadow-xs">
-                        {t('ranks.currentRank')}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="h-12 w-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs"
-                        style={{ backgroundColor: r.color_hex || '#7c3aed' }}
-                      >
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <div className={isRtl ? 'text-right' : 'text-left'}>
-                        <h3 className="font-bold text-base text-slate-900 dark:text-white">
-                          {isRtl ? (r.name_ar || r.name) : (r.name || r.name_ar)}
-                        </h3>
-                        <p className="text-xs text-slate-400">
-                          {isRtl ? (r.name || r.name_ar) : (r.name_ar || r.name)} • {t('packages.level')} {r.level}
-                        </p>
-                      </div>
-                    </div>
-                    {isAchieved ? (
-                      <div className="p-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
-                        <CheckCircle2 className="h-4 w-4" />
-                      </div>
-                    ) : (
-                      <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
-                        <Lock className="h-4 w-4" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">{t('ranks.directSalesReq')}:</span>
-                      <span className="font-bold text-slate-700 dark:text-slate-300">
-                        {r.min_direct_sales}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">{t('ranks.teamTurnoverReq')}:</span>
-                      <span className="font-bold text-slate-700 dark:text-slate-300">
-                        ${r.min_team_turnover} USD
-                      </span>
-                    </div>
-                    <div className="flex justify-between pt-0.5 text-primary font-bold">
-                      <span>{tr("الأجيال المفتوحة", "Unlocked Generations")}:</span>
-                      <span className="font-black text-xs">
-                        {r.unlocked_generations === 0 
-                          ? (tr("المباشر فقط", "Direct only"))
-                          : r.unlocked_generations === 10
-                          ? (tr("جميع الأجيال (1-10)", "All 10 Generations"))
-                          : (tr("الأجيال (1-${r.unlocked_generations})", "Gens 1-${r.unlocked_generations}"))}
-                      </span>
-                    </div>
-                    <div className="flex justify-between pt-1 text-emerald-600 font-bold">
-                      <span>{t('ranks.rewardBonus')}:</span>
-                      <span className="font-black text-sm">
-                        {Number(r.reward_bonus) > 0 ? `+$${r.reward_bonus} USD` : '-'}
-                      </span>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
       </div>
     </DashboardLayout>
   );

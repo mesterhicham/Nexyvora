@@ -4,6 +4,8 @@ const currencyService = require('../services/currencyService');
 const nowpaymentsService = require('../services/nowpaymentsService');
 const emailService = require('../services/emailService');
 
+const rankService = require('../services/rankService');
+
 function genUuid() {
     return crypto.randomUUID();
 }
@@ -25,33 +27,20 @@ async function getUserEffectiveUnlockedGenerations(userId, conn) {
     const pkg = packRows[0] || null;
     const packageUnlocked = pkg ? Number(pkg.unlocked_generations || 0) : 0;
 
-    // 2. Rank qualification
-    const [ranks] = await conn.query('SELECT * FROM ranks ORDER BY level DESC');
-
-    const [salesRow] = await conn.query(`
-        SELECT COUNT(DISTINCT up.id) AS direct_sales
-        FROM users u
-        JOIN user_packages up ON u.id = up.user_id
-        WHERE u.referrer_id = ? AND up.status = 'active'
-    `, [userId]);
-    const directSales = Number(salesRow[0]?.direct_sales || 0);
-
-    const [turnoverRow] = await conn.query(`
-        SELECT SUM(sale_amount) AS turnover
-        FROM commissions
-        WHERE recipient_id = ?
-    `, [userId]);
-    const teamTurnover = Number(turnoverRow[0]?.turnover || 0);
-
+    // 2. Rank qualification (calculated dynamically through rank engine)
     let rankUnlocked = 0;
-    let qualifiedRank = ranks.find(r => r.level === 0) || null;
+    let qualifiedRank = null;
+    let directSales = 0;
+    let teamTurnover = 0;
 
-    for (const r of ranks) {
-        if (directSales >= r.min_direct_sales && teamTurnover >= Number(r.min_team_turnover)) {
-            qualifiedRank = r;
-            rankUnlocked = Number(r.unlocked_generations || 0);
-            break;
-        }
+    try {
+        const evalRes = await rankService.evaluateUserRankAndProgress(userId, conn, false);
+        qualifiedRank = evalRes.userStats.currentRank;
+        rankUnlocked = Number(qualifiedRank?.unlocked_generations || 0);
+        directSales = evalRes.userStats.directSales;
+        teamTurnover = evalRes.userStats.teamTurnover;
+    } catch (e) {
+        console.error('[getUserEffectiveUnlockedGenerations.rankError]', e);
     }
 
     const effective = Math.max(packageUnlocked, rankUnlocked);
@@ -429,45 +418,8 @@ exports.getRanksAndProgress = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const [ranks] = await db.query('SELECT * FROM ranks ORDER BY level ASC');
-
-        // Calculate student's direct sales & total team turnover
-        const [directSalesCountRow] = await db.query(`
-            SELECT COUNT(DISTINCT up.id) AS direct_sales
-            FROM users u
-            JOIN user_packages up ON u.id = up.user_id
-            WHERE u.referrer_id = ? AND up.status = 'active'
-        `, [userId]);
-        const directSales = Number(directSalesCountRow[0]?.direct_sales || 0);
-
-        const [teamTurnoverRow] = await db.query(`
-            SELECT SUM(sale_amount) AS turnover
-            FROM commissions
-            WHERE recipient_id = ?
-        `, [userId]);
-        const teamTurnover = Number(teamTurnoverRow[0]?.turnover || 0);
-
-        // Find current rank (highest level where both conditions are met)
-        let currentRank = ranks[0];
-        let nextRank = ranks[1] || null;
-
-        for (let i = 0; i < ranks.length; i++) {
-            const r = ranks[i];
-            if (directSales >= r.min_direct_sales && teamTurnover >= Number(r.min_team_turnover)) {
-                currentRank = r;
-                nextRank = ranks[i + 1] || null;
-            }
-        }
-
-        res.json({
-            ranks,
-            userStats: {
-                directSales,
-                teamTurnover,
-                currentRank,
-                nextRank
-            }
-        });
+        const result = await rankService.evaluateUserRankAndProgress(userId, null, true);
+        res.json(result);
     } catch (err) {
         console.error('[getRanksAndProgress]', err);
         res.status(500).json({ error: 'Failed to fetch ranks' });
