@@ -308,7 +308,7 @@ export default function PackagesStore() {
                         onClick={() => handleOpenBuy(pkg)}
                         className={`w-full rounded-2xl font-black gap-2 h-11 ${
                           isVIP 
-                            ? 'bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/20' 
+                            ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/20' 
                             : 'bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20'
                         }`}
                       >

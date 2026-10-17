@@ -90,34 +90,34 @@ export default function StudentFounder() {
     <DashboardLayout role="student">
       <div className="space-y-6 pb-12 max-w-5xl mx-auto" dir={isRtl ? 'rtl' : 'ltr'}>
         {/* Top Hero Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-amber-600 via-amber-500 to-amber-700 p-6 sm:p-8 text-white shadow-xl shadow-amber-500/10">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-amber-900/20 blur-2xl pointer-events-none" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1b0633] via-[#2e1065] to-[#4c1d95] p-6 sm:p-8 text-white shadow-2xl shadow-purple-950/40 border border-amber-500/30">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-xl">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-amber-100 text-xs font-black uppercase tracking-wider">
-                <Crown className="h-3.5 w-3.5 text-amber-200" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 backdrop-blur-md border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider">
+                <Crown className="h-3.5 w-3.5 text-amber-400" />
                 <span>{t('founders.clubTitle', 'Exclusive Founders Club')}</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
                 {t('founders.clubSubtitle', `Monthly Founders Profit Pool (${poolPercentage}%) — Limited Lifetime Seats`)}
               </h1>
-              <p className="text-xs sm:text-sm text-amber-100 leading-relaxed">
+              <p className="text-xs sm:text-sm text-purple-200/90 leading-relaxed font-medium">
                 {t('founders.directSalesDesc', `Exclusive milestone for the first ${totalSeats} leaders to achieve $5,000 USD in personal direct sales within 30 days. Secure a permanent lifetime seat and share 2% of platform net profits every month!`)}
               </p>
             </div>
 
             {/* Live Seat Badge */}
-            <div className="shrink-0 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-[180px]">
-              <div className="flex items-center justify-center gap-1.5 text-xs text-amber-100 font-bold mb-1">
-                <Flame className="h-4 w-4 text-amber-300 animate-pulse" />
+            <div className="shrink-0 p-4 rounded-2xl bg-black/40 backdrop-blur-md border border-amber-500/30 text-center min-w-[180px] shadow-xl">
+              <div className="flex items-center justify-center gap-1.5 text-xs text-amber-300 font-bold mb-1">
+                <Flame className="h-4 w-4 text-amber-400 animate-pulse" />
                 <span>{t('founders.seatsRemaining', 'Seats Remaining')}</span>
               </div>
-              <div className="text-3xl font-black text-white">
-                {seatsRemaining} <span className="text-sm font-normal text-amber-200">/ {totalSeats}</span>
+              <div className="text-3xl font-black text-amber-400 font-mono">
+                {seatsRemaining} <span className="text-sm font-normal text-purple-200">/ {totalSeats}</span>
               </div>
-              <div className="text-[11px] text-amber-200 font-medium mt-1">
+              <div className="text-[11px] text-amber-200/80 font-medium mt-1">
                 {isSoldOut ? t('founders.soldOut', 'Sold Out') : `${seatsTaken} ${t('founders.seatsClaimed', 'seats claimed so far')}`}
               </div>
             </div>
@@ -128,36 +128,36 @@ export default function StudentFounder() {
         {isFounder ? (
           <div className="space-y-6">
             {/* Golden Luxury Founder Pass */}
-            <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-amber-700 via-yellow-600 to-amber-800 p-8 text-white shadow-2xl border-2 border-yellow-300/40">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-radial from-yellow-300/30 via-transparent to-transparent blur-2xl pointer-events-none" />
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#240a4a] via-[#4c1d95] to-[#78350f] p-8 text-white shadow-2xl border-2 border-amber-400/50">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-radial from-amber-400/20 via-transparent to-transparent blur-2xl pointer-events-none" />
               
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md border-2 border-yellow-300/60 flex items-center justify-center text-yellow-300 shadow-inner shrink-0">
-                    <Crown className="h-10 w-10 drop-shadow-md" />
+                  <div className="w-20 h-20 rounded-2xl bg-amber-500/20 backdrop-blur-md border-2 border-amber-400/60 flex items-center justify-center text-amber-300 shadow-inner shrink-0">
+                    <Crown className="h-10 w-10 drop-shadow-md text-amber-400" />
                   </div>
                   <div className="space-y-1 text-center ltr:md:text-left rtl:md:text-right">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-yellow-400/20 text-yellow-200 text-[10px] font-black uppercase tracking-wider border border-yellow-300/30">
-                      <Star className="h-3 w-3 fill-yellow-300" />
+                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-400/20 text-amber-200 text-[10px] font-black uppercase tracking-wider border border-amber-300/40">
+                      <Star className="h-3 w-3 fill-amber-300 text-amber-300" />
                       <span>{t('founders.statusActive', 'Official Lifetime Founder Member')}</span>
                     </div>
                     <h2 className="text-2xl font-black text-white">
                       {t('founders.congratulationsFounder', `Congratulations! You hold one of the 100 Founder seats.`)}
                     </h2>
-                    <p className="text-xs text-yellow-100">
+                    <p className="text-xs text-purple-200/90">
                       {t('founders.lifetimeShareDesc', `Your seat is permanently secured. You receive a monthly equal share of the 2% profit pool credited directly to your wallet.`)}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 px-6 rounded-2xl bg-black/20 backdrop-blur-md border border-yellow-300/40 text-center">
-                  <span className="text-[11px] font-bold text-yellow-200 uppercase tracking-wider block mb-0.5">
+                <div className="p-4 px-6 rounded-2xl bg-black/40 backdrop-blur-md border border-amber-400/40 text-center shadow-lg">
+                  <span className="text-[11px] font-bold text-amber-200 uppercase tracking-wider block mb-0.5">
                     {t('founders.seatNumber', 'Your Seat #')}
                   </span>
-                  <span className="text-4xl font-black text-yellow-300 drop-shadow-md tracking-tight">
+                  <span className="text-4xl font-black text-amber-400 drop-shadow-md tracking-tight font-mono">
                     #{String(member?.seatNumber).padStart(2, '0')}
                   </span>
-                  <span className="text-[10px] text-yellow-100 block mt-1 font-mono">
+                  <span className="text-[10px] text-amber-200/80 block mt-1 font-mono">
                     {t('founders.qualifiedDate', 'Qualified At')}: {new Date(member?.qualifiedAt).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                   </span>
                 </div>
@@ -254,10 +254,10 @@ export default function StudentFounder() {
           /* ─── CASE 2: ASPIRING CANDIDATE VIEW (PROGRESS TRACKER) ─── */
           <div className="space-y-6">
             {/* Qualification Progress Card */}
-            <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
+            <Card className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-xs font-bold mb-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold mb-2">
                     <Zap className="h-3.5 w-3.5" />
                     <span>{t('founders.progressTowardsSeat', 'Your Progress Towards Founder Seat')}</span>
                   </div>
@@ -271,7 +271,7 @@ export default function StudentFounder() {
 
                 <div className="text-left rtl:text-right shrink-0">
                   <span className="text-xs font-bold text-slate-400 block mb-0.5">{t('founders.yourDirectSales', 'Your Direct Sales (30 Days)')}</span>
-                  <div className="text-3xl font-black text-amber-600 dark:text-amber-400">
+                  <div className="text-3xl font-black text-amber-600 dark:text-amber-400 font-mono">
                     ${directSales30d.toLocaleString()} <span className="text-sm font-normal text-slate-400">/ ${targetSales.toLocaleString()}</span>
                   </div>
                 </div>
@@ -281,36 +281,36 @@ export default function StudentFounder() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span className="text-slate-700 dark:text-slate-300">{t('founders.progress', 'Progress')}: {progressPct}%</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-black">
+                  <span className="text-amber-600 dark:text-amber-400 font-black font-mono">
                     {t('founders.remainingSales', 'Remaining')}: ${amountRemaining.toLocaleString()} USD
                   </span>
                 </div>
                 <div className="w-full bg-slate-100 dark:bg-slate-800 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
                   <div 
-                    className="bg-linear-to-r from-amber-500 to-yellow-400 h-full rounded-full transition-all duration-700 shadow-xs"
+                    className="bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 h-full rounded-full transition-all duration-700 shadow-sm"
                     style={{ width: `${Math.min(100, Math.max(progressPct, 3))}%` }}
                   />
                 </div>
               </div>
 
               {/* Urgency & Action Call */}
-              <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-500/5 to-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-amber-500 text-white shrink-0">
+                  <div className="p-2.5 rounded-xl bg-amber-500 text-white shrink-0 shadow-md shadow-amber-500/20">
                     <Clock className="h-5 w-5" />
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-amber-900 dark:text-amber-200">
                       {t('founders.urgencyTitle', `Seats are strictly limited (${seatsRemaining} vacant seats remaining)`)}
                     </h4>
-                    <p className="text-[11px] text-amber-700 dark:text-amber-300/80 mt-0.5">
+                    <p className="text-[11px] text-amber-700/80 dark:text-amber-300/80 mt-0.5">
                       {t('founders.urgencyDesc', 'Once seat #100 is claimed, the Founder Club doors will permanently close forever.')}
                     </p>
                   </div>
                 </div>
 
                 <Link to="/student/team">
-                  <Button className="rounded-xl font-bold bg-amber-600 hover:bg-amber-700 text-white text-xs gap-1.5 shrink-0 px-4">
+                  <Button className="rounded-xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-xs gap-1.5 shrink-0 px-4 shadow-md shadow-purple-500/20">
                     <span>{t('founders.viewDirectTeam', 'View Direct Team Sales')}</span>
                     <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
                   </Button>
@@ -331,7 +331,7 @@ export default function StudentFounder() {
               </Card>
 
               <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-2">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                   <Crown className="h-5 w-5" />
                 </div>
                 <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">{t('founders.seatNumber', 'Unique Seat # Number')}</h4>
@@ -351,7 +351,7 @@ export default function StudentFounder() {
               </Card>
 
               <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-2">
-                <div className="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
                   <Star className="h-5 w-5" />
                 </div>
                 <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">{t('founders.directBoardAccess', 'Executive Advisory Council')}</h4>

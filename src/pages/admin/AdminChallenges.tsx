@@ -267,10 +267,10 @@ export default function AdminChallenges() {
     <DashboardLayout role="admin">
       <div className="space-y-8 pb-16 font-sans">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-linear-to-r from-primary/10 via-purple-500/5 to-transparent p-6 rounded-3xl border border-primary/20 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-primary/10 via-purple-500/5 to-transparent p-6 rounded-3xl border border-primary/20 shadow-xs">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-2 rounded-xl bg-primary text-white shadow-md shadow-primary/20">
+              <span className="p-2 rounded-xl bg-gradient-to-tr from-violet-600 to-purple-600 text-white shadow-md shadow-purple-600/20">
                 <Flame className="h-6 w-6" />
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -285,7 +285,7 @@ export default function AdminChallenges() {
           <Button
             onClick={handleOpenCreate}
             size="lg"
-            className="rounded-2xl font-black text-sm bg-linear-to-r from-primary to-indigo-600 hover:from-primary/95 hover:to-indigo-700 text-white shadow-lg shadow-primary/25 gap-2"
+            className="rounded-2xl font-black text-sm bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-purple-500/25 gap-2"
           >
             <Plus className="h-5 w-5" />
             <span>{tr("إضافة تحدي جديد", "Create Campaign")}</span>
@@ -436,7 +436,7 @@ export default function AdminChallenges() {
                           className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                         />
                       ) : (
-                        <div className="h-full w-full bg-linear-to-tr from-primary/30 to-purple-600/30 flex items-center justify-center">
+                        <div className="h-full w-full bg-gradient-to-tr from-primary/30 to-purple-600/30 flex items-center justify-center">
                           <Trophy className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
@@ -904,7 +904,7 @@ export default function AdminChallenges() {
                   {previewChallenge.image_url ? (
                     <img src={previewChallenge.image_url} alt="Preview" className="h-full w-full object-cover" />
                   ) : (
-                    <div className="h-full w-full bg-linear-to-tr from-primary/30 to-purple-600/30 flex items-center justify-center">
+                    <div className="h-full w-full bg-gradient-to-tr from-primary/30 to-purple-600/30 flex items-center justify-center">
                       <Trophy className="h-16 w-16 text-primary/40" />
                     </div>
                   )}
@@ -928,7 +928,7 @@ export default function AdminChallenges() {
                   </div>
 
                   {/* Reward Banner */}
-                  <div className="p-3 rounded-xl bg-linear-to-r from-amber-500/10 to-orange-500/10 border border-amber-200/50 dark:border-amber-900/40 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-200/50 dark:border-amber-900/40 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
                     <Gift className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
                     <div>
                       <span className="font-bold">{tr("المكافأة: ", "Reward: ")}</span>

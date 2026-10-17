@@ -331,7 +331,7 @@ export default function LeaderRanks() {
           <div className="flex items-center gap-3">
             <Button
               onClick={handleOpenCreate}
-              className="bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-2xl px-5 py-2.5 shadow-lg shadow-amber-500/20 gap-2 text-sm"
+              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-2xl px-5 py-2.5 shadow-lg shadow-amber-500/20 gap-2 text-sm"
             >
               <Plus className="w-4 h-4" />
               <span>{tr("إضافة رتبة جديدة", "Add New Rank")}</span>
@@ -902,7 +902,7 @@ export default function LeaderRanks() {
                     </div>
 
                     {/* Member Card Preview */}
-                    <Card className="rounded-3xl border-2 border-slate-700 bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 p-6 text-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
+                    <Card className="rounded-3xl border-2 border-slate-700 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-6 text-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
                       {/* Glow Accent */}
                       <div 
                         className="absolute -top-24 w-48 h-48 rounded-full blur-3xl opacity-40 pointer-events-none"

@@ -335,10 +335,10 @@ export default function AdminPaymentSettings() {
     <DashboardLayout role="admin">
       <div className="space-y-8 pb-16 font-sans">
         {/* Header Banner */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-linear-to-r from-emerald-500/10 via-teal-500/5 to-transparent p-6 rounded-3xl border border-emerald-500/20 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-transparent p-6 rounded-3xl border border-purple-500/20 shadow-xs">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-2 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20">
+              <span className="p-2 rounded-xl bg-gradient-to-tr from-violet-600 to-purple-600 text-white shadow-md shadow-purple-600/20">
                 <CreditCard className="h-6 w-6" />
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -353,7 +353,7 @@ export default function AdminPaymentSettings() {
           <Button
             onClick={handleOpenCreate}
             size="lg"
-            className="rounded-2xl font-black text-sm bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-600/25 gap-2"
+            className="rounded-2xl font-black text-sm bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-purple-600/25 gap-2"
           >
             <Plus className="h-5 w-5" />
             <span>{tr("إضافة وسيلة دفع جديدة", "Add Payment Method")}</span>

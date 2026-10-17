@@ -118,7 +118,7 @@ export default function StudentChallenges() {
     <DashboardLayout role="student">
       <div className="space-y-8 pb-16 font-sans">
         {/* Header Banner */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-linear-to-r from-primary/10 via-purple-500/5 to-transparent p-6 rounded-3xl border border-primary/20 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-primary/10 via-purple-500/5 to-transparent p-6 rounded-3xl border border-primary/20 shadow-xs">
           <div className={isRtl ? 'text-right' : 'text-left'}>
             <div className="flex items-center gap-2">
               <span className="p-2 rounded-xl bg-primary text-white shadow-md shadow-primary/20">
@@ -134,7 +134,7 @@ export default function StudentChallenges() {
           </div>
 
           <Link to="/student/team">
-            <Button className="rounded-2xl font-black text-sm bg-linear-to-r from-primary to-indigo-600 hover:from-primary/95 text-white shadow-lg shadow-primary/25 gap-2">
+            <Button className="rounded-2xl font-black text-sm bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-purple-500/25 gap-2">
               <Sparkles className="h-4 w-4" />
               <span>{isRtl ? 'متابعة مبيعات فريقي' : lang === 'fr' ? 'Suivre les ventes' : 'Track Team Sales'}</span>
             </Button>
@@ -180,7 +180,7 @@ export default function StudentChallenges() {
                           className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                         />
                       ) : (
-                        <div className="h-full w-full bg-linear-to-tr from-primary/30 to-purple-600/30 flex items-center justify-center">
+                        <div className="h-full w-full bg-gradient-to-tr from-primary/30 to-purple-600/30 flex items-center justify-center">
                           <Trophy className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
@@ -308,7 +308,7 @@ export default function StudentChallenges() {
                   <div className="p-5 pt-0 border-t border-slate-100 dark:border-slate-800 mt-2 space-y-2">
                     <Button
                       onClick={() => handleShareLink(c.id)}
-                      className="w-full rounded-xl text-xs font-bold gap-1.5 bg-linear-to-r from-primary to-indigo-600 hover:from-primary/95 text-white shadow-xs"
+                      className="w-full rounded-xl text-xs font-bold gap-1.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-xs"
                     >
                       {copiedId === c.id ? (
                         <>

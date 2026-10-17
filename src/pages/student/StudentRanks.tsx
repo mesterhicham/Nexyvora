@@ -98,19 +98,19 @@ export default function StudentRanks() {
     <DashboardLayout role="student">
       <div className="space-y-10 pb-16">
         {/* Top Hero Banner - Inspiring Style Matching Reference */}
-        <div className="relative overflow-hidden rounded-3xl bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 border border-slate-800 p-8 sm:p-12 text-center text-white shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 border border-slate-800 p-8 sm:p-12 text-center text-white shadow-2xl">
           {/* Subtle Ambient Light Gradients */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-linear-to-b from-indigo-500/20 via-sky-500/10 to-transparent blur-3xl pointer-events-none" />
-          <div className="absolute -top-10 left-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-b from-purple-500/20 via-violet-500/10 to-transparent blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 left-10 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -top-10 right-10 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 max-w-3xl mx-auto space-y-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-xs font-black tracking-widest text-sky-400 uppercase">
-              <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-xs font-black tracking-widest text-amber-400 uppercase">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>NEXYVORA • DREAM • LEARN • BUILD • GROW</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-linear-to-r from-white via-slate-100 to-amber-200">
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-amber-200">
               {tr("رحلتك القيادية • مكافآتك الحصرية", "YOUR JOURNEY • YOUR REWARDS")}
             </h1>
 
@@ -178,7 +178,7 @@ export default function StudentRanks() {
 
               {/* Next Milestone Box */}
               {nextRank ? (
-                <div className="w-full lg:w-96 p-5 rounded-2xl bg-linear-to-br from-indigo-50/50 via-purple-50/30 to-white dark:from-slate-950 dark:to-slate-800/80 border border-indigo-100 dark:border-indigo-900/50 shadow-sm space-y-3">
+                <div className="w-full lg:w-96 p-5 rounded-2xl bg-gradient-to-br from-purple-50/50 via-violet-50/30 to-white dark:from-slate-950 dark:to-slate-800/80 border border-purple-100 dark:border-purple-900/50 shadow-sm space-y-3">
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
                       <Target className="w-4 h-4" />
@@ -332,10 +332,10 @@ export default function StudentRanks() {
                   key={r.id}
                   className={`relative rounded-3xl transition-all duration-300 flex flex-col justify-between overflow-hidden p-6 ${
                     isCurrent 
-                      ? 'bg-linear-to-b from-slate-900 via-slate-950 to-slate-900 text-white border-2 shadow-2xl scale-[1.02]' 
+                      ? 'bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white border-2 shadow-2xl scale-[1.02]' 
                       : isAchieved 
-                      ? 'bg-linear-to-b from-slate-900 via-slate-950 to-slate-900 text-white border border-emerald-500/40 shadow-lg' 
-                      : 'bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 text-white border border-slate-800 shadow-md opacity-95'
+                      ? 'bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white border border-emerald-500/40 shadow-lg' 
+                      : 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white border border-slate-800 shadow-md opacity-95'
                   }`}
                   style={{
                     borderColor: isCurrent ? colorHex : isAchieved ? '#10b981' : undefined,
@@ -485,7 +485,7 @@ export default function StudentRanks() {
                 return (
                   <Card 
                     key={pool.id}
-                    className="relative overflow-hidden rounded-3xl border-2 border-amber-500/30 bg-linear-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-6 shadow-xl"
+                    className="relative overflow-hidden rounded-3xl border-2 border-amber-500/30 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white p-6 shadow-xl"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">

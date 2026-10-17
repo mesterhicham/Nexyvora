@@ -698,7 +698,7 @@ const formatVideoEmbedUrl = (url?: string) => {
                   alt={currentMedia.title}
                   className="w-full h-full object-cover" 
                 />
-                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 to-transparent p-4 text-white">
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
                   <span className="font-bold text-sm md:text-base">{currentMedia.title}</span>
                 </div>
               </div>

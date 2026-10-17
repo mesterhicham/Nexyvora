@@ -257,7 +257,7 @@ export default function AdminFounderManagement() {
 
             <Button
               onClick={handleOpenDistribution}
-              className="rounded-2xl font-bold bg-linear-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white gap-2 text-xs shadow-md shadow-amber-500/20 px-5"
+              className="rounded-2xl font-bold bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white gap-2 text-xs shadow-md shadow-amber-500/20 px-5"
             >
               <Coins className="h-4 w-4" />
               {t('founders.distributePoolBtn', 'Distribute 2% Pool')}
@@ -852,7 +852,7 @@ export default function AdminFounderManagement() {
                   </div>
 
                   {/* Share per Founder Highlight */}
-                  <div className="p-4 rounded-2xl bg-linear-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-300 dark:border-amber-800/50 flex items-center justify-between">
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-300 dark:border-amber-800/50 flex items-center justify-between">
                     <div>
                       <span className="text-xs text-slate-500 dark:text-slate-400 block">
                         {t('founders.distBeneficiariesCol', 'Qualified Founders Count')}: <strong className="text-slate-900 dark:text-white">{previewData.foundersCount}</strong>
@@ -918,7 +918,7 @@ export default function AdminFounderManagement() {
                 type="button"
                 onClick={handleExecuteDistribution}
                 disabled={executingDist || !previewData || previewData.isAlreadyDistributed}
-                className="rounded-2xl font-bold bg-linear-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white gap-2 flex-1 shadow-md shadow-amber-500/20"
+                className="rounded-2xl font-bold bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white gap-2 flex-1 shadow-md shadow-amber-500/20"
               >
                 {executingDist ? <Loader2 className="h-4 w-4 animate-spin" /> : <Coins className="h-4 w-4" />}
                 {t('founders.confirmDistributeBtn', 'Confirm & Execute Distribution')}

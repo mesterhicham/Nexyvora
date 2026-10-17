@@ -230,7 +230,7 @@ export function MobileStudentDashboard({
       {/* 4. محتوى لوحة التحكم الكامل لمشروعنا (Full Project Content) */}
       <div className="mx-1 space-y-3.5">
         {/* بطاقة الباقة الحالية (Active Package) */}
-        <div className="p-4 rounded-[24px] bg-linear-to-br from-primary/10 via-white to-purple-500/10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border-2 border-primary/20 shadow-xs">
+        <div className="p-4 rounded-[24px] bg-gradient-to-br from-primary/10 via-white to-purple-500/10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border-2 border-primary/20 shadow-xs">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -276,7 +276,7 @@ export function MobileStudentDashboard({
         </div>
 
         {/* بطاقة المحفظة والأرباح (Wallet & Profits) */}
-        <div className="p-4 rounded-[24px] bg-linear-to-br from-emerald-500/10 via-white to-teal-500/10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-emerald-500/20 shadow-xs">
+        <div className="p-4 rounded-[24px] bg-gradient-to-br from-emerald-500/10 via-white to-teal-500/10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-emerald-500/20 shadow-xs">
           <div className="flex items-start justify-between">
             <div>
               <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">

@@ -121,9 +121,9 @@ export default function GenerationSettings() {
         </div>
 
         {/* Financial Sustainability Banner */}
-        <div className="p-4 sm:p-5 rounded-3xl bg-linear-to-r from-indigo-500/10 via-purple-500/10 to-emerald-500/10 border border-indigo-200 dark:border-indigo-800 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-purple-500/10 via-violet-500/10 to-emerald-500/10 border border-purple-200 dark:border-purple-800 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="p-2.5 rounded-2xl bg-indigo-600 text-white shrink-0 mt-0.5">
+            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-violet-600 to-purple-600 text-white shrink-0 mt-0.5 shadow-md shadow-purple-500/20">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
