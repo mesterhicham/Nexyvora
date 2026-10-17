@@ -15,7 +15,7 @@ export interface PlatformLogoProps {
 export function PlatformLogo({
   className = "flex items-center gap-2.5",
   imageClassName,
-  textClassName = "text-xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent tracking-tight",
+  textClassName = "text-xl font-black bg-gradient-to-r from-violet-600 via-purple-600 to-amber-500 dark:from-violet-400 dark:via-purple-300 dark:to-amber-400 bg-clip-text text-transparent tracking-tight",
   iconClassName,
   showText = true,
   variant = 'auto',

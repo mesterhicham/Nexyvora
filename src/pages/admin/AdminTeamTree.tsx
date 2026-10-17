@@ -53,7 +53,7 @@ import { toast } from 'sonner';
 
 // Color palette and commission rates for the 10 Generations Matching Bonus in Nexyvora
 const GENERATION_CONFIG = [
-  { gen: 1, rate: '5%', color: 'bg-blue-500' },
+  { gen: 1, rate: '5%', color: 'bg-violet-600' },
   { gen: 2, rate: '4%', color: 'bg-cyan-500' },
   { gen: 3, rate: '3%', color: 'bg-emerald-500' },
   { gen: 4, rate: '2%', color: 'bg-amber-500' },
@@ -156,12 +156,12 @@ function VisualTreeNode({
             : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
         }`}
       >
-        {/* Circular Avatar with blue ring & status indicators */}
+        {/* Circular Avatar with purple ring & status indicators */}
         <div className="relative">
           <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 ${
             node.isPlatformRoot 
-              ? 'border-blue-500 bg-gradient-to-tr from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-indigo-950'
-              : 'border-blue-400 bg-blue-50/60 dark:bg-slate-800'
+              ? 'border-purple-500 bg-gradient-to-tr from-purple-50 to-indigo-50 dark:from-slate-800 dark:to-purple-950 shadow-md shadow-purple-500/20 ring-2 ring-purple-500/30'
+              : 'border-purple-300 dark:border-purple-800 bg-purple-50/60 dark:bg-slate-800'
           } shadow-sm flex items-center justify-center transition-transform group-hover:scale-105`}>
             {node.avatar_url ? (
               <img 
@@ -170,14 +170,14 @@ function VisualTreeNode({
                 className="w-full h-full rounded-full object-cover"
               />
             ) : (
-              <span className="font-bold text-sm sm:text-base text-blue-600 dark:text-blue-400 tracking-wider">
+              <span className={`font-bold text-sm sm:text-base ${node.isPlatformRoot ? 'text-purple-600 dark:text-purple-400' : 'text-purple-700 dark:text-purple-300'} tracking-wider`}>
                 {initials}
               </span>
             )}
           </div>
 
           {/* Small Top-Right Icon Badge */}
-          <div className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[9px] shadow-xs">
+          <div className={`absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full ${node.isPlatformRoot ? 'bg-gradient-to-tr from-violet-600 to-purple-600' : 'bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950'} text-white flex items-center justify-center text-[9px] shadow-xs`}>
             {node.isPlatformRoot ? <Sparkles className="w-2.5 h-2.5" /> : <UserCheck className="w-2.5 h-2.5" />}
           </div>
 
@@ -190,7 +190,7 @@ function VisualTreeNode({
           <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate w-full" title={node.name}>
             {node.name}
           </span>
-          <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 font-mono mt-0.5">
+          <span className="text-[11px] font-semibold text-amber-500 dark:text-amber-400 font-mono mt-0.5">
             {username}
           </span>
           <span className="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 mt-0.5">
@@ -212,7 +212,7 @@ function VisualTreeNode({
               e.stopPropagation();
               onToggleExpand(node.id);
             }}
-            className="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-blue-600 hover:border-blue-500 flex items-center justify-center text-xs font-black shadow-xs transition-all active:scale-90 z-10"
+            className="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-primary hover:border-primary flex items-center justify-center text-xs font-black shadow-xs transition-all active:scale-90 z-10"
             title={isExpanded ? (tr("طي الأبناء", "Collapse Children")) : (tr("توسيع الأبناء", "Expand Children"))}
           >
             {isExpanded ? (
@@ -596,7 +596,7 @@ export default function AdminTeamTree() {
                 <span className="font-bold text-purple-600 dark:text-purple-400">
                   {currentRootNode.name}
                 </span>
-                <span className="font-mono text-blue-600">
+                <span className="font-mono text-purple-600 dark:text-purple-400 font-semibold">
                   ({currentRootNode.affiliate_code ? `@${currentRootNode.affiliate_code}` : '@nexyvora'})
                 </span>
                 <span>-</span>
@@ -802,7 +802,7 @@ export default function AdminTeamTree() {
             {selectedMember && (
               <>
                 {/* Header with Avatar & Name */}
-                <div className="p-6 bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-600 text-white relative">
+                <div className="p-6 bg-gradient-to-tr from-[#240a4a] via-[#4c1d95] to-[#7c3aed] text-white relative">
                   <div className="flex items-center gap-3.5">
                     <div className="w-14 h-14 rounded-full border-2 border-white/60 bg-white/20 backdrop-blur-md flex items-center justify-center font-bold text-xl text-white shadow-md">
                       {selectedMember.avatar_url ? (
@@ -917,7 +917,7 @@ export default function AdminTeamTree() {
                         setSelectedMember(null);
                         toast.success(tr("تم تعيين ${selectedMember.name} كجذر تصفح للشجرة", "Set ${selectedMember.name} as tree root"));
                       }}
-                      className="flex-1 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs h-10 shadow-md shadow-purple-500/20"
+                      className="flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold text-xs h-10 shadow-md shadow-purple-500/20"
                     >
                       {tr("تصفح شجرة هذا العضو كجذر", "Inspect this member tree as root")}
                     </Button>

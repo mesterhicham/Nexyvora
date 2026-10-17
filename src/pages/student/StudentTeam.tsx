@@ -156,7 +156,7 @@ export default function StudentTeam() {
 
             <Link
               to="/student/wallet"
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-200/60 dark:border-purple-800 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs"
               title={t('wallet.myWallet', 'My Wallet')}
             >
               <Wallet className="h-5 w-5" />
@@ -180,17 +180,17 @@ export default function StudentTeam() {
         {/* View Team Tree Full-Width Card / Button (Navigates to interactive canvas page) */}
         <Link
           to="/student/team-tree"
-          className="w-full py-3.5 px-4 rounded-2xl bg-[#eff6ff] dark:bg-blue-950/40 hover:bg-blue-100/80 dark:hover:bg-blue-900/50 border border-blue-200/80 dark:border-blue-800/80 text-[#1d4ed8] dark:text-blue-400 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-xs"
+          className="w-full py-3.5 px-4 rounded-2xl bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100/80 dark:hover:bg-purple-900/50 border border-purple-200/80 dark:border-purple-800/80 text-purple-700 dark:text-purple-300 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-xs"
         >
           <Network className="h-4 w-4 stroke-[2.2]" />
           <span>{t('team.viewTeamTree', tr("عرض واستكشاف شجرة الفريق التفاعلية", "View Team Tree Canvas"))}</span>
         </Link>
 
-        {/* Invite Link Royal Blue Hero Card (Exact Match to Screenshot) */}
-        <div className="bg-gradient-to-tr from-[#1d4ed8] via-[#2563eb] to-[#3b82f6] rounded-[26px] sm:rounded-[32px] p-5 sm:p-7 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden">
+        {/* Invite Link Royal Purple Hero Card (Unified Visual Identity) */}
+        <div className="bg-gradient-to-tr from-[#240a4a] via-[#4c1d95] to-[#7c3aed] rounded-[26px] sm:rounded-[32px] p-5 sm:p-7 text-white shadow-2xl shadow-purple-950/40 border border-amber-500/25 relative overflow-hidden">
           {/* Subtle background glow */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 left-10 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 left-10 w-48 h-48 bg-purple-400/20 rounded-full blur-2xl pointer-events-none" />
 
           {/* Top Row: Title & Referral Code Pill */}
           <div className="flex items-center justify-between">
@@ -200,7 +200,7 @@ export default function StudentTeam() {
 
             <button
               onClick={() => copyToClipboard(affiliateCode, false)}
-              className="px-3.5 py-1 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-extrabold text-white tracking-wider font-mono transition-all active:scale-95"
+              className="px-3.5 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 backdrop-blur-md border border-amber-400/30 text-xs sm:text-sm font-extrabold tracking-wider font-mono transition-all active:scale-95"
               title={t('team.copyCode', tr("نسخ الكود", "Copy Code"))}
             >
               {copiedCode ? t('common.copied', tr("تم النسخ!", "Copied!")) : affiliateCode}
@@ -208,8 +208,8 @@ export default function StudentTeam() {
           </div>
 
           {/* Middle Box: Glassmorphism Link Display */}
-          <div className="mt-3.5 mb-4 p-3.5 sm:p-4 rounded-2xl bg-white/15 backdrop-blur-md border border-white/15">
-            <span className="text-[11px] text-blue-100/85 font-medium block mb-1">
+          <div className="mt-3.5 mb-4 p-3.5 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15">
+            <span className="text-[11px] text-purple-200/90 font-medium block mb-1">
               {t('team.inviteLink', 'Invite Link')}
             </span>
             <p className="font-mono text-xs sm:text-sm font-semibold text-white break-all select-all">
@@ -221,7 +221,7 @@ export default function StudentTeam() {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => copyToClipboard(referralLink, true)}
-              className="py-3 px-4 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/25 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
+              className="py-3 px-4 rounded-2xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
             >
               {copiedLink ? <Check className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4" />}
               <span>{copiedLink ? t('common.copied', 'Copied') : t('team.copyLink', 'Copy Link')}</span>
@@ -229,7 +229,7 @@ export default function StudentTeam() {
 
             <button
               onClick={handleShare}
-              className="py-3 px-4 rounded-2xl bg-white hover:bg-blue-50 text-blue-600 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+              className="py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-amber-500/25"
             >
               <Share2 className="h-4 w-4 stroke-[2.5]" />
               <span>{t('team.submitOrShare', 'Submit')}</span>
@@ -237,11 +237,11 @@ export default function StudentTeam() {
           </div>
         </div>
 
-        {/* 4 Stats Cards (2x2 Grid exactly as in Screenshot) */}
+        {/* 4 Stats Cards (2x2 Grid) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* 1. Total Team */}
           <Card className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
-            <div className="w-11 h-11 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center mb-3">
+            <div className="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center mb-3">
               <Users className="h-5 w-5" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -254,7 +254,7 @@ export default function StudentTeam() {
 
           {/* 2. Direct Referrals */}
           <Card className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
-            <div className="w-11 h-11 rounded-2xl bg-sky-500/10 text-sky-600 flex items-center justify-center mb-3">
+            <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-3">
               <UserPlus className="h-5 w-5" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -430,7 +430,7 @@ export default function StudentTeam() {
             {/* Header */}
             <div className="p-3.5 sm:p-4 pb-2.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
                   <Network className="h-4 w-4 stroke-[2.2]" />
                 </div>
                 <div>
@@ -447,13 +447,13 @@ export default function StudentTeam() {
             {/* Scrollable Tree View */}
             <div className="p-3.5 sm:p-4 overflow-y-auto flex-1 space-y-3">
               {/* Root User Node (You) */}
-              <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/80 flex items-center justify-between shadow-xs">
+              <div className="p-3 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/80 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-violet-600 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
                     {user?.name ? user.name[0].toUpperCase() : 'ME'}
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">
+                    <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">
                       {t('team.rootNode', tr("قائد الشبكة (أنت)", "Network Leader (You)"))}
                     </span>
                     <h4 className="text-xs font-black text-slate-900 dark:text-white">
@@ -461,7 +461,7 @@ export default function StudentTeam() {
                     </h4>
                   </div>
                 </div>
-                <Badge className="bg-blue-600 text-white text-[10px] font-bold">
+                <Badge className="bg-gradient-to-tr from-violet-600 to-purple-600 text-white text-[10px] font-bold">
                   {totals.totalTeamMembers} {t('team.membersCount', tr("عضو", "Members"))}
                 </Badge>
               </div>

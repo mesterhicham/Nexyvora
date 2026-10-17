@@ -91,7 +91,7 @@ export function MobileStudentDashboard({
             onClick={() => navigate('/student/academy')}
             className="flex flex-col items-center justify-center p-2 sm:p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-95 transition-all group"
           >
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-400 text-white flex items-center justify-center shadow-md shadow-blue-500/30 mb-2 group-hover:scale-105 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-violet-600 to-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-500/25 mb-2 group-hover:scale-105 transition-transform">
               <GraduationCap className="h-7 w-7 stroke-[2.2]" />
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight text-center">
@@ -143,7 +143,7 @@ export function MobileStudentDashboard({
             onClick={() => navigate('/student/challenges')}
             className="flex flex-col items-center justify-center p-2 sm:p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-95 transition-all group"
           >
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 text-white flex items-center justify-center shadow-md shadow-sky-500/30 mb-2 group-hover:scale-105 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-fuchsia-500 text-white flex items-center justify-center shadow-md shadow-purple-500/25 mb-2 group-hover:scale-105 transition-transform">
               <Gamepad2 className="h-7 w-7 stroke-[2.2]" />
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight text-center">
@@ -156,7 +156,7 @@ export function MobileStudentDashboard({
             onClick={() => navigate('/student/packages')}
             className="flex flex-col items-center justify-center p-2 sm:p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-95 transition-all group"
           >
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/30 mb-2 group-hover:scale-105 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 flex items-center justify-center shadow-md shadow-amber-500/25 mb-2 group-hover:scale-105 transition-transform">
               <Package className="h-7 w-7 stroke-[2.2]" />
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight text-center">
@@ -178,7 +178,7 @@ export function MobileStudentDashboard({
             onClick={() => navigate('/student/ranks')}
             className="flex flex-col items-center justify-center active:scale-95 transition-all group"
           >
-            <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/25 mb-1.5 group-hover:scale-105 transition-transform">
+            <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 flex items-center justify-center shadow-md shadow-amber-500/25 mb-1.5 group-hover:scale-105 transition-transform">
               <Trophy className="h-5 w-5" />
             </div>
             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate max-w-full">

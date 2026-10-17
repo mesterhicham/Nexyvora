@@ -44,8 +44,8 @@ const variantStyles: Record<string, { card: string; iconBg: string }> = {
     iconBg: 'bg-sky-50 dark:bg-sky-950/60 text-sky-500 dark:text-sky-300',
   },
   accent: {
-    card: 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-sky-200 dark:hover:border-sky-800',
-    iconBg: 'bg-sky-50 dark:bg-sky-950/60 text-sky-500 dark:text-sky-300',
+    card: 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-amber-200 dark:hover:border-amber-800',
+    iconBg: 'bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400',
   },
   amber: {
     card: 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-amber-200 dark:hover:border-amber-800',

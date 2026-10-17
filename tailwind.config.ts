@@ -72,6 +72,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        brand: {
+          violet: "hsl(var(--brand-violet))",
+          purple: "hsl(var(--brand-purple))",
+          fuchsia: "hsl(var(--brand-fuchsia))",
+          gold: "hsl(var(--brand-gold))",
+          "gold-bright": "hsl(var(--brand-gold-bright))",
+          "gold-dark": "hsl(var(--brand-gold-dark))",
+          dark: "#090417",
+          darker: "#05020d",
+          surface: "#1c0d38",
+        },
       },
       borderRadius: {
         "3xl": "1.5rem",

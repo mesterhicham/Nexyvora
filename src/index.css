@@ -44,23 +44,36 @@
 
     --radius: 1rem;
 
-    /* Custom gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(262 83% 45%) 50%, hsl(270 80% 35%) 100%);
-    --gradient-accent: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    /* Central Brand Identity Tokens (Violet & Purple with Golden Touches) */
+    --brand-violet: 262 83% 58%; /* #7c3aed */
+    --brand-purple: 271 81% 53%; /* #9333ea */
+    --brand-fuchsia: 292 84% 61%; /* #c026d3 */
+    --brand-gold: 38 92% 50%; /* #f59e0b Amber Gold */
+    --brand-gold-bright: 45 93% 58%; /* #fbbf24 */
+    --brand-gold-dark: 32 95% 44%; /* #d97706 */
+
+    /* Custom brand gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(271 81% 53%) 50%, hsl(292 84% 45%) 100%);
+    --gradient-accent: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #9333ea 100%);
+    --gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    --gradient-wallet-card: linear-gradient(135deg, #240a4a 0%, #4c1d95 45%, #7c3aed 100%);
+    --gradient-dashboard-hero: linear-gradient(135deg, #090417 0%, #1e0836 50%, #2e1065 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 25% 98%) 100%);
 
     /* Soft modern shadows */
     --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
-    --shadow-md: 0 4px 14px -2px rgba(124, 58, 237, 0.07), 0 2px 6px -2px rgba(0, 0, 0, 0.03);
-    --shadow-lg: 0 10px 25px -4px rgba(0, 0, 0, 0.05), 0 4px 10px -4px rgba(0, 0, 0, 0.03);
-    --shadow-xl: 0 20px 30px -6px rgba(0, 0, 0, 0.07), 0 8px 15px -6px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 4px 14px -2px rgba(124, 58, 237, 0.09), 0 2px 6px -2px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 25px -4px rgba(124, 58, 237, 0.12), 0 4px 10px -4px rgba(0, 0, 0, 0.03);
+    --shadow-xl: 0 20px 30px -6px rgba(124, 58, 237, 0.15), 0 8px 15px -6px rgba(0, 0, 0, 0.03);
+    --shadow-gold: 0 10px 25px -4px rgba(245, 158, 11, 0.25);
+    --shadow-purple: 0 10px 25px -4px rgba(124, 58, 237, 0.3);
 
-    /* Pure white sidebar matching MLM Simply University */
+    /* Pure white sidebar matching MLM University */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 15%;
     --sidebar-primary: 262 83% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 25% 96%;
+    --sidebar-accent: 262 83% 97%;
     --sidebar-accent-foreground: 262 83% 45%;
     --sidebar-border: 220 20% 93%;
     --sidebar-ring: 262 83% 58%;
@@ -168,6 +181,39 @@
 
   .form-section {
     @apply bg-card rounded-2xl p-6 shadow-sm border border-border/70;
+  }
+
+  /* Unified Brand Identity Components (Nexyvora Royal Purple & Gold) */
+  .wallet-hero-card {
+    @apply relative overflow-hidden rounded-[28px] sm:rounded-[32px] p-6 sm:p-8 text-white shadow-2xl border border-amber-500/25;
+    background: linear-gradient(135deg, #240a4a 0%, #4c1d95 45%, #7c3aed 100%);
+    box-shadow: 0 20px 40px -15px rgba(76, 29, 149, 0.45);
+  }
+
+  .dashboard-hero-card {
+    @apply relative overflow-hidden rounded-[32px] p-6 lg:p-8 text-white shadow-2xl border border-amber-500/25;
+    background: linear-gradient(135deg, #090417 0%, #1e0836 50%, #2e1065 100%);
+    box-shadow: 0 20px 40px -15px rgba(15, 7, 40, 0.6);
+  }
+
+  .brand-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:to-purple-700 text-white font-bold transition-all shadow-md shadow-purple-500/25 active:scale-95;
+  }
+
+  .brand-btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-slate-950 font-black transition-all shadow-md shadow-amber-500/25 active:scale-95;
+  }
+
+  .brand-badge-gold {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-400/30 text-xs font-bold shadow-xs;
+  }
+
+  .brand-badge-purple {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 text-xs font-bold shadow-xs;
+  }
+
+  .brand-glass-box {
+    @apply rounded-2xl bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/15 p-4;
   }
 }
 

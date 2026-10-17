@@ -138,7 +138,7 @@ export function MobileBottomNav({ role, onMenuClick }: MobileBottomNavProps) {
               className={cn(
                 "flex flex-col items-center justify-center flex-1 py-1 px-0.5 transition-colors",
                 (currentPath.includes('/academy') || currentPath.includes('/modules'))
-                  ? "text-blue-600 dark:text-blue-400 font-bold" 
+                  ? "text-purple-600 dark:text-purple-400 font-bold" 
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               )}
             >
@@ -152,7 +152,7 @@ export function MobileBottomNav({ role, onMenuClick }: MobileBottomNavProps) {
               className={cn(
                 "flex flex-col items-center justify-center flex-1 py-1 px-0.5 transition-colors",
                 (currentPath.includes('/packages') || currentPath.includes('/formations'))
-                  ? "text-blue-600 dark:text-blue-400 font-bold" 
+                  ? "text-purple-600 dark:text-purple-400 font-bold" 
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               )}
             >
@@ -165,8 +165,8 @@ export function MobileBottomNav({ role, onMenuClick }: MobileBottomNavProps) {
               <button
                 onClick={() => navigate(homePath)}
                 className={cn(
-                  "w-13 h-13 rounded-full bg-gradient-to-tr from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/40 border-4 border-white dark:border-slate-900 flex items-center justify-center active:scale-95 transition-transform",
-                  isHomeActive && "ring-2 ring-blue-500/50"
+                  "w-13 h-13 rounded-full bg-gradient-to-tr from-violet-600 to-purple-600 text-white shadow-lg shadow-purple-500/40 border-4 border-white dark:border-slate-900 flex items-center justify-center active:scale-95 transition-transform",
+                  isHomeActive && "ring-2 ring-purple-500/50"
                 )}
                 aria-label={t('nav.home', 'Home')}
               >
@@ -180,7 +180,7 @@ export function MobileBottomNav({ role, onMenuClick }: MobileBottomNavProps) {
               className={cn(
                 "flex flex-col items-center justify-center flex-1 py-1 px-0.5 transition-colors",
                 (currentPath.includes('/team') || currentPath.includes('/meetings'))
-                  ? "text-blue-600 dark:text-blue-400 font-bold" 
+                  ? "text-purple-600 dark:text-purple-400 font-bold" 
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               )}
             >
@@ -192,7 +192,7 @@ export function MobileBottomNav({ role, onMenuClick }: MobileBottomNavProps) {
             {onMenuClick ? (
               <button
                 onClick={onMenuClick}
-                className="flex flex-col items-center justify-center flex-1 py-1 px-0.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="flex flex-col items-center justify-center flex-1 py-1 px-0.5 text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
               >
                 <Menu className="h-5 w-5 mb-0.5" />
                 <span className="text-[10px] tracking-tight">{t('common.menu', 'Menu')}</span>
@@ -203,7 +203,7 @@ export function MobileBottomNav({ role, onMenuClick }: MobileBottomNavProps) {
                 className={cn(
                   "flex flex-col items-center justify-center flex-1 py-1 px-0.5 transition-colors",
                   currentPath.includes('/wallet') 
-                    ? "text-blue-600 dark:text-blue-400 font-bold" 
+                    ? "text-purple-600 dark:text-purple-400 font-bold" 
                     : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 )}
               >

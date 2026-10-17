@@ -201,7 +201,7 @@ export default function PackagesStore() {
                     isVIP 
                       ? 'border-2 border-amber-400 dark:border-amber-500 shadow-amber-500/10' 
                       : isGrow
-                      ? 'border-2 border-indigo-400 dark:border-indigo-500 shadow-indigo-500/10'
+                      ? 'border-2 border-purple-400 dark:border-purple-500 shadow-purple-500/10'
                       : isPopular 
                       ? 'border-2 border-primary shadow-primary/10' 
                       : 'border border-slate-200 dark:border-slate-800'
@@ -214,9 +214,9 @@ export default function PackagesStore() {
                         isVIP 
                           ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white' 
                           : isGrow
-                          ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white'
+                          ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white'
                           : isPopular 
-                          ? 'bg-primary text-white' 
+                          ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white' 
                           : 'bg-slate-800 text-white'
                       }`}>
                         {pkg.badge_text}

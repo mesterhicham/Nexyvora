@@ -400,11 +400,11 @@ export default function AdminPaymentSettings() {
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                   {tr("مفعلة للسحب", "Active for Withdrawal")}
                 </p>
-                <h3 className="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
+                <h3 className="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
                   {activeWithdrawalCount}
                 </h3>
               </div>
-              <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600">
+              <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600">
                 <ArrowUpRight className="h-6 w-6" />
               </div>
             </div>
@@ -479,7 +479,7 @@ export default function AdminPaymentSettings() {
               const isCrypto = m.type === 'nowpayments_crypto';
 
               const Icon = isCard ? CreditCard : isBank ? Building2 : Coins;
-              const themeColor = isCard ? 'purple' : isBank ? 'blue' : 'amber';
+              const themeColor = isCard ? 'purple' : isBank ? 'violet' : 'amber';
 
               return (
                 <Card
@@ -492,7 +492,7 @@ export default function AdminPaymentSettings() {
                       <div className="flex items-center gap-3">
                         <div className={`p-3 rounded-2xl ${
                           isCard ? 'bg-purple-500/10 text-purple-600' :
-                          isBank ? 'bg-blue-500/10 text-blue-600' :
+                          isBank ? 'bg-violet-500/10 text-violet-600' :
                           'bg-amber-500/10 text-amber-600'
                         }`}>
                           <Icon className="h-6 w-6" />
@@ -597,7 +597,7 @@ export default function AdminPaymentSettings() {
                       )}
 
                       {isBank && (
-                        <div className="space-y-1.5 p-3 rounded-2xl bg-blue-500/5 dark:bg-blue-950/20 border border-blue-500/15">
+                        <div className="space-y-1.5 p-3 rounded-2xl bg-purple-500/5 dark:bg-purple-950/20 border border-purple-500/15">
                           <div className="flex justify-between">
                             <span className="text-slate-400">{tr("البنك:", "Bank:")}</span>
                             <strong className="text-slate-800 dark:text-slate-200">{m.bank_name || '-'}</strong>
@@ -609,11 +609,11 @@ export default function AdminPaymentSettings() {
                           {m.account_number && (
                             <div>
                               <span className="text-[10px] text-slate-400 block mb-0.5">{tr("رقم الحساب / IBAN:", "IBAN / Account:")}</span>
-                              <div className="flex items-center justify-between font-mono bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-blue-200 dark:border-blue-900/40 text-[11px]">
+                              <div className="flex items-center justify-between font-mono bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-purple-200 dark:border-purple-900/40 text-[11px]">
                                 <span className="text-slate-700 dark:text-slate-300 truncate mr-1 rtl:ml-1 rtl:mr-0">{m.account_number}</span>
                                 <button
                                   onClick={() => copyToClipboard(m.account_number, m.id)}
-                                  className="text-slate-400 hover:text-blue-600"
+                                  className="text-slate-400 hover:text-purple-600"
                                 >
                                   {copiedId === m.id ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                                 </button>
@@ -798,7 +798,7 @@ export default function AdminPaymentSettings() {
                   <Switch
                     checked={formData.enabled_for_withdrawal}
                     onCheckedChange={(val) => setFormData({ ...formData, enabled_for_withdrawal: val })}
-                    className="data-[state=checked]:bg-blue-600"
+                    className="data-[state=checked]:bg-purple-600"
                   />
                 </div>
 
@@ -920,8 +920,8 @@ export default function AdminPaymentSettings() {
 
               {/* SPECIFIC FIELDS: Bank Transfer / Manuel Payment */}
               {formData.type === 'bank_transfer' && (
-                <div className="space-y-3 p-4 rounded-2xl bg-blue-500/5 dark:bg-blue-950/20 border border-blue-500/20">
-                  <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold text-xs">
+                <div className="space-y-3 p-4 rounded-2xl bg-purple-500/5 dark:bg-purple-950/20 border border-purple-500/20">
+                  <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-bold text-xs">
                     <Building2 className="h-4 w-4" />
                     <span>{tr("بيانات الحساب البنكي للتحويل اليدوي:", "Bank Account Details for Manual Transfer:")}</span>
                   </div>

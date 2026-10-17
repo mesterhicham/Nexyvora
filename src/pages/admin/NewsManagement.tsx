@@ -277,17 +277,17 @@ export default function NewsManagement() {
       case 'articles':
         return <Badge className="bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 text-xs font-semibold gap-1"><FileText className="w-3 h-3" /> Article</Badge>;
       default:
-        return <Badge className="bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 text-xs font-semibold gap-1"><Newspaper className="w-3 h-3" /> News</Badge>;
+        return <Badge className="bg-violet-50 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300 border-violet-200 text-xs font-semibold gap-1"><Newspaper className="w-3 h-3" /> News</Badge>;
     }
   };
 
   return (
     <DashboardLayout role="admin">
       <div className="space-y-6 max-w-7xl mx-auto pb-12">
-        {/* TOP HEADER (تطابق الهيدر الأزرق مع زر + New Content) */}
+        {/* TOP HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/25">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-violet-600 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-500/25">
               <Newspaper className="w-6 h-6 stroke-[2.2]" />
             </div>
             <div>
@@ -302,7 +302,7 @@ export default function NewsManagement() {
 
           <Button
             onClick={openAddModal}
-            className="rounded-2xl h-11 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs gap-2 shadow-md shadow-blue-500/25"
+            className="rounded-2xl h-11 px-5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold text-xs gap-2 shadow-md shadow-purple-500/25"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>{tr("+ محتوى جديد", "+ New Content")}</span>
@@ -502,7 +502,7 @@ export default function NewsManagement() {
           <DialogContent className="max-w-2xl rounded-3xl p-6">
             <DialogHeader>
               <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Newspaper className="w-5 h-5 text-blue-600" />
+                <Newspaper className="w-5 h-5 text-violet-600" />
                 <span>
                   {editingItem 
                     ? (tr("تعديل المحتوى", "Edit Content")) 
@@ -626,8 +626,8 @@ export default function NewsManagement() {
 
                 {/* Upload Input */}
                 <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <label className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 cursor-pointer hover:border-blue-500 transition-colors text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    <Upload className="w-4 h-4 text-blue-600" />
+                  <label className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 cursor-pointer hover:border-purple-500 transition-colors text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    <Upload className="w-4 h-4 text-violet-600" />
                     <span>{isUploading ? (tr("جاري الرفع...", "Uploading...")) : (tr("اختر ملفاً لرفعه من جهازك", "Choose file to upload"))}</span>
                     <input
                       type="file"
@@ -654,7 +654,7 @@ export default function NewsManagement() {
                 {/* Preview attached file */}
                 {formData.media_url && (
                   <div className="mt-2 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center gap-2.5 text-xs">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center shrink-0">
                       {formData.type === 'video' ? <Video className="w-4 h-4" /> : formData.type === 'pdf' ? <FileSpreadsheet className="w-4 h-4" /> : <ImageIcon className="w-4 h-4" />}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -666,7 +666,7 @@ export default function NewsManagement() {
                       href={formData.media_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-blue-600 hover:text-blue-700 p-1"
+                      className="text-purple-600 hover:text-purple-700 p-1"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
@@ -720,7 +720,7 @@ export default function NewsManagement() {
               <Button
                 onClick={handleSubmit}
                 disabled={isUploading}
-                className="rounded-xl h-10 px-5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20"
+                className="rounded-xl h-10 px-5 text-xs font-bold bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-md shadow-purple-500/20"
               >
                 {editingItem ? (tr("حفظ التعديلات", "Save Changes")) : (tr("نشر المحتوى", "Publish Content"))}
               </Button>

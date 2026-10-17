@@ -463,11 +463,11 @@ export default function StudentWallet() {
           </div>
         </div>
 
-        {/* Blue Hero Wallet Card (Exact match to screenshot) */}
-        <div className="bg-gradient-to-tr from-[#1d4ed8] via-[#2563eb] to-[#3b82f6] rounded-[28px] sm:rounded-[32px] p-6 sm:p-8 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden">
+        {/* Royal Purple & Gold Hero Wallet Card (Unified Brand Identity) */}
+        <div className="bg-gradient-to-tr from-[#240a4a] via-[#4c1d95] to-[#7c3aed] rounded-[28px] sm:rounded-[32px] p-6 sm:p-8 text-white shadow-2xl shadow-purple-950/40 border border-amber-500/25 relative overflow-hidden">
           {/* Subtle background glow */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 left-10 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-72 h-72 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 left-10 w-56 h-56 bg-purple-400/20 rounded-full blur-2xl pointer-events-none" />
 
           {/* Total Balance + Eye Toggle */}
           <div className="flex items-center justify-center gap-2 text-white/90 text-xs sm:text-sm font-medium">
@@ -491,10 +491,12 @@ export default function StudentWallet() {
             {isAlgeria ? (
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 mt-2.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs sm:text-sm font-bold text-white shadow-xs">
                 <span>{showBalance ? `≈ $${Number(wallet.balance || 0).toFixed(2)} USD` : '•••••• USD'}</span>
-                <span className="text-[11px] text-blue-100/80 font-normal">({tr("1$ = ${usdRate} دج", "1 USD = ${usdRate} DZD")})</span>
+                <span className="text-[11px] text-amber-200/90 font-normal">
+                  ({isRtl ? `1$ = ${usdRate} دج` : `1 USD = ${usdRate} DZD`})
+                </span>
               </div>
             ) : formatBalance(wallet.balance || 0, showBalance).secondary && (
-              <p className="text-[11px] sm:text-xs text-blue-100/75 mt-1 font-medium">
+              <p className="text-[11px] sm:text-xs text-purple-100/80 mt-1 font-medium">
                 {formatBalance(wallet.balance || 0, showBalance).secondary}
               </p>
             )}
@@ -507,10 +509,10 @@ export default function StudentWallet() {
               onClick={() => setIsDepositOpen(true)}
               className="flex flex-col items-center group active:scale-95 transition-all"
             >
-              <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 group-hover:border-amber-400/40 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-all">
                 <ArrowDownLeft className="h-6 w-6 stroke-[2.5]" />
               </div>
-              <span className="text-xs sm:text-sm font-bold text-white mt-2 tracking-tight">
+              <span className="text-xs sm:text-sm font-bold text-white mt-2 tracking-tight group-hover:text-amber-300 transition-colors">
                 {t('wallet.depositBtn', tr("إيداع", "Deposit"))}
               </span>
             </button>
@@ -520,10 +522,10 @@ export default function StudentWallet() {
               onClick={() => setIsWithdrawOpen(true)}
               className="flex flex-col items-center group active:scale-95 transition-all"
             >
-              <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 group-hover:border-amber-400/40 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-all">
                 <ArrowUpRight className="h-6 w-6 stroke-[2.5]" />
               </div>
-              <span className="text-xs sm:text-sm font-bold text-white mt-2 tracking-tight">
+              <span className="text-xs sm:text-sm font-bold text-white mt-2 tracking-tight group-hover:text-amber-300 transition-colors">
                 {t('wallet.withdrawBtn', tr("سحب", "Withdraw"))}
               </span>
             </button>
@@ -655,7 +657,7 @@ export default function StudentWallet() {
               {/* Asset 2: USD */}
               <div className="p-4 rounded-[22px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-purple-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
                     $
                   </div>
                   <div>
@@ -667,7 +669,7 @@ export default function StudentWallet() {
                   <p className="text-sm font-black text-slate-900 dark:text-white">
                     ${Number(wallet.balance || 0).toFixed(2)} USD
                   </p>
-                  <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
+                  <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">
                     {tr("الرصيد المعادل بالدولار", "USD Equivalent")}
                   </p>
                 </div>
@@ -676,7 +678,7 @@ export default function StudentWallet() {
           ) : isMorocco ? (
             <div className="p-4 rounded-[22px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xs shadow-xs">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-purple-600 text-white flex items-center justify-center font-black text-xs shadow-xs">
                   DH
                 </div>
                 <div>
@@ -688,7 +690,7 @@ export default function StudentWallet() {
                 <p className="text-sm font-black text-slate-900 dark:text-white">
                   {convertToLocal(wallet.balance || 0).toLocaleString()} MAD
                 </p>
-                <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
+                <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">
                   ≈ {Number(wallet.balance || 0).toFixed(2)} USDT
                 </p>
               </div>
@@ -1016,7 +1018,7 @@ export default function StudentWallet() {
                 </div>
                 {/* Live Dual Currency Conversion Card */}
                 {isAlgeria && depositAmount && Number(depositAmount) > 0 ? (
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-transparent border border-emerald-500/20 space-y-1.5 shadow-xs">
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-purple-500/10 to-transparent border border-emerald-500/20 space-y-1.5 shadow-xs">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-600 dark:text-slate-300 font-medium">
                         {tr("المبلغ بالدينار الجزائري (المطلوب تحويله):", "Amount in Algerian Dinar (To Pay):")}
@@ -1029,7 +1031,7 @@ export default function StudentWallet() {
                       <span className="text-slate-500 dark:text-slate-400 font-medium">
                         {tr("الرصيد المضاف لحسابك بالدولار:", "Credited to your Wallet:")}
                       </span>
-                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 font-mono">
+                      <span className="text-xs font-bold text-purple-600 dark:text-purple-400 font-mono">
                         ${Number(depositAmount).toFixed(2)} USD
                       </span>
                     </div>
@@ -1138,8 +1140,8 @@ export default function StudentWallet() {
                       </div>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[10px] text-blue-700 dark:text-blue-300 flex items-start gap-1.5">
-                      <ShieldCheck className="h-3.5 w-3.5 shrink-0 mt-0.5 text-blue-500" />
+                    <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[10px] text-purple-700 dark:text-purple-300 flex items-start gap-1.5">
+                      <ShieldCheck className="h-3.5 w-3.5 shrink-0 mt-0.5 text-purple-500" />
                       <span>
                         {tr("حماية كاملة: يتم تسجيل جميع محاولات الإيداع في سجل المعاملات، وتظل العناوين السابقة صالحة ومربوطة بحسابك حتى بعد التجديد.", "Full security: All deposit attempts are audited, and previous addresses remain valid and linked to your account even after renewal.")}
                       </span>
@@ -1360,8 +1362,8 @@ export default function StudentWallet() {
                   {selectedDepositMethod?.type !== 'nowpayments_crypto' && (
                     <div className="space-y-3 pt-1">
                       {/* Notice box */}
-                      <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[10px] sm:text-[11px] text-blue-700 dark:text-blue-300 flex items-start gap-2">
-                        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+                      <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-[10px] sm:text-[11px] text-purple-700 dark:text-purple-300 flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-purple-600 dark:text-purple-400" />
                         <span>
                           {t('wallet.receiptProofRequired', tr("يرجى إرفاق صورة واضحة لوصل التحويل البنكي ورقم المعاملة لإتمام طلب الإيداع وتأكيده فوراً.", "Receipt image and transaction reference are mandatory for bank deposits."))}
                         </span>
@@ -1572,7 +1574,7 @@ export default function StudentWallet() {
                 </div>
                 {/* Live Dual Currency Conversion Card for Algeria */}
                 {isAlgeria && withdrawAmount && Number(withdrawAmount) > 0 ? (
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-transparent border border-emerald-500/20 space-y-1.5 shadow-xs">
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-purple-500/10 to-transparent border border-emerald-500/20 space-y-1.5 shadow-xs">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-600 dark:text-slate-300 font-medium">
                         {tr("المبلغ الذي ستستلمه بالدينار (BaridiMob / البنك):", "Payout in Algerian Dinar:")}

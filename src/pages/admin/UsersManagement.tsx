@@ -539,7 +539,7 @@ export default function UsersManagement() {
                         <span
                           className={`px-3 py-1 rounded-full text-[11px] font-black inline-block text-center ${
                             u.status === 'active'
-                              ? 'bg-[#2563eb] text-white'
+                              ? 'bg-emerald-600 text-white'
                               : u.status === 'inactive'
                               ? 'bg-amber-500 text-white'
                               : 'bg-rose-500 text-white'
@@ -892,7 +892,7 @@ export default function UsersManagement() {
               <Button
                 onClick={handleSaveEdit}
                 disabled={savingEdit}
-                className="rounded-2xl font-black bg-[#2563eb] hover:bg-blue-700 text-white text-xs px-6"
+                className="rounded-2xl font-black bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs px-6 shadow-md shadow-purple-500/20"
               >
                 {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : (tr("حفظ", "Save"))}
               </Button>

@@ -147,22 +147,22 @@ export default function StudentDashboard() {
       to: '/student/academy',
       icon: GraduationCap,
       label: t('nav.academy', tr("الأكاديمية", "Academy")),
-      color: 'from-blue-600 to-cyan-500',
-      shadow: 'shadow-blue-500/25',
+      color: 'from-violet-600 to-purple-600',
+      shadow: 'shadow-purple-500/25',
     },
     {
       to: '/student/community',
       icon: MessageSquare,
       label: t('nav.community', tr("مجتمع نيكسيفورا", "Nexyvora Community")),
-      color: 'from-violet-600 to-indigo-500',
-      shadow: 'shadow-violet-500/25',
+      color: 'from-purple-600 to-indigo-600',
+      shadow: 'shadow-purple-500/25',
     },
     {
       to: '/student/news',
       icon: Newspaper,
       label: t('nav.newsCenter', tr("مركز الأخبار", "News Center")),
-      color: 'from-blue-600 to-indigo-600',
-      shadow: 'shadow-blue-500/25',
+      color: 'from-indigo-600 to-purple-600',
+      shadow: 'shadow-indigo-500/25',
     },
     {
       to: '/student/packages',
@@ -217,22 +217,22 @@ export default function StudentDashboard() {
       to: '/student/challenges',
       icon: Trophy,
       label: t('nav.challenges', tr("التحديات", "Challenges")),
-      color: 'from-sky-500 to-cyan-400',
-      shadow: 'shadow-sky-500/25',
+      color: 'from-purple-600 to-pink-500',
+      shadow: 'shadow-purple-500/25',
     },
     {
       to: '/student/ranks',
       icon: Award,
       label: t('nav.ranks', tr("الرتب", "Ranks")),
-      color: 'from-rose-500 to-pink-500',
-      shadow: 'shadow-rose-500/25',
+      color: 'from-amber-500 to-yellow-400',
+      shadow: 'shadow-amber-500/25',
     },
     {
       to: '/student/chat',
       icon: MessageCircle,
       label: t('nav.chat', tr("المحادثات", "Chat")),
-      color: 'from-indigo-600 to-blue-500',
-      shadow: 'shadow-indigo-500/25',
+      color: 'from-violet-600 to-purple-600',
+      shadow: 'shadow-purple-500/25',
     },
     {
       to: '/student/support',
@@ -268,11 +268,11 @@ export default function StudentDashboard() {
 
       {/* DESKTOP EXPERIENCE */}
       <div className="hidden md:block space-y-6 pt-1">
-        {/* 1. ROYAL BLUE HERO BANNER (مطابق تماماً للصورة المرفقة) */}
-        <div className="relative rounded-[32px] bg-gradient-to-r from-[#172554] via-[#1e40af] to-[#2563eb] p-6 lg:p-8 text-white shadow-xl shadow-blue-900/20 overflow-hidden">
+        {/* 1. ROYAL PURPLE & GOLD HERO BANNER (Unified Visual Identity) */}
+        <div className="relative rounded-[32px] bg-gradient-to-r from-slate-950 via-[#1e0836] to-[#2e1065] p-6 lg:p-8 text-white shadow-2xl border border-amber-500/25 overflow-hidden">
           {/* Subtle background abstract shapes */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 left-10 w-64 h-64 bg-blue-400/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 left-10 w-64 h-64 bg-purple-500/20 rounded-full blur-2xl pointer-events-none" />
 
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
             {/* Left Card: Welcome / Profile */}
@@ -283,7 +283,7 @@ export default function StudentDashboard() {
                 </div>
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-blue-200">
+                <p className="text-xs font-medium text-purple-200">
                   {(() => {
                     const hour = new Date().getHours();
                     if (hour < 12) return tr("صباح الخير", "Good Morning");
@@ -295,7 +295,7 @@ export default function StudentDashboard() {
                   {user?.user_metadata?.full_name || student?.profile?.full_name || user?.email?.split('@')[0] || 'Member'}
                 </h2>
                 {activePackage && (
-                  <Badge className="mt-1.5 bg-white/20 text-white hover:bg-white/30 border-white/20 text-[10px] font-bold">
+                  <Badge className="mt-1.5 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border-amber-400/30 text-[10px] font-bold">
                     {isRtl ? (activePackage.name_ar || activePackage.name) : activePackage.name}
                   </Badge>
                 )}
@@ -305,12 +305,12 @@ export default function StudentDashboard() {
             {/* Middle Card: Total Balance */}
             <div className="md:col-span-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-blue-200">
+                <span className="text-xs font-medium text-purple-200">
                   {t('wallet.totalBalance', tr("إجمالي الرصيد", "Total Balance"))}
                 </span>
                 <button
                   onClick={() => setShowBalance(!showBalance)}
-                  className="p-1 text-blue-200 hover:text-white transition-colors"
+                  className="p-1 text-purple-200 hover:text-white transition-colors"
                   title={showBalance ? (tr("إخفاء الرصيد", "Hide Balance")) : (tr("إظهار الرصيد", "Show Balance"))}
                 >
                   {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -329,11 +329,11 @@ export default function StudentDashboard() {
                 </h3>
               </div>
 
-              <div className="flex items-center gap-2 pt-2 border-t border-white/10 text-[11px] text-blue-200">
+              <div className="flex items-center gap-2 pt-2 border-t border-white/10 text-[11px] text-purple-200">
                 <Button
                   size="sm"
                   onClick={() => navigate('/student/wallet')}
-                  className="h-7 px-3 bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold rounded-lg border border-white/20"
+                  className="h-7 px-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[11px] font-bold rounded-lg border border-amber-400/30 transition-all"
                 >
                   <Wallet className="h-3.5 w-3.5 mr-1 rtl:ml-1" />
                   {tr("فتح المحفظة", "Open Wallet")}
@@ -345,7 +345,7 @@ export default function StudentDashboard() {
             <div className="md:col-span-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-5 flex flex-col justify-between">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <span className="text-[11px] font-medium text-blue-200 block">
+                  <span className="text-[11px] font-medium text-purple-200 block">
                     {tr("العمولات", "Commissions")}
                   </span>
                   <span className="text-base lg:text-lg font-black text-emerald-400 font-mono mt-0.5 block">
@@ -359,10 +359,10 @@ export default function StudentDashboard() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[11px] font-medium text-blue-200 block">
+                  <span className="text-[11px] font-medium text-purple-200 block">
                     {tr("المكافآت", "Bonus")}
                   </span>
-                  <span className="text-base lg:text-lg font-black text-fuchsia-300 font-mono mt-0.5 block">
+                  <span className="text-base lg:text-lg font-black text-amber-300 font-mono mt-0.5 block">
                     {showBalance ? (
                       isAlgeria
                         ? `${convertToLocal(wallet.totalEarned || 0).toLocaleString()} DZD`
@@ -375,7 +375,7 @@ export default function StudentDashboard() {
               </div>
 
               <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-                <span className="text-blue-200">{tr("الرصيد الأساسي:", "Main Balance:")}</span>
+                <span className="text-purple-200">{tr("الرصيد الأساسي:", "Main Balance:")}</span>
                 <span className="font-bold text-white font-mono">
                   {showBalance ? (
                     isAlgeria
@@ -394,7 +394,7 @@ export default function StudentDashboard() {
         <div className="bg-white dark:bg-slate-900 rounded-[28px] p-5 sm:p-6 shadow-[0_10px_35px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                 {tr("الإجراءات السريعة وأقسام المنصة", "Quick Actions & Sections")}
               </h3>
@@ -467,7 +467,7 @@ export default function StudentDashboard() {
                     <span className="text-slate-500 font-mono font-bold text-xs truncate max-w-xs">{affiliateCode}</span>
                     <button
                       onClick={() => copyToClipboard(affiliateCode, false)}
-                      className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:text-blue-600 flex items-center gap-1 font-bold text-[11px]"
+                      className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:text-primary flex items-center gap-1 font-bold text-[11px]"
                     >
                       {copiedCode ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                       <span>{copiedCode ? (tr("تم النسخ", "Copied")) : (tr("نسخ الكود", "Copy Code"))}</span>
@@ -476,7 +476,7 @@ export default function StudentDashboard() {
 
                   <Button
                     onClick={() => copyToClipboard(referralLink, true)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl h-10 text-xs flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20"
+                    className="w-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:to-purple-700 text-white font-bold rounded-2xl h-10 text-xs flex items-center justify-center gap-2 shadow-sm shadow-purple-500/25"
                   >
                     {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     <span>{copiedLink ? (tr("تم نسخ الرابط بنجاح!", "Referral Link Copied!")) : (tr("نسخ رابط الإحالة ومشاركته", "Copy and Share Referral Link"))}</span>

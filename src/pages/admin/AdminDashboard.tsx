@@ -92,7 +92,7 @@ export default function AdminDashboard() {
             title={t('admin.walletBalances')} 
             value={stats.isLoading ? '...' : `$${Number(stats.totalMemberBalances || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
             icon={Wallet} 
-            variant="sky" 
+            variant="amber" 
           />
         </div>
 

@@ -124,10 +124,10 @@ export default function StudentBonusPool() {
 
           <Card className="p-4 rounded-2xl border bg-white dark:bg-slate-900 shadow-xs space-y-1">
             <span className="text-xs text-slate-500 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-blue-500" />
+              <Clock className="w-3.5 h-3.5 text-amber-500" />
               <span>{tr("موعد التوزيع القادم", "Next Distribution")}</span>
             </span>
-            <p className="text-xl font-black text-blue-600 dark:text-blue-400">
+            <p className="text-xl font-black text-amber-500 dark:text-amber-400">
               {financials?.daysLeft || 0} {tr("أيام متبقية", "days left")}
             </p>
             <span className="text-[11px] text-slate-400 block">
