@@ -80,6 +80,13 @@ async function runAuthTests() {
         // 2. Real HTTP Registration & Transaction Test (P1 #5)
         // -------------------------------------------------------------
         console.log('\n--- 2. Testing /api/auth/register (Atomic Transaction) ---');
+        let [sponsors] = await db.query("SELECT affiliate_code FROM users WHERE affiliate_code IS NOT NULL AND status = 'active' LIMIT 1");
+        let refCode = sponsors[0]?.affiliate_code;
+        if (!refCode) {
+            refCode = 'NV' + crypto.randomInt(100000, 999999);
+            await db.query("INSERT INTO users (id, email, password, role, status, affiliate_code) VALUES (?, 'sponsor_test@nexyvora.com', 'hash', 'student', 'active', ?)", [crypto.randomUUID(), refCode]);
+        }
+
         const resRegister = await makeRequest(server, {
             method: 'POST',
             path: '/api/auth/register'
@@ -87,7 +94,8 @@ async function runAuthTests() {
             fullName: 'Audit Tester',
             email: testEmail,
             password: testPassword,
-            role: 'student'
+            role: 'student',
+            referralCode: refCode
         });
 
         console.log('Register response:', resRegister.statusCode, resRegister.body);

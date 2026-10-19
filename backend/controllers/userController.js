@@ -124,15 +124,22 @@ exports.updateProfile = async (req, res) => {
         const userId = req.user.id;
         const body = req.body || {};
 
-        // Security check: Never allow changing sensitive fields via updateProfile
-        delete body.id;
-        delete body.role;
-        delete body.status;
-        delete body.user_status;
-        delete body.password;
-        delete body.affiliate_code;
-        delete body.referrer_id;
-        delete body.email_verified;
+        // Security check: strictly reject any attempt to send sensitive fields via updateProfile
+        const forbiddenKeys = [
+            'id', 'role', 'roles', 'status', 'user_status', 'is_admin', 'isadmin',
+            'token_version', 'tokenversion', 'account_role', 'permissions', 'user_roles',
+            'password', 'affiliate_code', 'referrer_id', 'email_verified', 'created_at', 'updated_at'
+        ];
+
+        const providedKeys = Object.keys(body).map(k => k.toLowerCase().replace(/[^a-z0-9]/g, ''));
+        const matchedForbidden = forbiddenKeys.filter(k => providedKeys.includes(k.replace(/[^a-z0-9]/g, '')));
+
+        if (matchedForbidden.length > 0) {
+            return res.status(403).json({
+                error: `تعديل الأدوار أو الصلاحيات أو الحقول الأمنية غير مصرح به (${matchedForbidden.join(', ')}) / Modifying roles, status, or sensitive security fields via profile is strictly forbidden.`,
+                code: 'FORBIDDEN_FIELD_MODIFICATION'
+            });
+        }
 
         // Prepare profile table fields
         const profileUpdates = [];
@@ -218,13 +225,13 @@ exports.updateProfile = async (req, res) => {
             }
 
             if (teacherUpdates.length > 0) {
-                const [existingT] = await db.execute('SELECT id FROM teachers WHERE user_id = ?', [userId]);
+                const [existingT] = await db.execute('SELECT id, status FROM teachers WHERE user_id = ?', [userId]);
                 if (existingT.length > 0) {
                     teacherValues.push(userId);
                     await db.execute(`UPDATE teachers SET ${teacherUpdates.join(', ')} WHERE user_id = ?`, teacherValues);
                 } else {
                     await db.execute(
-                        'INSERT INTO teachers (id, user_id, specialty, experience, degree, bio, status, created_at) VALUES (UUID(), ?, ?, ?, ?, ?, "active", NOW())',
+                        'INSERT INTO teachers (id, user_id, specialty, experience, degree, bio, status, created_at) VALUES (UUID(), ?, ?, ?, ?, ?, "pending", NOW())',
                         [userId, body.specialty || null, body.experience || null, body.degree || null, body.bio || null]
                     );
                 }
@@ -264,9 +271,9 @@ exports.changePassword = async (req, res) => {
             return res.status(400).json({ error: 'كلمة المرور الحالية غير صحيحة / Current password is incorrect' });
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
         await db.execute(
-            'UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?',
+            'UPDATE users SET password = ?, token_version = COALESCE(token_version, 1) + 1, updated_at = NOW() WHERE id = ?',
             [hashedPassword, userId]
         );
 

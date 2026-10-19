@@ -386,6 +386,48 @@ exports.updateUser = async (req, res) => {
         const updates = [];
         const params = [];
 
+        if (role) {
+            const cleanRole = String(role).trim().toLowerCase();
+            if (!['admin', 'teacher', 'student'].includes(cleanRole)) {
+                return res.status(400).json({ error: 'Valid role is required (admin, teacher, student)' });
+            }
+            updates.push('role = ?');
+            params.push(cleanRole);
+
+            // Keep user_roles table in exact sync
+            const [existingRole] = await db.execute('SELECT id FROM user_roles WHERE user_id = ?', [id]);
+            if (existingRole.length > 0) {
+                await db.execute('UPDATE user_roles SET role = ? WHERE user_id = ?', [cleanRole, id]);
+            } else {
+                await db.execute(
+                    'INSERT INTO user_roles (id, user_id, role) VALUES (?, ?, ?)',
+                    [crypto.randomUUID(), id, cleanRole]
+                );
+            }
+
+            // Invalidate existing sessions immediately upon role change
+            updates.push('token_version = COALESCE(token_version, 1) + 1');
+
+            // Ensure teacher or student profile record exists
+            if (cleanRole === 'teacher') {
+                const [t] = await db.execute('SELECT id FROM teachers WHERE user_id = ?', [id]);
+                if (t.length === 0) {
+                    await db.execute(
+                        'INSERT INTO teachers (id, user_id, status) VALUES (?, ?, ?)',
+                        [crypto.randomUUID(), id, 'approved']
+                    );
+                }
+            } else if (cleanRole === 'student') {
+                const [s] = await db.execute('SELECT id FROM students WHERE user_id = ?', [id]);
+                if (s.length === 0) {
+                    await db.execute(
+                        'INSERT INTO students (id, user_id, status) VALUES (?, ?, ?)',
+                        [crypto.randomUUID(), id, 'active']
+                    );
+                }
+            }
+        }
+
         if (email) {
             updates.push('email = ?');
             params.push(email);
@@ -395,9 +437,10 @@ exports.updateUser = async (req, res) => {
             params.push(username);
         }
         if (password && password.trim().length > 0) {
-            const hash = await bcrypt.hash(password, 10);
+            const hash = await bcrypt.hash(password, 12);
             updates.push('password = ?');
             params.push(hash);
+            updates.push('token_version = COALESCE(token_version, 1) + 1');
         }
         if (wallet_pin !== undefined) {
             updates.push('wallet_pin = ?');
@@ -406,10 +449,10 @@ exports.updateUser = async (req, res) => {
         if (status) {
             updates.push('status = ?');
             params.push(status);
-        }
-        if (role) {
-            updates.push('role = ?');
-            params.push(role);
+            // Invalidate sessions immediately if user is suspended or banned
+            if (['suspended', 'banned', 'inactive'].includes(status)) {
+                updates.push('token_version = COALESCE(token_version, 1) + 1');
+            }
         }
 
         if (updates.length > 0) {
@@ -476,27 +519,36 @@ exports.updateUserRole = async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
 
-    if (!role || !['admin', 'teacher', 'student'].includes(role)) {
+    const cleanRole = String(role || '').trim().toLowerCase();
+    if (!cleanRole || !['admin', 'teacher', 'student'].includes(cleanRole)) {
         return res.status(400).json({ error: 'Valid role is required (admin, teacher, student)' });
     }
 
     try {
-        // Update users table
-        await db.execute('UPDATE users SET role = ? WHERE id = ?', [role, id]);
+        // Prevent accidental self-demotion if the admin is modifying their own account
+        if (id === req.user.id && cleanRole !== 'admin') {
+            const [adminCount] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active'");
+            if (adminCount[0]?.count <= 1) {
+                return res.status(400).json({ error: 'لا يمكن خفض رتبة الحساب الإداري الوحيد في النظام / Cannot demote the sole active administrator.' });
+            }
+        }
+
+        // Update users table and immediately revoke active sessions by bumping token_version
+        await db.execute('UPDATE users SET role = ?, token_version = COALESCE(token_version, 1) + 1 WHERE id = ?', [cleanRole, id]);
 
         // Upsert user_roles
         const [existingRole] = await db.execute('SELECT id FROM user_roles WHERE user_id = ?', [id]);
         if (existingRole.length > 0) {
-            await db.execute('UPDATE user_roles SET role = ? WHERE user_id = ?', [role, id]);
+            await db.execute('UPDATE user_roles SET role = ? WHERE user_id = ?', [cleanRole, id]);
         } else {
             await db.execute(
                 'INSERT INTO user_roles (id, user_id, role) VALUES (?, ?, ?)',
-                [crypto.randomUUID(), id, role]
+                [crypto.randomUUID(), id, cleanRole]
             );
         }
 
         // Ensure teacher/student records exist
-        if (role === 'teacher') {
+        if (cleanRole === 'teacher') {
             const [t] = await db.execute('SELECT id FROM teachers WHERE user_id = ?', [id]);
             if (t.length === 0) {
                 await db.execute(
@@ -504,7 +556,7 @@ exports.updateUserRole = async (req, res) => {
                     [crypto.randomUUID(), id, 'approved']
                 );
             }
-        } else if (role === 'student') {
+        } else if (cleanRole === 'student') {
             const [s] = await db.execute('SELECT id FROM students WHERE user_id = ?', [id]);
             if (s.length === 0) {
                 await db.execute(
@@ -514,7 +566,7 @@ exports.updateUserRole = async (req, res) => {
             }
         }
 
-        res.json({ message: 'User role updated successfully', role });
+        res.json({ message: 'User role updated successfully', role: cleanRole });
     } catch (err) {
         console.error('[updateUserRole]', err);
         res.status(500).json({ error: err.message });

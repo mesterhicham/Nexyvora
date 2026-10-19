@@ -8,13 +8,25 @@ const emailService = require('../services/emailService');
  * Register user (Atomic Transaction)
  */
 exports.register = async (req, res) => {
-    const { email, password, fullName, city, country, whatsappNumber, role, referralCode, ref } = req.body;
+    const { email, password, fullName, city, country, whatsappNumber, referralCode, ref } = req.body;
     
-    // Security Protection: Block any attempt to register teacher or admin accounts publicly
-    if (role && (role.toLowerCase() === 'teacher' || role.toLowerCase() === 'instructor' || role.toLowerCase() === 'admin')) {
-        return res.status(403).json({ 
-            error: 'Instructor and Administrator accounts cannot be created via public registration. They must be provisioned directly by an administrator.' 
-        });
+    // Security Protection: Block any attempt to specify roles or elevated privileges publicly
+    const rawBody = req.body || {};
+    const bodyKeys = Object.keys(rawBody).map(k => k.toLowerCase().replace(/[^a-z0-9]/g, ''));
+    const sensitiveKeys = ['role', 'roles', 'isadmin', 'status', 'userstatus', 'tokenversion', 'permissions', 'accountrole'];
+    for (const key of sensitiveKeys) {
+        if (bodyKeys.includes(key)) {
+            const originalKey = Object.keys(rawBody).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === key);
+            const rawVal = rawBody[originalKey];
+            const strVal = String(rawVal || '').trim().toLowerCase();
+            // Allow only benign explicit specification of 'student' for 'role'
+            if (key === 'role' && strVal === 'student') {
+                continue;
+            }
+            return res.status(403).json({ 
+                error: 'حسابات الأساتذة والمديرين والأدوار الخاصة لا يمكن إنشاؤها عبر التسجيل العام. / Non-student roles or sensitive privilege attributes cannot be specified via public registration.' 
+            });
+        }
     }
 
     // Role is strictly enforced by the server
@@ -212,8 +224,10 @@ exports.changePassword = async (req, res) => {
 // --- ADMIN SETUP (First Admin) ---
 exports.checkAdminExists = async (req, res) => {
     try {
-        const [rows] = await db.query("SELECT id FROM user_roles WHERE role = 'admin' LIMIT 1");
-        res.json({ hasAdmin: rows.length > 0 });
+        const [rolesAdmin] = await db.query("SELECT id FROM user_roles WHERE role = 'admin' LIMIT 1");
+        const [usersAdmin] = await db.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
+        const hasAdmin = rolesAdmin.length > 0 || usersAdmin.length > 0;
+        res.json({ hasAdmin });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -245,11 +259,15 @@ exports.setupFirstAdmin = async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        // Concurrency protection: Lock admin check
-        const [rows] = await connection.query("SELECT id FROM user_roles WHERE role = 'admin' FOR UPDATE");
-        if (rows.length > 0) {
+        // Concurrency protection: Lock admin check across BOTH user_roles AND users tables
+        const [rolesAdmin] = await connection.query("SELECT id FROM user_roles WHERE role = 'admin' LIMIT 1 FOR UPDATE");
+        const [usersAdmin] = await connection.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1 FOR UPDATE");
+        if (rolesAdmin.length > 0 || usersAdmin.length > 0) {
             await connection.rollback();
-            return res.status(403).json({ error: 'يوجد مدير بالفعل في النظام / An admin already exists in the system.' });
+            return res.status(403).json({ 
+                error: 'يوجد مدير بالفعل في النظام. مسار الإعداد مغلق نهائياً / An admin already exists in the system. Setup route is permanently closed.',
+                code: 'ADMIN_ALREADY_EXISTS'
+            });
         }
 
         const userId = req.user?.id;
@@ -258,7 +276,7 @@ exports.setupFirstAdmin = async (req, res) => {
             return res.status(401).json({ error: 'Authentication required' });
         }
 
-        await connection.query("UPDATE users SET role = 'admin', status = 'active' WHERE id = ?", [userId]);
+        await connection.query("UPDATE users SET role = 'admin', status = 'active', token_version = COALESCE(token_version, 1) + 1 WHERE id = ?", [userId]);
         await connection.query(
             "INSERT INTO user_roles (id, user_id, role) VALUES (?, ?, 'admin') ON DUPLICATE KEY UPDATE role = 'admin'",
             [crypto.randomUUID(), userId]

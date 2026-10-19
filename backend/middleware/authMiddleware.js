@@ -13,7 +13,10 @@ const auth = async (req, res, next) => {
 
         // Verify user existence, status, and token_version against live database
         const [users] = await db.query(
-            'SELECT id, role, status, token_version FROM users WHERE id = ?',
+            `SELECT u.id, u.role, u.status, u.token_version, ur.role AS ur_role 
+             FROM users u 
+             LEFT JOIN user_roles ur ON u.id = ur.user_id 
+             WHERE u.id = ? LIMIT 1`,
             [decoded.id]
         );
 
@@ -43,11 +46,17 @@ const auth = async (req, res, next) => {
             });
         }
 
+        // Live role derived strictly from the database (user_roles prioritized, then users.role, default 'student')
+        // CRITICAL: Under no circumstances trust or fallback to decoded.role from user's JWT
+        const liveRole = (user.ur_role || user.role || 'student').trim().toLowerCase();
+
         // Attach live user info to request
         req.user = {
-            ...decoded,
-            role: user.role || decoded.role,
-            status: user.status
+            id: user.id,
+            email: decoded.email,
+            role: liveRole,
+            status: user.status,
+            token_version: user.token_version
         };
 
         next();
@@ -66,7 +75,10 @@ const optionalAuth = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const [users] = await db.query(
-            'SELECT id, role, status, token_version FROM users WHERE id = ?',
+            `SELECT u.id, u.role, u.status, u.token_version, ur.role AS ur_role 
+             FROM users u 
+             LEFT JOIN user_roles ur ON u.id = ur.user_id 
+             WHERE u.id = ? LIMIT 1`,
             [decoded.id]
         );
 
@@ -74,10 +86,13 @@ const optionalAuth = async (req, res, next) => {
             const user = users[0];
             const userTokenVersion = user.token_version || 1;
             if (decoded.token_version !== undefined && decoded.token_version !== null && Number(decoded.token_version) === Number(userTokenVersion)) {
+                const liveRole = (user.ur_role || user.role || 'student').trim().toLowerCase();
                 req.user = {
-                    ...decoded,
-                    role: user.role || decoded.role,
-                    status: user.status
+                    id: user.id,
+                    email: decoded.email,
+                    role: liveRole,
+                    status: user.status,
+                    token_version: user.token_version
                 };
             }
         }
@@ -89,6 +104,9 @@ const optionalAuth = async (req, res, next) => {
 
 const authorize = (...roles) => {
     return (req, res, next) => {
+        if (!req.user || !req.user.role) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
         if (!roles.includes(req.user.role)) {
             return res.status(403).json({ error: 'Access denied: insufficient permissions' });
         }

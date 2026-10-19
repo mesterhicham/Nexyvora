@@ -1,5 +1,6 @@
 const runAuthTests = require('./auth.test');
 const runRbacTests = require('./rbac.test');
+const runPrivilegeEscalationTests = require('./privilege_escalation_security.test');
 const runWalletSecurityTests = require('./wallet_security.test');
 const runUploadSecurityTests = require('./upload_security.test');
 const runCleanDbTest = require('./clean_db.test');
@@ -13,7 +14,7 @@ async function runAll() {
     const results = [];
 
     try {
-        console.log('\n[1/5] Running Authentication & Recovery HTTP Integration Tests...');
+        console.log('\n[1/6] Running Authentication & Recovery HTTP Integration Tests...');
         await runAuthTests();
         results.push({ name: 'Authentication, Admin Secret & SHA-256 OTP', status: 'PASSED' });
     } catch (err) {
@@ -21,7 +22,7 @@ async function runAll() {
     }
 
     try {
-        console.log('\n[2/5] Running RBAC & Teacher Approval HTTP Integration Tests...');
+        console.log('\n[2/6] Running RBAC & Teacher Approval HTTP Integration Tests...');
         await runRbacTests();
         results.push({ name: 'RBAC & Teacher Approval Guards', status: 'PASSED' });
     } catch (err) {
@@ -29,7 +30,15 @@ async function runAll() {
     }
 
     try {
-        console.log('\n[3/5] Running Financial & Wallet HTTP Integration Tests...');
+        console.log('\n[3/6] Running Privilege Escalation & Admin Tampering HTTP Tests...');
+        await runPrivilegeEscalationTests();
+        results.push({ name: 'Privilege Escalation & Admin Tampering Prevention', status: 'PASSED' });
+    } catch (err) {
+        results.push({ name: 'Privilege Escalation & Admin Tampering Prevention', status: 'FAILED', error: err.message });
+    }
+
+    try {
+        console.log('\n[4/6] Running Financial & Wallet HTTP Integration Tests...');
         await runWalletSecurityTests();
         results.push({ name: 'Financial Integrity, Deductions & Duplicate Guard', status: 'PASSED' });
     } catch (err) {
@@ -37,7 +46,7 @@ async function runAll() {
     }
 
     try {
-        console.log('\n[4/5] Running File Upload Security HTTP Integration Tests...');
+        console.log('\n[5/6] Running File Upload Security HTTP Integration Tests...');
         await runUploadSecurityTests();
         results.push({ name: 'File Upload Whitelist, SVG Ban & Private File ACL', status: 'PASSED' });
     } catch (err) {
@@ -45,7 +54,7 @@ async function runAll() {
     }
 
     try {
-        console.log('\n[5/5] Running Clean Database Schema Import & Migration Test...');
+        console.log('\n[6/6] Running Clean Database Schema Import & Migration Test...');
         await runCleanDbTest();
         results.push({ name: 'Clean Database Installation & Validation', status: 'PASSED' });
     } catch (err) {
