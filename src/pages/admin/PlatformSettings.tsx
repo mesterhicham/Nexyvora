@@ -895,10 +895,10 @@ export default function PlatformSettings() {
                         className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shadow-sm"
                         style={{ backgroundColor: getValue('primary_color').startsWith('#') ? getValue('primary_color') : `hsl(${getValue('primary_color')})` }}
                       >
-                        SU
+                        NX
                       </div>
                       <div>
-                        <h4 className="font-bold text-foreground">Simply University</h4>
+                        <h4 className="font-bold text-foreground">NEXYVORA</h4>
                         <p className="text-xs text-muted-foreground">{tr("معاينة عناصر الواجهة بالألوان الجديدة", "UI components preview with selected palette")}</p>
                       </div>
                     </div>
@@ -956,7 +956,7 @@ export default function PlatformSettings() {
                   {t('admin.landingPage', tr("الواجهة الرئيسية وقسم الـ HERO", "Landing Page & Hero Section"))}
                 </h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  {t('admin.landingPageDesc', tr("تخصيص نصوص وصورة قسم الـ HERO لواجهة جامعة Simply مع معاينة حية.", "Customize hero section headings, image, and CTAs with live preview."))}
+                  {t('admin.landingPageDesc', tr("تخصيص نصوص وصورة قسم الـ HERO لواجهة منصة NEXYVORA مع معاينة حية.", "Customize hero section headings, image, and CTAs with live preview."))}
                 </p>
               </div>
             </div>
@@ -990,10 +990,10 @@ export default function PlatformSettings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Image className="h-5 w-5 text-primary" />
-                {t('admin.heroImage', tr("صورة الـ HERO لجامعة SIMPLY", "Simply University Hero Image"))}
+                {t('admin.heroImage', tr("صورة الـ HERO لمنصة NEXYVORA", "NEXYVORA Hero Image"))}
               </CardTitle>
               <CardDescription>
-                {t('admin.heroImageDesc', tr("الصورة المميزة المعروضة في واجهة المنصة بجانب النصوص الترحيبية لجامعة Simply University.", "Featured hero image displayed on home page next to welcome copy."))}
+                {t('admin.heroImageDesc', tr("الصورة المميزة المعروضة في واجهة المنصة بجانب النصوص الترحيبية لمنصة NEXYVORA.", "Featured hero image displayed on home page next to welcome copy."))}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -1046,7 +1046,7 @@ export default function PlatformSettings() {
                   <Input
                     value={getValue('hero_image_url')}
                     onChange={(e) => handleChange('hero_image_url', e.target.value)}
-                    placeholder={tr("/simply_university_hero.jpg أو https://...", "/simply_university_hero.jpg or https://...")}
+                    placeholder={tr("/nexyvora_hero.jpg أو https://...", "/nexyvora_hero.jpg or https://...")}
                     className="font-mono text-xs sm:text-sm"
                   />
                   <div className="flex items-center gap-2 shrink-0">
@@ -1061,11 +1061,11 @@ export default function PlatformSettings() {
                     <Button
                       type="button"
                       variant="outline"
-                      title={tr("استعادة صورة Simply University الافتراضية", "Restore Simply University default image")}
+                      title={tr("استعادة صورة NEXYVORA الافتراضية", "Restore NEXYVORA default image")}
                       onClick={async () => {
                         handleChange('hero_image_url', '/simply_university_hero.jpg');
                         await updateSetting.mutateAsync({ key: 'hero_image_url', value: '/simply_university_hero.jpg' });
-                        toast.success(tr("تمت استعادة صورة جامعة Simply الافتراضية بنجاح!", "Default image restored successfully!"));
+                        toast.success(tr("تمت استعادة صورة منصة NEXYVORA الافتراضية بنجاح!", "Default NEXYVORA image restored successfully!"));
                       }}
                       className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
                     >
@@ -1091,7 +1091,7 @@ export default function PlatformSettings() {
                   <div className="relative rounded-xl overflow-hidden border border-border aspect-video max-h-64 bg-secondary/30">
                     <img 
                       src={getValue('hero_image_url') || '/simply_university_hero.jpg'} 
-                      alt="Simply University Hero"
+                      alt="NEXYVORA Hero"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/simply_university_hero.jpg';
@@ -1100,7 +1100,7 @@ export default function PlatformSettings() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4">
                       <div className="text-white">
                         <span className="px-2.5 py-1 rounded-full bg-primary/90 text-[11px] font-bold shadow">
-                          Simply University Campus
+                          NEXYVORA Campus
                         </span>
                       </div>
                     </div>
@@ -1131,7 +1131,7 @@ export default function PlatformSettings() {
                   <Input
                     value={getValue('hero_badge')}
                     onChange={(e) => handleChange('hero_badge', e.target.value)}
-                    placeholder={tr("🎓 مرحباً بكم في جامعة Simply University — التميز والابتكار الأكاديمي", "🎓 Welcome to Simply University — Academic Excellence & Innovation")}
+                    placeholder={tr("🎓 مرحباً بكم في NEXYVORA — التميز والابتكار الأكاديمي", "🎓 Welcome to NEXYVORA — Academic Excellence & Innovation")}
                   />
                   <Button 
                     onClick={() => handleSave('hero_badge')} 
@@ -1170,7 +1170,7 @@ export default function PlatformSettings() {
                     <Input
                       value={getValue('hero_title_accent')}
                       onChange={(e) => handleChange('hero_title_accent', e.target.value)}
-                      placeholder={tr("SIMPLY UNIVERSITY / التعليم المهني المتخصص", "SIMPLY UNIVERSITY / Specialized Professional Education")}
+                      placeholder={tr("NEXYVORA / التميز المهني والأكاديمي", "NEXYVORA / Professional & Academic Excellence")}
                     />
                     <Button 
                       onClick={() => handleSave('hero_title_accent')} 
@@ -1371,7 +1371,7 @@ export default function PlatformSettings() {
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
                       {getValue('hero_title') || 'Shape Your Future with'}{' '}
                       <span className="block text-amber-200 mt-1">
-                        {getValue('hero_title_accent') || 'SIMPLY UNIVERSITY'}
+                        {getValue('hero_title_accent') || 'NEXYVORA'}
                       </span>
                     </h2>
 
@@ -1394,7 +1394,7 @@ export default function PlatformSettings() {
                     <div className="relative rounded-2xl overflow-hidden border-2 border-white/30 shadow-2xl aspect-video bg-black/20">
                       <img 
                         src={getValue('hero_image_url') || '/simply_university_hero.jpg'} 
-                        alt="Simply University Hero"
+                        alt="NEXYVORA Hero"
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/simply_university_hero.jpg';
@@ -1402,7 +1402,7 @@ export default function PlatformSettings() {
                       />
                       <div className="absolute top-2 start-2 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] text-white font-semibold flex items-center gap-1.5">
                         <GraduationCap className="h-3 w-3 text-amber-300" />
-                        Simply University
+                        NEXYVORA
                       </div>
                     </div>
                   </div>

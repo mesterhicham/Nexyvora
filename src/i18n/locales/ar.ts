@@ -275,7 +275,7 @@ export const ar = {
     "signInAs": "تسجيل الدخول كـ",
     "noAccount": "ليس لديك حساب؟",
     "contactAdmin": "تواصل مع الإدارة",
-    "portalTitle": "بوابة Simply University",
+    "portalTitle": "بوابة NEXYVORA",
     "portalDesc": "الوصول إلى بيئة التعلم الخاصة بك، تتبع تقدمك وحقق أهدافك التعليمية."
   },
   "verify": {
@@ -364,9 +364,9 @@ export const ar = {
     "welcomeMessage": "رسالة الترحيب",
     "footerText": "نص التذييل",
     "landingPage": "الواجهة الرئيسية (Hero)",
-    "landingPageDesc": "تخصيص نصوص وصورة قسم الـ HERO لواجهة جامعة Simply.",
-    "heroImage": "صورة الـ HERO لجامعة SIMPLY",
-    "heroImageDesc": "الصورة المميزة المعروضة في واجهة المنصة بجانب النصوص الترحيبية لجامعة Simply University.",
+    "landingPageDesc": "تخصيص نصوص وصورة قسم الـ HERO لواجهة منصة NEXYVORA.",
+    "heroImage": "صورة الـ HERO لمنصة NEXYVORA",
+    "heroImageDesc": "الصورة المميزة المعروضة في واجهة المنصة بجانب النصوص الترحيبية لمنصة NEXYVORA.",
     "uploadHeroImage": "رفع صورة الـ HERO",
     "heroImagePreview": "معاينة صورة الـ HERO الحالية",
     "heroBadge": "شارة البداية العلوية (Badge)",
@@ -648,8 +648,8 @@ export const ar = {
     "mobileDev": "تطوير تطبيقات الجوال"
   },
   "diploma": {
-    "academyName": "Simply University",
-    "subtitle": "التعليم التقني المهني",
+    "academyName": "NEXYVORA",
+    "subtitle": "التميز المهني والأكاديمي",
     "certificate": "شهادة",
     "certifyThat": "نشهد بأن",
     "hasCompleted": "قد أتم بنجاح برنامج",

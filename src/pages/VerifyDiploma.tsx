@@ -1,19 +1,39 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PlatformLogo } from '@/components/PlatformLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { GraduationCap, Search, ArrowLeft, CheckCircle, XCircle, Award } from 'lucide-react';
+import { GraduationCap, Search, ArrowLeft, CheckCircle, XCircle, Award, Eye } from 'lucide-react';
 import { diplomas } from '@/data/mockData';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { DiplomaTemplate } from '@/components/diploma/DiplomaTemplate';
 
 export default function VerifyDiploma() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const [serialNumber, setSerialNumber] = useState('');
   const [verificationResult, setVerificationResult] = useState<'valid' | 'invalid' | null>(null);
   const [foundDiploma, setFoundDiploma] = useState<typeof diplomas[0] | null>(null);
+  const [showCertificatePreview, setShowCertificatePreview] = useState(false);
+
+  useEffect(() => {
+    const querySerial = searchParams.get('serial');
+    if (querySerial) {
+      setSerialNumber(querySerial);
+      const diploma = diplomas.find(
+        (d) => d.serialNumber.toLowerCase() === querySerial.toLowerCase() && d.status === 'issued'
+      );
+      if (diploma) {
+        setVerificationResult('valid');
+        setFoundDiploma(diploma);
+      } else {
+        setVerificationResult('invalid');
+        setFoundDiploma(null);
+      }
+    }
+  }, [searchParams]);
 
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +53,7 @@ export default function VerifyDiploma() {
     setSerialNumber('');
     setVerificationResult(null);
     setFoundDiploma(null);
+    setShowCertificatePreview(false);
   };
 
   return (
@@ -133,6 +154,31 @@ export default function VerifyDiploma() {
                         <p className="font-medium text-foreground">{foundDiploma.specialty}</p>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowCertificatePreview(!showCertificatePreview)}
+                      className="w-full gap-2 border-success/30 text-emerald-600 dark:text-emerald-400 hover:bg-success/10"
+                    >
+                      <Eye className="h-4 w-4" />
+                      {showCertificatePreview ? (t('diploma.hidePreview', 'إخفاء معاينة الشهادة')) : (t('diploma.viewCertificate', 'عرض الشهادة الرقمية المعتمدة'))}
+                    </Button>
+                    {showCertificatePreview && (
+                      <div className="mt-4 overflow-x-auto flex justify-center py-4 bg-muted/40 rounded-2xl border border-border">
+                        <div className="transform scale-[0.45] sm:scale-[0.6] origin-top my-2">
+                          <DiplomaTemplate
+                            studentName={foundDiploma.studentName}
+                            program={foundDiploma.program}
+                            specialty={foundDiploma.specialty}
+                            serialNumber={foundDiploma.serialNumber}
+                            issueDate={foundDiploma.issueDate}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

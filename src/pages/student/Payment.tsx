@@ -330,7 +330,7 @@ export default function Payment() {
                       Bank Transfer Instructions
                     </h4>
                     <div className="text-sm space-y-1">
-                      <p><strong>Bank Name:</strong> Simply University Bank</p>
+                      <p><strong>Bank Name:</strong> NEXYVORA Bank</p>
                       <p><strong>Account Number:</strong> 1234-5678-9012</p>
                       <p><strong>IBAN:</strong> XX00 1234 5678 9012 3456 78</p>
                       <p><strong>Reference:</strong> Use your email or student ID</p>

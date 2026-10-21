@@ -275,7 +275,7 @@ export const en = {
     "signInAs": "Sign In as",
     "noAccount": "Don't have an account?",
     "contactAdmin": "Contact Administration",
-    "portalTitle": "Simply University Portal",
+    "portalTitle": "NEXYVORA Portal",
     "portalDesc": "Access your personalized learning environment, track your progress, and achieve your educational goals."
   },
   "verify": {
@@ -364,8 +364,8 @@ export const en = {
     "welcomeMessage": "Welcome Message",
     "footerText": "Footer Text",
     "landingPage": "Landing Page (Hero)",
-    "landingPageDesc": "Customize the texts and hero image of the Simply University homepage.",
-    "heroImage": "SIMPLY University Hero Image",
+    "landingPageDesc": "Customize the texts and hero image of the NEXYVORA homepage.",
+    "heroImage": "NEXYVORA Hero Image",
     "heroImageDesc": "The featured showcase image displayed in the hero section of the landing page.",
     "uploadHeroImage": "Upload Hero Image",
     "heroImagePreview": "Current Hero Image Preview",
@@ -648,8 +648,8 @@ export const en = {
     "mobileDev": "Mobile Development"
   },
   "diploma": {
-    "academyName": "Simply University",
-    "subtitle": "Professional Technical Education",
+    "academyName": "NEXYVORA",
+    "subtitle": "Professional & Academic Excellence",
     "certificate": "Diploma",
     "certifyThat": "This is to certify that",
     "hasCompleted": "has successfully completed the",
