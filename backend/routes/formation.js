@@ -22,6 +22,7 @@ router.post('/content/reorder', auth, authorize('admin'), formationController.re
 // Enrollments routes
 router.get('/enrollments/all', auth, authorize('admin'), formationController.getAllEnrollments);
 router.get('/enrollments/mine', auth, formationController.getStudentEnrollments);
+router.get('/enrollments/:enrollmentId/certificate', auth, formationController.claimCertificate);
 router.put('/enrollments/:id/status', auth, authorize('admin'), formationController.updateEnrollmentStatus);
 
 // Payments routes

@@ -145,6 +145,20 @@ export default function StudentFormations() {
   };
 
   const handleDownloadCertificate = async (enrollment: FormationEnrollment) => {
+    const total = enrollment.total_contents ?? 0;
+    const completed = enrollment.completed_contents ?? 0;
+    const isCompleted = Boolean(enrollment.is_completed || (total > 0 && completed >= total));
+
+    if (!isCompleted) {
+      toast.error(
+        tr(
+          `لا يمكن الحصول على الشهادة إلا بعد الإنتهاء الكامل من الدورة التكوينية ومتابعة كافة دروسها بنسبة 100% (أكملت ${completed} من أصل ${total} درس).`,
+          `You cannot obtain the certificate until after completing 100% of the training course (${completed}/${total} completed).`
+        )
+      );
+      return;
+    }
+
     setCertificateData({
       formationTitle: enrollment.formation_title || 'Formation',
       enrollmentId: enrollment.id,
@@ -313,41 +327,103 @@ export default function StudentFormations() {
 
         <TabsContent value="my-courses">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {myFormations.map((enrollment) => (
-              <Card key={enrollment.id} className="flex flex-col overflow-hidden">
-                {enrollment.thumbnail_url ? (
-                  <img 
-                    src={enrollment.thumbnail_url} 
-                    alt={enrollment.formation_title}
-                    className="w-full h-40 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-40 bg-muted flex items-center justify-center">
-                    <Image className="h-12 w-12 text-muted-foreground" />
-                  </div>
-                )}
-                <CardHeader>
-                  <CardTitle className="line-clamp-2">{enrollment.formation_title}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 space-y-4">
-                  <FormationStats formationId={enrollment.formation_id} isRtl={isRtl} />
-                </CardContent>
-                <CardFooter className="flex gap-2">
-                  <Button className="flex-1" onClick={() => openWatchModal(enrollment)}>
-                    <Play className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    {tr("متابعة", "Continue")}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => handleDownloadCertificate(enrollment)}
-                    title={tr("تحميل الشهادة", "Download Certificate")}
-                  >
-                    <Award className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+            {myFormations.map((enrollment) => {
+              const total = enrollment.total_contents ?? 0;
+              const completed = enrollment.completed_contents ?? 0;
+              const isCompleted = Boolean(enrollment.is_completed || (total > 0 && completed >= total));
+              const progressPercent = total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : (enrollment.progress_percent || 0);
+
+              return (
+                <Card key={enrollment.id} className="flex flex-col overflow-hidden border-border/80 shadow-xs hover:shadow-md transition-shadow">
+                  {enrollment.thumbnail_url ? (
+                    <img 
+                      src={enrollment.thumbnail_url} 
+                      alt={enrollment.formation_title}
+                      className="w-full h-40 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-40 bg-muted flex items-center justify-center">
+                      <Image className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      {isCompleted ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 gap-1 text-[11px] font-bold">
+                          <CheckCircle className="h-3 w-3" />
+                          {tr("مكتملة بنجاح", "Completed")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="gap-1 text-[11px] font-medium text-muted-foreground">
+                          <Clock className="h-3 w-3 text-amber-500" />
+                          {tr("قيد التدريب", "In Progress")}
+                        </Badge>
+                      )}
+                      <span className="text-xs font-mono font-semibold text-muted-foreground">
+                        {completed}/{total} {tr("درس", "lessons")}
+                      </span>
+                    </div>
+                    <CardTitle className="line-clamp-2 text-base">{enrollment.formation_title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-1 space-y-3 pt-0">
+                    <FormationStats formationId={enrollment.formation_id} isRtl={isRtl} />
+
+                    {/* Progress Bar & Certificate Eligibility */}
+                    <div className="space-y-1.5 pt-2 border-t border-border/60">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-muted-foreground font-medium">
+                          {tr("نسبة الإنجاز", "Course Progress")}
+                        </span>
+                        <span className={`font-bold font-mono ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-primary'}`}>
+                          {progressPercent}%
+                        </span>
+                      </div>
+                      <Progress value={progressPercent} className="h-2" />
+
+                      {isCompleted ? (
+                        <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-1">
+                          <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+                          <span>{tr("تهانينا! أتممت الدورة وأصبحت الشهادة متاحة", "Course completed, certificate unlocked")}</span>
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 mt-1 leading-snug">
+                          <Lock className="h-3.5 w-3.5 shrink-0" />
+                          <span>{tr("لا تُمنح الشهادة إلا بعد الإنتهاء من كامل دروس الدورة (100%)", "Certificate only available after completing 100% of the course")}</span>
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex gap-2 pt-2 border-t border-border/40">
+                    <Button className="flex-1 gap-2" onClick={() => openWatchModal(enrollment)}>
+                      <Play className="h-4 w-4 rtl:rotate-180" />
+                      {isCompleted ? tr("مراجعة الدورة", "Review Course") : tr("متابعة", "Continue")}
+                    </Button>
+                    <Button 
+                      variant={isCompleted ? "default" : "outline"}
+                      className={`gap-1.5 shrink-0 px-3 transition-colors ${
+                        isCompleted 
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-xs' 
+                          : 'border-dashed border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10'
+                      }`}
+                      onClick={() => handleDownloadCertificate(enrollment)}
+                      title={isCompleted ? tr("تحميل الشهادة المعتمدة", "Download Certificate") : tr("الشهادة مقفلة — أكمل كافة الدروس أولاً", "Certificate locked — complete all lessons first")}
+                    >
+                      {isCompleted ? (
+                        <>
+                          <Award className="h-4 w-4 text-amber-300" />
+                          <span className="text-xs font-bold">{tr("الشهادة", "Certificate")}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="h-3.5 w-3.5 text-amber-500" />
+                          <span className="text-xs">{tr("الشهادة مقفلة", "Locked")}</span>
+                        </>
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
             {myFormations.length === 0 && (
               <div className="col-span-full text-center py-12 text-muted-foreground">
                 {tr("لم تسجل في أي مسار تكويني بعد.", "You haven't enrolled in any formations yet.")}
@@ -480,46 +556,100 @@ export default function StudentFormations() {
             </div>
 
             {/* Content List */}
-            <div className="space-y-2">
-              <h4 className="font-medium mb-4">{tr("محتوى الدورة", "Course Content")}</h4>
-              {formationContent?.map((content, index) => {
-                const isUnlocked = isContentUnlocked(index);
-                const contentProgress = progress?.find(p => p.content_id === content.id);
-                const isCompleted = contentProgress?.completed;
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <h4 className="font-semibold text-sm">{tr("محتوى وقائمة دروس الدورة", "Course Curriculum")}</h4>
+                <span className="text-xs font-mono font-medium text-muted-foreground">
+                  {progress?.filter(p => p.completed).length || 0} / {formationContent?.length || 0} {tr("مكتمل", "completed")}
+                </span>
+              </div>
+              <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+                {formationContent?.map((content, index) => {
+                  const isUnlocked = isContentUnlocked(index);
+                  const contentProgress = progress?.find(p => p.content_id === content.id);
+                  const isCompleted = contentProgress?.completed;
 
-                return (
-                  <button
-                    key={content.id}
-                    onClick={() => isUnlocked && setSelectedContentIndex(index)}
-                    disabled={!isUnlocked}
-                    className={`w-full p-3 rounded-lg text-left rtl:text-right ltr:text-left transition-colors ${
-                      selectedContentIndex === index 
-                        ? 'bg-primary text-primary-foreground' 
-                        : isUnlocked 
-                          ? 'bg-muted hover:bg-muted/80' 
-                          : 'bg-muted/50 opacity-50 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {isCompleted ? (
-                        <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
-                      ) : content.content_type === 'video' ? (
-                        isUnlocked ? <Video className="h-5 w-5 shrink-0" /> : <Lock className="h-5 w-5 shrink-0" />
-                      ) : (
-                        isUnlocked ? <FileText className="h-5 w-5 shrink-0" /> : <Lock className="h-5 w-5 shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{index + 1}. {content.title}</p>
-                        {content.duration_seconds && (
-                          <p className="text-xs opacity-70">
-                            {Math.floor(content.duration_seconds / 60)}:{(content.duration_seconds % 60).toString().padStart(2, '0')}
-                          </p>
+                  return (
+                    <button
+                      key={content.id}
+                      onClick={() => isUnlocked && setSelectedContentIndex(index)}
+                      disabled={!isUnlocked}
+                      className={`w-full p-3 rounded-lg text-left rtl:text-right ltr:text-left transition-colors ${
+                        selectedContentIndex === index 
+                          ? 'bg-primary text-primary-foreground' 
+                          : isUnlocked 
+                            ? 'bg-muted hover:bg-muted/80' 
+                            : 'bg-muted/50 opacity-50 cursor-not-allowed'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {isCompleted ? (
+                          <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
+                        ) : content.content_type === 'video' ? (
+                          isUnlocked ? <Video className="h-5 w-5 shrink-0" /> : <Lock className="h-5 w-5 shrink-0" />
+                        ) : (
+                          isUnlocked ? <FileText className="h-5 w-5 shrink-0" /> : <Lock className="h-5 w-5 shrink-0" />
                         )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{index + 1}. {content.title}</p>
+                          {content.duration_seconds && (
+                            <p className="text-xs opacity-70 font-mono">
+                              {Math.floor(content.duration_seconds / 60)}:{(content.duration_seconds % 60).toString().padStart(2, '0')}
+                            </p>
+                          )}
+                        </div>
                       </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Certificate Requirement & Claim Banner */}
+              {formationContent && formationContent.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-border">
+                  {(progress?.filter(p => p.completed).length || 0) >= formationContent.length ? (
+                    <div className="p-3.5 rounded-xl bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-teal-500/5 border border-emerald-500/30 text-center space-y-2">
+                      <div className="flex items-center justify-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300 text-xs">
+                        <Award className="h-4 w-4 text-amber-500" />
+                        {tr("تهانينا! لقد أتممت الدورة التكوينية بنجاح", "Congratulations! You completed the course")}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        {tr("يمكنك الآن الحصول على شهادة إتمام الدورة المعتمدة من منصة NEXYVORA.", "You can now claim your certified course completion certificate from NEXYVORA.")}
+                      </p>
+                      <Button
+                        size="sm"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold shadow-xs text-xs"
+                        onClick={() => {
+                          if (selectedEnrollment) {
+                            handleDownloadCertificate({
+                              ...selectedEnrollment,
+                              is_completed: true,
+                              total_contents: formationContent.length,
+                              completed_contents: formationContent.length
+                            });
+                          }
+                        }}
+                      >
+                        <Award className="h-4 w-4" />
+                        {tr("الحصول على الشهادة المعتمدة الآن", "Claim Your Certificate Now")}
+                      </Button>
                     </div>
-                  </button>
-                );
-              })}
+                  ) : (
+                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
+                        <Lock className="h-3.5 w-3.5 shrink-0" />
+                        <span>{tr("شرط الحصول على الشهادة:", "Certificate Requirement:")}</span>
+                      </div>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        {tr(
+                          `لا يمكن الحصول على الشهادة إلا بعد الإنتهاء من جميع دروس ومحتويات الدورة التكوينية (متبقي ${formationContent.length - (progress?.filter(p => p.completed).length || 0)} درس).`,
+                          `You can only obtain the certificate after completing all lessons (${formationContent.length - (progress?.filter(p => p.completed).length || 0)} lessons remaining).`
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>

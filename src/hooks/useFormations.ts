@@ -38,6 +38,10 @@ export interface FormationEnrollment {
   formation_title?: string;
   student_name?: string;
   thumbnail_url?: string;
+  total_contents?: number;
+  completed_contents?: number;
+  is_completed?: boolean;
+  progress_percent?: number;
 }
 
 export interface FormationPayment {
@@ -291,6 +295,7 @@ export function useUpdateProgress() {
     mutationFn: (data: any) => formationService.updateStudentProgress(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['formation-progress', variables.enrollmentId] });
+      queryClient.invalidateQueries({ queryKey: ['formation-enrollments'] });
     },
   });
 }

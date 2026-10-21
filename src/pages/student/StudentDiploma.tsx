@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Award, Download, CheckCircle, Loader2 } from 'lucide-react';
+import { Award, Download, CheckCircle, Loader2, Lock } from 'lucide-react';
 import { DiplomaTemplate } from '@/components/diploma/DiplomaTemplate';
 import { generateDiplomaPdf } from '@/utils/generateDiplomaPdf';
 import { useRef, useState } from 'react';
@@ -71,9 +71,22 @@ export default function StudentDiploma() {
           <h2 className="text-2xl font-bold text-foreground mb-2">
             {t('student.congratulations')}
           </h2>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-muted-foreground mb-4">
             {t('student.diplomaReady')}
           </p>
+
+          {/* Certificate Requirement Banner */}
+          <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5 text-left rtl:text-right">
+            <Lock className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+            <div className="space-y-1">
+              <p className="font-bold text-xs">
+                {t('diploma.requirementTitle', 'شرط منح الشهادة والاعتماد الرسمي:')}
+              </p>
+              <p className="text-muted-foreground leading-relaxed text-[11px]">
+                {t('diploma.requirementDesc', 'لا يمكن للعضو أو المتدرب الحصول على الشهادة أو تنزيلها إلا بعد الإنتهاء الكامل من الدورة التكوينية واستيفاء متطلبات النجاح بنسبة 100%.')}
+              </p>
+            </div>
+          </div>
           <div className="bg-secondary/50 rounded-xl p-6 mb-6 text-left rtl:text-right space-y-3">
             <div className="flex justify-between">
               <span className="text-muted-foreground">

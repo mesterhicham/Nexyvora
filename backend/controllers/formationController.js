@@ -144,12 +144,86 @@ exports.getStudentEnrollments = async (req, res) => {
         if (student.length === 0) return res.json([]);
         
         const [enrollments] = await db.execute(`
-            SELECT fe.*, f.title as formation_title, f.thumbnail_url
+            SELECT 
+                fe.*, 
+                f.title as formation_title, 
+                f.thumbnail_url,
+                COALESCE((SELECT COUNT(*) FROM formation_content fc WHERE fc.formation_id = fe.formation_id), 0) as total_contents,
+                COALESCE((
+                    SELECT COUNT(*) 
+                    FROM formation_progress fp 
+                    JOIN formation_content fc ON fp.content_id = fc.id 
+                    WHERE fp.enrollment_id = fe.id AND fp.completed = 1 AND fc.formation_id = fe.formation_id
+                ), 0) as completed_contents
             FROM formation_enrollments fe
             JOIN formations f ON fe.formation_id = f.id
             WHERE fe.student_id = ?
         `, [student[0].id]);
-        res.json(enrollments);
+
+        const enriched = enrollments.map(e => {
+            const total = Number(e.total_contents) || 0;
+            const completed = Number(e.completed_contents) || 0;
+            const isCompleted = total > 0 && completed >= total;
+            const percent = total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+            return {
+                ...e,
+                total_contents: total,
+                completed_contents: completed,
+                is_completed: isCompleted,
+                progress_percent: percent
+            };
+        });
+
+        res.json(enriched);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.claimCertificate = async (req, res) => {
+    const userId = req.user.id;
+    const { enrollmentId } = req.params;
+    try {
+        const [student] = await db.execute('SELECT id FROM students WHERE user_id = ?', [userId]);
+        if (student.length === 0) return res.status(404).json({ error: 'Student not found' });
+
+        const [enrollment] = await db.execute(
+            'SELECT fe.*, f.title as formation_title FROM formation_enrollments fe JOIN formations f ON fe.formation_id = f.id WHERE fe.id = ? AND fe.student_id = ? AND fe.payment_status = "approved"',
+            [enrollmentId, student[0].id]
+        );
+        if (enrollment.length === 0) return res.status(404).json({ error: 'Approved enrollment not found' });
+
+        const [counts] = await db.execute(`
+            SELECT 
+                COALESCE((SELECT COUNT(*) FROM formation_content WHERE formation_id = ?), 0) as total_contents,
+                COALESCE((
+                    SELECT COUNT(*) 
+                    FROM formation_progress fp 
+                    JOIN formation_content fc ON fp.content_id = fc.id 
+                    WHERE fp.enrollment_id = ? AND fp.completed = 1 AND fc.formation_id = ?
+                ), 0) as completed_contents
+        `, [enrollment[0].formation_id, enrollmentId, enrollment[0].formation_id]);
+
+        const total = Number(counts[0].total_contents) || 0;
+        const completed = Number(counts[0].completed_contents) || 0;
+
+        if (total === 0 || completed < total) {
+            return res.status(403).json({
+                error: 'لا يمكن الحصول على الشهادة إلا بعد الإنتهاء من كامل دروس ومحتويات الدورة التكوينية بنسبة 100%.',
+                total_contents: total,
+                completed_contents: completed,
+                is_completed: false
+            });
+        }
+
+        res.json({
+            can_claim: true,
+            is_completed: true,
+            total_contents: total,
+            completed_contents: completed,
+            formation_title: enrollment[0].formation_title,
+            enrollment_id: enrollmentId
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
