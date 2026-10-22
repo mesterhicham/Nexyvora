@@ -133,25 +133,25 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     { 
       to: '/teacher/specialties', 
       icon: Layers, 
-      label: tr("1. التخصصات الأكاديمية", "1. Specialties"), 
+      label: tr("التخصصات الأكاديمية", "Specialties"), 
       category: tr("المرحلة 1: بناء التخصص والمحتوى", "Phase 1: Curriculum & Content") 
     },
     { 
       to: '/teacher/formations', 
       icon: GraduationCap, 
-      label: tr("2. الدورات التكوينية", "2. Formations"), 
+      label: tr("الدورات التكوينية", "Formations"), 
       category: tr("المرحلة 1: بناء التخصص والمحتوى", "Phase 1: Curriculum & Content") 
     },
     { 
       to: '/teacher/modules', 
       icon: FolderKanban, 
-      label: tr("3. المقررات والوحدات", "3. Modules"), 
+      label: tr("المقررات والوحدات", "Modules"), 
       category: tr("المرحلة 1: بناء التخصص والمحتوى", "Phase 1: Curriculum & Content") 
     },
     { 
       to: '/teacher/lessons', 
       icon: FileText, 
-      label: tr("4. الدروس والمحتوى", "4. Lessons"), 
+      label: tr("الدروس والمحتوى", "Lessons"), 
       category: tr("المرحلة 1: بناء التخصص والمحتوى", "Phase 1: Curriculum & Content") 
     },
 
@@ -159,25 +159,25 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     { 
       to: '/teacher/cohorts', 
       icon: Users, 
-      label: tr("5. الدفعات والأفواج", "5. Cohorts"), 
+      label: tr("الدفعات والأفواج", "Cohorts"), 
       category: tr("المرحلة 2: التدريس واللقاءات الحية", "Phase 2: Teaching & Cohorts") 
     },
     { 
       to: '/teacher/meetings', 
       icon: Video, 
-      label: tr("6. المحاضرات واللقاءات الحية", "6. Live Meetings"), 
+      label: tr("المحاضرات واللقاءات الحية", "Live Meetings"), 
       category: tr("المرحلة 2: التدريس واللقاءات الحية", "Phase 2: Teaching & Cohorts") 
     },
     { 
       to: '/teacher/assignments', 
       icon: ClipboardList, 
-      label: tr("7. التكليفات والواجبات", "7. Assignments"), 
+      label: tr("التكليفات والواجبات", "Assignments"), 
       category: tr("المرحلة 2: التدريس واللقاءات الحية", "Phase 2: Teaching & Cohorts") 
     },
     { 
       to: '/teacher/attendance', 
       icon: CheckSquare, 
-      label: tr("8. سجل الحضور والغياب", "8. Attendance"), 
+      label: tr("سجل الحضور والغياب", "Attendance"), 
       category: tr("المرحلة 2: التدريس واللقاءات الحية", "Phase 2: Teaching & Cohorts") 
     },
 
@@ -185,7 +185,7 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     { 
       to: '/teacher/formation-progress', 
       icon: Award, 
-      label: tr("9. متابعة التقدم والشهادات", "9. Progress & Diplomas"), 
+      label: tr("متابعة التقدم والشهادات", "Progress & Diplomas"), 
       category: tr("المرحلة 3: المتابعة والشهادات", "Phase 3: Evaluation & Diplomas") 
     },
 
@@ -193,25 +193,25 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     { 
       to: '/teacher/announcements', 
       icon: Bell, 
-      label: tr("10. الإعلانات والتنبيهات", "10. Announcements"), 
+      label: tr("الإعلانات والتنبيهات", "Announcements"), 
       category: tr("المرحلة 4: التواصل والتفاعل", "Phase 4: Community & Support") 
     },
     { 
       to: '/teacher/chat', 
       icon: MessageCircle, 
-      label: tr("11. الدردشة المباشرة", "11. Direct Chat"), 
+      label: tr("الدردشة المباشرة", "Direct Chat"), 
       category: tr("المرحلة 4: التواصل والتفاعل", "Phase 4: Community & Support") 
     },
     { 
       to: '/teacher/community', 
       icon: MessageSquare, 
-      label: tr("12. مجتمع المنصة", "12. Nexyvora Community"), 
+      label: tr("مجتمع المنصة", "Nexyvora Community"), 
       category: tr("المرحلة 4: التواصل والتفاعل", "Phase 4: Community & Support") 
     },
     { 
       to: '/teacher/support', 
       icon: LifeBuoy, 
-      label: tr("13. الدعم الفني", "13. Support Center"), 
+      label: tr("الدعم الفني", "Support Center"), 
       category: tr("المرحلة 4: التواصل والتفاعل", "Phase 4: Community & Support") 
     },
   ];
