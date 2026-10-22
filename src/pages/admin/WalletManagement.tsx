@@ -100,7 +100,7 @@ export default function WalletManagement() {
         canWithdraw: newVal,
       });
       toast.success(
-        tr("تم ${newVal ? 'تفعيل' : 'تعطيل'} إمكانية السحب لـ ${user.name}", "Withdrawal access ${newVal ? 'enabled' : 'disabled'} for ${user.name}")
+        tr(`تم ${newVal ? 'تفعيل' : 'تعطيل'} إمكانية السحب لـ ${user.name}`, `Withdrawal access ${newVal ? 'enabled' : 'disabled'} for ${user.name}`)
       );
       setMembers(prev => prev.map(m => m.id === user.id ? { ...m, can_withdraw: newVal ? 1 : 0 } : m));
     } catch (err: any) {
@@ -393,7 +393,7 @@ export default function WalletManagement() {
                 )}
               </DialogTitle>
               <DialogDescription>
-                {tr("تعديل الرصيد الأساسي لـ ${selectedUser?.name} (${selectedUser?.email})", "Adjusting main balance for ${selectedUser?.name} (${selectedUser?.email})")}
+                {`${tr("تعديل الرصيد الأساسي لـ", "Adjusting main balance for")} ${selectedUser?.name || ''} (${selectedUser?.email || ''})`}
                 <br />
                 {tr("الرصيد الحالي:", "Current Balance:")} <span className="font-mono font-bold text-emerald-600">${Number(selectedUser?.main_balance || 0).toFixed(2)} USD</span>
               </DialogDescription>

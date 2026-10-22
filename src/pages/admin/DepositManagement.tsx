@@ -597,7 +597,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
               {ipnTotalPages > 1 && (
                 <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-800 text-xs">
                   <span className="text-slate-500 font-semibold">
-                    {tr("صفحة ${ipnPage} من ${ipnTotalPages}", "Page ${ipnPage} of ${ipnTotalPages}")}
+                    {tr(`صفحة ${ipnPage} من ${ipnTotalPages}`, `Page ${ipnPage} of ${ipnTotalPages}`)}
                   </span>
                   <div className="flex items-center gap-1.5">
                     <Button
@@ -785,7 +785,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 {/* Attempts Timeline */}
                 <div>
                   <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center justify-between">
-                    <span>{tr("محاولات الدفع المنشأة (${detailData.attempts?.length || 0}):", "Payment Attempts (${detailData.attempts?.length || 0}):")}</span>
+                    <span>{`${tr("محاولات الدفع المنشأة", "Payment Attempts")} (${detailData.attempts?.length || 0}):`}</span>
                     {detailData.transaction?.status === 'pending' && (
                       <Button
                         size="sm"
@@ -813,7 +813,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="font-mono font-bold text-xs bg-slate-100 dark:bg-slate-800">
-                              {tr("المحاولة #${att.attempt_number}", "Attempt #${att.attempt_number}")}
+                              {tr(`المحاولة #${att.attempt_number}`, `Attempt #${att.attempt_number}`)}
                             </Badge>
                             {getStatusBadge(att.status)}
                             {att.is_wallet_credited === 1 && (

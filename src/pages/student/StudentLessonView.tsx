@@ -283,7 +283,7 @@ export default function StudentLessonView() {
                                 isActive ? "text-primary-foreground/70" : "text-muted-foreground"
                               )}>
                                 {item.content_type === 'video' ? (tr("فيديو", "Video")) : 'PDF'}
-                                {item.duration_seconds && (tr(" • ${Math.floor(item.duration_seconds / 60)} دقيقة", " • ${Math.floor(item.duration_seconds / 60)} min"))}
+                                {item.duration_seconds && (tr(` • ${Math.floor(item.duration_seconds / 60)} دقيقة`, ` • ${Math.floor(item.duration_seconds / 60)} min`))}
                               </p>
                             </div>
                             {itemProgress?.completed && (

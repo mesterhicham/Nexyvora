@@ -407,7 +407,7 @@ export default function AdminPolicies() {
 
       toast.success(tr("تم حفظ السياسة وتحديثها بنجاح!", "Politique enregistrée et mise à jour avec succès !"));
     } catch (err: any) {
-      toast.error(tr("فشل الحفظ: ${err.message}", "Erreur lors de l'enregistrement: ${err.message}"));
+      toast.error(tr(`فشل الحفظ: ${err.message}`, `Erreur lors de l'enregistrement: ${err.message}`));
     } finally {
       setIsSaving(false);
     }

@@ -108,7 +108,7 @@ export default function TeachersManagement() {
       if (res.token && res.user) {
         impersonateUser(res.token, res.user);
         toast.success(
-          tr("تم تسجيل الدخول بنجاح بحساب الأستاذ ${teacher.full_name || teacher.profile?.full_name || teacher.email || res.user.email}", "Logged in successfully as Teacher ${teacher.full_name || teacher.profile?.full_name || teacher.email || res.user.email}")
+          tr(`تم تسجيل الدخول بنجاح بحساب الأستاذ ${teacher.full_name || teacher.profile?.full_name || teacher.email || res.user.email}`, `Logged in successfully as Teacher ${teacher.full_name || teacher.profile?.full_name || teacher.email || res.user.email}`)
         );
         navigate('/teacher');
       }

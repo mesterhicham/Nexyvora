@@ -144,7 +144,7 @@ export default function PlatformSettings() {
 
     if (file.size > maxSize) {
       toast.error(
-        tr("حجم الملف كبير جداً! الحد الأقصى هو ${isVideo ? '250 ميجابايت' : '15 ميجابايت'}", "File too large! Maximum limit is ${isVideo ? '250MB' : '15MB'}")
+        tr(`حجم الملف كبير جداً! الحد الأقصى هو ${isVideo ? '250 ميجابايت' : '15 ميجابايت'}`, `File too large! Maximum limit is ${isVideo ? '250MB' : '15MB'}`)
       );
       return;
     }
@@ -166,7 +166,7 @@ export default function PlatformSettings() {
           return copy;
         });
         toast.success(
-          tr("تم رفع وحفظ ${isVideo ? 'الفيديو' : 'الصورة'} بنجاح!", "${isVideo ? 'Video' : 'Image'} uploaded and saved successfully!")
+          tr(`تم رفع وحفظ ${isVideo ? 'الفيديو' : 'الصورة'} بنجاح!`, `${isVideo ? 'Video' : 'Image'} uploaded and saved successfully!`)
         );
       }
     } catch (err: any) {

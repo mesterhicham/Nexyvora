@@ -244,7 +244,7 @@ export default function StudentActivation() {
 
     if (paymentMethod === 'wallet') {
       if (walletBalance < 30) {
-        return toast.error(tr("رصيد المحفظة غير كافٍ ($${walletBalance.toFixed(2)} USD). يرجى اختيار وسيلة دفع أخرى.", "Insufficient wallet balance"));
+        return toast.error(tr(`رصيد المحفظة غير كافٍ ($${walletBalance.toFixed(2)} USD). يرجى اختيار وسيلة دفع أخرى.`, `Insufficient wallet balance ($${walletBalance.toFixed(2)} USD)`));
       }
     } else {
       if (!paymentReference.trim()) {
@@ -527,7 +527,7 @@ export default function StudentActivation() {
                       {tr("اختر وسيلة الدفع لتفعيل الباقة", "Select Payment Method for Activation")}
                     </CardTitle>
                     <CardDescription className="text-xs sm:text-sm text-slate-400 mt-1">
-                      {tr("المبلغ المطلوب سداده: ${formatDualPrice(30)} فقط (لمرة واحدة سنوياً).", "Required amount: ${formatDualPrice(30)} (Annual validity).")}
+                      {tr(`المبلغ المطلوب سداده: ${formatDualPrice(30)} فقط (لمرة واحدة سنوياً).`, `Required amount: ${formatDualPrice(30)} (Annual validity).`)}
                     </CardDescription>
                   </div>
                   <div className="px-5 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono font-black text-lg self-start sm:self-auto">
@@ -861,7 +861,7 @@ export default function StudentActivation() {
                       </p>
                     ) : (
                       <p className="text-[11px] text-slate-400 leading-relaxed">
-                        💡 {tr("قم بتحويل ${formatDualPrice(30)}، ثم اكتب رقم الحوالة واسم صاحب الحساب وأرفق صورة الوصل أدناه.", "Transfer the equivalent of $30 USD, enter the reference number and sender name, and upload the bank slip.")}
+                        💡 {tr(`قم بتحويل ${formatDualPrice(30)}، ثم اكتب رقم الحوالة واسم صاحب الحساب وأرفق صورة الوصل أدناه.`, `Transfer the equivalent of $30 USD, enter the reference number and sender name, and upload the bank slip.`)}
                       </p>
                     )}
                   </div>
@@ -889,7 +889,7 @@ export default function StudentActivation() {
                       <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center gap-2.5">
                         <AlertCircle className="w-5 h-5 shrink-0 text-rose-400" />
                         <span>
-                          {tr("رصيد محفظتك المتاح هو $${walletBalance.toFixed(2)} USD والمبلغ المطلوب هو $30.00 USD. يرجى اختيار USDT أو تحويل بنكي لإتمام التفعيل.", "Current wallet balance is $${walletBalance.toFixed(2)}. $30.00 is required. Please choose USDT or Bank Transfer.")}
+                          {tr(`رصيد محفظتك المتاح هو $${walletBalance.toFixed(2)} USD والمبلغ المطلوب هو $30.00 USD. يرجى اختيار USDT أو تحويل بنكي لإتمام التفعيل.`, `Current wallet balance is $${walletBalance.toFixed(2)}. $30.00 is required. Please choose USDT or Bank Transfer.`)}
                         </span>
                       </div>
                     )}

@@ -133,7 +133,7 @@ export default function AdminCurrencySettings() {
         bank_instructions: rule.bank_instructions || null,
         bank_instructions_ar: rule.bank_instructions_ar || null
       });
-      toast.success(tr("تم حفظ إعدادات ${rule.country_name_ar || rule.country_name} بنجاح", "Updated ${rule.country_name} settings"));
+      toast.success(tr(`تم حفظ إعدادات ${rule.country_name_ar || rule.country_name} بنجاح`, `Updated ${rule.country_name} settings`));
       // Reload logs to show new entry
       const logsRes = await currencyService.getAdminAuditLogs({ limit: 100 });
       setAuditLogs(logsRes.auditLogs || []);
@@ -487,7 +487,7 @@ export default function AdminCurrencySettings() {
                               <Landmark className="h-4 w-4" />
                             </div>
                             <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
-                              {tr("بيانات الحساب البنكي والتحويل اليدوي (${rule.country_name_ar || rule.country_name})", "Local Bank & Manual Payment Details (${rule.country_name})")}
+                              {`${tr("بيانات الحساب البنكي والتحويل اليدوي", "Local Bank & Manual Payment Details")} (${isRtl ? (rule.country_name_ar || rule.country_name) : rule.country_name})`}
                             </span>
                           </div>
                           <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200">

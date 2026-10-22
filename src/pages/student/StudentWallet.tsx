@@ -1160,7 +1160,7 @@ export default function StudentWallet() {
                           </span>
                         </div>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                          {tr("سيتم شحن حسابك بمبلغ $${Number(depositAmount).toFixed(2)} USD تلقائياً فور مراجعة وصل التحويل.", "Your account will be credited with $${Number(depositAmount).toFixed(2)} USD automatically once receipt is verified.")}
+                          {tr(`سيتم شحن حسابك بمبلغ $${Number(depositAmount).toFixed(2)} USD تلقائياً فور مراجعة وصل التحويل.`, `Your account will be credited with $${Number(depositAmount).toFixed(2)} USD automatically once receipt is verified.`)}
                         </p>
                       </div>
                     )}
@@ -1508,7 +1508,7 @@ export default function StudentWallet() {
                   {selectedDepositMethod?.type === 'nowpayments_crypto'
                     ? (tr("إنشاء طلب دفع عبر NOWPayments", "Create NOWPayments Order"))
                     : isAlgeria && depositAmount && Number(depositAmount) > 0
-                    ? (tr("تأكيد الشحن: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} دج ($${Number(depositAmount).toFixed(2)})", "Confirm Deposit: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} DZD ($${Number(depositAmount).toFixed(2)} USD)"))
+                    ? (tr(`تأكيد الشحن: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} دج ($${Number(depositAmount).toFixed(2)})`, `Confirm Deposit: ${(Math.round(Number(depositAmount) * usdRate)).toLocaleString()} DZD ($${Number(depositAmount).toFixed(2)} USD)`))
                     : (tr("تأكيد إرسال طلب الشحن", "Confirm Deposit Request"))}
                 </Button>
               )}
@@ -1693,7 +1693,7 @@ export default function StudentWallet() {
               >
                 {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
                 {isAlgeria && withdrawAmount && Number(withdrawAmount) > 0
-                  ? (tr("سحب ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} دج ($${Number(withdrawAmount).toFixed(2)})", "Withdraw ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} DZD ($${Number(withdrawAmount).toFixed(2)})"))
+                  ? (tr(`سحب ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} دج ($${Number(withdrawAmount).toFixed(2)})`, `Withdraw ${(Math.round(Number(withdrawAmount) * usdRate)).toLocaleString()} DZD ($${Number(withdrawAmount).toFixed(2)})`))
                   : t('wallet.submitWithdraw', tr("إرسال طلب السحب", "Submit Withdrawal Request"))}
               </Button>
             </div>

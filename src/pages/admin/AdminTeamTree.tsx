@@ -566,7 +566,7 @@ export default function AdminTeamTree() {
                           setInspectedNodeId(user.id);
                           setIsInspectorSearchOpen(false);
                           setInspectorSearch('');
-                          toast.success(tr("تم التبديل لتصفح شجرة: ${user.name}", "Switched to tree of: ${user.name}"));
+                          toast.success(tr(`تم التبديل لتصفح شجرة: ${user.name}`, `Switched to tree of: ${user.name}`));
                         }}
                         className="p-3 hover:bg-purple-50/60 dark:hover:bg-slate-800/60 cursor-pointer flex items-center justify-between text-xs transition-colors"
                       >
@@ -915,7 +915,7 @@ export default function AdminTeamTree() {
                       onClick={() => {
                         setInspectedNodeId(selectedMember.id);
                         setSelectedMember(null);
-                        toast.success(tr("تم تعيين ${selectedMember.name} كجذر تصفح للشجرة", "Set ${selectedMember.name} as tree root"));
+                        toast.success(tr(`تم تعيين ${selectedMember.name} كجذر تصفح للشجرة`, `Set ${selectedMember.name} as tree root`));
                       }}
                       className="flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold text-xs h-10 shadow-md shadow-purple-500/20"
                     >

@@ -123,13 +123,13 @@ export default function NewsManagement() {
   };
 
   const tabs: { id: AdminTabType; label: string }[] = [
-    { id: 'all', label: tr("الكل (${getTabCount('all')})", "All (${getTabCount('all')})") },
-    { id: 'news', label: tr("أخبار (${getTabCount('news')})", "News (${getTabCount('news')})") },
-    { id: 'articles', label: tr("مقالات (${getTabCount('articles')})", "Articles (${getTabCount('articles')})") },
-    { id: 'video', label: tr("فيديو (${getTabCount('video')})", "Video (${getTabCount('video')})") },
-    { id: 'images', label: tr("صور (${getTabCount('images')})", "Images (${getTabCount('images')})") },
-    { id: 'pdf', label: isRtl ? `PDF (${getTabCount('pdf')})` : `PDF (${getTabCount('pdf')})` },
-    { id: 'presentations', label: tr("عروض (${getTabCount('presentations')})", "Presentations (${getTabCount('presentations')})") },
+    { id: 'all', label: `${tr("الكل", "All", "Tous")} (${getTabCount('all')})` },
+    { id: 'news', label: `${tr("أخبار", "News", "Actualités")} (${getTabCount('news')})` },
+    { id: 'articles', label: `${tr("مقالات", "Articles", "Articles")} (${getTabCount('articles')})` },
+    { id: 'video', label: `${tr("فيديو", "Video", "Vidéos")} (${getTabCount('video')})` },
+    { id: 'images', label: `${tr("صور", "Images", "Images")} (${getTabCount('images')})` },
+    { id: 'pdf', label: `PDF (${getTabCount('pdf')})` },
+    { id: 'presentations', label: `${tr("عروض", "Presentations", "Présentations")} (${getTabCount('presentations')})` },
   ];
 
   // Filtered items based on activeTab & search

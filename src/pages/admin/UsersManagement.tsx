@@ -235,7 +235,7 @@ export default function UsersManagement() {
       });
 
       toast.success(
-        tr("تم ${adjustForm.type === 'credit' ? 'إضافة' : 'خصم'} $${numAmount} بنجاح", "$${numAmount} ${adjustForm.type === 'credit' ? 'credited' : 'debited'} successfully")
+        tr(`تم ${adjustForm.type === 'credit' ? 'إضافة' : 'خصم'} $${numAmount} بنجاح`, `$${numAmount} ${adjustForm.type === 'credit' ? 'credited' : 'debited'} successfully`)
       );
       setAdjustUser(null);
       fetchData();
@@ -254,7 +254,7 @@ export default function UsersManagement() {
       if (res.token && res.user) {
         impersonateUser(res.token, res.user);
         toast.success(
-          tr("تم تسجيل الدخول بنجاح بحساب ${u.full_name || u.username || res.user.email}", "Logged in successfully as ${u.full_name || u.username || res.user.email}")
+          tr(`تم تسجيل الدخول بنجاح بحساب ${u.full_name || u.username || res.user.email}`, `Logged in successfully as ${u.full_name || u.username || res.user.email}`)
         );
         
         // Navigate to appropriate role dashboard

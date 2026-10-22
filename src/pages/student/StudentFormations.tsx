@@ -458,7 +458,7 @@ export default function StudentFormations() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {tr("تسجيل في ${selectedFormation?.title}", "Enroll in ${selectedFormation?.title}")}
+              {`${tr("تسجيل في", "Enroll in")} ${selectedFormation?.title || ''}`}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
