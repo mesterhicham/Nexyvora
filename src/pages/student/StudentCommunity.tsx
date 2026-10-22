@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -34,7 +35,8 @@ import {
   MessageCircle,
   Hash,
   ShieldCheck,
-  Bot
+  Bot,
+  Trash2
 } from 'lucide-react';
 import { communityService } from '@/services/apiService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -82,10 +84,27 @@ const CHANNELS = [
   { id: 'success_stories', name_ar: 'قصص النجاح والأرباح', name_en: 'Success Stories', icon: Award },
 ];
 
-export default function StudentCommunity() {
+interface StudentCommunityProps {
+  role?: 'admin' | 'teacher' | 'student';
+}
+
+export default function StudentCommunity({ role }: StudentCommunityProps = {}) {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
-  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isImpersonating } = useAuth();
+
+  const isAdmin = !isImpersonating && (role === 'admin' || user?.role === 'admin' || location.pathname.startsWith('/admin'));
+  const isTeacher = !isAdmin && (role === 'teacher' || user?.role === 'teacher' || location.pathname.startsWith('/teacher'));
+  const layoutRole: 'admin' | 'teacher' | 'student' = isAdmin ? 'admin' : (isTeacher ? 'teacher' : 'student');
+
+  useEffect(() => {
+    // If admin accesses student route directly while not impersonating, seamlessly route to /admin/community
+    if (!isImpersonating && user?.role === 'admin' && location.pathname === '/student/community') {
+      navigate('/admin/community', { replace: true });
+    }
+  }, [user, isImpersonating, location.pathname, navigate]);
 
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -222,13 +241,27 @@ export default function StudentCommunity() {
     }
   };
 
+  const handleDeletePost = async (postId: string) => {
+    if (!window.confirm(tr("هل أنت متأكد من رغبتك في حذف هذا المنشور نهائياً؟", "Are you sure you want to permanently delete this post?"))) return;
+    try {
+      await communityService.deletePost(postId);
+      setPosts(prev => prev.filter(p => p.id !== postId));
+      toast.success(tr("تم حذف المنشور بنجاح", "Post deleted successfully"));
+      if (activePost?.id === postId) {
+        setActivePost(null);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || tr("فشل حذف المنشور", "Failed to delete post"));
+    }
+  };
+
   const getChannelBadge = (chId: string) => {
     const ch = CHANNELS.find(c => c.id === chId);
     return isRtl ? (ch?.name_ar || chId) : (ch?.name_en || chId);
   };
 
   return (
-    <DashboardLayout role="student">
+    <DashboardLayout role={layoutRole}>
       <div className="space-y-6 max-w-6xl mx-auto pb-16">
         {/* Top Hero Banner */}
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 p-6 sm:p-8 text-white shadow-xl">
@@ -334,7 +367,7 @@ export default function StudentCommunity() {
                   }`}
                 >
                   <div className="p-5 sm:p-6 space-y-4">
-                    {/* Header: Author + Channel + Pin */}
+                    {/* Header: Author + Channel + Pin + Delete */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border border-slate-100 dark:border-slate-800 shadow-xs">
@@ -386,6 +419,16 @@ export default function StudentCommunity() {
                         <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400">
                           #{getChannelBadge(post.channel)}
                         </span>
+                        {(isAdmin || post.user_id === user?.id) && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePost(post.id)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                            title={tr("حذف المنشور", "Delete Post")}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
 

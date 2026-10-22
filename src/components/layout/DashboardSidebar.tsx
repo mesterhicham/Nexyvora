@@ -93,7 +93,7 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     // 3. Members & Network
     { to: '/admin/users', icon: Users, label: t('nav.users', 'User Management'), category: tr("المستخدمين والشبكة", "Members & Network") },
     { to: '/admin/teachers', icon: GraduationCap, label: t('nav.teachers', tr("إدارة الأساتذة", "Teacher Management")), category: tr("المستخدمين والشبكة", "Members & Network") },
-    { to: '/student/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community'), category: tr("المستخدمين والشبكة", "Members & Network") },
+    { to: '/admin/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community'), category: tr("المستخدمين والشبكة", "Members & Network") },
     { to: '/admin/team-tree', icon: Network, label: t('nav.teamTree', 'Team Network Tree'), category: tr("المستخدمين والشبكة", "Members & Network") },
     { to: '/admin/kyc', icon: ShieldCheck, label: t('nav.kycApproval', 'KYC Approvals'), category: tr("المستخدمين والشبكة", "Members & Network") },
     { to: '/admin/ranks', icon: Award, label: t('nav.leaderRanks', 'Leader Ranks & Badges'), category: tr("المستخدمين والشبكة", "Members & Network") },
@@ -128,6 +128,7 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     { to: '/teacher/attendance', icon: CheckSquare, label: t('nav.attendance', 'Attendance') },
     { to: '/teacher/announcements', icon: Bell, label: t('nav.announcements', 'Announcements') },
     { to: '/teacher/meetings', icon: Video, label: t('student.liveSessions', 'Live Meetings') },
+    { to: '/teacher/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community') },
     { to: '/teacher/chat', icon: MessageCircle, label: t('nav.chat', 'Chat') },
     { to: '/student/support', icon: LifeBuoy, label: t('nav.support', 'Support Center') },
   ];

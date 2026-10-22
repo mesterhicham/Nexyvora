@@ -265,6 +265,7 @@ const App = () => (
                 <Route path="/admin/users" element={<UsersManagement />} />
                 <Route path="/admin/formation-progress" element={<FormationProgressDashboard />} />
                 <Route path="/admin/chat" element={<ChatPage />} />
+                <Route path="/admin/community" element={<StudentCommunity role="admin" />} />
                 <Route path="/admin/support" element={<AdminSupport />} />
                 <Route path="/admin/profile" element={<ProfileSettings />} />
               </Route>
@@ -280,6 +281,7 @@ const App = () => (
                 <Route path="/teacher/meetings" element={<TeacherMeetingsPage />} />
                 <Route path="/teacher/formations" element={<TeacherFormations />} />
                 <Route path="/teacher/formation-progress" element={<FormationProgressDashboard />} />
+                <Route path="/teacher/community" element={<StudentCommunity role="teacher" />} />
                 <Route path="/teacher/chat" element={<ChatPage />} />
                 <Route path="/teacher/support" element={<StudentSupport />} />
                 <Route path="/teacher/profile" element={<ProfileSettings />} />
@@ -288,7 +290,6 @@ const App = () => (
               <Route path="/student/activation" element={<StudentActivation />} />
               <Route path="/student/support" element={<StudentSupport />} />
               <Route path="/support" element={<StudentSupport />} />
-              <Route path="/admin/community" element={<StudentCommunity />} />
 
               {/* Protected Student Routes (Require Active $30 Community Package) */}
               <Route element={<RequireActiveMembership />}>
