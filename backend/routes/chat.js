@@ -5,6 +5,9 @@ const { auth } = require('../middleware/authMiddleware');
 
 router.use(auth);
 
+// Contacts & Users for Chat
+router.get('/contacts', chatController.getContacts);
+
 // Conversations
 router.get('/conversations', chatController.getConversations);
 router.post('/conversations/direct', chatController.getOrCreateDirectConversation);

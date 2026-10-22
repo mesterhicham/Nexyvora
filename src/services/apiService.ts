@@ -220,6 +220,7 @@ export const formationService = {
 };
 
 export const chatService = {
+    getContacts: () => api.get('/chat/contacts').then(res => res.data),
     getConversations: () => api.get('/chat/conversations').then(res => res.data),
     getOrCreateDirect: (other_user_id: string) => api.post('/chat/conversations/direct', { other_user_id }).then(res => res.data),
     getOrCreateCohort: (cohort_id: string, name?: string) => api.post('/chat/conversations/cohort', { cohort_id, name }).then(res => res.data),

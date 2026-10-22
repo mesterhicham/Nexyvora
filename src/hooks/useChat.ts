@@ -299,23 +299,34 @@ export function useChatableUsers() {
     queryFn: async () => {
       if (!user) return [];
       
+      try {
+        const contacts = await chatService.getContacts();
+        if (contacts && Array.isArray(contacts) && contacts.length > 0) {
+          return contacts;
+        }
+      } catch (err) {
+        console.warn('chatService.getContacts fallback:', err);
+      }
+
       if (role === 'student') {
-        const teachers = await academicService.getTeachers();
+        const teachers = await academicService.getTeachers().catch(() => []);
         return (teachers || []).map((t: any) => ({
           id: t.user_id || t.id,
           full_name: t.profile?.full_name || t.full_name || 'الأستاذ',
           email: t.profile?.email || t.email,
           avatar_url: t.profile?.avatar_url,
           role: 'teacher',
+          role_label: 'أستاذ معتمد'
         }));
       } else if (role === 'teacher') {
-        const students = await academicService.getStudents();
+        const students = await academicService.getStudents().catch(() => []);
         return (students || []).map((s: any) => ({
           id: s.user_id || s.id,
           full_name: s.profile?.full_name || s.full_name || 'الطالب',
           email: s.profile?.email || s.email,
           avatar_url: s.profile?.avatar_url,
           role: 'student',
+          role_label: 'عضو / طالب'
         }));
       } else {
         const [teachers, students] = await Promise.all([
@@ -328,12 +339,14 @@ export function useChatableUsers() {
             full_name: t.profile?.full_name || t.full_name,
             email: t.profile?.email || t.email,
             role: 'teacher',
+            role_label: 'أستاذ معتمد'
           })),
           ...(students || []).map((s: any) => ({
             id: s.user_id || s.id,
             full_name: s.profile?.full_name || s.full_name,
             email: s.profile?.email || s.email,
             role: 'student',
+            role_label: 'عضو / طالب'
           }))
         ];
         return list.filter(u => u.id !== user.id);

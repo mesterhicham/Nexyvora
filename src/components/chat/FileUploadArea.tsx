@@ -9,14 +9,28 @@ interface FileUploadAreaProps {
   disabled?: boolean;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-const ALLOWED_FILE_TYPES = [
-  ...ALLOWED_IMAGE_TYPES,
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska', 'video/avi', 'video/m4v'];
+const ALLOWED_AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/mp4', 'audio/x-m4a', 'audio/aac'];
+const ALLOWED_DOC_TYPES = [
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/zip',
+  'application/x-zip-compressed',
   'text/plain',
+];
+
+const ALLOWED_FILE_TYPES = [
+  ...ALLOWED_IMAGE_TYPES,
+  ...ALLOWED_VIDEO_TYPES,
+  ...ALLOWED_AUDIO_TYPES,
+  ...ALLOWED_DOC_TYPES,
 ];
 
 export function FileUploadArea({ onFileSelect, isUploading, disabled }: FileUploadAreaProps) {
@@ -27,7 +41,6 @@ export function FileUploadArea({ onFileSelect, isUploading, disabled }: FileUplo
     if (file) {
       validateAndSelectFile(file);
     }
-    // Reset input to allow selecting the same file again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -35,11 +48,14 @@ export function FileUploadArea({ onFileSelect, isUploading, disabled }: FileUplo
 
   const validateAndSelectFile = (file: File) => {
     if (file.size > MAX_FILE_SIZE) {
-      alert('File size exceeds 10MB limit');
+      alert('File size exceeds 100MB limit');
       return;
     }
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      alert('File type not supported. Allowed: images, PDF, Word, text files');
+    // Allow if type matches or extension is recognized
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const safeExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'mp4', 'webm', 'mov', 'mp3', 'wav', 'ogg', 'm4a', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip'];
+    if (!ALLOWED_FILE_TYPES.includes(file.type) && !safeExts.includes(ext)) {
+      alert('File type not supported. You can upload photos, videos, audio, PDF, Word or office files.');
       return;
     }
     onFileSelect(file);
@@ -147,11 +163,12 @@ interface FilePreviewProps {
 
 export function FilePreview({ file, onRemove }: FilePreviewProps) {
   const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
+  const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type) || file.type.startsWith('video/');
+  const isAudio = ALLOWED_AUDIO_TYPES.includes(file.type) || file.type.startsWith('audio/');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Generate preview for images
   useState(() => {
-    if (isImage) {
+    if (isImage || isVideo) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
@@ -159,9 +176,11 @@ export function FilePreview({ file, onRemove }: FilePreviewProps) {
   });
 
   const getFileIcon = () => {
-    if (isImage) return <Image className="h-4 w-4" />;
-    if (file.type === 'application/pdf') return <FileText className="h-4 w-4" />;
-    return <File className="h-4 w-4" />;
+    if (isImage) return <Image className="h-4 w-4 text-pink-500" />;
+    if (isVideo) return <Video className="h-4 w-4 text-purple-500" />;
+    if (isAudio) return <FileText className="h-4 w-4 text-amber-500" />;
+    if (file.type === 'application/pdf') return <FileText className="h-4 w-4 text-red-500" />;
+    return <File className="h-4 w-4 text-blue-500" />;
   };
 
   const formatFileSize = (bytes: number) => {
@@ -171,11 +190,13 @@ export function FilePreview({ file, onRemove }: FilePreviewProps) {
   };
 
   return (
-    <div className="flex items-center gap-3 p-2 bg-accent/50 rounded-lg">
-      {previewUrl ? (
-        <img src={previewUrl} alt="Preview" className="h-10 w-10 object-cover rounded" />
+    <div className="flex items-center gap-3 p-2 bg-accent/70 rounded-xl border border-border/50">
+      {previewUrl && isImage ? (
+        <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-lg border shadow-sm" />
+      ) : previewUrl && isVideo ? (
+        <video src={previewUrl} className="h-12 w-12 object-cover rounded-lg border shadow-sm" />
       ) : (
-        <div className="h-10 w-10 flex items-center justify-center bg-accent rounded">
+        <div className="h-12 w-12 flex items-center justify-center bg-background rounded-lg border shadow-sm">
           {getFileIcon()}
         </div>
       )}
@@ -183,7 +204,7 @@ export function FilePreview({ file, onRemove }: FilePreviewProps) {
         <p className="text-sm font-medium truncate">{file.name}</p>
         <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
       </div>
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRemove}>
+      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={onRemove}>
         <X className="h-4 w-4" />
       </Button>
     </div>

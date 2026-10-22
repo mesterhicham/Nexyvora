@@ -431,3 +431,73 @@ exports.getTyping = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// --- GET AVAILABLE CONTACTS ---
+exports.getContacts = async (req, res) => {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    try {
+        let contacts = [];
+
+        if (userRole === 'student') {
+            const [rows] = await db.execute(`
+                SELECT u.id, u.email, u.role, p.full_name, p.avatar_url
+                FROM users u
+                LEFT JOIN profiles p ON u.id = p.id
+                WHERE u.id != ? AND u.status = 'active' AND u.role IN ('admin', 'teacher')
+                ORDER BY FIELD(u.role, 'admin', 'teacher'), p.full_name ASC
+            `, [userId]);
+
+            contacts = rows.map(r => ({
+                id: r.id,
+                full_name: r.role === 'admin' 
+                    ? (r.full_name ? `${r.full_name} (الإدارة والدعم)` : 'إدارة المنصة والدعم الفني') 
+                    : (r.full_name || 'الأستاذ'),
+                email: r.email,
+                avatar_url: r.avatar_url,
+                role: r.role,
+                role_label: r.role === 'admin' ? 'الإدارة والدعم الفني' : 'أستاذ معتمد'
+            }));
+        } else if (userRole === 'teacher') {
+            const [rows] = await db.execute(`
+                SELECT u.id, u.email, u.role, p.full_name, p.avatar_url
+                FROM users u
+                LEFT JOIN profiles p ON u.id = p.id
+                WHERE u.id != ? AND u.status = 'active' AND u.role IN ('admin', 'student')
+                ORDER BY FIELD(u.role, 'admin', 'student'), p.full_name ASC
+            `, [userId]);
+
+            contacts = rows.map(r => ({
+                id: r.id,
+                full_name: r.role === 'admin' ? (r.full_name ? `${r.full_name} (الإدارة)` : 'إدارة المنصة') : (r.full_name || 'طالب'),
+                email: r.email,
+                avatar_url: r.avatar_url,
+                role: r.role,
+                role_label: r.role === 'admin' ? 'الإدارة' : 'عضو / طالب'
+            }));
+        } else {
+            const [rows] = await db.execute(`
+                SELECT u.id, u.email, u.role, p.full_name, p.avatar_url
+                FROM users u
+                LEFT JOIN profiles p ON u.id = p.id
+                WHERE u.id != ? AND u.status = 'active'
+                ORDER BY FIELD(u.role, 'admin', 'teacher', 'student'), p.full_name ASC
+            `, [userId]);
+
+            contacts = rows.map(r => ({
+                id: r.id,
+                full_name: r.full_name || r.email,
+                email: r.email,
+                avatar_url: r.avatar_url,
+                role: r.role,
+                role_label: r.role === 'admin' ? 'مسؤول / إدارة' : r.role === 'teacher' ? 'أستاذ معتمد' : 'عضو / طالب'
+            }));
+        }
+
+        res.json(contacts);
+    } catch (err) {
+        console.error('[getContacts]', err);
+        res.status(500).json({ error: err.message });
+    }
+};
