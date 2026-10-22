@@ -696,3 +696,31 @@ exports.toggleRoomOpen = async (req, res) => {
     }
 };
 
+exports.createMeeting = async (req, res) => {
+    const hostId = req.user.id;
+    const { title, description, module_id, cohort_id, meeting_url, meeting_id, passcode, scheduled_at, duration_minutes } = req.body;
+    try {
+        const id = crypto.randomUUID();
+        await db.execute(`
+            INSERT INTO zoom_meetings (id, title, description, module_id, cohort_id, meeting_url, meeting_id, passcode, scheduled_at, duration_minutes, host_id, status, room_open, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', 0, NOW(), NOW())
+        `, [
+            id,
+            title,
+            description || null,
+            module_id || null,
+            cohort_id || null,
+            meeting_url || null,
+            meeting_id || null,
+            passcode || null,
+            scheduled_at || new Date(),
+            duration_minutes || 60,
+            hostId
+        ]);
+        res.status(201).json({ id, message: 'Meeting scheduled successfully' });
+    } catch (err) {
+        console.error('[createMeeting]', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+

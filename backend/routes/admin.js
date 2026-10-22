@@ -12,6 +12,7 @@ router.use(auth);
 // Meetings routes (available to authenticated users depending on role)
 router.get('/zoom/teacher-meetings', authorize('admin', 'teacher'), adminController.getTeacherMeetings);
 router.get('/zoom/student-meetings', authorize('admin', 'student'), adminController.getStudentMeetings);
+router.post('/zoom/meetings', authorize('admin', 'teacher'), adminController.createMeeting);
 router.post('/zoom/meetings/:id/open', authorize('admin', 'teacher'), adminController.toggleRoomOpen);
 
 // News routes (available to authenticated users; non-admins get published items only)

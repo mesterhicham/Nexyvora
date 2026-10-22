@@ -279,6 +279,7 @@ const App = () => (
                 <Route path="/teacher/attendance" element={<TeacherAttendance />} />
                 <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
                 <Route path="/teacher/meetings" element={<TeacherMeetingsPage />} />
+                <Route path="/teacher/meetings/:meetingId" element={<MeetingRoom />} />
                 <Route path="/teacher/formations" element={<TeacherFormations />} />
                 <Route path="/teacher/formation-progress" element={<FormationProgressDashboard />} />
                 <Route path="/teacher/community" element={<StudentCommunity role="teacher" />} />
