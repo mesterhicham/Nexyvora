@@ -8,9 +8,9 @@ router.use(auth);
 
 // Programs
 router.get('/programs', academicController.getAllPrograms);
-router.post('/programs', authorize('admin'), academicController.createProgram);
-router.put('/programs/:id', authorize('admin'), academicController.updateProgram);
-router.delete('/programs/:id', authorize('admin'), academicController.deleteProgram);
+router.post('/programs', authorize('admin', 'teacher'), academicController.createProgram);
+router.put('/programs/:id', authorize('admin', 'teacher'), academicController.updateProgram);
+router.delete('/programs/:id', authorize('admin', 'teacher'), academicController.deleteProgram);
 
 // Specialties
 router.get('/specialties', academicController.getAllSpecialties);

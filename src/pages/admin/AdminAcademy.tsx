@@ -51,6 +51,22 @@ export default function AdminAcademy() {
       href: '/admin/users',
     },
     {
+      title: tr("البرامج الأكاديمية العامة", "Academic Programs"),
+      subtitle: isRtl ? 'Programs' : 'Degree & Diploma Programs',
+      description: tr("إدارة وتحديد البرامج الأكاديمية العامة والشهادات (دبلوم، بكالوريوس، ماستر...).", "Manage general degree programs and diplomas (Diploma, Bachelor, Master...)."),
+      icon: BookOpen,
+      color: 'bg-indigo-500/10 text-indigo-600',
+      href: '/admin/programs',
+    },
+    {
+      title: tr("التخصصات الأكاديمية", "Academic Specialties"),
+      subtitle: isRtl ? 'Specialties' : 'Fields of Study & Branches',
+      description: tr("إدارة التخصصات وربطها بالبرامج الأكاديمية لتصنيف الدورات والأفواج.", "Manage specialties and link them to academic programs for cohorts and courses."),
+      icon: Layers,
+      color: 'bg-cyan-500/10 text-cyan-600',
+      href: '/admin/specialties',
+    },
+    {
       title: tr("المسارات التكوينية", "Training Formations"),
       subtitle: isRtl ? 'Formations' : 'Curriculums & Video Lessons',
       description: tr("إدارة وتعديل وإنشاء المسارات التكوينية وإضافة المحتوى ومقاطع الفيديو.", "Manage, edit, and create training tracks, curricula, and video content."),

@@ -273,6 +273,7 @@ const App = () => (
               {/* Teacher Routes (Protected) */}
               <Route element={<RequireRole allowedRoles={['teacher', 'admin']} />}>
                 <Route path="/teacher" element={<TeacherDashboard />} />
+                <Route path="/teacher/programs" element={<ProgramsManagement role="teacher" />} />
                 <Route path="/teacher/specialties" element={<SpecialtiesManagement role="teacher" />} />
                 <Route path="/teacher/formations" element={<TeacherFormations />} />
                 <Route path="/teacher/modules" element={<TeacherModules />} />

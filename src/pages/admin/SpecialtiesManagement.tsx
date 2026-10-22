@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FormModal } from '@/components/common/FormModal';
 import { useSpecialties, usePrograms } from '@/hooks/useDashboardData';
-import { useCreateSpecialty, useUpdateSpecialty, useDeleteSpecialty } from '@/hooks/useEntityMutations';
+import { useCreateSpecialty, useUpdateSpecialty, useDeleteSpecialty, useCreateProgram } from '@/hooks/useEntityMutations';
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { tr } from '@/utils/tr';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -41,12 +42,16 @@ export default function SpecialtiesManagement({ role = 'admin' }: SpecialtiesMan
   const createSpecialty = useCreateSpecialty();
   const updateSpecialty = useUpdateSpecialty();
   const deleteSpecialty = useDeleteSpecialty();
+  const createProgram = useCreateProgram();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSpecialty, setEditingSpecialty] = useState<typeof specialties[0] | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formData, setFormData] = useState<SpecialtyForm>({ name: '', program_id: '', description: '' });
+
+  const [isAddProgramOpen, setIsAddProgramOpen] = useState(false);
+  const [newProgramName, setNewProgramName] = useState('');
 
   const filteredSpecialties = specialties?.filter((s) => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -77,7 +82,7 @@ export default function SpecialtiesManagement({ role = 'admin' }: SpecialtiesMan
     
     const payload = {
       name: formData.name.trim(),
-      program_id: formData.program_id || null,
+      program_id: (formData.program_id && formData.program_id !== 'none') ? formData.program_id : null,
       description: formData.description?.trim() || null,
     };
 
@@ -194,7 +199,62 @@ export default function SpecialtiesManagement({ role = 'admin' }: SpecialtiesMan
             />
           </div>
           <div className="space-y-2">
-            <Label>{t('table.program')}</Label>
+            <div className="flex items-center justify-between">
+              <Label>{t('table.program')} <span className="text-xs text-muted-foreground font-normal">({tr("اختياري", "Optional")})</span></Label>
+              <button
+                type="button"
+                onClick={() => setIsAddProgramOpen(!isAddProgramOpen)}
+                className="text-xs text-primary hover:underline font-medium inline-flex items-center gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                {tr("إضافة برنامج جديد", "+ Add Program")}
+              </button>
+            </div>
+
+            {isAddProgramOpen && (
+              <div className="p-3 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
+                <Label className="text-xs font-medium">{tr("اسم البرنامج الأكاديمي الجديد", "New Program Name")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newProgramName}
+                    onChange={(e) => setNewProgramName(e.target.value)}
+                    placeholder={tr("مثال: دبلوم الذكاء الاصطناعي، بكالوريوس...", "e.g. AI Diploma, Bachelor...")}
+                    className="h-8 text-xs bg-background"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 text-xs shrink-0"
+                    disabled={!newProgramName.trim() || createProgram.isPending}
+                    onClick={async () => {
+                      if (!newProgramName.trim()) return;
+                      try {
+                        const res = await createProgram.mutateAsync({ name: newProgramName.trim() } as any);
+                        if (res?.id) {
+                          setFormData(prev => ({ ...prev, program_id: res.id }));
+                        }
+                        setNewProgramName('');
+                        setIsAddProgramOpen(false);
+                      } catch (e) {
+                        // handled by mutation toast
+                      }
+                    }}
+                  >
+                    {createProgram.isPending ? tr("جاري الحفظ...", "Saving...") : tr("حفظ", "Save")}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 text-xs shrink-0"
+                    onClick={() => setIsAddProgramOpen(false)}
+                  >
+                    {t('common.cancel')}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <Select 
               value={formData.program_id} 
               onValueChange={(value) => setFormData({ ...formData, program_id: value })}
@@ -203,6 +263,7 @@ export default function SpecialtiesManagement({ role = 'admin' }: SpecialtiesMan
                 <SelectValue placeholder={t('common.select')} />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">-- {tr("بدون برنامج (تخصص مستقل / عام)", "None (Standalone Specialty)")} --</SelectItem>
                 {programs?.map((program) => (
                   <SelectItem key={program.id} value={program.id}>
                     {program.name}

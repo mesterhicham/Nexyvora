@@ -19,10 +19,11 @@ exports.createProgram = async (req, res) => {
     try {
         await db.execute(
             'INSERT INTO programs (id, name, description, duration, image_url) VALUES (?, ?, ?, ?, ?)',
-            [id, name, description, duration, image_url || null]
+            [id, name, description || null, duration || null, image_url || null]
         );
-        res.status(201).json({ id, name, description, duration, image_url: image_url || null });
+        res.status(201).json({ id, name, description: description || null, duration: duration || null, image_url: image_url || null });
     } catch (err) {
+        console.error('[createProgram]', err);
         res.status(500).json({ error: err.message });
     }
 };

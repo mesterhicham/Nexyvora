@@ -44,7 +44,11 @@ interface ProgramForm {
   image_url: string;
 }
 
-export default function ProgramsManagement() {
+interface ProgramsManagementProps {
+  role?: 'admin' | 'teacher';
+}
+
+export default function ProgramsManagement({ role = 'admin' }: ProgramsManagementProps) {
   const { t } = useTranslation();
   const { data: programs, isLoading } = usePrograms();
   const createProgram = useCreateProgram();
@@ -148,11 +152,11 @@ export default function ProgramsManagement() {
   };
 
   return (
-    <DashboardLayout role="admin">
+    <DashboardLayout role={role}>
       <PageHeader
         title={t('admin.programsManagement')}
         description={t('admin.programsManagementDesc')}
-        breadcrumbs={[{ label: t('nav.dashboard'), href: '/admin' }, { label: t('nav.programs') }]}
+        breadcrumbs={[{ label: t('nav.dashboard'), href: `/${role}` }, { label: t('nav.programs') }]}
         actions={
           <Button onClick={openAddModal} className="gap-2 shadow-sm">
             <Plus className="h-4 w-4 rtl:rotate-180" />

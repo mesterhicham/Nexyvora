@@ -131,6 +131,12 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
 
     // المرحلة 1: بناء التخصص والمحتوى الأكاديمي
     { 
+      to: '/teacher/programs', 
+      icon: BookOpen, 
+      label: tr("البرامج الأكاديمية", "Programs"), 
+      category: tr("المرحلة 1: بناء التخصص والمحتوى", "Phase 1: Curriculum & Content") 
+    },
+    { 
       to: '/teacher/specialties', 
       icon: Layers, 
       label: tr("التخصصات الأكاديمية", "Specialties"), 
