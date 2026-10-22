@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { LessonAttendanceDialog } from '@/components/teacher/LessonAttendanceDialog';
 import { LessonContentManager } from '@/components/teacher/LessonContentManager';
+import { toast } from 'sonner';
 
 interface LessonForm {
   title: string;
@@ -59,7 +60,10 @@ export default function TeacherLessons() {
 
   const handleOpenCreate = () => {
     setEditingLesson(null);
-    setForm(initialForm);
+    setForm({
+      ...initialForm,
+      scheduled_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+    });
     setIsDialogOpen(true);
   };
 
@@ -70,7 +74,7 @@ export default function TeacherLessons() {
       description: lesson.description || '',
       module_id: lesson.module_id || '',
       cohort_id: lesson.cohort_id || '',
-      scheduled_date: lesson.scheduled_date ? format(new Date(lesson.scheduled_date), "yyyy-MM-dd'T'HH:mm") : '',
+      scheduled_date: lesson.scheduled_date ? format(new Date(lesson.scheduled_date), "yyyy-MM-dd'T'HH:mm") : format(new Date(), "yyyy-MM-dd'T'HH:mm"),
       duration_minutes: lesson.duration_minutes || 60,
       status: lesson.status || 'scheduled',
     });
@@ -78,24 +82,37 @@ export default function TeacherLessons() {
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !form.scheduled_date) return;
+    if (!form.title.trim()) {
+      toast.error(tr("يرجى إدخال عنوان الدرس", "Please enter lesson title"));
+      return;
+    }
     
+    let scheduledDate = form.scheduled_date;
+    if (!scheduledDate) {
+      scheduledDate = format(new Date(), "yyyy-MM-dd'T'HH:mm");
+    }
+
     const data = {
-      title: form.title,
-      description: form.description || undefined,
-      module_id: form.module_id || undefined,
-      cohort_id: form.cohort_id || undefined,
-      scheduled_date: form.scheduled_date,
-      duration_minutes: form.duration_minutes,
-      status: form.status,
+      title: form.title.trim(),
+      description: form.description?.trim() || undefined,
+      module_id: (form.module_id && form.module_id !== 'none') ? form.module_id : undefined,
+      cohort_id: (form.cohort_id && form.cohort_id !== 'none') ? form.cohort_id : undefined,
+      scheduled_date: scheduledDate,
+      duration_minutes: Number(form.duration_minutes) || 60,
+      status: form.status || 'scheduled',
     };
 
-    if (editingLesson) {
-      await updateLesson.mutateAsync({ id: editingLesson.id, ...data });
-    } else {
-      await createLesson.mutateAsync(data);
+    try {
+      if (editingLesson) {
+        await updateLesson.mutateAsync({ id: editingLesson.id, ...data });
+      } else {
+        await createLesson.mutateAsync(data);
+      }
+      setIsDialogOpen(false);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || tr("فشل في حفظ الدرس", "Failed to save lesson"));
     }
-    setIsDialogOpen(false);
   };
 
   const handleDelete = async () => {
@@ -240,6 +257,7 @@ export default function TeacherLessons() {
                     <SelectValue placeholder="Select module" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">-- {tr("بدون موديول (عام)", "None (General)")} --</SelectItem>
                     {modulesAndCohorts?.modules.map((m: any) => (
                       <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                     ))}
@@ -253,6 +271,7 @@ export default function TeacherLessons() {
                     <SelectValue placeholder="Select cohort" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">-- {tr("بدون فوج (عام)", "None (General)")} --</SelectItem>
                     {modulesAndCohorts?.cohorts.map((c: any) => (
                       <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                     ))}

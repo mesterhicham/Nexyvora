@@ -11,6 +11,8 @@ router.use(requireApprovedTeacher);
 // Lessons
 router.get('/lessons', teacherController.getTeacherLessons);
 router.post('/lessons', teacherController.createLesson);
+router.put('/lessons/:id', teacherController.updateLesson);
+router.delete('/lessons/:id', teacherController.deleteLesson);
 
 // Attendance
 router.get('/attendance/:lessonId', teacherController.getLessonAttendance);

@@ -19,15 +19,86 @@ exports.getTeacherLessons = async (req, res) => {
 };
 
 exports.createLesson = async (req, res) => {
-    const { title, description, module_id, cohort_id, scheduled_date, duration_minutes } = req.body;
+    const { title, description, module_id, cohort_id, scheduled_date, duration_minutes, status } = req.body;
     const id = crypto.randomUUID();
     try {
+        let formattedDate = scheduled_date;
+        if (formattedDate) {
+            formattedDate = formattedDate.replace('T', ' ');
+            if (formattedDate.length === 16) formattedDate += ':00';
+        } else {
+            formattedDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        }
+
         await db.execute(
-            'INSERT INTO lessons (id, title, description, module_id, cohort_id, teacher_id, scheduled_date, duration_minutes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, title, description, module_id, cohort_id, req.user.id, scheduled_date, duration_minutes]
+            'INSERT INTO lessons (id, title, description, module_id, cohort_id, teacher_id, scheduled_date, duration_minutes, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                id, 
+                title, 
+                description || null, 
+                module_id || null, 
+                cohort_id || null, 
+                req.user.id, 
+                formattedDate, 
+                duration_minutes || 60,
+                status || 'scheduled'
+            ]
         );
-        res.status(201).json({ id, title, description, module_id, cohort_id, scheduled_date, duration_minutes });
+        res.status(201).json({ 
+            id, 
+            title, 
+            description: description || null, 
+            module_id: module_id || null, 
+            cohort_id: cohort_id || null, 
+            teacher_id: req.user.id, 
+            scheduled_date: formattedDate, 
+            duration_minutes: duration_minutes || 60,
+            status: status || 'scheduled'
+        });
     } catch (err) {
+        console.error('[createLesson]', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.updateLesson = async (req, res) => {
+    const { id } = req.params;
+    const { title, description, module_id, cohort_id, scheduled_date, duration_minutes, status } = req.body;
+    try {
+        let formattedDate = scheduled_date;
+        if (formattedDate) {
+            formattedDate = formattedDate.replace('T', ' ');
+            if (formattedDate.length === 16) formattedDate += ':00';
+        }
+
+        await db.execute(
+            'UPDATE lessons SET title = ?, description = ?, module_id = ?, cohort_id = ?, scheduled_date = ?, duration_minutes = ?, status = ?, updated_at = NOW() WHERE id = ? AND teacher_id = ?',
+            [
+                title, 
+                description || null, 
+                module_id || null, 
+                cohort_id || null, 
+                formattedDate || null, 
+                duration_minutes || 60,
+                status || 'scheduled',
+                id,
+                req.user.id
+            ]
+        );
+        res.json({ id, title, description, module_id, cohort_id, scheduled_date: formattedDate, duration_minutes, status });
+    } catch (err) {
+        console.error('[updateLesson]', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.deleteLesson = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.execute('DELETE FROM lessons WHERE id = ? AND teacher_id = ?', [id, req.user.id]);
+        res.json({ message: 'Lesson deleted successfully' });
+    } catch (err) {
+        console.error('[deleteLesson]', err);
         res.status(500).json({ error: err.message });
     }
 };
