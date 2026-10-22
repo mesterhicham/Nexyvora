@@ -43,7 +43,9 @@ import {
   Crown,
   Globe,
   LifeBuoy,
-  Gift
+  Gift,
+  Layers,
+  FolderKanban
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types';
@@ -119,18 +121,99 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
   ];
 
   const teacherLinks: NavLinkItem[] = [
-    { to: '/teacher', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
-    { to: '/teacher/modules', icon: BookOpen, label: t('teacher.myModules', 'My Modules') },
-    { to: '/teacher/formations', icon: BookOpen, label: t('nav.academy', 'Academy Formations') },
-    { to: '/teacher/formation-progress', icon: BarChart3, label: t('reports.studentProgress', 'Student Progress') },
-    { to: '/teacher/lessons', icon: FileText, label: t('nav.lessons', 'Lessons') },
-    { to: '/teacher/assignments', icon: ClipboardList, label: t('nav.assignments', 'Assignments') },
-    { to: '/teacher/attendance', icon: CheckSquare, label: t('nav.attendance', 'Attendance') },
-    { to: '/teacher/announcements', icon: Bell, label: t('nav.announcements', 'Announcements') },
-    { to: '/teacher/meetings', icon: Video, label: t('student.liveSessions', 'Live Meetings') },
-    { to: '/teacher/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community') },
-    { to: '/teacher/chat', icon: MessageCircle, label: t('nav.chat', 'Chat') },
-    { to: '/student/support', icon: LifeBuoy, label: t('nav.support', 'Support Center') },
+    // 0. Overview
+    { 
+      to: '/teacher', 
+      icon: LayoutDashboard, 
+      label: t('nav.dashboard', 'لوحة التحكم'), 
+      category: tr("الرئيسية", "Overview") 
+    },
+
+    // المرحلة 1: بناء التخصص والمحتوى الأكاديمي
+    { 
+      to: '/teacher/specialties', 
+      icon: Layers, 
+      label: tr("1. التخصصات الأكاديمية", "1. Specialties"), 
+      category: tr("المرحلة 1: بناء التخصص والمحتوى", "Phase 1: Curriculum & Content") 
+    },
+    { 
+      to: '/teacher/formations', 
+      icon: GraduationCap, 
+      label: tr("2. الدورات التكوينية", "2. Formations"), 
+      category: tr("المرحلة 1: بناء التخصص والمحتوى", "Phase 1: Curriculum & Content") 
+    },
+    { 
+      to: '/teacher/modules', 
+      icon: FolderKanban, 
+      label: tr("3. المقررات والوحدات", "3. Modules"), 
+      category: tr("المرحلة 1: بناء التخصص والمحتوى", "Phase 1: Curriculum & Content") 
+    },
+    { 
+      to: '/teacher/lessons', 
+      icon: FileText, 
+      label: tr("4. الدروس والمحتوى", "4. Lessons"), 
+      category: tr("المرحلة 1: بناء التخصص والمحتوى", "Phase 1: Curriculum & Content") 
+    },
+
+    // المرحلة 2: التدريس واللقاءات الحية
+    { 
+      to: '/teacher/cohorts', 
+      icon: Users, 
+      label: tr("5. الدفعات والأفواج", "5. Cohorts"), 
+      category: tr("المرحلة 2: التدريس واللقاءات الحية", "Phase 2: Teaching & Cohorts") 
+    },
+    { 
+      to: '/teacher/meetings', 
+      icon: Video, 
+      label: tr("6. المحاضرات واللقاءات الحية", "6. Live Meetings"), 
+      category: tr("المرحلة 2: التدريس واللقاءات الحية", "Phase 2: Teaching & Cohorts") 
+    },
+    { 
+      to: '/teacher/assignments', 
+      icon: ClipboardList, 
+      label: tr("7. التكليفات والواجبات", "7. Assignments"), 
+      category: tr("المرحلة 2: التدريس واللقاءات الحية", "Phase 2: Teaching & Cohorts") 
+    },
+    { 
+      to: '/teacher/attendance', 
+      icon: CheckSquare, 
+      label: tr("8. سجل الحضور والغياب", "8. Attendance"), 
+      category: tr("المرحلة 2: التدريس واللقاءات الحية", "Phase 2: Teaching & Cohorts") 
+    },
+
+    // المرحلة 3: المتابعة والشهادات
+    { 
+      to: '/teacher/formation-progress', 
+      icon: Award, 
+      label: tr("9. متابعة التقدم والشهادات", "9. Progress & Diplomas"), 
+      category: tr("المرحلة 3: المتابعة والشهادات", "Phase 3: Evaluation & Diplomas") 
+    },
+
+    // المرحلة 4: التواصل والتفاعل
+    { 
+      to: '/teacher/announcements', 
+      icon: Bell, 
+      label: tr("10. الإعلانات والتنبيهات", "10. Announcements"), 
+      category: tr("المرحلة 4: التواصل والتفاعل", "Phase 4: Community & Support") 
+    },
+    { 
+      to: '/teacher/chat', 
+      icon: MessageCircle, 
+      label: tr("11. الدردشة المباشرة", "11. Direct Chat"), 
+      category: tr("المرحلة 4: التواصل والتفاعل", "Phase 4: Community & Support") 
+    },
+    { 
+      to: '/teacher/community', 
+      icon: MessageSquare, 
+      label: tr("12. مجتمع المنصة", "12. Nexyvora Community"), 
+      category: tr("المرحلة 4: التواصل والتفاعل", "Phase 4: Community & Support") 
+    },
+    { 
+      to: '/teacher/support', 
+      icon: LifeBuoy, 
+      label: tr("13. الدعم الفني", "13. Support Center"), 
+      category: tr("المرحلة 4: التواصل والتفاعل", "Phase 4: Community & Support") 
+    },
   ];
 
   const studentLinks: NavLinkItem[] = [
@@ -155,17 +238,18 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
   const rawLinks = role === 'admin' ? adminLinks : role === 'teacher' ? teacherLinks : studentLinks;
   const filteredLinks = rawLinks;
 
-  // Group by category if admin
+  // Group by category if admin or teacher
   const groupedLinks = useMemo(() => {
-    if (role !== 'admin') return null;
+    if (role !== 'admin' && role !== 'teacher') return null;
+    const links = role === 'admin' ? adminLinks : teacherLinks;
     const groups: { [cat: string]: NavLinkItem[] } = {};
-    adminLinks.forEach(item => {
+    links.forEach(item => {
       const cat = item.category || 'General';
       if (!groups[cat]) groups[cat] = [];
       groups[cat].push(item);
     });
     return groups;
-  }, [role, adminLinks]);
+  }, [role, adminLinks, teacherLinks]);
 
   return (
     <>

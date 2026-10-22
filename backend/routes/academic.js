@@ -14,15 +14,15 @@ router.delete('/programs/:id', authorize('admin'), academicController.deleteProg
 
 // Specialties
 router.get('/specialties', academicController.getAllSpecialties);
-router.post('/specialties', authorize('admin'), academicController.createSpecialty);
-router.put('/specialties/:id', authorize('admin'), academicController.updateSpecialty);
-router.delete('/specialties/:id', authorize('admin'), academicController.deleteSpecialty);
+router.post('/specialties', authorize('admin', 'teacher'), academicController.createSpecialty);
+router.put('/specialties/:id', authorize('admin', 'teacher'), academicController.updateSpecialty);
+router.delete('/specialties/:id', authorize('admin', 'teacher'), academicController.deleteSpecialty);
 
 // Cohorts
 router.get('/cohorts', academicController.getAllCohorts);
-router.post('/cohorts', authorize('admin'), academicController.createCohort);
-router.put('/cohorts/:id', authorize('admin'), academicController.updateCohort);
-router.delete('/cohorts/:id', authorize('admin'), academicController.deleteCohort);
+router.post('/cohorts', authorize('admin', 'teacher'), academicController.createCohort);
+router.put('/cohorts/:id', authorize('admin', 'teacher'), academicController.updateCohort);
+router.delete('/cohorts/:id', authorize('admin', 'teacher'), academicController.deleteCohort);
 
 // Modules
 router.get('/modules', academicController.getAllModules);

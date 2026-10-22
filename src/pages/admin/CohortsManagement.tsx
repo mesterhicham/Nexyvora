@@ -31,7 +31,11 @@ interface CohortForm {
   status: string;
 }
 
-export default function CohortsManagement() {
+interface CohortsManagementProps {
+  role?: 'admin' | 'teacher';
+}
+
+export default function CohortsManagement({ role = 'admin' }: CohortsManagementProps) {
   const { t } = useTranslation();
   const { data: cohorts, isLoading } = useCohorts();
   const { data: specialties } = useSpecialties();
@@ -115,11 +119,11 @@ export default function CohortsManagement() {
   };
 
   return (
-    <DashboardLayout role="admin">
+    <DashboardLayout role={role}>
       <PageHeader
         title={t('admin.cohortsManagement')}
         description={t('admin.cohortsManagementDesc')}
-        breadcrumbs={[{ label: t('nav.dashboard'), href: '/admin' }, { label: t('nav.cohorts') }]}
+        breadcrumbs={[{ label: t('nav.dashboard'), href: `/${role}` }, { label: t('nav.cohorts') }]}
         actions={
           <Button onClick={openAddModal}>
             <Plus className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />

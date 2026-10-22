@@ -30,7 +30,11 @@ interface SpecialtyForm {
   description: string;
 }
 
-export default function SpecialtiesManagement() {
+interface SpecialtiesManagementProps {
+  role?: 'admin' | 'teacher';
+}
+
+export default function SpecialtiesManagement({ role = 'admin' }: SpecialtiesManagementProps) {
   const { t } = useTranslation();
   const { data: specialties, isLoading } = useSpecialties();
   const { data: programs } = usePrograms();
@@ -96,11 +100,11 @@ export default function SpecialtiesManagement() {
   };
 
   return (
-    <DashboardLayout role="admin">
+    <DashboardLayout role={role}>
       <PageHeader
         title={t('admin.specialtiesManagement')}
         description={t('admin.specialtiesManagementDesc')}
-        breadcrumbs={[{ label: t('nav.dashboard'), href: '/admin' }, { label: t('nav.specialties') }]}
+        breadcrumbs={[{ label: t('nav.dashboard'), href: `/${role}` }, { label: t('nav.specialties') }]}
         actions={
           <Button onClick={openAddModal}>
             <Plus className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />

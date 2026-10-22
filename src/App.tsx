@@ -273,15 +273,17 @@ const App = () => (
               {/* Teacher Routes (Protected) */}
               <Route element={<RequireRole allowedRoles={['teacher', 'admin']} />}>
                 <Route path="/teacher" element={<TeacherDashboard />} />
+                <Route path="/teacher/specialties" element={<SpecialtiesManagement role="teacher" />} />
+                <Route path="/teacher/formations" element={<TeacherFormations />} />
                 <Route path="/teacher/modules" element={<TeacherModules />} />
                 <Route path="/teacher/lessons" element={<TeacherLessons />} />
-                <Route path="/teacher/assignments" element={<TeacherAssignments />} />
-                <Route path="/teacher/attendance" element={<TeacherAttendance />} />
-                <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
+                <Route path="/teacher/cohorts" element={<CohortsManagement role="teacher" />} />
                 <Route path="/teacher/meetings" element={<TeacherMeetingsPage />} />
                 <Route path="/teacher/meetings/:meetingId" element={<MeetingRoom />} />
-                <Route path="/teacher/formations" element={<TeacherFormations />} />
+                <Route path="/teacher/assignments" element={<TeacherAssignments />} />
+                <Route path="/teacher/attendance" element={<TeacherAttendance />} />
                 <Route path="/teacher/formation-progress" element={<FormationProgressDashboard />} />
+                <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
                 <Route path="/teacher/community" element={<StudentCommunity role="teacher" />} />
                 <Route path="/teacher/chat" element={<ChatPage />} />
                 <Route path="/teacher/support" element={<StudentSupport />} />
