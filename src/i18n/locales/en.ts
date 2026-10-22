@@ -147,7 +147,7 @@ export const en = {
     "portals": "Portals",
     "languages": "Languages",
     "allRightsReserved": "All rights reserved.",
-    "studentPortal": "Student Portal",
+    "studentPortal": "Member Portal",
     "teacherPortal": "Teacher Portal",
     "adminPortal": "Admin Portal"
   },
@@ -536,7 +536,7 @@ export const en = {
     "cashFlowSummary": "Cash Flow Summary",
     "quickManagementHub": "Management Hub",
     "refresh": "Refresh Data",
-    "welcomePrefix": "Welcome back,",
+    "welcomePrefix": "Welcome back",
     "heroImageUploadedSuccess": "Hero background image uploaded successfully!",
     "allLandingSaved": "All landing page settings saved successfully!",
     "selectCohort": "Select Cohort",
@@ -636,7 +636,7 @@ export const en = {
     "student": "Student",
     "adminPanel": "Admin Panel",
     "teacherPortal": "Teacher Portal",
-    "studentPortal": "Student Portal"
+    "studentPortal": "Member Portal"
   },
   "specialties": {
     "softwareDev": "Software Development",

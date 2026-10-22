@@ -38,10 +38,10 @@ export function TopBar({ role, onMenuClick }: TopBarProps) {
   // Display name
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member';
   const roleLabel = role === 'admin' 
-    ? t('roles.adminPanel') 
+    ? t('roles.adminPanel', 'Admin Panel') 
     : role === 'teacher' 
-    ? t('roles.teacherPortal') 
-    : t('roles.studentPortal');
+    ? t('roles.teacherPortal', 'Teacher Portal') 
+    : t('roles.studentPortal', 'Member Portal');
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 transition-colors">
@@ -104,12 +104,9 @@ export function TopBar({ role, onMenuClick }: TopBarProps) {
             </Button>
 
             <div className="min-w-0">
-              <h1 className="text-sm sm:text-base lg:text-xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-1.5 truncate">
-                <span className="truncate">{t('admin.welcomePrefix', 'Welcome')}, {displayName}</span>
+              <h1 className="text-base sm:text-lg lg:text-xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-1.5 truncate">
+                <span className="truncate">{roleLabel}</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400 font-medium truncate hidden sm:block">
-                {roleLabel}
-              </p>
             </div>
           </div>
 

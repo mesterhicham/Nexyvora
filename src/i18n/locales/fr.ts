@@ -147,7 +147,7 @@ export const fr = {
     "portals": "Portails",
     "languages": "Langues",
     "allRightsReserved": "Tous droits réservés.",
-    "studentPortal": "Portail étudiant",
+    "studentPortal": "Portail membre",
     "teacherPortal": "Portail enseignant",
     "adminPortal": "Portail administrateur"
   },
@@ -636,7 +636,7 @@ export const fr = {
     "student": "Étudiant",
     "adminPanel": "Panneau d'administration",
     "teacherPortal": "Portail enseignant",
-    "studentPortal": "Portail étudiant"
+    "studentPortal": "Portail membre"
   },
   "specialties": {
     "softwareDev": "Développement logiciel",

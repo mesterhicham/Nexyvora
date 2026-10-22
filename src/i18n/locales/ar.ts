@@ -147,7 +147,7 @@ export const ar = {
     "portals": "البوابات",
     "languages": "اللغات",
     "allRightsReserved": "جميع الحقوق محفوظة.",
-    "studentPortal": "بوابة الطالب",
+    "studentPortal": "بوابة العضو",
     "teacherPortal": "بوابة المدرس",
     "adminPortal": "بوابة الإدارة"
   },
@@ -636,7 +636,7 @@ export const ar = {
     "student": "طالب",
     "adminPanel": "لوحة الإدارة",
     "teacherPortal": "بوابة المدرس",
-    "studentPortal": "بوابة الطالب"
+    "studentPortal": "بوابة العضو"
   },
   "specialties": {
     "softwareDev": "تطوير البرمجيات",
