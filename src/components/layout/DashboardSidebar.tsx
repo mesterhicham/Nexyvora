@@ -88,6 +88,7 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     
     // 2. Academy & Growth
     { to: '/admin/academy', icon: GraduationCap, label: t('nav.academy', 'Academy & Content'), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
+    { to: '/admin/formations', icon: BookOpen, label: tr("التكوينات والمسارات", "Formations"), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
     { to: '/admin/packages', icon: Package, label: t('nav.packages', 'Packages & Subscriptions'), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
     { to: '/admin/promised-packages', icon: Gift, label: t('nav.promisedPackages', tr("باقات الدعم (Promised)", "Promised Packages")), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
     { to: '/admin/challenges', icon: Flame, label: t('nav.challenges', 'Challenges & Contests'), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
