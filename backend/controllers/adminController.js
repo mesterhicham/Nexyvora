@@ -289,6 +289,7 @@ exports.getAllUsers = async (req, res) => {
                 u.affiliate_code,
                 u.affiliate_enabled,
                 u.wallet_pin,
+                u.custom_unlocked_generations,
                 u.created_at,
                 p.full_name,
                 p.city,
@@ -343,6 +344,7 @@ exports.getAllUsers = async (req, res) => {
                 country: r.country || '',
                 affiliate_code: r.affiliate_code || '',
                 wallet_pin: r.wallet_pin || '',
+                custom_unlocked_generations: r.custom_unlocked_generations !== null && r.custom_unlocked_generations !== undefined ? Number(r.custom_unlocked_generations) : null,
                 created_at: r.created_at,
                 avatar_url: r.avatar_url,
                 display_id: `#${100 + nonTeacherRows.length - idx}`,
@@ -380,7 +382,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     const { id } = req.params;
-    const { email, username, password, wallet_pin, package_id, status, role } = req.body;
+    const { email, username, password, wallet_pin, custom_unlocked_generations, package_id, status, role } = req.body;
 
     try {
         const updates = [];
@@ -445,6 +447,15 @@ exports.updateUser = async (req, res) => {
         if (wallet_pin !== undefined) {
             updates.push('wallet_pin = ?');
             params.push(wallet_pin);
+        }
+        if (custom_unlocked_generations !== undefined) {
+            if (custom_unlocked_generations === null || custom_unlocked_generations === 'default' || custom_unlocked_generations === '') {
+                updates.push('custom_unlocked_generations = NULL');
+            } else {
+                const genNum = Math.max(0, Math.min(10, parseInt(custom_unlocked_generations, 10) || 0));
+                updates.push('custom_unlocked_generations = ?');
+                params.push(genNum);
+            }
         }
         if (status) {
             updates.push('status = ?');

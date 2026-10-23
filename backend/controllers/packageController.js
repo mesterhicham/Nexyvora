@@ -13,6 +13,17 @@ function genUuid() {
  * Formula: Math.max(packageUnlockedGenerations, rankUnlockedGenerations)
  */
 async function getUserEffectiveUnlockedGenerations(userId, conn) {
+    // 0. Check custom admin override on user
+    let customUnlocked = null;
+    try {
+        const [uRows] = await conn.query('SELECT custom_unlocked_generations FROM users WHERE id = ?', [userId]);
+        if (uRows.length > 0 && uRows[0].custom_unlocked_generations !== null && uRows[0].custom_unlocked_generations !== undefined) {
+            customUnlocked = Number(uRows[0].custom_unlocked_generations);
+        }
+    } catch (e) {
+        console.error('[packageController.getUserEffectiveUnlockedGenerations.customGenError]', e);
+    }
+
     // 1. Package unlocked generations
     const [packRows] = await conn.query(`
         SELECT p.unlocked_generations, p.price, p.name, p.name_ar, p.level
@@ -41,9 +52,10 @@ async function getUserEffectiveUnlockedGenerations(userId, conn) {
         console.error('[packageController.getUserEffectiveUnlockedGenerations.rankError]', e);
     }
 
-    const effective = Math.max(packageUnlocked, rankUnlocked);
+    const effective = customUnlocked !== null ? customUnlocked : Math.max(packageUnlocked, rankUnlocked);
     return {
         effective,
+        customUnlocked,
         packageUnlocked,
         rankUnlocked,
         package: pkg,

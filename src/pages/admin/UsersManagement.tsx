@@ -49,7 +49,8 @@ import {
   GraduationCap,
   Shield,
   PlusCircle,
-  MinusCircle
+  MinusCircle,
+  Layers
 } from 'lucide-react';
 
 interface EnrichedUser {
@@ -65,6 +66,7 @@ interface EnrichedUser {
   country: string;
   affiliate_code: string;
   wallet_pin?: string;
+  custom_unlocked_generations?: number | null;
   created_at: string;
   avatar_url?: string | null;
   display_id: string;
@@ -116,6 +118,7 @@ export default function UsersManagement() {
     username: '',
     password: '',
     wallet_pin: '',
+    custom_unlocked_generations: 'default',
     package_id: 'none',
     status: 'active',
   });
@@ -174,6 +177,9 @@ export default function UsersManagement() {
       username: u.username || '',
       password: '',
       wallet_pin: u.wallet_pin || '',
+      custom_unlocked_generations: u.custom_unlocked_generations !== undefined && u.custom_unlocked_generations !== null
+        ? String(u.custom_unlocked_generations)
+        : 'default',
       package_id: u.package?.id || 'none',
       status: u.status || 'active',
     });
@@ -189,6 +195,9 @@ export default function UsersManagement() {
         username: editForm.username,
         password: editForm.password || undefined,
         wallet_pin: editForm.wallet_pin || undefined,
+        custom_unlocked_generations: editForm.custom_unlocked_generations === 'default'
+          ? null
+          : parseInt(editForm.custom_unlocked_generations, 10),
         package_id: editForm.package_id,
         status: editForm.status,
       });
@@ -726,6 +735,22 @@ export default function UsersManagement() {
                       {formatDate(detailsUser.created_at)}
                     </span>
                   </div>
+
+                  {/* Generation Eligibility */}
+                  <div>
+                    <span className="text-slate-400 font-bold block mb-1">
+                      {tr("الاستفادة من الأجيال", "Eligible Generations")}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 font-bold text-xs inline-block">
+                      {detailsUser.custom_unlocked_generations !== null && detailsUser.custom_unlocked_generations !== undefined
+                        ? (detailsUser.custom_unlocked_generations === 0 
+                            ? tr("معطل (0 أجيال)", "Disabled (0)")
+                            : (detailsUser.custom_unlocked_generations >= 10
+                                ? tr("كامل الأجيال (الجيل 1 إلى 10)", "Full 10 Generations")
+                                : `${tr("حتى الجيل", "Up to Gen")} ${detailsUser.custom_unlocked_generations}`))
+                        : tr("تلقائي (حسب الباقة والرتبة)", "Auto (Package & Rank)")}
+                    </span>
+                  </div>
                 </div>
 
                 {/* 3 Bottom Stat Cards (MAIN, BONUS, COLLECTION %) */}
@@ -857,6 +882,66 @@ export default function UsersManagement() {
                 </Select>
                 <p className="text-[10px] text-slate-400">
                   {tr("* اختيار باقة يرقي الطالب تلقائياً إلى شريك أعمال (Business Partner)، و No Package يُبقيه طالباً (Student).", "* Selecting a package automatically promotes student to Business Partner; No Package keeps user as a Student.")}
+                </p>
+              </div>
+
+              {/* Generation Eligibility (Matching Bonus Generations 1 to 10) */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Layers className="h-3.5 w-3.5 text-violet-500" />
+                  {tr("تحديد الاستفادة من الأجيال (عمولات المطابقة / Matching Bonus)", "Generation Eligibility (Matching Bonus)")}
+                </Label>
+                <Select
+                  value={editForm.custom_unlocked_generations}
+                  onValueChange={(val) => setEditForm({ ...editForm, custom_unlocked_generations: val })}
+                >
+                  <SelectTrigger className="rounded-2xl border-slate-200 dark:border-slate-800 text-xs bg-slate-50/50 dark:bg-slate-900/50">
+                    <SelectValue placeholder={tr("اختر عدد الأجيال", "Select generations")} />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl max-h-64">
+                    <SelectItem value="default" className="text-xs font-bold text-violet-600 dark:text-violet-400">
+                      ⚡ {tr("تلقائي (حسب الباقة الحالية والرتبة المستحقة)", "Default (Automatic via Package & Rank)")}
+                    </SelectItem>
+                    <SelectItem value="1" className="text-xs font-medium">
+                      1️⃣ {tr("الجيل الأول فقط (Gen 1)", "Generation 1 only")}
+                    </SelectItem>
+                    <SelectItem value="2" className="text-xs font-medium">
+                      2️⃣ {tr("حتى الجيل الثاني (Gen 1 - 2)", "Up to Generation 2")}
+                    </SelectItem>
+                    <SelectItem value="3" className="text-xs font-medium">
+                      3️⃣ {tr("حتى الجيل الثالث (Gen 1 - 3)", "Up to Generation 3")}
+                    </SelectItem>
+                    <SelectItem value="4" className="text-xs font-medium">
+                      4️⃣ {tr("حتى الجيل الرابع (Gen 1 - 4)", "Up to Generation 4")}
+                    </SelectItem>
+                    <SelectItem value="5" className="text-xs font-medium">
+                      5️⃣ {tr("حتى الجيل الخامس (Gen 1 - 5)", "Up to Generation 5")}
+                    </SelectItem>
+                    <SelectItem value="6" className="text-xs font-medium">
+                      6️⃣ {tr("حتى الجيل السادس (Gen 1 - 6)", "Up to Generation 6")}
+                    </SelectItem>
+                    <SelectItem value="7" className="text-xs font-medium">
+                      7️⃣ {tr("حتى الجيل السابع (Gen 1 - 7)", "Up to Generation 7")}
+                    </SelectItem>
+                    <SelectItem value="8" className="text-xs font-medium">
+                      8️⃣ {tr("حتى الجيل الثامن (Gen 1 - 8)", "Up to Generation 8")}
+                    </SelectItem>
+                    <SelectItem value="9" className="text-xs font-medium">
+                      9️⃣ {tr("حتى الجيل التاسع (Gen 1 - 9)", "Up to Generation 9")}
+                    </SelectItem>
+                    <SelectItem value="10" className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                      🔟 {tr("كامل الأجيال (الجيل 1 إلى الجيل 10) - Full 10", "Full 10 Generations (Gen 1 to 10)")}
+                    </SelectItem>
+                    <SelectItem value="0" className="text-xs font-medium text-rose-500">
+                      🚫 {tr("معطل تماماً (0 أجيال)", "Disabled (0 Generations)")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-slate-400">
+                  {tr(
+                    "* يمنح الأدمن إمكانية تخصيص الاستفادة من أرباح الأجيال لهذا العضو من الجيل 1 حتى الجيل 10 بشكل مباشر، أو تركه تلقائياً.",
+                    "* Allows Admin to grant custom matching bonus generation eligibility from Gen 1 up to Gen 10 directly, or leave automatic."
+                  )}
                 </p>
               </div>
 
