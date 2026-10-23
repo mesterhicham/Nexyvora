@@ -4,18 +4,42 @@ const crypto = require('crypto');
 // --- FORMATIONS ---
 exports.getAllFormations = async (req, res) => {
     try {
+        const userId = req.user ? req.user.id : null;
+        const userRole = req.user ? req.user.role : null;
+
+        let whereClause = '';
+        const params = [];
+
+        if (userRole === 'teacher') {
+            const [tRows] = await db.query('SELECT id FROM teachers WHERE user_id = ?', [userId]);
+            const teacherId = tRows[0]?.id || null;
+            whereClause = 'WHERE (f.teacher_id = ? OR f.teacher_id = ? OR f.created_by = ?)';
+            params.push(teacherId, userId, userId);
+        }
+
         const [formations] = await db.query(`
             SELECT f.*, 
                    p.name AS package_name, 
                    p.name_ar AS package_name_ar, 
                    p.level AS package_level, 
-                   p.price AS package_price
+                   p.price AS package_price,
+                   t.id AS teacher_record_id,
+                   tp.full_name AS teacher_name,
+                   tp.avatar_url AS teacher_avatar,
+                   tu.email AS teacher_email,
+                   COALESCE((SELECT COUNT(*) FROM formation_content fc WHERE fc.formation_id = f.id), 0) AS content_count,
+                   COALESCE((SELECT COUNT(*) FROM formation_enrollments fe WHERE fe.formation_id = f.id), 0) AS enrollment_count
             FROM formations f
             LEFT JOIN packages p ON f.package_id = p.id
+            LEFT JOIN teachers t ON f.teacher_id = t.id OR f.teacher_id = t.user_id
+            LEFT JOIN profiles tp ON t.user_id = tp.id
+            LEFT JOIN users tu ON t.user_id = tu.id
+            ${whereClause}
             ORDER BY f.created_at DESC
-        `);
+        `, params);
         res.json(formations);
     } catch (err) {
+        console.error('[getAllFormations error]:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -27,9 +51,13 @@ exports.getPublishedFormations = async (req, res) => {
                    p.name AS package_name, 
                    p.name_ar AS package_name_ar, 
                    p.level AS package_level, 
-                   p.price AS package_price
+                   p.price AS package_price,
+                   tp.full_name AS teacher_name,
+                   tp.avatar_url AS teacher_avatar
             FROM formations f
             LEFT JOIN packages p ON f.package_id = p.id
+            LEFT JOIN teachers t ON f.teacher_id = t.id OR f.teacher_id = t.user_id
+            LEFT JOIN profiles tp ON t.user_id = tp.id
             WHERE f.is_published = 1
             ORDER BY f.created_at DESC
         `);
@@ -38,6 +66,22 @@ exports.getPublishedFormations = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// Helper: Check if user has permission to manage formation content
+async function canUserManageContent(formationId, reqUser) {
+    if (!reqUser) return false;
+    if (reqUser.role === 'admin') return true;
+    if (reqUser.role === 'teacher') {
+        const [tRows] = await db.query('SELECT id FROM teachers WHERE user_id = ?', [reqUser.id]);
+        const teacherId = tRows[0]?.id;
+        const [fRows] = await db.query(
+            'SELECT id FROM formations WHERE id = ? AND (teacher_id = ? OR teacher_id = ? OR created_by = ?)',
+            [formationId, teacherId, reqUser.id, reqUser.id]
+        );
+        return fRows.length > 0;
+    }
+    return false;
+}
 
 // Helper: Auto-enroll all active students whose package qualifies for this formation
 async function autoEnrollPackageStudents(formationId, packageId) {
@@ -116,7 +160,7 @@ async function autoEnrollStudentForPackages(userId, studentId) {
 }
 
 exports.createFormation = async (req, res) => {
-    const { title, description, price, currency, is_published, thumbnail_url, package_id } = req.body;
+    const { title, description, price, currency, is_published, thumbnail_url, package_id, teacher_id } = req.body;
     const id = crypto.randomUUID();
     const created_by = req.user ? req.user.id : null;
     const cleanPackageId = (package_id && package_id !== 'none' && package_id !== 'null') ? package_id : null;
@@ -124,10 +168,16 @@ exports.createFormation = async (req, res) => {
     // Default to published (1) unless explicitly false/0
     const finalPublished = (is_published === undefined || is_published === null || is_published === true || is_published === 1) ? 1 : 0;
 
+    let cleanTeacherId = null;
+    if (teacher_id && teacher_id !== 'none' && teacher_id !== 'null') {
+        const [tRows] = await db.query('SELECT id FROM teachers WHERE id = ? OR user_id = ?', [teacher_id, teacher_id]);
+        cleanTeacherId = tRows[0]?.id || teacher_id;
+    }
+
     try {
         await db.query(
-            'INSERT INTO formations (id, title, description, price, currency, is_published, thumbnail_url, package_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, title, description, finalPrice, currency || 'USD', finalPublished, thumbnail_url || null, cleanPackageId, created_by]
+            'INSERT INTO formations (id, title, description, price, currency, is_published, thumbnail_url, package_id, teacher_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, title, description, finalPrice, currency || 'USD', finalPublished, thumbnail_url || null, cleanPackageId, cleanTeacherId, created_by]
         );
 
         if (cleanPackageId) {
@@ -141,7 +191,7 @@ exports.createFormation = async (req, res) => {
             }
         }
 
-        res.status(201).json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published: finalPublished === 1, thumbnail_url, package_id: cleanPackageId });
+        res.status(201).json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published: finalPublished === 1, thumbnail_url, package_id: cleanPackageId, teacher_id: cleanTeacherId });
     } catch (err) {
         console.error('[createFormation error]:', err);
         res.status(500).json({ error: err.message });
@@ -150,10 +200,20 @@ exports.createFormation = async (req, res) => {
 
 exports.updateFormation = async (req, res) => {
     const { id } = req.params;
-    const { title, description, price, currency, is_published, thumbnail_url, package_id } = req.body;
+    const { title, description, price, currency, is_published, thumbnail_url, package_id, teacher_id } = req.body;
     const cleanPackageId = (package_id !== undefined) ? ((package_id && package_id !== 'none' && package_id !== 'null') ? package_id : null) : undefined;
     const finalPrice = (cleanPackageId !== undefined && cleanPackageId !== null) ? 0 : (Number(price) || 0);
     const finalPublished = (is_published === true || is_published === 1) ? 1 : 0;
+
+    let cleanTeacherId = undefined;
+    if (teacher_id !== undefined) {
+        if (teacher_id && teacher_id !== 'none' && teacher_id !== 'null') {
+            const [tRows] = await db.query('SELECT id FROM teachers WHERE id = ? OR user_id = ?', [teacher_id, teacher_id]);
+            cleanTeacherId = tRows[0]?.id || teacher_id;
+        } else {
+            cleanTeacherId = null;
+        }
+    }
 
     try {
         let updateQuery = 'UPDATE formations SET title = ?, description = ?, price = ?, currency = ?, is_published = ?, thumbnail_url = ?';
@@ -162,6 +222,10 @@ exports.updateFormation = async (req, res) => {
         if (cleanPackageId !== undefined) {
             updateQuery += ', package_id = ?';
             params.push(cleanPackageId);
+        }
+        if (cleanTeacherId !== undefined) {
+            updateQuery += ', teacher_id = ?';
+            params.push(cleanTeacherId);
         }
 
         updateQuery += ', updated_at = NOW() WHERE id = ?';
@@ -191,7 +255,7 @@ exports.updateFormation = async (req, res) => {
             }
         }
 
-        res.json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published: finalPublished === 1, thumbnail_url, package_id: cleanPackageId });
+        res.json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published: finalPublished === 1, thumbnail_url, package_id: cleanPackageId, teacher_id: cleanTeacherId });
     } catch (err) {
         console.error('[updateFormation error]:', err);
         res.status(500).json({ error: err.message });
@@ -221,6 +285,13 @@ exports.getFormationContent = async (req, res) => {
 
 exports.addFormationContent = async (req, res) => {
     const { formation_id, title, content_type, file_url, duration_seconds, order_index, quiz_id } = req.body;
+    
+    // Permission check
+    const canManage = await canUserManageContent(formation_id, req.user);
+    if (!canManage) {
+        return res.status(403).json({ error: 'غير مصرح لك بإضافة محتوى لهذا التكوين' });
+    }
+
     const id = crypto.randomUUID();
     try {
         await db.execute(
@@ -237,6 +308,14 @@ exports.updateFormationContent = async (req, res) => {
     const { id } = req.params;
     const { title, content_type, file_url, duration_seconds, order_index, quiz_id } = req.body;
     try {
+        const [cRows] = await db.execute('SELECT formation_id FROM formation_content WHERE id = ?', [id]);
+        if (cRows.length === 0) return res.status(404).json({ error: 'Content not found' });
+        
+        const canManage = await canUserManageContent(cRows[0].formation_id, req.user);
+        if (!canManage) {
+            return res.status(403).json({ error: 'غير مصرح لك بتعديل محتوى هذا التكوين' });
+        }
+
         await db.execute(
             'UPDATE formation_content SET title = ?, content_type = ?, file_url = ?, duration_seconds = ?, order_index = ?, quiz_id = ? WHERE id = ?',
             [title, content_type, file_url, duration_seconds, order_index, quiz_id, id]
@@ -250,6 +329,14 @@ exports.updateFormationContent = async (req, res) => {
 exports.deleteFormationContent = async (req, res) => {
     const { id } = req.params;
     try {
+        const [cRows] = await db.execute('SELECT formation_id FROM formation_content WHERE id = ?', [id]);
+        if (cRows.length === 0) return res.status(404).json({ error: 'Content not found' });
+        
+        const canManage = await canUserManageContent(cRows[0].formation_id, req.user);
+        if (!canManage) {
+            return res.status(403).json({ error: 'غير مصرح لك بحذف محتوى هذا التكوين' });
+        }
+
         await db.execute('DELETE FROM formation_content WHERE id = ?', [id]);
         res.json({ message: 'Content deleted successfully' });
     } catch (err) {
@@ -258,8 +345,14 @@ exports.deleteFormationContent = async (req, res) => {
 };
 
 exports.reorderContent = async (req, res) => {
-    const { items } = req.body;
+    const { items, formationId } = req.body;
     try {
+        if (formationId) {
+            const canManage = await canUserManageContent(formationId, req.user);
+            if (!canManage) {
+                return res.status(403).json({ error: 'غير مصرح لك بإعادة ترتيب محتوى هذا التكوين' });
+            }
+        }
         for (const item of items) {
             await db.execute('UPDATE formation_content SET order_index = ? WHERE id = ?', [item.order_index, item.id]);
         }

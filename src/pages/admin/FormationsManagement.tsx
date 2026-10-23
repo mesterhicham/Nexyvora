@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Eye, Users, DollarSign, BookOpen, Image, Link2, Check, FolderOpen, TrendingUp, Package, CheckCircle, Sparkles } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Users, DollarSign, BookOpen, Image, Link2, Check, FolderOpen, TrendingUp, Package, CheckCircle, Sparkles, GraduationCap } from 'lucide-react';
 import { 
   useFormations, 
   useCreateFormation, 
@@ -27,7 +27,7 @@ import {
   useFormationRevenueStats,
   Formation,
 } from '@/hooks/useFormations';
-import { uploadService, packageService } from '@/services/apiService';
+import { uploadService, packageService, academicService } from '@/services/apiService';
 import { toast } from 'sonner';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { FormationPreview } from '@/components/formation/FormationPreview';
@@ -49,9 +49,11 @@ export default function FormationsManagement() {
     currency: 'USD', 
     is_published: true, 
     thumbnail_url: '',
-    package_id: 'none'
+    package_id: 'none',
+    teacher_id: 'none'
   });
   const [packagesList, setPackagesList] = useState<any[]>([]);
+  const [teachersList, setTeachersList] = useState<any[]>([]);
   const [selectedPackageFilter, setSelectedPackageFilter] = useState<string>('all');
   const [uploading, setUploading] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -72,7 +74,7 @@ export default function FormationsManagement() {
   const updateEnrollment = useUpdateEnrollmentStatus();
   const updatePayment = useUpdateFormationPaymentStatus();
 
-  // --- Load Packages ---
+  // --- Load Packages & Teachers ---
   useEffect(() => {
     packageService.getAll()
       .then((res: any) => {
@@ -80,6 +82,13 @@ export default function FormationsManagement() {
         setPackagesList(pkgs);
       })
       .catch((err) => console.error('[fetchPackages]', err));
+
+    academicService.getTeachers()
+      .then((res: any) => {
+        const teachers = Array.isArray(res) ? res : (res?.teachers || []);
+        setTeachersList(teachers);
+      })
+      .catch((err) => console.error('[fetchTeachers]', err));
   }, []);
 
   // --- Actions ---
@@ -127,11 +136,13 @@ export default function FormationsManagement() {
     try {
       const thumbnailUrl = await uploadThumbnail();
       const isAssignedToPackage = formData.package_id && formData.package_id !== 'none';
+      const isAssignedToTeacher = formData.teacher_id && formData.teacher_id !== 'none';
       await createFormation.mutateAsync({ 
         ...formData, 
         price: isAssignedToPackage ? 0 : (Number(formData.price) || 0),
         thumbnail_url: thumbnailUrl,
-        package_id: isAssignedToPackage ? formData.package_id : null
+        package_id: isAssignedToPackage ? formData.package_id : null,
+        teacher_id: isAssignedToTeacher ? formData.teacher_id : null,
       });
       setShowFormationModal(false);
       resetFormData();
@@ -148,12 +159,14 @@ export default function FormationsManagement() {
     try {
       const thumbnailUrl = await uploadThumbnail();
       const isAssignedToPackage = formData.package_id && formData.package_id !== 'none';
+      const isAssignedToTeacher = formData.teacher_id && formData.teacher_id !== 'none';
       await updateFormation.mutateAsync({ 
         id: selectedFormation.id, 
         ...formData, 
         price: isAssignedToPackage ? 0 : (Number(formData.price) || 0),
         thumbnail_url: thumbnailUrl,
-        package_id: isAssignedToPackage ? formData.package_id : null
+        package_id: isAssignedToPackage ? formData.package_id : null,
+        teacher_id: isAssignedToTeacher ? formData.teacher_id : null,
       });
       setShowFormationModal(false);
       setSelectedFormation(null);
@@ -173,7 +186,8 @@ export default function FormationsManagement() {
       currency: 'USD', 
       is_published: true, 
       thumbnail_url: '',
-      package_id: 'none'
+      package_id: 'none',
+      teacher_id: 'none'
     });
     setThumbnailFile(null);
     setThumbnailPreview(null);
@@ -189,6 +203,7 @@ export default function FormationsManagement() {
       is_published: formation.is_published,
       thumbnail_url: formation.thumbnail_url || '',
       package_id: formation.package_id || 'none',
+      teacher_id: formation.teacher_id || 'none',
     });
     setThumbnailPreview(formation.thumbnail_url || null);
     setShowFormationModal(true);
@@ -288,6 +303,7 @@ export default function FormationsManagement() {
                     <TableHead>Thumbnail</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Package / الباقة</TableHead>
+                    <TableHead>الأستاذ المشرف / Instructor</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Content</TableHead>
                     <TableHead>Status</TableHead>
@@ -297,11 +313,11 @@ export default function FormationsManagement() {
                 <TableBody>
                   {formationsLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">Loading...</TableCell>
+                      <TableCell colSpan={8} className="text-center py-8">Loading...</TableCell>
                     </TableRow>
                   ) : filteredFormations?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">No formations found</TableCell>
+                      <TableCell colSpan={8} className="text-center py-8">No formations found</TableCell>
                     </TableRow>
                   ) : (
                     filteredFormations?.map((formation) => (
@@ -333,6 +349,33 @@ export default function FormationsManagement() {
                             <span className="text-[11px] text-muted-foreground font-medium px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 whitespace-nowrap">
                               عام / مستقل
                             </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {formation.teacher_name ? (
+                            <div className="flex items-center gap-2">
+                              {formation.teacher_avatar ? (
+                                <img 
+                                  src={formation.teacher_avatar} 
+                                  alt={formation.teacher_name} 
+                                  className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
+                                />
+                              ) : (
+                                <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                                  {formation.teacher_name.charAt(0)}
+                                </div>
+                              )}
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-semibold text-xs leading-tight truncate">{formation.teacher_name}</span>
+                                {formation.teacher_email && (
+                                  <span className="text-[10px] text-muted-foreground truncate">{formation.teacher_email}</span>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] text-slate-400 font-normal border-dashed whitespace-nowrap">
+                              غير محدد
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell>
@@ -664,6 +707,36 @@ export default function FormationsManagement() {
                   : '* تكوين عام أو مستقل خارج الباقات، متاح للشراء الفردي ويمكن تحديد السعر والعملة له.'}
               </p>
             </div>
+
+            {/* Instructor / Teacher Selector */}
+            <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+              <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-200">
+                <GraduationCap className="h-4 w-4 text-primary" />
+                الأستاذ المشرف على التكوين (Assigned Instructor)
+              </Label>
+              <Select 
+                value={formData.teacher_id} 
+                onValueChange={(value) => setFormData({ ...formData, teacher_id: value })}
+              >
+                <SelectTrigger className="rounded-xl text-xs bg-white dark:bg-slate-950">
+                  <SelectValue placeholder="اختر الأستاذ المشرف" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl max-h-60">
+                  <SelectItem value="none" className="text-xs font-semibold text-slate-500">
+                    👤 بدون أستاذ محدد (إدارة المشرف المباشرة)
+                  </SelectItem>
+                  {teachersList.map((teacher) => (
+                    <SelectItem key={teacher.id || teacher.teacher_table_id} value={teacher.teacher_table_id || teacher.id} className="text-xs font-medium">
+                      👨‍🏫 {teacher.full_name} ({teacher.specialty || 'أستاذ معتمد'})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                * عند تعيين أستاذ، يظهر هذا التكوين تلقائياً في لوحة تحكمه التعليمية ليتمكن من رفع الفيديوهات والدروس وإدارتها.
+              </p>
+            </div>
+
             <div>
               <Label>Description</Label>
               <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />

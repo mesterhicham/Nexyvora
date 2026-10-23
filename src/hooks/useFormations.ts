@@ -15,6 +15,12 @@ export interface Formation {
   package_name_ar?: string | null;
   package_level?: number | null;
   package_price?: number | null;
+  teacher_id?: string | null;
+  teacher_name?: string | null;
+  teacher_avatar?: string | null;
+  teacher_email?: string | null;
+  content_count?: number;
+  enrollment_count?: number;
   is_published: boolean;
   created_by: string;
   created_at: string;

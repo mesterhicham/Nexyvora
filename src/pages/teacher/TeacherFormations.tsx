@@ -1,72 +1,55 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { tr } from '@/utils/tr';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Upload, Eye, Image, Link2, Check } from 'lucide-react';
+import { 
+  FolderOpen, 
+  Eye, 
+  Image, 
+  Link2, 
+  Check, 
+  GraduationCap, 
+  Package, 
+  BookOpen, 
+  Video, 
+  Sparkles, 
+  Users 
+} from 'lucide-react';
 import { 
   useFormations, 
-  useCreateFormation, 
-  useUpdateFormation, 
-  useDeleteFormation,
-  useFormationContent,
-  useAddFormationContent,
-  useDeleteFormationContent,
-  useReorderFormationContent,
   Formation,
-  FormationContent,
 } from '@/hooks/useFormations';
-import { uploadService } from '@/services/apiService';
 import { toast } from 'sonner';
-import { DraggableContentList } from '@/components/formation/DraggableContentList';
 import { FormationPreview } from '@/components/formation/FormationPreview';
+import { FormationContentManager } from '@/components/admin/FormationContentManager';
 
 export default function TeacherFormations() {
-  const { t } = useTranslation();
-  const { data: formations, isLoading } = useFormations();
-  const createFormation = useCreateFormation();
-  const updateFormation = useUpdateFormation();
-  const deleteFormation = useDeleteFormation();
-  const addContent = useAddFormationContent();
-  const deleteContent = useDeleteFormationContent();
-  const reorderContent = useReorderFormationContent();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
 
-  const [showFormationModal, setShowFormationModal] = useState(false);
+  const { data: formations, isLoading } = useFormations();
+
   const [showContentModal, setShowContentModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedFormation, setSelectedFormation] = useState<Formation | null>(null);
   const [previewFormation, setPreviewFormation] = useState<Formation | null>(null);
-  const [formData, setFormData] = useState({ title: '', description: '', price: 0, currency: 'USD', is_published: false, thumbnail_url: '' });
-  const [contentData, setContentData] = useState({ title: '', content_type: 'video' as 'video' | 'pdf', file: null as File | null });
-  const [uploading, setUploading] = useState(false);
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const copyFormationLink = async (formationId: string) => {
     const url = `${window.location.origin}/formation/${formationId}`;
     await navigator.clipboard.writeText(url);
     setCopiedId(formationId);
-    toast.success('Link copied to clipboard!');
+    toast.success(tr('تم نسخ رابط التكوين بنجاح!', 'Formation link copied!'));
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const { data: selectedFormationContent } = useFormationContent(selectedFormation?.id);
-  const { data: previewContent } = useFormationContent(previewFormation?.id);
-
-  const handleContentReorder = (newOrder: FormationContent[]) => {
-    if (!selectedFormation) return;
-    const items = newOrder.map((item, index) => ({ id: item.id, order_index: index + 1 }));
-    reorderContent.mutate({ formationId: selectedFormation.id, items });
+  const openContentManager = (formation: Formation) => {
+    setSelectedFormation(formation);
+    setShowContentModal(true);
   };
 
   const openPreview = (formation: Formation) => {
@@ -74,326 +57,178 @@ export default function TeacherFormations() {
     setShowPreviewModal(true);
   };
 
-  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setThumbnailFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setThumbnailPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const uploadThumbnail = async (): Promise<string | null> => {
-    if (!thumbnailFile) return formData.thumbnail_url || null;
-    const res = await uploadService.uploadFile(thumbnailFile);
-    return res.url;
-  };
-
-  const resetFormData = () => {
-    setFormData({ title: '', description: '', price: 0, currency: 'USD', is_published: false, thumbnail_url: '' });
-    setThumbnailFile(null);
-    setThumbnailPreview(null);
-  };
-
-  const handleCreateFormation = async () => {
-    setUploading(true);
-    try {
-      const thumbnailUrl = await uploadThumbnail();
-      await createFormation.mutateAsync({ ...formData, thumbnail_url: thumbnailUrl });
-      setShowFormationModal(false);
-      resetFormData();
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleUpdateFormation = async () => {
-    if (!selectedFormation) return;
-    setUploading(true);
-    try {
-      const thumbnailUrl = await uploadThumbnail();
-      await updateFormation.mutateAsync({ id: selectedFormation.id, ...formData, thumbnail_url: thumbnailUrl });
-      setShowFormationModal(false);
-      setSelectedFormation(null);
-      resetFormData();
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleUploadContent = async () => {
-    if (!selectedFormation || !contentData.file) return;
-    setUploading(true);
-
-    try {
-      const res = await uploadService.uploadFile(contentData.file);
-      const fileUrl = res.url;
-
-      let duration = null;
-      if (contentData.content_type === 'video') {
-        duration = await getVideoDuration(contentData.file);
-      }
-
-      await addContent.mutateAsync({
-        formation_id: selectedFormation.id,
-        title: contentData.title,
-        content_type: contentData.content_type,
-        file_url: fileUrl,
-        duration_seconds: duration,
-        quiz_id: null,
-        order_index: (selectedFormationContent?.length || 0) + 1,
-      });
-
-      setShowContentModal(false);
-      setContentData({ title: '', content_type: 'video', file: null });
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const getVideoDuration = (file: File): Promise<number> => {
-    return new Promise((resolve) => {
-      const video = document.createElement('video');
-      video.preload = 'metadata';
-      video.onloadedmetadata = () => {
-        resolve(Math.floor(video.duration));
-        URL.revokeObjectURL(video.src);
-      };
-      video.src = URL.createObjectURL(file);
-    });
-  };
-
-  const openEditFormation = (formation: Formation) => {
-    setSelectedFormation(formation);
-    setFormData({
-      title: formation.title,
-      description: formation.description || '',
-      price: formation.price,
-      currency: formation.currency,
-      is_published: formation.is_published,
-      thumbnail_url: formation.thumbnail_url || '',
-    });
-    setThumbnailPreview(formation.thumbnail_url || null);
-    setShowFormationModal(true);
-  };
-
   return (
     <DashboardLayout role="teacher">
       <PageHeader 
-        title="My Formations" 
-        breadcrumbs={[{ label: t('nav.dashboard'), href: '/teacher' }, { label: 'Formations' }]} 
+        title={tr("التكوينات المسندة إليك", "My Assigned Formations")} 
+        breadcrumbs={[
+          { label: t('nav.dashboard'), href: '/teacher' }, 
+          { label: tr("التكوينات التعليمية", "Formations") }
+        ]} 
       />
 
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <p className="text-muted-foreground">Create and manage your training courses</p>
-          <Button onClick={() => { setSelectedFormation(null); resetFormData(); setShowFormationModal(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Formation
-          </Button>
+        {/* Header Notice Banner */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-violet-500/10 via-primary/5 to-transparent border border-violet-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-primary text-white flex items-center gap-1">
+                <GraduationCap className="h-3.5 w-3.5" />
+                {tr("بوابة الأستاذ المشرف", "Teacher Portal")}
+              </span>
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                {tr("إدارة المحتوى ورفع الدروس التعليمية", "Course Content & Lessons Management")}
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
+              {tr(
+                "هنا تظهر كافة الدورات التكوينية التي قام المشرف بتكليفك بالإشراف عليها. يمكنك النقر على \"إدارة المحتوى\" لرفع مقاطع الفيديو والملفات وإضافة الاختبارات وإعادة ترتيب الدروس.",
+                "Here you can see all courses assigned to you by the administration. Click \"Manage Content\" to upload video lessons, documents, quizzes, and manage course materials."
+              )}
+            </p>
+          </div>
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Content</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {formations?.map((formation) => (
-                  <TableRow key={formation.id}>
-                    <TableCell className="font-medium">{formation.title}</TableCell>
-                    <TableCell>{formation.price} {formation.currency}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => { setSelectedFormation(formation); setShowContentModal(true); }}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Content
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => openPreview(formation)}>
-                          Preview
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={formation.is_published ? 'default' : 'secondary'}>
-                        {formation.is_published ? 'Published' : 'Draft'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => copyFormationLink(formation.id)}
-                          title="Copy shareable link"
-                        >
-                          {copiedId === formation.id ? (
-                            <Check className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <Link2 className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => openEditFormation(formation)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => deleteFormation.mutate(formation.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {(!formations || formations.length === 0) && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                      No formations created yet. Click "Create Formation" to get started.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Formation Modal */}
-      <Dialog open={showFormationModal} onOpenChange={setShowFormationModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedFormation ? 'Edit Formation' : 'Create Formation'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Thumbnail Image</Label>
-              <div className="mt-2 flex items-center gap-4">
-                {thumbnailPreview ? (
-                  <img src={thumbnailPreview} alt="Thumbnail preview" className="w-24 h-16 object-cover rounded-md border" />
-                ) : (
-                  <div className="w-24 h-16 bg-muted rounded-md flex items-center justify-center border">
-                    <Image className="h-6 w-6 text-muted-foreground" />
+        {/* Formations Grid */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs font-semibold">{tr("جاري تحميل التكوينات المسندة إليك...", "Loading formations...")}</span>
+          </div>
+        ) : !formations || formations.length === 0 ? (
+          <Card className="border-dashed border-2">
+            <CardContent className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+              <div className="p-4 rounded-3xl bg-primary/10 text-primary">
+                <GraduationCap className="h-10 w-10" />
+              </div>
+              <div className="space-y-1.5 max-w-md">
+                <h3 className="font-bold text-base text-slate-800 dark:text-slate-200">
+                  {tr("لا توجد تكوينات مسندة إليك حالياً", "No formations assigned to you yet")}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {tr(
+                    "عندما يقوم الأدمن بتعيينك كأستاذ مسؤول على إحدى الدورات التكوينية، ستظهر هنا فوراً لتتمكن من رفع محتواها وتحديث دروسها.",
+                    "When an administrator assigns a training course to you, it will appear here immediately so you can upload and organize its learning content."
+                  )}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {formations.map((formation) => (
+              <Card key={formation.id} className="flex flex-col overflow-hidden relative border-border/80 shadow-xs hover:shadow-md transition-shadow">
+                {/* Package Badge */}
+                {formation.package_name && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <Badge className="bg-violet-600/95 hover:bg-violet-600 text-white font-bold text-[10px] shadow-sm flex items-center gap-1 backdrop-blur-sm border-none">
+                      <Package className="h-3 w-3" />
+                      <span>{isRtl ? (formation.package_name_ar || formation.package_name) : (formation.package_name || formation.package_name_ar)}</span>
+                      {formation.package_level && (
+                        <span className="opacity-80 font-mono text-[9px]">({tr("مستوى", "Lvl")} {formation.package_level})</span>
+                      )}
+                    </Badge>
                   </div>
                 )}
-                <div>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleThumbnailSelect}
-                    className="w-auto"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Recommended: 800x450 pixels</p>
+
+                {/* Status Badge */}
+                <div className="absolute top-3 right-3 z-10">
+                  <Badge 
+                    className={`font-semibold text-[10px] shadow-xs ${
+                      formation.is_published 
+                        ? 'bg-emerald-600/90 text-white' 
+                        : 'bg-slate-800/80 text-slate-200'
+                    }`}
+                  >
+                    {formation.is_published ? tr("منشور للطلاب", "Published") : tr("مسودة", "Draft")}
+                  </Badge>
                 </div>
-              </div>
-            </div>
-            <div>
-              <Label>Title</Label>
-              <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Price</Label>
-                <Input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })} />
-              </div>
-              <div>
-                <Label>Currency</Label>
-                <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="MAD">MAD</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch checked={formData.is_published} onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })} />
-              <Label>Published</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowFormationModal(false); resetFormData(); }}>Cancel</Button>
-            <Button onClick={selectedFormation ? handleUpdateFormation : handleCreateFormation} disabled={uploading}>
-              {uploading ? 'Uploading...' : selectedFormation ? 'Update' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Content Modal */}
-      <Dialog open={showContentModal} onOpenChange={setShowContentModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Manage Content - {selectedFormation?.title}</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Existing Content with Drag & Drop */}
-            <div className="space-y-2">
-              <h4 className="font-medium">Current Content (drag to reorder)</h4>
-              <DraggableContentList
-                content={selectedFormationContent || []}
-                onReorder={handleContentReorder}
-                onDelete={(id) => deleteContent.mutate({ id, formationId: selectedFormation!.id })}
-              />
-            </div>
+                {/* Thumbnail */}
+                {formation.thumbnail_url ? (
+                  <img 
+                    src={formation.thumbnail_url} 
+                    alt={formation.title}
+                    className="w-full h-44 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-44 bg-muted flex items-center justify-center">
+                    <Image className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
 
-            <div className="space-y-4 border-t pt-4">
-              <h4 className="font-medium">Add New Content</h4>
-              <div>
-                <Label>Title</Label>
-                <Input value={contentData.title} onChange={(e) => setContentData({ ...contentData, title: e.target.value })} />
-              </div>
-              <div>
-                <Label>Type</Label>
-                <Select value={contentData.content_type} onValueChange={(value: 'video' | 'pdf') => setContentData({ ...contentData, content_type: value })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="video">Video</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>File</Label>
-                <Input 
-                  type="file" 
-                  accept={contentData.content_type === 'video' ? 'video/*' : 'application/pdf'}
-                  onChange={(e) => setContentData({ ...contentData, file: e.target.files?.[0] || null })}
-                />
-              </div>
-              <Button onClick={handleUploadContent} disabled={!contentData.title || !contentData.file || uploading}>
-                <Upload className="h-4 w-4 mr-2" />
-                {uploading ? 'Uploading...' : 'Upload Content'}
-              </Button>
-            </div>
+                <CardHeader className="pb-2">
+                  <CardTitle className="line-clamp-2 text-base font-bold">{formation.title}</CardTitle>
+                  <CardDescription className="line-clamp-2 text-xs">{formation.description || tr("لا يوجد وصف إضافي.", "No description provided.")}</CardDescription>
+                </CardHeader>
+
+                <CardContent className="flex-1 space-y-3 pt-0">
+                  {/* Stats Row */}
+                  <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800 text-xs">
+                    <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-semibold">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      <span>{formation.content_count ?? 0} {tr("درس ومحتوى", "lessons")}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-medium">
+                      <Users className="h-3.5 w-3.5" />
+                      <span>{formation.enrollment_count ?? 0} {tr("طالب مسجل", "students")}</span>
+                    </div>
+                  </div>
+                </CardContent>
+
+                <CardFooter className="flex flex-col gap-2 pt-3 border-t border-border/40">
+                  <Button 
+                    className="w-full gap-2 font-bold bg-primary hover:bg-primary/90 text-white shadow-xs" 
+                    onClick={() => openContentManager(formation)}
+                  >
+                    <FolderOpen className="h-4 w-4" />
+                    <span>{tr("إدارة المحتوى والدروس", "Manage Content")}</span>
+                  </Button>
+
+                  <div className="flex w-full gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 gap-1.5 text-xs" 
+                      onClick={() => openPreview(formation)}
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      <span>{tr("معاينة", "Preview")}</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="shrink-0 px-2.5" 
+                      onClick={() => copyFormationLink(formation.id)}
+                      title={tr("نسخ الرابط", "Copy link")}
+                    >
+                      {copiedId === formation.id ? (
+                        <Check className="h-3.5 w-3.5 text-green-500" />
+                      ) : (
+                        <Link2 className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))}
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+      </div>
+
+      {/* Formation Content Manager Modal (Videos, Quizzes, PDFs, Drag & Drop) */}
+      <FormationContentManager
+        open={showContentModal}
+        onOpenChange={setShowContentModal}
+        formation={selectedFormation}
+      />
 
       {/* Preview Modal */}
       <FormationPreview
         open={showPreviewModal}
         onOpenChange={setShowPreviewModal}
         formation={previewFormation}
-        content={previewContent || []}
+        content={[]}
       />
     </DashboardLayout>
   );

@@ -14,10 +14,10 @@ router.delete('/:id', auth, authorize('admin'), formationController.deleteFormat
 
 // Content routes
 router.get('/:id/content', auth, formationController.getFormationContent);
-router.post('/content', auth, authorize('admin'), formationController.addFormationContent);
-router.put('/content/:id', auth, authorize('admin'), formationController.updateFormationContent);
-router.delete('/content/:id', auth, authorize('admin'), formationController.deleteFormationContent);
-router.post('/content/reorder', auth, authorize('admin'), formationController.reorderContent);
+router.post('/content', auth, authorize('admin', 'teacher'), formationController.addFormationContent);
+router.put('/content/:id', auth, authorize('admin', 'teacher'), formationController.updateFormationContent);
+router.delete('/content/:id', auth, authorize('admin', 'teacher'), formationController.deleteFormationContent);
+router.post('/content/reorder', auth, authorize('admin', 'teacher'), formationController.reorderContent);
 
 // Enrollments routes
 router.get('/enrollments/all', auth, authorize('admin'), formationController.getAllEnrollments);
