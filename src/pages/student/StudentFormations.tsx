@@ -31,6 +31,7 @@ import { generateDiplomaPdf } from '@/utils/generateDiplomaPdf';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { packageService } from '@/services/apiService';
+import { AcademyLockedGate } from '@/components/academy/AcademyLockedGate';
 
 export default function StudentFormations() {
   const { t, i18n } = useTranslation();
@@ -53,11 +54,17 @@ export default function StudentFormations() {
   const [paymentData, setPaymentData] = useState({ method: 'bank_transfer', reference: '', notes: '' });
   const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
   const [userPackage, setUserPackage] = useState<any>(null);
+  const [pendingPackage, setPendingPackage] = useState<any>(null);
+  const [pkgLoading, setPkgLoading] = useState(true);
 
   useEffect(() => {
     packageService.getMyPackage()
-      .then(res => setUserPackage(res?.currentPackage || null))
-      .catch(() => {});
+      .then(res => {
+        setUserPackage(res?.currentPackage || null);
+        setPendingPackage(res?.pendingPackage || null);
+      })
+      .catch(() => {})
+      .finally(() => setPkgLoading(false));
   }, []);
 
   const { data: formationContent } = useFormationContent(selectedEnrollment?.formation_id);
@@ -190,7 +197,20 @@ export default function StudentFormations() {
         breadcrumbs={[{ label: t('nav.dashboard'), href: '/student' }, { label: tr("المسارات", "Formations") }]} 
       />
 
-      {/* Package Tier Status & Upgrade Notice Banner */}
+      {pkgLoading ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-semibold">{tr("جاري التحقق من صلاحية الباقة...", "Checking package access...")}</span>
+        </div>
+      ) : !userPackage || Number(userPackage.level) < 2 ? (
+        <AcademyLockedGate 
+          pendingPackage={pendingPackage} 
+          userPackage={userPackage} 
+          reason={userPackage ? 'upgrade_required' : 'no_package'} 
+        />
+      ) : (
+        <>
+          {/* Package Tier Status & Upgrade Notice Banner */}
       {userPackage?.level === 1 && (
         <div className="mb-6 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
           <div className="space-y-1">
@@ -699,6 +719,8 @@ export default function StudentFormations() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </>
+      )}
     </DashboardLayout>
   );
 }

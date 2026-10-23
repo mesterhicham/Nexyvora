@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { tr } from '@/utils/tr';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -22,96 +22,66 @@ import {
   Clock,
   ShieldCheck,
   Loader2,
-  RefreshCw,
-  ExternalLink
+  Play,
+  CheckCircle,
+  Package,
+  FolderOpen,
+  ArrowUpRight
 } from 'lucide-react';
-import { packageService, adminService } from '@/services/apiService';
-import { SkoolLevelShowcase } from '@/components/academy/SkoolLevelShowcase';
+import { packageService } from '@/services/apiService';
+import { usePublishedFormations, useStudentEnrollments } from '@/hooks/useFormations';
+import { AcademyLockedGate } from '@/components/academy/AcademyLockedGate';
 
 export default function StudentAcademy() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [myPackage, setMyPackage] = useState<any>(null);
-  const [activeView, setActiveView] = useState<'showcase' | 'sections'>('showcase');
-  const [adminIntroSettings, setAdminIntroSettings] = useState<{
-    title?: string;
-    description?: string;
-    videoUrl?: string;
-    author?: string;
-    badge?: string;
-  }>({});
+  const [pendingPackage, setPendingPackage] = useState<any>(null);
+
+  const { data: allFormations, isLoading: formationsLoading } = usePublishedFormations();
+  const { data: enrollments } = useStudentEnrollments();
 
   useEffect(() => {
-    loadData();
+    loadPackageData();
   }, []);
 
-  const loadData = async () => {
+  const loadPackageData = async () => {
     try {
       setLoading(true);
-      const [myPkgRes, settingsRes] = await Promise.all([
-        packageService.getMyPackage().catch(() => ({ currentPackage: null })),
-        adminService.getSettings().catch(() => [])
-      ]);
-
-      const pkg = myPkgRes?.currentPackage || null;
-      setMyPackage(pkg);
-
-      // If user has an active level package (level >= 2: FLOW, GROW, PRIME), default to sections
-      if (pkg && Number(pkg.level) >= 2) {
-        setActiveView('sections');
-      } else {
-        // New user or only CORE membership: default to Skool Showcase
-        setActiveView('showcase');
-      }
-
-      // Parse admin intro settings from platform_settings
-      if (Array.isArray(settingsRes)) {
-        const settingsMap: Record<string, string> = {};
-        settingsRes.forEach((s: any) => {
-          settingsMap[s.key] = s.value;
-        });
-
-        setAdminIntroSettings({
-          title: settingsMap['academy_intro_title'],
-          description: settingsMap['academy_intro_description'],
-          videoUrl: settingsMap['academy_intro_video_url'],
-          introBanner: settingsMap['academy_intro_banner'],
-          author: settingsMap['academy_intro_author'],
-          badge: settingsMap['academy_intro_badge'],
-          flowTitle: settingsMap['academy_flow_title'],
-          flowVideoUrl: settingsMap['academy_flow_video_url'],
-          flowBanner: settingsMap['academy_flow_banner'],
-          flowDesc: settingsMap['academy_flow_description'],
-          growTitle: settingsMap['academy_grow_title'],
-          growVideoUrl: settingsMap['academy_grow_video_url'],
-          growBanner: settingsMap['academy_grow_banner'],
-          growDesc: settingsMap['academy_grow_description'],
-          primeTitle: settingsMap['academy_prime_title'],
-          primeVideoUrl: settingsMap['academy_prime_video_url'],
-          primeBanner: settingsMap['academy_prime_banner'],
-          primeDesc: settingsMap['academy_prime_description'],
-        });
-      }
+      const myPkgRes = await packageService.getMyPackage().catch(() => ({ currentPackage: null, pendingPackage: null }));
+      setMyPackage(myPkgRes?.currentPackage || null);
+      setPendingPackage(myPkgRes?.pendingPackage || null);
     } catch (err) {
-      console.error('[StudentAcademy] Error loading academy data:', err);
+      console.error('[StudentAcademy] Error loading package data:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const academicSections = [
-    {
-      id: 'formations',
-      title: tr("الدورات التكوينية (Formations)", "Training Courses"),
-      titleEn: isRtl ? 'Training Courses' : 'الدورات التكوينية',
-      description: tr("استكشف واشترك في الدورات التدريبية المتاحة وتتبع تقدمك في كل دورة.", "Explore and enroll in available training courses and track your progress."),
-      icon: BookOpen,
-      to: '/student/formations',
-      badge: tr("التعليم الذاتي", "Self-Paced"),
-      color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
-    },
+  // Check if member has an active package of level >= 2 (FLOW, GROW, PRIME)
+  const hasActiveLevelPackage = myPackage && myPackage.status === 'active' && Number(myPackage.level) >= 2;
+
+  // Compute expiration date formatting
+  const expiresAtFormatted = myPackage?.expires_at 
+    ? new Date(myPackage.expires_at).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
+
+  // Filter formations relevant to student's package level
+  const userLevel = Number(myPackage?.level) || 0;
+  const eligibleFormations = useMemo(() => {
+    if (!allFormations) return [];
+    // Formations with package_id <= userLevel or without package
+    return allFormations.filter(f => {
+      if (!f.package_level) return true;
+      return Number(f.package_level) <= userLevel;
+    });
+  }, [allFormations, userLevel]);
+
+  // Remaining Academic Sections (excluding Formations since it has its own dedicated spotlight)
+  const otherAcademicSections = [
     {
       id: 'courses',
       title: tr("المقررات الأكاديمية", "Academic Courses"),
@@ -119,7 +89,7 @@ export default function StudentAcademy() {
       description: tr("المقررات الدراسية التابعة لدفعتك وتخصصك الأكاديمي الحالي.", "Curriculum courses related to your cohort and current academic track."),
       icon: GraduationCap,
       to: '/student/courses',
-      badge: tr("المنهج", "Curriculum"),
+      badge: tr("المنهج الأكاديمي", "Curriculum"),
       color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800'
     },
     {
@@ -184,164 +154,236 @@ export default function StudentAcademy() {
     }
   ];
 
-  const hasActiveLevelPackage = myPackage && Number(myPackage.level) >= 2;
-
-  // Compute expiration date formatting
-  const expiresAtFormatted = myPackage?.expires_at 
-    ? new Date(myPackage.expires_at).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-    : null;
-
   return (
     <DashboardLayout role="student">
-      <div className="space-y-6 pb-12">
+      <div className="space-y-8 pb-16">
         {/* Loading State */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="text-xs font-semibold">{tr("جاري تحميل بيانات الأكاديمية والمستويات...", "Loading academy data & levels...")}</span>
+            <span className="text-xs font-semibold">{tr("جاري التحقق من تفعيل الباقة وبيانات الأكاديمية...", "Verifying package & loading academy...")}</span>
           </div>
+        ) : !hasActiveLevelPackage ? (
+          /* LOCKED GATE: When student has not purchased / activated a study package */
+          <AcademyLockedGate 
+            pendingPackage={pendingPackage} 
+            userPackage={myPackage} 
+            reason={myPackage ? 'upgrade_required' : 'no_package'}
+          />
         ) : (
+          /* UNLOCKED ACADEMY VIEW: Active Package Holders */
           <>
-            {/* View Switcher Bar (Always Available) */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-2xl bg-primary/10 text-primary">
-                  <GraduationCap className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-black text-slate-900 dark:text-white">
-                      {tr("أكاديمية Nexyvora التعليمية", "Nexyvora Academy")}
-                    </span>
-                    {hasActiveLevelPackage ? (
-                      <Badge className="bg-emerald-500 text-white text-[11px] font-bold">
-                        {(isRtl ? (myPackage.package_name_ar || myPackage.package_name) : (myPackage.package_name || myPackage.package_name_ar))} ({tr("المستوى", "Level")} {Number(myPackage.level) - 1})
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-amber-400 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
-                        {myPackage ? (tr("عضوية CORE — اختر باقتك", "CORE Membership — Choose package")) : (tr("عضو مسجل — بانتظار تفعيل الباقة", "Registered Member — Pending activation"))}
-                      </Badge>
+            {/* Top Header & Package Active Status Banner */}
+            <div className="relative overflow-hidden p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-slate-900 via-primary/95 to-slate-900 text-white shadow-xl">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md text-amber-300">
+                      <GraduationCap className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
+                        {tr("أكاديمية Nexyvora التعليمية", "Nexyvora Academy")}
+                      </h1>
+                      <p className="text-xs sm:text-sm text-slate-300">
+                        {tr("بوابتك الشاملة للتكوينات المتقدمة، المقررات، والشهادات المعتمدة", "Your portal for professional formations, curriculum, and verified certificates")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 text-xs font-bold gap-1.5 shadow-sm">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      <span>{isRtl ? (myPackage.package_name_ar || myPackage.package_name) : (myPackage.package_name || myPackage.package_name_ar)}</span>
+                      <span>({tr("المستوى", "Level")} {Number(myPackage.level) - 1})</span>
+                    </Badge>
+
+                    {expiresAtFormatted && (
+                      <span className="text-[11px] text-slate-300/90 flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-xl backdrop-blur-xs font-medium">
+                        <Clock className="h-3 w-3 text-emerald-300" />
+                        <span>{tr("نشط حتى:", "Active until:")} {expiresAtFormatted}</span>
+                      </span>
                     )}
                   </div>
-                  {expiresAtFormatted && (
-                    <span className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-                      <Clock className="h-3 w-3 text-emerald-500" />
-                      {tr("الاشتراك السنوي نشط حتى:", "Annual subscription active until:")} <strong className="text-slate-600 dark:text-slate-300">{expiresAtFormatted}</strong> ({tr("تجديد تلقائي", "auto-renew")})
-                    </span>
-                  )}
                 </div>
-              </div>
 
-              {/* View Toggle Tabs */}
-              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => setActiveView('showcase')}
-                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    activeView === 'showcase'
-                      ? 'bg-white dark:bg-slate-900 text-primary shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Sparkles className="h-4 w-4 text-amber-500" />
-                  <span>{tr("معرض المستويات (Skool Showcase)", "Levels Showcase (Skool)")}</span>
-                </button>
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+                  <Link to="/student/formations">
+                    <Button className="w-full sm:w-auto rounded-2xl font-bold bg-white text-slate-900 hover:bg-slate-100 gap-2 shadow-lg shadow-black/20 text-xs px-5 py-5">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      <span>{tr("الدورات التكوينية (Formations)", "Browse Formations")}</span>
+                      <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                    </Button>
+                  </Link>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveView('sections')}
-                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    activeView === 'sections'
-                      ? 'bg-white dark:bg-slate-900 text-primary shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Layers className="h-4 w-4 text-primary" />
-                  <span>{tr("الأقسام والمقررات الدراسية", "Curriculum & Sections")}</span>
-                  {hasActiveLevelPackage && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  )}
-                </button>
+                  <Link to="/student/my-package">
+                    <Button variant="outline" className="w-full sm:w-auto rounded-2xl font-bold border-white/20 text-white hover:bg-white/10 gap-2 text-xs px-4 py-5">
+                      <Sparkles className="h-4 w-4 text-amber-300" />
+                      <span>{tr("تفاصيل باقتي", "My Package")}</span>
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
 
-            {/* View 1: Skool Style 4-Post Showcase */}
-            {activeView === 'showcase' && (
-              <SkoolLevelShowcase
-                currentPackage={myPackage}
-                onPackagePurchased={loadData}
-                adminIntroSettings={adminIntroSettings}
-              />
-            )}
-
-            {/* View 2: Traditional Academic Sections Grid */}
-            {activeView === 'sections' && (
-              <div className="space-y-6 animate-in fade-in-50 duration-300">
-                {/* Notice Banner if user doesn't have an active paid level */}
-                {!hasActiveLevelPackage && (
-                  <div className="p-4 md:p-5 rounded-3xl bg-amber-500/10 border-2 border-amber-500/30 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-2xl bg-amber-500 text-white shrink-0 shadow-md shadow-amber-500/30">
-                        <Zap className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm md:text-base text-amber-900 dark:text-amber-200">
-                          {tr("لم يتم تفعيل باقة دراسية بعد في حسابك", "No study package activated on your account yet")}
-                        </h4>
-                        <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                          {tr("اختر أحد مستويات الأكاديمية (FLOW أو GROW أو PRIME) للاشتراك السنوي وفتح كافة المقررات والدروس والشهادات فوراً.", "Choose one of the Academy tiers (FLOW, GROW, PRIME) for annual subscription and instant access.")}
-                        </p>
-                      </div>
+            {/* SECTION 1: الدورات التكوينية (FORMATIONS) — Spotlight & Courses */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-slate-200/80 dark:border-slate-800">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <BookOpen className="h-4 w-4" />
                     </div>
-                    <Button
-                      onClick={() => setActiveView('showcase')}
-                      className="w-full md:w-auto text-xs font-bold rounded-2xl bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/25 shrink-0"
-                    >
-                      <Sparkles className="h-4 w-4 ml-1.5" />
-                      {tr("استعراض معرض المستويات بنمط Skool", "Explore Skool Levels Showcase")}
-                    </Button>
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+                      {tr("الدورات التكوينية (Formations)", "Training Formations")}
+                    </h2>
                   </div>
-                )}
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {tr("التكوينات المتاحة لك وفق باقتك الحالية مع إمكانية متابعة المشاهدة واستلام الشهادات.", "Courses unlocked by your current package with progress tracking and certificates.")}
+                  </p>
+                </div>
 
-                {/* Academic Sections Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                  {academicSections.map((sec) => {
-                    const Icon = sec.icon;
+                <Link to="/student/formations" className="shrink-0">
+                  <Button variant="outline" size="sm" className="rounded-xl font-bold text-xs gap-1.5 border-blue-200 dark:border-blue-800/80 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40">
+                    <span>{tr("عرض وإدارة كافة التكوينات", "View All Formations")}</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Formations Cards Grid */}
+              {formationsLoading ? (
+                <div className="p-8 text-center text-slate-400">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
+                  <p className="text-xs">{tr("جاري تحميل التكوينات المتاحة...", "Loading available formations...")}</p>
+                </div>
+              ) : eligibleFormations.length === 0 ? (
+                <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-800 text-center">
+                  <BookOpen className="h-10 w-10 text-slate-400 mx-auto mb-2 opacity-60" />
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {tr("لا توجد تكوينات منشورة حالياً لهذه الباقة", "No formations currently published for this tier")}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {tr("يقوم فريق الأكاديمية برفع وتحديث المحاضرات والتكوينات الجديدة باستمرار.", "New courses and updates are added regularly by the academy team.")}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {eligibleFormations.slice(0, 4).map((formation) => {
+                    const isEnrolled = enrollments?.some(e => e.formation_id === formation.id && e.payment_status === 'approved');
                     return (
-                      <Link key={sec.id} to={sec.to} className="group focus:outline-hidden">
-                        <Card className="h-full border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all duration-200 hover:shadow-md hover:-translate-y-1 bg-white dark:bg-slate-900 rounded-2xl">
-                          <CardHeader className="p-5 pb-3">
-                            <div className="flex items-start justify-between gap-2 mb-3">
-                              <div className={`p-3 rounded-xl border ${sec.color}`}>
-                                <Icon className="h-6 w-6" />
-                              </div>
-                              <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                                {sec.badge}
-                              </span>
+                      <Card key={formation.id} className="overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary/40 transition-all duration-200 hover:shadow-md flex flex-col bg-white dark:bg-slate-900 rounded-2xl group">
+                        {/* Thumbnail */}
+                        <div className="relative aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                          {formation.thumbnail_url ? (
+                            <img 
+                              src={formation.thumbnail_url} 
+                              alt={formation.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-400">
+                              <BookOpen className="h-8 w-8 opacity-40" />
                             </div>
-                            <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
-                              {sec.title}
-                            </CardTitle>
-                            <CardDescription className="text-xs text-slate-400">
-                              {sec.titleEn}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="p-5 pt-0">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
-                              {sec.description}
+                          )}
+                          <div className="absolute top-2 right-2">
+                            <Badge className="bg-emerald-600/90 text-white backdrop-blur-xs text-[10px] font-bold px-2 py-0.5 shadow-xs">
+                              {formation.package_name_ar || formation.package_name || tr("مضمّن في الباقة", "Included in Package")}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Card Content */}
+                        <CardHeader className="p-4 pb-2 flex-1">
+                          <CardTitle className="text-sm font-bold line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                            {formation.title}
+                          </CardTitle>
+                          {formation.description && (
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mt-1">
+                              {formation.description}
                             </p>
-                            <div className="flex items-center text-xs font-semibold text-primary gap-1 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">
-                              <span>{tr("دخول القسم", "Enter Section")}</span>
-                              <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
+                          )}
+                        </CardHeader>
+
+                        <CardContent className="p-4 pt-0">
+                          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                              <CheckCircle className="h-3.5 w-3.5" />
+                              <span>{isEnrolled ? tr("أنت مسجل بالدورة", "Enrolled") : tr("متاح للدخول فوراً", "Available Now")}</span>
+                            </span>
+
+                            <Link to="/student/formations">
+                              <Button size="sm" className="h-8 rounded-xl font-bold text-xs gap-1.5 px-3">
+                                <Play className="h-3 w-3 rtl:rotate-180" />
+                                <span>{isEnrolled ? tr("متابعة", "Watch") : tr("دخول الدورة", "Start")}</span>
+                              </Button>
+                            </Link>
+                          </div>
+                        </CardContent>
+                      </Card>
                     );
                   })}
                 </div>
+              )}
+            </div>
+
+            {/* SECTION 2: باقي أقسام الأكاديمية (REMAINING ACADEMIC SECTIONS) */}
+            <div className="space-y-4 pt-4">
+              <div className="space-y-0.5 pb-1 border-b border-slate-200/80 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                    <Layers className="h-4 w-4" />
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+                    {tr("باقي صفحات وأقسام الأكاديمية", "Curriculum & Academic Sections")}
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {tr("تصفح المقررات الدراسية، جدول المحاضرات، التكليفات، الحضور والغياب، شهادات التخرج، والاجتماعات المباشرة.", "Explore academic curriculum, lecture schedules, assignments, attendance, diplomas, and live meetings.")}
+                </p>
               </div>
-            )}
+
+              {/* Sections Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {otherAcademicSections.map((sec) => {
+                  const Icon = sec.icon;
+                  return (
+                    <Link key={sec.id} to={sec.to} className="group focus:outline-hidden">
+                      <Card className="h-full border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all duration-200 hover:shadow-md hover:-translate-y-1 bg-white dark:bg-slate-900 rounded-2xl flex flex-col justify-between">
+                        <CardHeader className="p-5 pb-3">
+                          <div className="flex items-start justify-between gap-2 mb-3">
+                            <div className={`p-3 rounded-xl border ${sec.color}`}>
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                              {sec.badge}
+                            </span>
+                          </div>
+                          <CardTitle className="text-base font-bold group-hover:text-primary transition-colors">
+                            {sec.title}
+                          </CardTitle>
+                          <CardDescription className="text-xs text-slate-400">
+                            {sec.titleEn}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-5 pt-0">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                            {sec.description}
+                          </p>
+                          <div className="flex items-center text-xs font-semibold text-primary gap-1 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">
+                            <span>{tr("دخول القسم", "Enter Section")}</span>
+                            <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </>
         )}
       </div>

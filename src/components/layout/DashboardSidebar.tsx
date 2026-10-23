@@ -226,6 +226,7 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
   const studentLinks: NavLinkItem[] = [
     { to: '/student', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
     { to: '/student/academy', icon: GraduationCap, label: t('nav.academy', 'Academy') },
+    { to: '/student/formations', icon: BookOpen, label: tr('التكوينات (Formations)', 'Formations') },
     { to: '/student/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community') },
     { to: '/student/news', icon: Newspaper, label: t('nav.newsCenter', 'News Center') },
     { to: '/student/packages', icon: Package, label: t('nav.packages', 'Packages') },
