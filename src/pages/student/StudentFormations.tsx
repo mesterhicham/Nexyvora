@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Video, FileText, Lock, CheckCircle, Play, ShoppingCart, BookOpen, Clock, Image, Award, Download, Sparkles, ArrowUpRight } from 'lucide-react';
+import { Video, FileText, Lock, CheckCircle, Play, ShoppingCart, BookOpen, Clock, Image, Award, Download, Sparkles, ArrowUpRight, Package } from 'lucide-react';
 import { 
   usePublishedFormations,
   useStudentEnrollments,
@@ -287,7 +287,15 @@ export default function StudentFormations() {
         <TabsContent value="browse">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {availableFormations.map((formation) => (
-              <Card key={formation.id} className="flex flex-col overflow-hidden">
+              <Card key={formation.id} className="flex flex-col overflow-hidden relative">
+                {formation.package_name && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <Badge className="bg-violet-600/95 hover:bg-violet-600 text-white font-bold text-[10px] shadow-sm flex items-center gap-1 backdrop-blur-sm border-none">
+                      <Package className="h-3 w-3" />
+                      <span>{isRtl ? (formation.package_name_ar || formation.package_name) : (formation.package_name || formation.package_name_ar)}</span>
+                    </Badge>
+                  </div>
+                )}
                 {formation.thumbnail_url ? (
                   <img 
                     src={formation.thumbnail_url} 

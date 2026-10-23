@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Eye, Users, DollarSign, BookOpen, Image, Link2, Check, FolderOpen, TrendingUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Users, DollarSign, BookOpen, Image, Link2, Check, FolderOpen, TrendingUp, Package } from 'lucide-react';
 import { 
   useFormations, 
   useCreateFormation, 
@@ -27,7 +27,7 @@ import {
   useFormationRevenueStats,
   Formation,
 } from '@/hooks/useFormations';
-import { uploadService } from '@/services/apiService';
+import { uploadService, packageService } from '@/services/apiService';
 import { toast } from 'sonner';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { FormationPreview } from '@/components/formation/FormationPreview';
@@ -42,7 +42,17 @@ export default function FormationsManagement() {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedFormation, setSelectedFormation] = useState<Formation | null>(null);
   const [previewFormation, setPreviewFormation] = useState<Formation | null>(null);
-  const [formData, setFormData] = useState({ title: '', description: '', price: 0, currency: 'USD', is_published: false, thumbnail_url: '' });
+  const [formData, setFormData] = useState({ 
+    title: '', 
+    description: '', 
+    price: 0, 
+    currency: 'USD', 
+    is_published: false, 
+    thumbnail_url: '',
+    package_id: 'none'
+  });
+  const [packagesList, setPackagesList] = useState<any[]>([]);
+  const [selectedPackageFilter, setSelectedPackageFilter] = useState<string>('all');
   const [uploading, setUploading] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
@@ -61,6 +71,16 @@ export default function FormationsManagement() {
   const deleteFormation = useDeleteFormation();
   const updateEnrollment = useUpdateEnrollmentStatus();
   const updatePayment = useUpdateFormationPaymentStatus();
+
+  // --- Load Packages ---
+  useEffect(() => {
+    packageService.getAll()
+      .then((res: any) => {
+        const pkgs = res?.packages || (Array.isArray(res) ? res : []);
+        setPackagesList(pkgs);
+      })
+      .catch((err) => console.error('[fetchPackages]', err));
+  }, []);
 
   // --- Actions ---
   const copyFormationLink = async (formationId: string) => {
@@ -106,7 +126,11 @@ export default function FormationsManagement() {
     setUploading(true);
     try {
       const thumbnailUrl = await uploadThumbnail();
-      await createFormation.mutateAsync({ ...formData, thumbnail_url: thumbnailUrl });
+      await createFormation.mutateAsync({ 
+        ...formData, 
+        thumbnail_url: thumbnailUrl,
+        package_id: formData.package_id === 'none' ? null : formData.package_id
+      });
       setShowFormationModal(false);
       resetFormData();
     } catch (error: any) {
@@ -121,7 +145,12 @@ export default function FormationsManagement() {
     setUploading(true);
     try {
       const thumbnailUrl = await uploadThumbnail();
-      await updateFormation.mutateAsync({ id: selectedFormation.id, ...formData, thumbnail_url: thumbnailUrl });
+      await updateFormation.mutateAsync({ 
+        id: selectedFormation.id, 
+        ...formData, 
+        thumbnail_url: thumbnailUrl,
+        package_id: formData.package_id === 'none' ? null : formData.package_id
+      });
       setShowFormationModal(false);
       setSelectedFormation(null);
       resetFormData();
@@ -133,7 +162,15 @@ export default function FormationsManagement() {
   };
 
   const resetFormData = () => {
-    setFormData({ title: '', description: '', price: 0, currency: 'USD', is_published: false, thumbnail_url: '' });
+    setFormData({ 
+      title: '', 
+      description: '', 
+      price: 0, 
+      currency: 'USD', 
+      is_published: false, 
+      thumbnail_url: '',
+      package_id: 'none'
+    });
     setThumbnailFile(null);
     setThumbnailPreview(null);
   };
@@ -147,6 +184,7 @@ export default function FormationsManagement() {
       currency: formation.currency,
       is_published: formation.is_published,
       thumbnail_url: formation.thumbnail_url || '',
+      package_id: formation.package_id || 'none',
     });
     setThumbnailPreview(formation.thumbnail_url || null);
     setShowFormationModal(true);
@@ -155,6 +193,13 @@ export default function FormationsManagement() {
   // --- Derived Data ---
   const totalRevenue = useMemo(() => revenueStats?.reduce((sum, item) => sum + Number(item.total_revenue), 0) || 0, [revenueStats]);
   const totalEnrollments = useMemo(() => revenueStats?.reduce((sum, item) => sum + Number(item.total_enrollments), 0) || 0, [revenueStats]);
+
+  const filteredFormations = useMemo(() => {
+    if (!formations) return [];
+    if (selectedPackageFilter === 'all') return formations;
+    if (selectedPackageFilter === 'standalone') return formations.filter(f => !f.package_id);
+    return formations.filter(f => f.package_id === selectedPackageFilter);
+  }, [formations, selectedPackageFilter]);
 
   return (
     <DashboardLayout role="admin">
@@ -205,7 +250,25 @@ export default function FormationsManagement() {
                 </CardContent>
               </Card>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
+              <Select value={selectedPackageFilter} onValueChange={setSelectedPackageFilter}>
+                <SelectTrigger className="w-56 rounded-xl text-xs">
+                  <SelectValue placeholder="تصفية حسب الباقة" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all" className="text-xs font-semibold">
+                    🌐 كل التكوينات ({formations?.length || 0})
+                  </SelectItem>
+                  <SelectItem value="standalone" className="text-xs">
+                    🔓 عام / بدون باقة ({formations?.filter(f => !f.package_id).length || 0})
+                  </SelectItem>
+                  {packagesList.map(pkg => (
+                    <SelectItem key={pkg.id} value={pkg.id} className="text-xs">
+                      ⭐ {pkg.name_ar || pkg.name} ({formations?.filter(f => f.package_id === pkg.id).length || 0})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button onClick={() => { setSelectedFormation(null); resetFormData(); setShowFormationModal(true); }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Formation
@@ -220,6 +283,7 @@ export default function FormationsManagement() {
                   <TableRow>
                     <TableHead>Thumbnail</TableHead>
                     <TableHead>Title</TableHead>
+                    <TableHead>Package / الباقة</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Content</TableHead>
                     <TableHead>Status</TableHead>
@@ -229,14 +293,14 @@ export default function FormationsManagement() {
                 <TableBody>
                   {formationsLoading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">Loading...</TableCell>
+                      <TableCell colSpan={7} className="text-center py-8">Loading...</TableCell>
                     </TableRow>
-                  ) : formations?.length === 0 ? (
+                  ) : filteredFormations?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">No formations found</TableCell>
+                      <TableCell colSpan={7} className="text-center py-8">No formations found</TableCell>
                     </TableRow>
                   ) : (
-                    formations?.map((formation) => (
+                    filteredFormations?.map((formation) => (
                       <TableRow key={formation.id}>
                         <TableCell>
                           {formation.thumbnail_url ? (
@@ -252,6 +316,21 @@ export default function FormationsManagement() {
                           )}
                         </TableCell>
                         <TableCell className="font-medium">{formation.title}</TableCell>
+                        <TableCell>
+                          {formation.package_name || formation.package_name_ar ? (
+                            <Badge variant="outline" className="gap-1.5 py-1 px-2.5 rounded-xl border-violet-200 dark:border-violet-800 bg-violet-50/70 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 font-bold text-xs whitespace-nowrap">
+                              <Package className="h-3 w-3 text-violet-500" />
+                              <span>{formation.package_name_ar || formation.package_name}</span>
+                              {formation.package_price !== undefined && formation.package_price !== null && (
+                                <span className="opacity-75 font-mono text-[10px]">(${Number(formation.package_price).toFixed(0)})</span>
+                              )}
+                            </Badge>
+                          ) : (
+                            <span className="text-[11px] text-muted-foreground font-medium px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 whitespace-nowrap">
+                              عام / مستقل
+                            </span>
+                          )}
+                        </TableCell>
                         <TableCell>{formation.price} {formation.currency}</TableCell>
                         <TableCell>
                           <Button 
@@ -506,6 +585,34 @@ export default function FormationsManagement() {
             <div>
               <Label>Title</Label>
               <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+            </div>
+            {/* Package Selector */}
+            <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+              <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-200">
+                <Package className="h-4 w-4 text-violet-500" />
+                الباقة التابعة / المؤهلة لهذا التكوين (Assigned Package)
+              </Label>
+              <Select 
+                value={formData.package_id} 
+                onValueChange={(value) => setFormData({ ...formData, package_id: value })}
+              >
+                <SelectTrigger className="rounded-xl text-xs bg-white dark:bg-slate-950">
+                  <SelectValue placeholder="اختر الباقة التابعة للتكوين" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl max-h-60">
+                  <SelectItem value="none" className="text-xs font-semibold text-slate-500">
+                    🌐 بدون باقة محددة (عام / متاح للشراء المنفصل أو مجاني)
+                  </SelectItem>
+                  {packagesList.map((pkg) => (
+                    <SelectItem key={pkg.id} value={pkg.id} className="text-xs font-medium">
+                      ⭐ {pkg.name_ar || pkg.name} — (${Number(pkg.price).toFixed(0)}) [المستوى {pkg.level}]
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                * عند تحديد باقة، يستفيد طلاب ومشتركو هذه الباقة (وكافة الباقات الأعلى منها) من هذا التكوين تلقائياً.
+              </p>
             </div>
             <div>
               <Label>Description</Label>

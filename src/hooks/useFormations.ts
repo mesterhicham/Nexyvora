@@ -10,6 +10,11 @@ export interface Formation {
   price: number;
   currency: string;
   thumbnail_url: string | null;
+  package_id?: string | null;
+  package_name?: string | null;
+  package_name_ar?: string | null;
+  package_level?: number | null;
+  package_price?: number | null;
   is_published: boolean;
   created_by: string;
   created_at: string;

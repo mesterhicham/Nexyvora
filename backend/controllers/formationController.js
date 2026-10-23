@@ -4,7 +4,16 @@ const crypto = require('crypto');
 // --- FORMATIONS ---
 exports.getAllFormations = async (req, res) => {
     try {
-        const [formations] = await db.execute('SELECT * FROM formations ORDER BY created_at DESC');
+        const [formations] = await db.query(`
+            SELECT f.*, 
+                   p.name AS package_name, 
+                   p.name_ar AS package_name_ar, 
+                   p.level AS package_level, 
+                   p.price AS package_price
+            FROM formations f
+            LEFT JOIN packages p ON f.package_id = p.id
+            ORDER BY f.created_at DESC
+        `);
         res.json(formations);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -13,7 +22,17 @@ exports.getAllFormations = async (req, res) => {
 
 exports.getPublishedFormations = async (req, res) => {
     try {
-        const [formations] = await db.execute('SELECT * FROM formations WHERE is_published = 1 ORDER BY created_at DESC');
+        const [formations] = await db.query(`
+            SELECT f.*, 
+                   p.name AS package_name, 
+                   p.name_ar AS package_name_ar, 
+                   p.level AS package_level, 
+                   p.price AS package_price
+            FROM formations f
+            LEFT JOIN packages p ON f.package_id = p.id
+            WHERE f.is_published = 1
+            ORDER BY f.created_at DESC
+        `);
         res.json(formations);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -21,15 +40,25 @@ exports.getPublishedFormations = async (req, res) => {
 };
 
 exports.createFormation = async (req, res) => {
-    const { title, description, price, currency, is_published, thumbnail_url } = req.body;
+    const { title, description, price, currency, is_published, thumbnail_url, package_id } = req.body;
     const id = crypto.randomUUID();
-    const created_by = req.user.id;
+    const created_by = req.user ? req.user.id : null;
+    const cleanPackageId = (package_id && package_id !== 'none' && package_id !== 'null') ? package_id : null;
+
     try {
-        await db.execute(
-            'INSERT INTO formations (id, title, description, price, currency, is_published, thumbnail_url, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, title, description, price, currency, is_published ? 1 : 0, thumbnail_url, created_by]
+        await db.query(
+            'INSERT INTO formations (id, title, description, price, currency, is_published, thumbnail_url, package_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, title, description, price || 0, currency || 'USD', is_published ? 1 : 0, thumbnail_url || null, cleanPackageId, created_by]
         );
-        res.status(201).json({ id, title, description, price, currency, is_published, thumbnail_url });
+
+        if (cleanPackageId) {
+            await db.query(
+                'INSERT IGNORE INTO package_courses (id, package_id, formation_id) VALUES (?, ?, ?)',
+                [crypto.randomUUID(), cleanPackageId, id]
+            );
+        }
+
+        res.status(201).json({ id, title, description, price, currency, is_published, thumbnail_url, package_id: cleanPackageId });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -37,13 +66,34 @@ exports.createFormation = async (req, res) => {
 
 exports.updateFormation = async (req, res) => {
     const { id } = req.params;
-    const { title, description, price, currency, is_published, thumbnail_url } = req.body;
+    const { title, description, price, currency, is_published, thumbnail_url, package_id } = req.body;
+    const cleanPackageId = (package_id !== undefined) ? ((package_id && package_id !== 'none' && package_id !== 'null') ? package_id : null) : undefined;
+
     try {
-        await db.execute(
-            'UPDATE formations SET title = ?, description = ?, price = ?, currency = ?, is_published = ?, thumbnail_url = ?, updated_at = NOW() WHERE id = ?',
-            [title, description, price, currency, is_published ? 1 : 0, thumbnail_url, id]
-        );
-        res.json({ id, title, description, price, currency, is_published, thumbnail_url });
+        let updateQuery = 'UPDATE formations SET title = ?, description = ?, price = ?, currency = ?, is_published = ?, thumbnail_url = ?';
+        const params = [title, description, price || 0, currency || 'USD', is_published ? 1 : 0, thumbnail_url || null];
+
+        if (cleanPackageId !== undefined) {
+            updateQuery += ', package_id = ?';
+            params.push(cleanPackageId);
+        }
+
+        updateQuery += ', updated_at = NOW() WHERE id = ?';
+        params.push(id);
+
+        await db.query(updateQuery, params);
+
+        if (cleanPackageId !== undefined) {
+            await db.query('DELETE FROM package_courses WHERE formation_id = ?', [id]);
+            if (cleanPackageId) {
+                await db.query(
+                    'INSERT IGNORE INTO package_courses (id, package_id, formation_id) VALUES (?, ?, ?)',
+                    [crypto.randomUUID(), cleanPackageId, id]
+                );
+            }
+        }
+
+        res.json({ id, title, description, price, currency, is_published, thumbnail_url, package_id: cleanPackageId });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
