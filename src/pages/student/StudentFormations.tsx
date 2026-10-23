@@ -306,46 +306,119 @@ export default function StudentFormations() {
 
         <TabsContent value="browse">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {availableFormations.map((formation) => (
-              <Card key={formation.id} className="flex flex-col overflow-hidden relative">
-                {formation.package_name && (
-                  <div className="absolute top-3 left-3 z-10">
-                    <Badge className="bg-violet-600/95 hover:bg-violet-600 text-white font-bold text-[10px] shadow-sm flex items-center gap-1 backdrop-blur-sm border-none">
-                      <Package className="h-3 w-3" />
-                      <span>{isRtl ? (formation.package_name_ar || formation.package_name) : (formation.package_name || formation.package_name_ar)}</span>
-                    </Badge>
-                  </div>
-                )}
-                {formation.thumbnail_url ? (
-                  <img 
-                    src={formation.thumbnail_url} 
-                    alt={formation.title}
-                    className="w-full h-40 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-40 bg-muted flex items-center justify-center">
-                    <Image className="h-12 w-12 text-muted-foreground" />
-                  </div>
-                )}
-                <CardHeader>
-                  <CardTitle className="line-clamp-2">{formation.title}</CardTitle>
-                  <CardDescription className="line-clamp-3">{formation.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <FormationStats formationId={formation.id} isRtl={isRtl} />
-                </CardContent>
-                <CardFooter className="flex justify-between items-center">
-                  <div className="text-2xl font-bold text-primary">
-                    {formation.price} {formation.currency}
-                  </div>
-                  <Button onClick={() => { setSelectedFormation(formation); setShowPaymentModal(true); }}>
-                    <ShoppingCart className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    {tr("تسجيل", "Enroll")}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-            {availableFormations.length === 0 && (
+            {allFormations?.map((formation) => {
+              const enrolled = myFormations.find(e => e.formation_id === formation.id);
+              const isPending = pendingEnrollments.some(e => e.formation_id === formation.id);
+              const userLevel = userPackage ? Number(userPackage.level) : 0;
+              const formationLevel = formation.package_level != null ? Number(formation.package_level) : null;
+              const isCoveredByPackage = formationLevel !== null && userLevel >= formationLevel;
+              const isHigherPackage = formationLevel !== null && userLevel < formationLevel;
+
+              return (
+                <Card key={formation.id} className="flex flex-col overflow-hidden relative border-border/80 shadow-xs hover:shadow-md transition-shadow">
+                  {formation.package_name && (
+                    <div className="absolute top-3 left-3 z-10">
+                      <Badge className="bg-violet-600/95 hover:bg-violet-600 text-white font-bold text-[10px] shadow-sm flex items-center gap-1 backdrop-blur-sm border-none">
+                        <Package className="h-3 w-3" />
+                        <span>{isRtl ? (formation.package_name_ar || formation.package_name) : (formation.package_name || formation.package_name_ar)}</span>
+                      </Badge>
+                    </div>
+                  )}
+                  {formation.thumbnail_url ? (
+                    <img 
+                      src={formation.thumbnail_url} 
+                      alt={formation.title}
+                      className="w-full h-40 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-40 bg-muted flex items-center justify-center">
+                      <Image className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                  <CardHeader>
+                    <CardTitle className="line-clamp-2">{formation.title}</CardTitle>
+                    <CardDescription className="line-clamp-3">{formation.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <FormationStats formationId={formation.id} isRtl={isRtl} />
+                  </CardContent>
+                  <CardFooter className="flex justify-between items-center gap-2 pt-3 border-t border-border/40">
+                    {enrolled || isCoveredByPackage ? (
+                      <>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            {tr("مشمول في باقتك", "Included in Package")}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground font-semibold">
+                            {tr("مجاني بالكامل", "100% Free Access")}
+                          </span>
+                        </div>
+                        <Button 
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold shadow-xs"
+                          onClick={() => {
+                            if (enrolled) {
+                              openWatchModal(enrolled);
+                            } else {
+                              openWatchModal({
+                                id: formation.id,
+                                formation_id: formation.id,
+                                student_id: user?.id || '',
+                                payment_status: 'approved',
+                                payment_id: null,
+                                enrolled_at: new Date().toISOString(),
+                                formation_title: formation.title,
+                              });
+                            }
+                          }}
+                        >
+                          <Play className="h-4 w-4 rtl:rotate-180" />
+                          {tr("مشاهدة الدورة", "Watch Now")}
+                        </Button>
+                      </>
+                    ) : isPending ? (
+                      <>
+                        <Badge variant="secondary" className="gap-1 text-xs text-amber-600">
+                          <Clock className="h-3.5 w-3.5" />
+                          {tr("قيد المراجعة", "Pending Approval")}
+                        </Badge>
+                        <Button variant="outline" size="sm" disabled>
+                          {tr("بانتظار التأكيد", "Awaiting Review")}
+                        </Button>
+                      </>
+                    ) : isHigherPackage ? (
+                      <>
+                        <div className="flex flex-col">
+                          <span className="text-[11px] font-bold text-violet-600 dark:text-violet-400">
+                            {isRtl ? (formation.package_name_ar || formation.package_name) : (formation.package_name || formation.package_name_ar)}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {tr("يتطلب الترقية", "Upgrade Required")}
+                          </span>
+                        </div>
+                        <Link to="/student/packages">
+                          <Button variant="outline" size="sm" className="gap-1.5 font-bold text-violet-600 dark:text-violet-300 border-violet-200 dark:border-violet-800 hover:bg-violet-50 dark:hover:bg-violet-950/40">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            {tr("ترقية لفتح الدورة", "Upgrade to Unlock")}
+                          </Button>
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-xl font-bold text-primary">
+                          {Number(formation.price) > 0 ? `${formation.price} ${formation.currency}` : tr("مجاني", "Free")}
+                        </div>
+                        <Button onClick={() => { setSelectedFormation(formation); setShowPaymentModal(true); }}>
+                          <ShoppingCart className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                          {tr("تسجيل", "Enroll")}
+                        </Button>
+                      </>
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
+            {(!allFormations || allFormations.length === 0) && (
               <div className="col-span-full text-center py-12 text-muted-foreground">
                 {tr("لا توجد مسارات متاحة حالياً.", "No formations available at the moment.")}
               </div>

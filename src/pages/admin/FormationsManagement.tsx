@@ -47,7 +47,7 @@ export default function FormationsManagement() {
     description: '', 
     price: 0, 
     currency: 'USD', 
-    is_published: false, 
+    is_published: true, 
     thumbnail_url: '',
     package_id: 'none'
   });
@@ -171,7 +171,7 @@ export default function FormationsManagement() {
       description: '', 
       price: 0, 
       currency: 'USD', 
-      is_published: false, 
+      is_published: true, 
       thumbnail_url: '',
       package_id: 'none'
     });
@@ -358,9 +358,39 @@ export default function FormationsManagement() {
                           </Button>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={formation.is_published ? 'default' : 'secondary'}>
-                            {formation.is_published ? 'Published' : 'Draft'}
-                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-0 h-auto hover:bg-transparent"
+                            onClick={async () => {
+                              try {
+                                await updateFormation.mutateAsync({
+                                  id: formation.id,
+                                  title: formation.title,
+                                  description: formation.description,
+                                  price: formation.price,
+                                  currency: formation.currency,
+                                  thumbnail_url: formation.thumbnail_url,
+                                  package_id: formation.package_id,
+                                  is_published: !formation.is_published,
+                                });
+                                toast.success(formation.is_published ? 'تم تحويل التكوين إلى مسودة (Draft)' : 'تم نشر وتفعيل التكوين للأعضاء (Published)');
+                              } catch (err: any) {
+                                toast.error(err.message || 'Failed to update status');
+                              }
+                            }}
+                            title="انقر لتغيير حالة النشر فوراً (Click to toggle)"
+                          >
+                            <Badge 
+                              className={`cursor-pointer transition-all hover:scale-105 select-none font-semibold ${
+                                formation.is_published 
+                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs' 
+                                  : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300'
+                              }`}
+                            >
+                              {formation.is_published ? '✓ منشور (Published)' : 'مسودة (Draft)'}
+                            </Badge>
+                          </Button>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">

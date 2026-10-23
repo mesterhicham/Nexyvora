@@ -39,17 +39,95 @@ exports.getPublishedFormations = async (req, res) => {
     }
 };
 
+// Helper: Auto-enroll all active students whose package qualifies for this formation
+async function autoEnrollPackageStudents(formationId, packageId) {
+    if (!formationId || !packageId) return;
+    try {
+        const [pkgRows] = await db.query('SELECT level FROM packages WHERE id = ?', [packageId]);
+        if (pkgRows.length === 0) return;
+        const requiredLevel = Number(pkgRows[0].level);
+
+        // Find all users with active package at or above this level
+        const [users] = await db.query(`
+            SELECT DISTINCT up.user_id
+            FROM user_packages up
+            JOIN packages p ON up.package_id = p.id
+            WHERE up.status = 'active' AND p.level >= ?
+        `, [requiredLevel]);
+
+        for (const u of users) {
+            let [st] = await db.query('SELECT id FROM students WHERE user_id = ?', [u.user_id]);
+            let stId;
+            if (st.length === 0) {
+                stId = crypto.randomUUID();
+                await db.query('INSERT INTO students (id, user_id, status) VALUES (?, ?, "active")', [stId, u.user_id]);
+            } else {
+                stId = st[0].id;
+            }
+
+            const [enr] = await db.query('SELECT id FROM formation_enrollments WHERE student_id = ? AND formation_id = ?', [stId, formationId]);
+            if (enr.length === 0) {
+                await db.query(
+                    'INSERT INTO formation_enrollments (id, formation_id, student_id, payment_status, enrolled_at) VALUES (?, ?, ?, "approved", NOW())',
+                    [crypto.randomUUID(), formationId, stId]
+                );
+            }
+        }
+    } catch (err) {
+        console.error('[autoEnrollPackageStudents error]:', err);
+    }
+}
+
+// Helper: Auto-enroll single student into all published formations their package qualifies for
+async function autoEnrollStudentForPackages(userId, studentId) {
+    try {
+        const [packRows] = await db.query(`
+            SELECT MAX(p.level) AS max_level
+            FROM user_packages up
+            JOIN packages p ON up.package_id = p.id
+            WHERE up.user_id = ? AND up.status = 'active'
+        `, [userId]);
+
+        const maxLevel = packRows[0]?.max_level != null ? Number(packRows[0].max_level) : null;
+        if (maxLevel === null) return;
+
+        const [coveredFormations] = await db.query(`
+            SELECT f.id
+            FROM formations f
+            JOIN packages p ON f.package_id = p.id
+            WHERE f.is_published = 1 AND p.level <= ?
+        `, [maxLevel]);
+
+        for (const cf of coveredFormations) {
+            const [exists] = await db.query(
+                'SELECT id FROM formation_enrollments WHERE student_id = ? AND formation_id = ?',
+                [studentId, cf.id]
+            );
+            if (exists.length === 0) {
+                await db.query(
+                    'INSERT INTO formation_enrollments (id, formation_id, student_id, payment_status, enrolled_at) VALUES (?, ?, ?, "approved", NOW())',
+                    [crypto.randomUUID(), cf.id, studentId]
+                );
+            }
+        }
+    } catch (e) {
+        console.error('[autoEnrollStudentForPackages error]:', e);
+    }
+}
+
 exports.createFormation = async (req, res) => {
     const { title, description, price, currency, is_published, thumbnail_url, package_id } = req.body;
     const id = crypto.randomUUID();
     const created_by = req.user ? req.user.id : null;
     const cleanPackageId = (package_id && package_id !== 'none' && package_id !== 'null') ? package_id : null;
     const finalPrice = cleanPackageId ? 0 : (Number(price) || 0);
+    // Default to published (1) unless explicitly false/0
+    const finalPublished = (is_published === undefined || is_published === null || is_published === true || is_published === 1) ? 1 : 0;
 
     try {
         await db.query(
             'INSERT INTO formations (id, title, description, price, currency, is_published, thumbnail_url, package_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, title, description, finalPrice, currency || 'USD', is_published ? 1 : 0, thumbnail_url || null, cleanPackageId, created_by]
+            [id, title, description, finalPrice, currency || 'USD', finalPublished, thumbnail_url || null, cleanPackageId, created_by]
         );
 
         if (cleanPackageId) {
@@ -57,9 +135,13 @@ exports.createFormation = async (req, res) => {
                 'INSERT IGNORE INTO package_courses (id, package_id, formation_id) VALUES (?, ?, ?)',
                 [crypto.randomUUID(), cleanPackageId, id]
             );
+
+            if (finalPublished === 1) {
+                await autoEnrollPackageStudents(id, cleanPackageId);
+            }
         }
 
-        res.status(201).json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published, thumbnail_url, package_id: cleanPackageId });
+        res.status(201).json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published: finalPublished === 1, thumbnail_url, package_id: cleanPackageId });
     } catch (err) {
         console.error('[createFormation error]:', err);
         res.status(500).json({ error: err.message });
@@ -71,10 +153,11 @@ exports.updateFormation = async (req, res) => {
     const { title, description, price, currency, is_published, thumbnail_url, package_id } = req.body;
     const cleanPackageId = (package_id !== undefined) ? ((package_id && package_id !== 'none' && package_id !== 'null') ? package_id : null) : undefined;
     const finalPrice = (cleanPackageId !== undefined && cleanPackageId !== null) ? 0 : (Number(price) || 0);
+    const finalPublished = (is_published === true || is_published === 1) ? 1 : 0;
 
     try {
         let updateQuery = 'UPDATE formations SET title = ?, description = ?, price = ?, currency = ?, is_published = ?, thumbnail_url = ?';
-        const params = [title, description, finalPrice, currency || 'USD', is_published ? 1 : 0, thumbnail_url || null];
+        const params = [title, description, finalPrice, currency || 'USD', finalPublished, thumbnail_url || null];
 
         if (cleanPackageId !== undefined) {
             updateQuery += ', package_id = ?';
@@ -96,7 +179,19 @@ exports.updateFormation = async (req, res) => {
             }
         }
 
-        res.json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published, thumbnail_url, package_id: cleanPackageId });
+        // If published and has package, auto-sync enrollments
+        if (finalPublished === 1) {
+            let targetPkgId = cleanPackageId;
+            if (targetPkgId === undefined) {
+                const [rows] = await db.query('SELECT package_id FROM formations WHERE id = ?', [id]);
+                targetPkgId = rows[0]?.package_id;
+            }
+            if (targetPkgId) {
+                await autoEnrollPackageStudents(id, targetPkgId);
+            }
+        }
+
+        res.json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published: finalPublished === 1, thumbnail_url, package_id: cleanPackageId });
     } catch (err) {
         console.error('[updateFormation error]:', err);
         res.status(500).json({ error: err.message });
@@ -194,14 +289,26 @@ exports.getAllEnrollments = async (req, res) => {
 exports.getStudentEnrollments = async (req, res) => {
     const userId = req.user.id;
     try {
-        const [student] = await db.execute('SELECT id FROM students WHERE user_id = ?', [userId]);
-        if (student.length === 0) return res.json([]);
+        let [student] = await db.execute('SELECT id FROM students WHERE user_id = ?', [userId]);
+        if (student.length === 0) {
+            const newStudentId = crypto.randomUUID();
+            await db.execute('INSERT INTO students (id, user_id, status) VALUES (?, ?, "active")', [newStudentId, userId]);
+            student = [{ id: newStudentId }];
+        }
+        const studentId = student[0].id;
         
+        // Auto-enroll student into all published formations their active package grants access to
+        await autoEnrollStudentForPackages(userId, studentId);
+
         const [enrollments] = await db.execute(`
             SELECT 
                 fe.*, 
                 f.title as formation_title, 
                 f.thumbnail_url,
+                f.package_id,
+                p.name AS package_name,
+                p.name_ar AS package_name_ar,
+                p.level AS package_level,
                 COALESCE((SELECT COUNT(*) FROM formation_content fc WHERE fc.formation_id = fe.formation_id), 0) as total_contents,
                 COALESCE((
                     SELECT COUNT(*) 
@@ -211,8 +318,10 @@ exports.getStudentEnrollments = async (req, res) => {
                 ), 0) as completed_contents
             FROM formation_enrollments fe
             JOIN formations f ON fe.formation_id = f.id
+            LEFT JOIN packages p ON f.package_id = p.id
             WHERE fe.student_id = ?
-        `, [student[0].id]);
+            ORDER BY fe.enrolled_at DESC
+        `, [studentId]);
 
         const enriched = enrollments.map(e => {
             const total = Number(e.total_contents) || 0;
