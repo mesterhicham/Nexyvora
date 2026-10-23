@@ -8,6 +8,7 @@ const pool = mysql.createPool({
   password: process.env.DB_PASS || 'root',
   database: process.env.DB_NAME || 'nexyvora',
   port: parseInt(process.env.DB_PORT, 10) || 3306,
+  charset: 'utf8mb4',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

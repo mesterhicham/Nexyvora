@@ -44,11 +44,12 @@ exports.createFormation = async (req, res) => {
     const id = crypto.randomUUID();
     const created_by = req.user ? req.user.id : null;
     const cleanPackageId = (package_id && package_id !== 'none' && package_id !== 'null') ? package_id : null;
+    const finalPrice = cleanPackageId ? 0 : (Number(price) || 0);
 
     try {
         await db.query(
             'INSERT INTO formations (id, title, description, price, currency, is_published, thumbnail_url, package_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, title, description, price || 0, currency || 'USD', is_published ? 1 : 0, thumbnail_url || null, cleanPackageId, created_by]
+            [id, title, description, finalPrice, currency || 'USD', is_published ? 1 : 0, thumbnail_url || null, cleanPackageId, created_by]
         );
 
         if (cleanPackageId) {
@@ -58,8 +59,9 @@ exports.createFormation = async (req, res) => {
             );
         }
 
-        res.status(201).json({ id, title, description, price, currency, is_published, thumbnail_url, package_id: cleanPackageId });
+        res.status(201).json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published, thumbnail_url, package_id: cleanPackageId });
     } catch (err) {
+        console.error('[createFormation error]:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -68,10 +70,11 @@ exports.updateFormation = async (req, res) => {
     const { id } = req.params;
     const { title, description, price, currency, is_published, thumbnail_url, package_id } = req.body;
     const cleanPackageId = (package_id !== undefined) ? ((package_id && package_id !== 'none' && package_id !== 'null') ? package_id : null) : undefined;
+    const finalPrice = (cleanPackageId !== undefined && cleanPackageId !== null) ? 0 : (Number(price) || 0);
 
     try {
         let updateQuery = 'UPDATE formations SET title = ?, description = ?, price = ?, currency = ?, is_published = ?, thumbnail_url = ?';
-        const params = [title, description, price || 0, currency || 'USD', is_published ? 1 : 0, thumbnail_url || null];
+        const params = [title, description, finalPrice, currency || 'USD', is_published ? 1 : 0, thumbnail_url || null];
 
         if (cleanPackageId !== undefined) {
             updateQuery += ', package_id = ?';
@@ -93,8 +96,9 @@ exports.updateFormation = async (req, res) => {
             }
         }
 
-        res.json({ id, title, description, price, currency, is_published, thumbnail_url, package_id: cleanPackageId });
+        res.json({ id, title, description, price: finalPrice, currency: currency || 'USD', is_published, thumbnail_url, package_id: cleanPackageId });
     } catch (err) {
+        console.error('[updateFormation error]:', err);
         res.status(500).json({ error: err.message });
     }
 };

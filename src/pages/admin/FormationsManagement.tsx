@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Eye, Users, DollarSign, BookOpen, Image, Link2, Check, FolderOpen, TrendingUp, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Users, DollarSign, BookOpen, Image, Link2, Check, FolderOpen, TrendingUp, Package, CheckCircle, Sparkles } from 'lucide-react';
 import { 
   useFormations, 
   useCreateFormation, 
@@ -126,15 +126,17 @@ export default function FormationsManagement() {
     setUploading(true);
     try {
       const thumbnailUrl = await uploadThumbnail();
+      const isAssignedToPackage = formData.package_id && formData.package_id !== 'none';
       await createFormation.mutateAsync({ 
         ...formData, 
+        price: isAssignedToPackage ? 0 : (Number(formData.price) || 0),
         thumbnail_url: thumbnailUrl,
-        package_id: formData.package_id === 'none' ? null : formData.package_id
+        package_id: isAssignedToPackage ? formData.package_id : null
       });
       setShowFormationModal(false);
       resetFormData();
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.error || error.message);
     } finally {
       setUploading(false);
     }
@@ -145,17 +147,19 @@ export default function FormationsManagement() {
     setUploading(true);
     try {
       const thumbnailUrl = await uploadThumbnail();
+      const isAssignedToPackage = formData.package_id && formData.package_id !== 'none';
       await updateFormation.mutateAsync({ 
         id: selectedFormation.id, 
         ...formData, 
+        price: isAssignedToPackage ? 0 : (Number(formData.price) || 0),
         thumbnail_url: thumbnailUrl,
-        package_id: formData.package_id === 'none' ? null : formData.package_id
+        package_id: isAssignedToPackage ? formData.package_id : null
       });
       setShowFormationModal(false);
       setSelectedFormation(null);
       resetFormData();
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.error || error.message);
     } finally {
       setUploading(false);
     }
@@ -331,7 +335,17 @@ export default function FormationsManagement() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell>{formation.price} {formation.currency}</TableCell>
+                        <TableCell>
+                          {formation.package_id ? (
+                            <Badge variant="outline" className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 py-0.5 px-2.5 rounded-lg whitespace-nowrap">
+                              مضمّن في الباقة
+                            </Badge>
+                          ) : (
+                            <span className="font-semibold text-xs font-mono">
+                              {Number(formation.price) > 0 ? `${formation.price} ${formation.currency}` : 'مجاني'}
+                            </span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Button 
                             variant="outline" 
@@ -594,14 +608,18 @@ export default function FormationsManagement() {
               </Label>
               <Select 
                 value={formData.package_id} 
-                onValueChange={(value) => setFormData({ ...formData, package_id: value })}
+                onValueChange={(value) => setFormData({ 
+                  ...formData, 
+                  package_id: value,
+                  price: value !== 'none' ? 0 : (formData.price || 0)
+                })}
               >
                 <SelectTrigger className="rounded-xl text-xs bg-white dark:bg-slate-950">
                   <SelectValue placeholder="اختر الباقة التابعة للتكوين" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl max-h-60">
                   <SelectItem value="none" className="text-xs font-semibold text-slate-500">
-                    🌐 بدون باقة محددة (عام / متاح للشراء المنفصل أو مجاني)
+                    🌐 بدون باقة محددة (تدريب عام / مستقل خارج الباقات)
                   </SelectItem>
                   {packagesList.map((pkg) => (
                     <SelectItem key={pkg.id} value={pkg.id} className="text-xs font-medium">
@@ -611,30 +629,71 @@ export default function FormationsManagement() {
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                * عند تحديد باقة، يستفيد طلاب ومشتركو هذه الباقة (وكافة الباقات الأعلى منها) من هذا التكوين تلقائياً.
+                {formData.package_id && formData.package_id !== 'none' 
+                  ? '* عند تحديد باقة، يستفيد طلاب ومشتركو هذه الباقة (وكافة الباقات الأعلى منها) من هذا التكوين تلقائياً مجاناً، ويختفي السعر.'
+                  : '* تكوين عام أو مستقل خارج الباقات، متاح للشراء الفردي ويمكن تحديد السعر والعملة له.'}
               </p>
             </div>
             <div>
               <Label>Description</Label>
               <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Price</Label>
-                <Input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })} />
+
+            {/* Conditionally Show / Hide Price based on Package Selection */}
+            {formData.package_id && formData.package_id !== 'none' ? (
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent border border-emerald-500/25 flex items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <CheckCircle className="h-4 w-4" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <h5 className="font-bold text-xs text-emerald-800 dark:text-emerald-300">
+                      مشمول تلقائياً ضمن اشتراك الباقة (السعر: مجاني مع الباقة)
+                    </h5>
+                    <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80 leading-relaxed">
+                      يختفي الثمن لأن هذا التكوين مخصص حصرياً لمشتركي الباقة المختارة والباقات الأعلى مجاناً بدون رسوم إضافية.
+                    </p>
+                  </div>
+                </div>
+                <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-xs shrink-0 px-2.5 py-1 rounded-xl">
+                  $0 Free
+                </Badge>
               </div>
-              <div>
-                <Label>Currency</Label>
-                <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="MAD">MAD</SelectItem>
-                  </SelectContent>
-                </Select>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+                <div className="space-y-1">
+                  <Label htmlFor="price" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    السعر للتدريب المستقل / خارج الباقة (Price)
+                  </Label>
+                  <Input 
+                    id="price" 
+                    type="number" 
+                    value={formData.price} 
+                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })} 
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="rounded-xl text-xs bg-white dark:bg-slate-950"
+                  />
+                  <p className="text-[10px] text-muted-foreground">* يظهر السعر فقط للتدريبات العامة الخارجة عن الباقة.</p>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="currency" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    العملة (Currency)
+                  </Label>
+                  <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
+                    <SelectTrigger id="currency" className="rounded-xl text-xs bg-white dark:bg-slate-950">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="USD" className="text-xs">USD ($)</SelectItem>
+                      <SelectItem value="EUR" className="text-xs">EUR (€)</SelectItem>
+                      <SelectItem value="MAD" className="text-xs">MAD (درهم)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
+            )}
             <div className="flex items-center gap-2">
               <Switch checked={formData.is_published} onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })} />
               <Label>Published</Label>
