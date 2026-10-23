@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Eye, Users, DollarSign, BookOpen, Image, Link2, Check, FolderOpen, TrendingUp, Package, CheckCircle, Sparkles, GraduationCap } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Users, DollarSign, BookOpen, Image, Link2, Check, FolderOpen, TrendingUp, Package, CheckCircle, Sparkles, GraduationCap, Loader2, Save } from 'lucide-react';
 import { 
   useFormations, 
   useCreateFormation, 
@@ -642,39 +642,84 @@ export default function FormationsManagement() {
       </Tabs>
 
       {/* Formation Modal */}
-      <Dialog open={showFormationModal} onOpenChange={setShowFormationModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedFormation ? 'Edit Formation' : 'Create Formation'}</DialogTitle>
+      <Dialog 
+        open={showFormationModal} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowFormationModal(false);
+            resetFormData();
+          } else {
+            setShowFormationModal(true);
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl sm:rounded-2xl border-border/80 shadow-2xl bg-background">
+          {/* Sticky Dialog Header */}
+          <DialogHeader className="px-6 py-4 border-b border-border bg-slate-50/70 dark:bg-slate-900/70 backdrop-blur-md shrink-0 flex flex-col space-y-1 text-left rtl:text-right">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
+                {selectedFormation ? <Edit className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-base sm:text-lg font-bold text-foreground">
+                  {selectedFormation ? 'تعديل التكوين (Edit Formation)' : 'إنشاء تكوين جديد (Create Formation)'}
+                </DialogTitle>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                  {selectedFormation 
+                    ? 'تعديل بيانات التكوين، الأستاذ المشرف، والباقة التابعة' 
+                    : 'أدخل تفاصيل التكوين الجديد وحدد الباقة والأستاذ المشرف'}
+                </p>
+              </div>
+            </div>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Thumbnail Image</Label>
-              <div className="mt-2 flex items-center gap-4">
+
+          {/* Scrollable Form Body */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+            {/* Thumbnail Image */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2">
+              <Label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <Image className="h-4 w-4 text-primary" />
+                صورة الغلاف (Thumbnail Image)
+              </Label>
+              <div className="flex items-center gap-4">
                 {thumbnailPreview ? (
-                  <img src={thumbnailPreview} alt="Thumbnail preview" className="w-24 h-16 object-cover rounded-md border" />
+                  <div className="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xs shrink-0">
+                    <img src={thumbnailPreview} alt="Thumbnail preview" className="w-28 h-18 object-cover" />
+                  </div>
                 ) : (
-                  <div className="w-24 h-16 bg-muted rounded-md flex items-center justify-center border">
-                    <Image className="h-6 w-6 text-muted-foreground" />
+                  <div className="w-28 h-18 bg-slate-200/60 dark:bg-slate-800 rounded-xl flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-slate-700 shrink-0 text-muted-foreground">
+                    <Image className="h-6 w-6 opacity-60" />
+                    <span className="text-[10px] mt-1 font-medium">لا توجد صورة</span>
                   </div>
                 )}
-                <div>
+                <div className="flex-1 min-w-0">
                   <Input
                     type="file"
                     accept="image/*"
                     onChange={handleThumbnailSelect}
-                    className="w-auto"
+                    className="w-full text-xs rounded-xl bg-white dark:bg-slate-950 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Recommended: 800x450 pixels</p>
+                  <p className="text-[11px] text-muted-foreground mt-1.5">الحجم الموصى به: 800×450 بكسل (أو بنسبة 16:9)</p>
                 </div>
               </div>
             </div>
-            <div>
-              <Label>Title</Label>
-              <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+
+            {/* Title */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <BookOpen className="h-4 w-4 text-primary" />
+                عنوان التكوين (Title) <span className="text-destructive">*</span>
+              </Label>
+              <Input 
+                value={formData.title} 
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+                placeholder="مثال: دورة احتراف الذكاء الاصطناعي وتطوير الوكلاء" 
+                className="rounded-xl text-sm font-medium bg-white dark:bg-slate-950 focus-visible:ring-primary"
+              />
             </div>
+
             {/* Package Selector */}
-            <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+            <div className="space-y-1.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
               <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-200">
                 <Package className="h-4 w-4 text-violet-500" />
                 الباقة التابعة / المؤهلة لهذا التكوين (Assigned Package)
@@ -709,7 +754,7 @@ export default function FormationsManagement() {
             </div>
 
             {/* Instructor / Teacher Selector */}
-            <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+            <div className="space-y-1.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
               <Label className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-200">
                 <GraduationCap className="h-4 w-4 text-primary" />
                 الأستاذ المشرف على التكوين (Assigned Instructor)
@@ -737,9 +782,18 @@ export default function FormationsManagement() {
               </p>
             </div>
 
-            <div>
-              <Label>Description</Label>
-              <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+            {/* Description */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                وصف التكوين (Description)
+              </Label>
+              <Textarea 
+                value={formData.description} 
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+                placeholder="اكتب نبذة شاملة عن التكوين وأهم محاوره التعليمية وما سيتعلمه الطالب..."
+                rows={3}
+                className="rounded-xl text-xs bg-white dark:bg-slate-950 resize-y"
+              />
             </div>
 
             {/* Conditionally Show / Hide Price based on Package Selection */}
@@ -797,15 +851,57 @@ export default function FormationsManagement() {
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <Switch checked={formData.is_published} onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })} />
-              <Label>Published</Label>
+
+            {/* Published Switch */}
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+              <div className="space-y-0.5">
+                <Label htmlFor="is-published" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
+                  حالة نشر التكوين (Published Status)
+                </Label>
+                <p className="text-[11px] text-muted-foreground">
+                  {formData.is_published ? 'التكوين منشور ومتاح للطلاب في الأكاديمية' : 'التكوين غير منشور (مسودة مخفية)'}
+                </p>
+              </div>
+              <Switch 
+                id="is-published"
+                checked={formData.is_published} 
+                onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })} 
+              />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowFormationModal(false); resetFormData(); }}>Cancel</Button>
-            <Button onClick={selectedFormation ? handleUpdateFormation : handleCreateFormation} disabled={uploading}>
-              {uploading ? 'Uploading...' : selectedFormation ? 'Update' : 'Create'}
+
+          {/* Sticky Dialog Footer - Always visible on screen */}
+          <DialogFooter className="px-6 py-4 border-t border-border bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-md flex items-center justify-end gap-3 shrink-0 sm:space-x-0">
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="rounded-xl px-5 h-10 font-semibold border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+              onClick={() => { setShowFormationModal(false); resetFormData(); }}
+            >
+              إلغاء (Cancel)
+            </Button>
+            <Button 
+              type="button"
+              className="rounded-xl px-6 h-10 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md gap-2"
+              onClick={selectedFormation ? handleUpdateFormation : handleCreateFormation} 
+              disabled={uploading}
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>جاري الحفظ...</span>
+                </>
+              ) : selectedFormation ? (
+                <>
+                  <Save className="h-4 w-4" />
+                  <span>حفظ التعديلات (Save)</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  <span>إنشاء التكوين (Create)</span>
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
