@@ -602,7 +602,7 @@ exports.rejectDeposit = async (req, res) => {
             const userPkg = pkgRows[0];
             await connection.query(`
                 UPDATE user_packages 
-                SET status = 'cancelled', notes = CONCAT(COALESCE(notes, ''), ' [تم الرفض: ', ?, ']')
+                SET status = 'cancelled', is_current = 0, notes = CONCAT(COALESCE(notes, ''), ' [تم الرفض: ', ?, ']')
                 WHERE id = ?
             `, [reason || 'بيانات التحويل غير مطابقة أو الوصل غير واضح', id]);
 
@@ -644,7 +644,7 @@ exports.rejectDeposit = async (req, res) => {
         if (trx.type === 'package_purchase') {
             await connection.query(`
                 UPDATE user_packages 
-                SET status = 'cancelled', notes = CONCAT(COALESCE(notes, ''), ' [تم الرفض: ', ?, ']')
+                SET status = 'cancelled', is_current = 0, notes = CONCAT(COALESCE(notes, ''), ' [تم الرفض: ', ?, ']')
                 WHERE (payment_reference = ? AND user_id = ?) OR (user_id = ? AND status = 'pending')
             `, [reason || 'بيانات التحويل غير مطابقة أو الوصل غير واضح', trx.reference_id, trx.user_id, trx.user_id]);
         }
