@@ -55,8 +55,9 @@ class PayPalService {
         const formattedAmount = Number(amount).toFixed(2);
 
         const application_context = {
-            brand_name: 'Nextvora Services',
-            landing_page: 'NO_PREFERENCE',
+            brand_name: 'Nexyvora Services',
+            landing_page: 'GUEST_CHECKOUT',
+            shipping_preference: 'NO_SHIPPING',
             user_action: 'PAY_NOW'
         };
 

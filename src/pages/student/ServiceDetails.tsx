@@ -647,7 +647,7 @@ export default function ServiceDetails() {
                     ) : (
                       <>
                         <CreditCard className="h-4 w-4" />
-                        <span>{tr("الدفع الفوري بواسطة PayPal", "Checkout with PayPal")}</span>
+                        <span>{tr("الدفع المباشر بالبطاقة البنكية أو PayPal", "Pay with Debit / Credit Card or PayPal")}</span>
                       </>
                     )}
                   </Button>
