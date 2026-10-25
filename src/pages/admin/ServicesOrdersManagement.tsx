@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { 
   ShoppingBag, Clock, CheckCircle2, Search, Filter, KeyRound, 
-  Send, Loader2, MessageCircle, AlertCircle, History, DollarSign 
+  Send, Loader2, MessageCircle, AlertCircle, History, DollarSign, Trash2 
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -107,6 +107,23 @@ export default function ServicesOrdersManagement() {
     }
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!window.confirm(tr('هل أنت متأكد من حذف هذه المحاولة غير المدفوعة؟', 'Are you sure you want to delete this unpaid attempt?'))) {
+      return;
+    }
+    try {
+      const res = await adminServiceService.deleteOrder(orderId);
+      if (res?.success) {
+        toast.success(tr('تم حذف المحاولة بنجاح', 'Order attempt deleted successfully'));
+        fetchOrders();
+      } else {
+        toast.error(res?.message || tr('فشل حذف الطلب', 'Failed to delete order'));
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || tr('خطأ أثناء حذف الطلب', 'Error deleting order'));
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
@@ -129,6 +146,13 @@ export default function ServicesOrdersManagement() {
           <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs font-bold gap-1">
             <CheckCircle2 className="h-3 w-3" />
             {tr("تم التسليم", "Delivered / Completed")}
+          </Badge>
+        );
+      case 'pending_payment':
+        return (
+          <Badge className="bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20 text-xs font-semibold gap-1">
+            <Clock className="h-3 w-3" />
+            {tr("لم يسدد (محاولة معلقة)", "Unpaid - Pending")}
           </Badge>
         );
       case 'cancelled':
@@ -162,10 +186,11 @@ export default function ServicesOrdersManagement() {
           {/* Status Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
             {[
-              { id: 'all', label: tr("جميع الطلبات", "All Orders") },
+              { id: 'all', label: tr("الطلبات المؤكدة", "All Paid Orders") },
               { id: 'paid', label: tr("بانتظار التسليم", "Awaiting Delivery") },
               { id: 'delivered', label: tr("المسلّمة", "Delivered") },
               { id: 'completed', label: tr("المكتملة", "Completed") },
+              { id: 'pending_payment', label: tr("محاولات دفع معلقة", "Pending / Unpaid") },
               { id: 'cancelled', label: tr("الملغاة", "Cancelled") },
             ].map((tab) => (
               <Button
@@ -293,7 +318,22 @@ export default function ServicesOrdersManagement() {
                         {/* Actions */}
                         <td className="p-4 text-end">
                           <div className="flex items-center justify-end gap-2">
-                            {needsDelivery ? (
+                            {ord.status === 'pending_payment' ? (
+                              <>
+                                <span className="text-[11px] text-muted-foreground italic px-2">
+                                  {tr("لم يكتمل السداد بعد", "Unpaid Attempt")}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-500/10"
+                                  title={tr("حذف هذه المحاولة", "Delete attempt")}
+                                  onClick={() => handleDeleteOrder(ord.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            ) : needsDelivery ? (
                               <Button
                                 size="sm"
                                 onClick={() => handleOpenDeliverModal(ord)}

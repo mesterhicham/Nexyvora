@@ -48,6 +48,7 @@ router.get('/admin/orders', auth, authorize('admin'), adminServiceCtrl.adminGetO
 router.get('/admin/orders/:id', auth, authorize('admin'), adminServiceCtrl.adminGetOrderById);
 router.put('/admin/orders/:id/deliver', auth, authorize('admin'), adminServiceCtrl.adminDeliverOrder);
 router.put('/admin/orders/:id/status', auth, authorize('admin'), adminServiceCtrl.adminUpdateOrderStatus);
+router.delete('/admin/orders/:id', auth, authorize('admin'), adminServiceCtrl.adminDeleteOrder);
 router.get('/admin/stats', auth, authorize('admin'), adminServiceCtrl.adminGetStats);
 
 // Custom Projects Management

@@ -365,9 +365,18 @@ exports.adminGetOrders = async (req, res) => {
         `;
         const params = [];
 
-        if (status) {
-            query += ` AND o.status = ?`;
-            params.push(status);
+        if (status && status !== 'all') {
+            if (status === 'awaiting_delivery') {
+                query += ` AND o.status IN ('paid', 'processing')`;
+            } else {
+                query += ` AND o.status = ?`;
+                params.push(status);
+            }
+        } else {
+            // By default in 'all' view, exclude uncompleted/abandoned checkout drafts unless explicitly requested
+            if (req.query.include_pending !== '1') {
+                query += ` AND o.status != 'pending_payment'`;
+            }
         }
         if (product_id) {
             query += ` AND o.product_id = ?`;
@@ -602,3 +611,25 @@ exports.adminGetStats = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to fetch services stats', error: err.message });
     }
 };
+
+exports.adminDeleteOrder = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [orders] = await db.query('SELECT id, status FROM service_orders WHERE id = ?', [id]);
+        if (orders.length === 0) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+        if (orders[0].status !== 'pending_payment' && orders[0].status !== 'cancelled') {
+            return res.status(400).json({ success: false, message: 'لا يمكن حذف إلا الطلبات غير المدفوعة أو الملغاة' });
+        }
+
+        await db.query('DELETE FROM service_order_logs WHERE order_id = ?', [id]);
+        await db.query('DELETE FROM service_orders WHERE id = ?', [id]);
+
+        res.json({ success: true, message: 'تم حذف الطلب بنجاح' });
+    } catch (err) {
+        console.error('Error in adminDeleteOrder:', err);
+        res.status(500).json({ success: false, message: 'Failed to delete order', error: err.message });
+    }
+};
+

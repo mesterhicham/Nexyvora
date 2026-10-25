@@ -332,8 +332,26 @@ exports.createPayPalOrder = async (req, res) => {
         }
 
         const price = Number(offer.price);
-        const orderId = crypto.randomUUID();
-        const orderNumber = generateOrderNumber();
+
+        // Check for existing pending order for this user and offer to avoid duplicate entries
+        const [existingPending] = await db.query(`
+            SELECT id, order_number 
+            FROM service_orders 
+            WHERE user_id = ? AND offer_id = ? AND status = 'pending_payment'
+            ORDER BY created_at DESC 
+            LIMIT 1
+        `, [userId, offer.id]);
+
+        let orderId;
+        let orderNumber;
+
+        if (existingPending.length > 0) {
+            orderId = existingPending[0].id;
+            orderNumber = existingPending[0].order_number;
+        } else {
+            orderId = crypto.randomUUID();
+            orderNumber = generateOrderNumber();
+        }
 
         // Determine public host URL for redirection
         const protocol = (req.get('x-forwarded-proto') || req.protocol || 'https');
@@ -353,19 +371,33 @@ exports.createPayPalOrder = async (req, res) => {
         // Find approve link from PayPal response
         const approveUrl = paypalOrder.links?.find(l => l.rel === 'approve' || l.rel === 'payer-action')?.href;
 
-        // Insert pending order into database
-        await db.query(`
-            INSERT INTO service_orders (
-                id, order_number, user_id, product_id, offer_id,
-                activation_email, price_at_purchase, currency, status,
-                payment_method, payment_reference, commission_processed
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'USD', 'pending_payment', 'paypal', ?, 0)
-        `, [orderId, orderNumber, userId, offer.product_id, offer.id, activationEmail || null, price, paypalOrder.id]);
+        if (existingPending.length > 0) {
+            // Update existing pending order with newest payment reference and activation email
+            await db.query(`
+                UPDATE service_orders 
+                SET activation_email = ?, price_at_purchase = ?, payment_reference = ?, updated_at = NOW()
+                WHERE id = ?
+            `, [activationEmail || null, price, paypalOrder.id, orderId]);
 
-        await db.query(`
-            INSERT INTO service_order_logs (id, order_id, changed_by, old_status, new_status, note)
-            VALUES (?, ?, ?, NULL, 'pending_payment', ?)
-        `, [crypto.randomUUID(), orderId, userId, `إنشاء طلب دفع PayPal (ID: ${paypalOrder.id})`]);
+            await db.query(`
+                INSERT INTO service_order_logs (id, order_id, changed_by, old_status, new_status, note)
+                VALUES (?, ?, ?, 'pending_payment', 'pending_payment', ?)
+            `, [crypto.randomUUID(), orderId, userId, `تحديث جلسة دفع PayPal (ID: ${paypalOrder.id})`]);
+        } else {
+            // Insert pending order into database
+            await db.query(`
+                INSERT INTO service_orders (
+                    id, order_number, user_id, product_id, offer_id,
+                    activation_email, price_at_purchase, currency, status,
+                    payment_method, payment_reference, commission_processed
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'USD', 'pending_payment', 'paypal', ?, 0)
+            `, [orderId, orderNumber, userId, offer.product_id, offer.id, activationEmail || null, price, paypalOrder.id]);
+
+            await db.query(`
+                INSERT INTO service_order_logs (id, order_id, changed_by, old_status, new_status, note)
+                VALUES (?, ?, ?, NULL, 'pending_payment', ?)
+            `, [crypto.randomUUID(), orderId, userId, `إنشاء طلب دفع PayPal (ID: ${paypalOrder.id})`]);
+        }
 
         res.json({
             success: true,
@@ -496,7 +528,7 @@ exports.getMyOrders = async (req, res) => {
             FROM service_orders o
             JOIN service_products p ON o.product_id = p.id
             JOIN service_offers off ON o.offer_id = off.id
-            WHERE o.user_id = ?
+            WHERE o.user_id = ? AND o.status != 'pending_payment'
             ORDER BY o.created_at DESC
         `, [userId]);
 

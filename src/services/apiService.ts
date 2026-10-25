@@ -484,6 +484,7 @@ export const adminServiceService = {
         api.put(`/services/admin/orders/${id}/deliver`, data).then(res => res.data),
     updateOrderStatus: (id: string, data: { status: string; note?: string; adminNotes?: string }) => 
         api.put(`/services/admin/orders/${id}/status`, data).then(res => res.data),
+    deleteOrder: (id: string) => api.delete(`/services/admin/orders/${id}`).then(res => res.data),
     getStats: () => api.get('/services/admin/stats').then(res => res.data),
 
     // Custom Projects
