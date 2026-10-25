@@ -56,7 +56,7 @@ class PayPalService {
 
         const application_context = {
             brand_name: 'Nexyvora Services',
-            landing_page: 'GUEST_CHECKOUT',
+            landing_page: 'BILLING',
             shipping_preference: 'NO_SHIPPING',
             user_action: 'PAY_NOW'
         };
