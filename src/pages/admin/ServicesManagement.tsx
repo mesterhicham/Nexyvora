@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { tr } from '@/utils/tr';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { adminServiceService } from '@/services/apiService';
+import { adminServiceService, uploadService } from '@/services/apiService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { 
   ShoppingBag, Plus, Edit2, Trash2, Eye, EyeOff, Search, 
-  Sparkles, Layers, DollarSign, Package, Check, Loader2, ArrowUpDown, ExternalLink 
+  Sparkles, Layers, DollarSign, Package, Check, Loader2, ArrowUpDown, ExternalLink,
+  Upload, Image as ImageIcon, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -34,6 +35,10 @@ export default function ServicesManagement() {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Logo upload ref and state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState<boolean>(false);
+
   // Product form fields
   const [formName, setFormName] = useState('');
   const [formNameAr, setFormNameAr] = useState('');
@@ -48,6 +53,36 @@ export default function ServicesManagement() {
   const [formOffers, setFormOffers] = useState<any[]>([
     { label: '1 Month', label_ar: 'شهر واحد', duration_months: 1, price: 20, cost_price: 15, is_active: 1 }
   ]);
+
+  const handleLogoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error(tr("يرجى اختيار ملف صورة صالح (PNG, JPG, WEBP, SVG)", "Please choose a valid image file (PNG, JPG, WEBP, SVG)"));
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+      const res = await uploadService.uploadFile(file);
+      const uploadedUrl = res.url || res.fileUrl || (res.filename ? `/uploads/${res.filename}` : '');
+      if (uploadedUrl) {
+        setFormLogoUrl(uploadedUrl);
+        toast.success(tr("تم رفع الشعار بنجاح", "Logo uploaded successfully"));
+      } else {
+        toast.error(tr("فشل في استلام مسار الصورة المرفوعة", "Failed to retrieve uploaded image path"));
+      }
+    } catch (error: any) {
+      console.error("Failed to upload logo:", error);
+      toast.error(error?.response?.data?.message || tr("حدث خطأ أثناء رفع الشعار", "An error occurred while uploading logo"));
+    } finally {
+      setIsUploadingLogo(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -410,15 +445,89 @@ export default function ServicesManagement() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">{tr("رابط الشعار أو الصورة (Logo URL)", "Logo URL")}</Label>
-                <Input
-                  dir="ltr"
-                  value={formLogoUrl}
-                  onChange={(e) => setFormLogoUrl(e.target.value)}
-                  placeholder="https://... أو مسار الصورة"
-                  className="text-xs"
+              <div className="space-y-2 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold flex items-center gap-1.5">
+                    <ImageIcon className="h-4 w-4 text-purple-600" />
+                    {tr("شعار الخدمة أو المنتج (Logo)", "Product / Service Logo")}
+                  </Label>
+                  {formLogoUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFormLogoUrl('')}
+                      className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10"
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      {tr("إزالة", "Remove")}
+                    </Button>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+                  className="hidden"
+                  onChange={handleLogoFileUpload}
                 />
+
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  {/* Thumbnail Preview */}
+                  <div className="relative h-16 w-16 min-w-[64px] rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-background flex items-center justify-center overflow-hidden shadow-xs">
+                    {formLogoUrl ? (
+                      <img
+                        src={formLogoUrl}
+                        alt="Logo preview"
+                        className="h-full w-full object-contain p-1"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <ImageIcon className="h-6 w-6 text-muted-foreground/40" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 w-full space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isUploadingLogo}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-xs h-9 font-medium gap-1.5 bg-background shadow-xs hover:border-purple-500 hover:text-purple-600"
+                      >
+                        {isUploadingLogo ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-purple-600" />
+                            {tr("جاري الرفع...", "Uploading...")}
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-3.5 w-3.5" />
+                            {tr("رفع صورة من الجهاز", "Upload image from device")}
+                          </>
+                        )}
+                      </Button>
+                      <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                        {tr("(PNG, JPG, WEBP, SVG)", "(PNG, JPG, WEBP, SVG)")}
+                      </span>
+                    </div>
+
+                    <div className="relative">
+                      <Input
+                        dir="ltr"
+                        value={formLogoUrl}
+                        onChange={(e) => setFormLogoUrl(e.target.value)}
+                        placeholder={tr("أو الصق رابط الصورة مباشرة https://...", "Or paste direct image URL https://...")}
+                        className="text-xs h-8 bg-background"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-1.5">
