@@ -166,7 +166,8 @@ export function useAddFormationContent() {
     mutationFn: (data: any) => formationService.addFormationContent(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['formation-content', variables.formation_id] });
-      toast.success('Content added successfully');
+      queryClient.invalidateQueries({ queryKey: ['formations'] });
+      toast.success('تمت إضافة المحتوى بنجاح (Content added)');
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -182,7 +183,8 @@ export function useUpdateFormationContent() {
       formationService.updateFormationContent(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['formation-content'] });
-      toast.success('Content updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['formations'] });
+      toast.success('تم تحديث المحتوى بنجاح (Content updated)');
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -199,7 +201,8 @@ export function useDeleteFormationContent() {
       formationService.deleteFormationContent(id).then(() => formationId),
     onSuccess: (formationId) => {
       queryClient.invalidateQueries({ queryKey: ['formation-content', formationId] });
-      toast.success('Content deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['formations'] });
+      toast.success('تم حذف المحتوى بنجاح (Content deleted)');
     },
     onError: (error: Error) => {
       toast.error(error.message);

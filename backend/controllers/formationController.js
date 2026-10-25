@@ -293,13 +293,19 @@ exports.addFormationContent = async (req, res) => {
     }
 
     const id = crypto.randomUUID();
+    const finalDuration = (duration_seconds !== undefined && duration_seconds !== null && duration_seconds !== '') ? Number(duration_seconds) : null;
+    const finalOrder = (order_index !== undefined && order_index !== null && order_index !== '') ? Number(order_index) : 0;
+    const finalQuizId = (quiz_id !== undefined && quiz_id !== null && quiz_id !== '' && quiz_id !== 'none' && quiz_id !== 'null') ? quiz_id : null;
+    const finalFileUrl = file_url || null;
+
     try {
         await db.execute(
             'INSERT INTO formation_content (id, formation_id, title, content_type, file_url, duration_seconds, order_index, quiz_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, formation_id, title, content_type, file_url, duration_seconds, order_index, quiz_id]
+            [id, formation_id, title, content_type, finalFileUrl, finalDuration, finalOrder, finalQuizId]
         );
-        res.status(201).json({ id, formation_id, title, content_type, file_url, duration_seconds, order_index, quiz_id });
+        res.status(201).json({ id, formation_id, title, content_type, file_url: finalFileUrl, duration_seconds: finalDuration, order_index: finalOrder, quiz_id: finalQuizId });
     } catch (err) {
+        console.error('[addFormationContent error]:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -316,12 +322,18 @@ exports.updateFormationContent = async (req, res) => {
             return res.status(403).json({ error: 'غير مصرح لك بتعديل محتوى هذا التكوين' });
         }
 
+        const finalDuration = (duration_seconds !== undefined && duration_seconds !== null && duration_seconds !== '') ? Number(duration_seconds) : null;
+        const finalOrder = (order_index !== undefined && order_index !== null && order_index !== '') ? Number(order_index) : 0;
+        const finalQuizId = (quiz_id !== undefined && quiz_id !== null && quiz_id !== '' && quiz_id !== 'none' && quiz_id !== 'null') ? quiz_id : null;
+        const finalFileUrl = file_url || null;
+
         await db.execute(
             'UPDATE formation_content SET title = ?, content_type = ?, file_url = ?, duration_seconds = ?, order_index = ?, quiz_id = ? WHERE id = ?',
-            [title, content_type, file_url, duration_seconds, order_index, quiz_id, id]
+            [title, content_type, finalFileUrl, finalDuration, finalOrder, finalQuizId, id]
         );
-        res.json({ id, title, content_type, file_url, duration_seconds, order_index, quiz_id });
+        res.json({ id, title, content_type, file_url: finalFileUrl, duration_seconds: finalDuration, order_index: finalOrder, quiz_id: finalQuizId });
     } catch (err) {
+        console.error('[updateFormationContent error]:', err);
         res.status(500).json({ error: err.message });
     }
 };
