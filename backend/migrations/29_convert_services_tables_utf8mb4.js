@@ -48,7 +48,7 @@ async function up() {
         console.log('5. Altering service_order_logs text columns...');
         await connection.query(`
             ALTER TABLE service_order_logs
-            MODIFY COLUMN details TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
+            MODIFY COLUMN note TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
         `);
 
         // 6. custom_project_requests
