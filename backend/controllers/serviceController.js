@@ -335,13 +335,23 @@ exports.createPayPalOrder = async (req, res) => {
         const orderId = crypto.randomUUID();
         const orderNumber = generateOrderNumber();
 
+        // Determine public host URL for redirection
+        const protocol = (req.get('x-forwarded-proto') || req.protocol || 'https');
+        const host = req.get('x-forwarded-host') || req.get('host') || 'nexyvora.net';
+        const clientOrigin = `${protocol}://${host}`;
+
         // Create PayPal order via API v2
         const paypalOrder = await PayPalService.createOrder({
             amount: price,
             currency: 'USD',
             orderNumber,
-            description: `${offer.p_name} - ${offer.label}`
+            description: `${offer.p_name} - ${offer.label}`,
+            returnUrl: `${clientOrigin}/student/services/my-orders?paypal_success=1&orderId=${orderId}`,
+            cancelUrl: `${clientOrigin}/student/services`
         });
+
+        // Find approve link from PayPal response
+        const approveUrl = paypalOrder.links?.find(l => l.rel === 'approve' || l.rel === 'payer-action')?.href;
 
         // Insert pending order into database
         await db.query(`
@@ -363,6 +373,7 @@ exports.createPayPalOrder = async (req, res) => {
                 orderId,
                 orderNumber,
                 paypalOrderId: paypalOrder.id,
+                approveUrl,
                 price
             }
         });

@@ -132,23 +132,17 @@ export default function ServiceDetails() {
         activationEmail: activationEmail.trim() || undefined
       });
 
-      if (!createRes?.success || !createRes?.data?.paypalOrderId) {
+      if (!createRes?.success || !createRes?.data) {
         throw new Error(createRes?.message || 'Failed to initialize PayPal');
       }
 
-      const { orderId, paypalOrderId } = createRes.data;
+      const { approveUrl, paypalOrderId } = createRes.data;
 
-      const captureRes = await serviceService.capturePayPalOrder({
-        orderId,
-        paypalOrderId
-      });
-
-      if (captureRes?.success) {
-        toast.success(tr('تم تأكيد الدفع عبر PayPal بنجاح!', 'PayPal payment confirmed!'));
-        setIsPaymentModalOpen(false);
-        navigate('/student/services/my-orders');
+      if (approveUrl) {
+        toast.info(tr('جاري توجيهك إلى صفحة الدفع الآمنة في PayPal...', 'Redirecting to PayPal secure checkout...'));
+        window.location.href = approveUrl;
       } else {
-        toast.info(tr('تم إنشاء طلب PayPal بنجاح', 'PayPal order created'));
+        throw new Error(tr('تعذر الحصول على رابط الدفع من PayPal', 'PayPal approval link not found'));
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || tr('فشل إتمام دفع PayPal', 'PayPal payment failed'));

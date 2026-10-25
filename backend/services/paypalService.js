@@ -48,11 +48,20 @@ class PayPalService {
         return data.access_token;
     }
 
-    static async createOrder({ amount, currency = 'USD', orderNumber, description = 'Nextvora Service Order' }) {
+    static async createOrder({ amount, currency = 'USD', orderNumber, description = 'Nextvora Service Order', returnUrl, cancelUrl }) {
         const { baseUrl } = await this.getCredentials();
         const accessToken = await this.getAccessToken();
 
         const formattedAmount = Number(amount).toFixed(2);
+
+        const application_context = {
+            brand_name: 'Nextvora Services',
+            landing_page: 'NO_PREFERENCE',
+            user_action: 'PAY_NOW'
+        };
+
+        if (returnUrl) application_context.return_url = returnUrl;
+        if (cancelUrl) application_context.cancel_url = cancelUrl;
 
         const response = await fetch(`${baseUrl}/v2/checkout/orders`, {
             method: 'POST',
@@ -72,11 +81,7 @@ class PayPalService {
                         }
                     }
                 ],
-                application_context: {
-                    brand_name: 'Nextvora Services',
-                    landing_page: 'NO_PREFERENCE',
-                    user_action: 'PAY_NOW'
-                }
+                application_context
             })
         });
 

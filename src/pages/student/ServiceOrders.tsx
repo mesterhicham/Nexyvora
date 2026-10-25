@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { tr } from '@/utils/tr';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { serviceService } from '@/services/apiService';
@@ -20,6 +20,7 @@ export default function ServiceOrders() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [orders, setOrders] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
@@ -28,7 +29,36 @@ export default function ServiceOrders() {
 
   useEffect(() => {
     fetchOrdersAndSettings();
+    handlePayPalCallback();
   }, []);
+
+  const handlePayPalCallback = async () => {
+    const isSuccess = searchParams.get('paypal_success');
+    const orderId = searchParams.get('orderId');
+    const token = searchParams.get('token'); // PayPal passes order ID as token
+
+    if (isSuccess && orderId && token) {
+      try {
+        toast.loading(tr('جاري تأكيد عملية الدفع من PayPal...', 'Verifying PayPal payment...'), { id: 'paypal-capture' });
+        const res = await serviceService.capturePayPalOrder({
+          orderId,
+          paypalOrderId: token
+        });
+
+        if (res?.success) {
+          toast.success(tr('تم تأكيد الدفع عبر PayPal بنجاح! طلبك قيد التجهيز.', 'PayPal payment confirmed! Your order is being processed.'), { id: 'paypal-capture' });
+          fetchOrdersAndSettings();
+        } else {
+          toast.error(res?.message || tr('فشل تأكيد الدفع من بايبال', 'Failed to confirm PayPal payment'), { id: 'paypal-capture' });
+        }
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || err.message || tr('خطأ أثناء تأكيد دفع بايبال', 'Error confirming PayPal payment'), { id: 'paypal-capture' });
+      } finally {
+        // Clean URL params
+        navigate('/student/services/my-orders', { replace: true });
+      }
+    }
+  };
 
   const fetchOrdersAndSettings = async () => {
     setLoading(true);
