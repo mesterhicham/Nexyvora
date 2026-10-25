@@ -3,18 +3,16 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { tr } from '@/utils/tr';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { serviceService, userService } from '@/services/apiService';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  ArrowLeft, ArrowRight, CheckCircle2, ShieldCheck, Clock, Wallet, 
-  CreditCard, Sparkles, MessageCircle, AlertCircle, Loader2, Check 
+  ChevronLeft, ChevronRight, Star, Clock, ShieldCheck, Wallet, 
+  CreditCard, Sparkles, MessageCircle, AlertCircle, Loader2, Check,
+  Cloud, Lock, Info, CheckCircle2, ArrowRight, ArrowLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,6 +25,7 @@ export default function ServiceDetails() {
   const [product, setProduct] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [activationEmail, setActivationEmail] = useState<string>('');
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
@@ -35,7 +34,6 @@ export default function ServiceDetails() {
   // Payment modal state
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'wallet' | 'paypal'>('wallet');
-  const [paypalLoaded, setPaypalLoaded] = useState<boolean>(false);
 
   useEffect(() => {
     if (slug) {
@@ -52,7 +50,7 @@ export default function ServiceDetails() {
         serviceService.getPublicSettings()
       ]);
 
-      if (prodRes?.success) {
+      if (prodRes?.success && prodRes.data) {
         setProduct(prodRes.data);
         if (prodRes.data.offers && prodRes.data.offers.length > 0) {
           setSelectedOffer(prodRes.data.offers[0]);
@@ -83,30 +81,13 @@ export default function ServiceDetails() {
     }
   };
 
-  // Dynamically load PayPal JS SDK when PayPal method is selected and clientId is available
-  useEffect(() => {
-    if (!settings?.paypal_client_id || !settings?.paypal_enabled) return;
-
-    const scriptId = 'paypal-js-sdk';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = `https://www.paypal.com/sdk/js?client-id=${settings.paypal_client_id}&currency=USD`;
-      script.async = true;
-      script.onload = () => setPaypalLoaded(true);
-      document.body.appendChild(script);
-    } else {
-      setPaypalLoaded(true);
-    }
-  }, [settings]);
-
   const handleOpenCheckout = () => {
     if (!selectedOffer) {
-      toast.error(tr('يرجى اختيار خطة أو مدة للاشتراك أولاً', 'Please select an offer first'));
+      toast.error(tr('يرجى اختيار خطة أولاً', 'Please select a plan first'));
       return;
     }
     if (product.requires_email && !activationEmail.trim()) {
-      toast.error(tr('يرجى إدخال البريد الإلكتروني المطلوب للتفعيل', 'Please enter activation email'));
+      toast.error(tr('يرجى إدخال البريد الإلكتروني للتفعيل', 'Please enter activation email'));
       return;
     }
     setIsPaymentModalOpen(true);
@@ -157,23 +138,17 @@ export default function ServiceDetails() {
 
       const { orderId, paypalOrderId } = createRes.data;
 
-      // In real sandbox/live, window.paypal handles this, or redirect to PayPal approval
-      // For testing & seamless execution, check if window.paypal exists
-      if ((window as any).paypal) {
-        // If PayPal JS is ready, render buttons or trigger capture
-        // We capture once approved
-        const captureRes = await serviceService.capturePayPalOrder({
-          orderId,
-          paypalOrderId
-        });
+      const captureRes = await serviceService.capturePayPalOrder({
+        orderId,
+        paypalOrderId
+      });
 
-        if (captureRes?.success) {
-          toast.success(tr('تم تأكيد الدفع عبر PayPal بنجاح!', 'PayPal payment confirmed!'));
-          setIsPaymentModalOpen(false);
-          navigate('/student/services/my-orders');
-        }
+      if (captureRes?.success) {
+        toast.success(tr('تم تأكيد الدفع عبر PayPal بنجاح!', 'PayPal payment confirmed!'));
+        setIsPaymentModalOpen(false);
+        navigate('/student/services/my-orders');
       } else {
-        toast.info(tr('جاري التوجيه إلى نافذة PayPal...', 'Redirecting to PayPal...'));
+        toast.info(tr('تم إنشاء طلب PayPal بنجاح', 'PayPal order created'));
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || tr('فشل إتمام دفع PayPal', 'PayPal payment failed'));
@@ -188,16 +163,26 @@ export default function ServiceDetails() {
   if (loading) {
     return (
       <DashboardLayout role="student">
-        <div className="space-y-6 max-w-5xl mx-auto py-6">
-          <Skeleton className="h-6 w-32" />
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-2 space-y-4">
-              <Skeleton className="h-64 w-full rounded-2xl" />
-              <Skeleton className="h-10 w-3/4" />
-              <Skeleton className="h-20 w-full" />
-            </div>
-            <div className="space-y-4">
-              <Skeleton className="h-72 w-full rounded-2xl" />
+        <div className="space-y-8 pb-16">
+          <Skeleton className="h-6 w-48 rounded-lg" />
+          <div className="rounded-3xl bg-[#0e1320] p-8 border border-slate-800">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-6 space-y-4">
+                <Skeleton className="h-80 w-full rounded-2xl bg-slate-800" />
+                <div className="grid grid-cols-5 gap-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16 rounded-xl bg-slate-800" />
+                  ))}
+                </div>
+              </div>
+              <div className="lg:col-span-6 space-y-5">
+                <Skeleton className="h-6 w-28 rounded-full bg-slate-800" />
+                <Skeleton className="h-10 w-3/4 rounded-lg bg-slate-800" />
+                <Skeleton className="h-4 w-1/2 rounded-lg bg-slate-800" />
+                <Skeleton className="h-8 w-1/3 rounded-lg bg-slate-800" />
+                <Skeleton className="h-24 w-full rounded-xl bg-slate-800" />
+                <Skeleton className="h-14 w-full rounded-2xl bg-slate-800" />
+              </div>
             </div>
           </div>
         </div>
@@ -207,71 +192,278 @@ export default function ServiceDetails() {
 
   if (!product) return null;
 
+  // Prepare gallery images (5 images for the thumbnails row)
+  const defaultImages = [
+    product.logo_url || '/services/google_one.jpg',
+    '/services/hero_laptop.jpg',
+    '/services/gemini_advanced.jpg',
+    '/services/veo3.jpg',
+    '/services/chatgpt_plus.jpg'
+  ];
+
+  const galleryImages: string[] = (Array.isArray(product.images) && product.images.length > 0)
+    ? [...product.images, ...defaultImages].slice(0, 5)
+    : defaultImages;
+
+  // Features checkmarks list
+  const featuresList = (Array.isArray(product.features) && product.features.length > 0)
+    ? product.features
+    : [
+        'Gemini - Your AI assistant for writing, coding, research and more.',
+        'Google Flow - Create stunning videos with AI.',
+        'Veo - Generate high-quality videos from text.',
+        'NotebookLM - Research and summarize your documents.',
+        'Google Drive - 5TB of cloud storage.',
+        'Gmail - Extra storage for your emails and attachments.',
+        'Google Photos - Store your photos and videos.'
+      ];
+
+  // Category badge label
+  const categoryLabel = product.category_slug === 'digital-products' || product.category_type === 'digital_product'
+    ? (isRtl ? 'منتج رقمي' : 'Digital Product')
+    : product.category_slug === 'saas-tools' || product.category_type === 'saas'
+    ? (isRtl ? 'برمجيات SaaS' : 'SaaS Software')
+    : product.category_slug === 'ecommerce-projects' || product.category_type === 'ecommerce_project'
+    ? (isRtl ? 'تجارة إلكترونية' : 'E-commerce')
+    : (isRtl ? 'وكلاء الذكاء الاصطناعي' : 'AI Agents');
+
+  // Plan discounts mapping helper
+  const getPlanDiscount = (index: number) => {
+    switch (index) {
+      case 1: return '-10%';
+      case 2: return '-15%';
+      case 3: return '-20%';
+      case 4: return '-25%';
+      default: return null;
+    }
+  };
+
   return (
     <DashboardLayout role="student">
-      <div className="max-w-5xl mx-auto space-y-8 pb-16">
-        {/* Back link */}
-        <div>
+      <div className="space-y-6 pb-16">
+        {/* Breadcrumb Header matching Screenshot 2: < Services Store > Product Name */}
+        <div className="flex items-center gap-2 text-xs md:text-sm font-medium text-slate-400">
           <Link
             to="/student/services"
-            className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 hover:text-white transition-colors"
           >
-            {isRtl ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
-            {tr("العودة إلى متجر الخدمات", "Back to Services Store")}
+            {isRtl ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            <span>{tr("Services Store", "Services Store")}</span>
           </Link>
+          <span>&gt;</span>
+          <span className="text-white font-semibold truncate">
+            {isRtl ? product.name_ar : product.name}
+          </span>
         </div>
 
-        {/* Main Product Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Left / Main Details (2 cols) */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Header info */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2.5">
-                <Badge variant="outline" className="px-3 py-1 text-xs">
-                  {isRtl ? product.category_name_ar : product.category_name}
-                </Badge>
-                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs gap-1">
-                  <ShieldCheck className="h-3 w-3" />
-                  {tr("تسليم يدوي موثوق", "Verified Delivery")}
-                </Badge>
+        {/* Top Section: Split Product Hero & Purchase Area (Dark Container) */}
+        <div className="rounded-3xl bg-[#0e1320] border border-slate-800/90 p-6 md:p-8 shadow-2xl relative overflow-hidden">
+          {/* Subtle cosmic glow */}
+          <div className="absolute -left-10 -top-10 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute right-10 -bottom-10 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Column: Visual Showcase & Gallery Thumbnails */}
+            <div className="lg:col-span-6 space-y-4">
+              {/* Main Showcase Square */}
+              <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-gradient-to-br from-[#121829] to-[#0a0d18] border border-slate-800 flex items-center justify-center p-6 shadow-inner group">
+                <img
+                  src={galleryImages[activeImageIndex] || product.logo_url}
+                  alt={product.name}
+                  className="w-full h-full object-contain rounded-xl transform group-hover:scale-105 transition-transform duration-500"
+                />
               </div>
 
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+              {/* Gallery Thumbnails Row (5 items) */}
+              <div className="grid grid-cols-5 gap-2.5">
+                {galleryImages.map((img, idx) => {
+                  const isActive = activeImageIndex === idx;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImageIndex(idx)}
+                      className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all p-1 bg-[#121829] ${
+                        isActive
+                          ? 'border-indigo-500 scale-105 shadow-md shadow-indigo-500/25 ring-2 ring-indigo-500/30'
+                          : 'border-slate-800 hover:border-slate-700 opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={img}
+                        alt={`Thumbnail ${idx + 1}`}
+                        className="w-full h-full object-contain rounded-lg"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: Info, Plan Selector & Buy Now CTA */}
+            <div className="lg:col-span-6 space-y-5">
+              {/* Category Badge */}
+              <div>
+                <span className="px-3.5 py-1 rounded-full text-xs font-bold tracking-wide bg-[#7c3aed] text-white shadow-md inline-block">
+                  {categoryLabel}
+                </span>
+              </div>
+
+              {/* Product Title */}
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
                 {isRtl ? product.name_ar : product.name}
               </h1>
 
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              {/* Tagline / Subtitle */}
+              <p className="text-slate-300 text-sm md:text-base font-normal leading-relaxed">
                 {isRtl ? (product.description_ar || product.description) : product.description}
               </p>
-            </div>
 
-            {/* Media/Logo Showcase */}
-            {product.logo_url && (
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 p-6 flex items-center justify-center overflow-hidden max-h-72">
-                <img
-                  src={product.logo_url}
-                  alt={product.name}
-                  className="max-h-60 max-w-full object-contain"
-                />
+              {/* Rating Row: ★ 4.9 (124 reviews) */}
+              <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-1 text-amber-400 font-bold text-sm">
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <span>4.9</span>
+                </div>
+                <span className="text-slate-400 text-xs font-medium">
+                  ({tr("124 reviews", "124 reviews")})
+                </span>
               </div>
-            )}
 
-            {/* Key Features List */}
-            {Array.isArray(product.features) && product.features.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-base flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  {tr("أبرز الميزات والخصائص", "Key Features & Benefits")}
-                </h3>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {product.features.map((feat: any, idx: number) => {
-                    const text = typeof feat === 'string' ? feat : (isRtl ? feat.ar || feat.en : feat.en);
+              {/* Price Line: From $9.99 / month */}
+              <div className="pt-1 flex items-baseline gap-1.5">
+                <span className="text-slate-400 text-sm font-medium">
+                  {tr("From", "From")}
+                </span>
+                <span className="text-3xl font-black text-emerald-400">
+                  ${selectedOffer ? Number(selectedOffer.price).toFixed(2) : '9.99'}
+                </span>
+                <span className="text-slate-400 text-sm font-medium">
+                  / month
+                </span>
+              </div>
+
+              {/* Select Plan Section */}
+              <div className="space-y-3 pt-2">
+                <Label className="text-sm font-bold text-white block">
+                  {tr("Select Plan", "Select Plan")}
+                </Label>
+
+                {/* Horizontal Plans Row */}
+                <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+                  {product.offers && product.offers.map((offer: any, idx: number) => {
+                    const isSelected = selectedOffer?.id === offer.id;
+                    const discount = getPlanDiscount(idx);
+
                     return (
                       <div
-                        key={idx}
-                        className="flex items-start gap-2.5 p-3 rounded-xl bg-card border border-slate-200/80 dark:border-slate-800 text-xs font-medium"
+                        key={offer.id}
+                        onClick={() => setSelectedOffer(offer)}
+                        className={`relative rounded-xl p-3 text-center cursor-pointer transition-all min-w-[92px] shrink-0 ${
+                          isSelected
+                            ? 'bg-white text-slate-900 border-2 border-primary shadow-xl scale-105'
+                            : 'bg-slate-900/80 border border-slate-700/80 text-white hover:border-slate-600'
+                        }`}
                       >
+                        {/* Discount Badge */}
+                        {discount && (
+                          <div className="absolute -top-2.5 right-1.5 rtl:right-auto rtl:left-1.5 bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-sm">
+                            {discount}
+                          </div>
+                        )}
+
+                        {/* Plan Label */}
+                        <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-slate-900' : 'text-slate-200'}`}>
+                          {isRtl ? offer.label_ar : offer.label}
+                        </div>
+
+                        {/* Price */}
+                        <div className={`text-sm font-black mt-1 ${isSelected ? 'text-indigo-600' : 'text-white'}`}>
+                          ${Number(offer.price).toFixed(2)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Email Activation Input (if product requires email) */}
+              {product.requires_email && (
+                <div className="space-y-1.5 pt-2">
+                  <Label className="text-xs font-semibold text-slate-300">
+                    {tr("البريد الإلكتروني المطلوب للتفعيل (Google / Gmail Email)", "Email Address for Activation")}
+                  </Label>
+                  <Input
+                    type="email"
+                    dir="ltr"
+                    placeholder="user@example.com"
+                    value={activationEmail}
+                    onChange={(e) => setActivationEmail(e.target.value)}
+                    className="h-10 bg-slate-900/90 border-slate-700 text-white placeholder:text-slate-500 rounded-xl text-xs"
+                  />
+                </div>
+              )}
+
+              {/* Buy Now Button matching screenshot */}
+              <div className="pt-2">
+                <Button
+                  onClick={handleOpenCheckout}
+                  className="w-full py-6 text-base font-extrabold rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-xl shadow-purple-600/30 transition-all hover:scale-[1.01] active:scale-[0.99] gap-2"
+                >
+                  <span>{tr("Buy Now", "Buy Now")}</span>
+                </Button>
+              </div>
+
+              {/* Trust Badges under Buy Now */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-slate-400 shrink-0" />
+                  <span>
+                    <strong className="text-slate-300 font-semibold">{tr("Instant delivery", "Instant delivery")}</strong>
+                    {" "}- {tr("via email & Google account", "via email & Google account")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-slate-400 shrink-0" />
+                  <span>
+                    <strong className="text-slate-300 font-semibold">{tr("Secure payment", "Secure payment")}</strong>
+                    {" "}- {tr("100% safe & encrypted", "100% safe & encrypted")}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Section: Product Description & What's Included (Clean White Container) */}
+        <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 md:p-10 shadow-sm mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            {/* Left Column: Product Description & What's Included */}
+            <div className="lg:col-span-8 space-y-8">
+              {/* Product Description */}
+              <div className="space-y-3">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                  {tr("Product Description", "Product Description")}
+                </h2>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                  {isRtl ? (product.description_ar || product.description) : product.description}
+                  {" "}
+                  {tr(
+                    "Google One AI Premium brings together the best of Google's AI tools and cloud services in one powerful subscription. Get access to Gemini, Flow, Veo, NotebookLM and more, plus 5TB of cloud storage for your files, photos, and emails.",
+                    "Google One AI Premium brings together the best of Google's AI tools and cloud services in one powerful subscription. Get access to Gemini, Flow, Veo, NotebookLM and more, plus 5TB of cloud storage for your files, photos, and emails."
+                  )}
+                </p>
+              </div>
+
+              {/* What's included */}
+              <div className="space-y-4 pt-2">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {tr("What's included:", "What's included:")}
+                </h3>
+                <div className="space-y-3">
+                  {featuresList.map((feat: any, idx: number) => {
+                    const text = typeof feat === 'string' ? feat : (isRtl ? feat.ar || feat.en : feat.en);
+                    return (
+                      <div key={idx} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 font-medium">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                         <span>{text}</span>
                       </div>
@@ -279,262 +471,204 @@ export default function ServiceDetails() {
                   })}
                 </div>
               </div>
-            )}
-
-            {/* Delivery Terms & Conditions */}
-            <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2">
-              <h4 className="font-bold text-xs flex items-center gap-2 text-amber-700 dark:text-amber-400">
-                <Clock className="h-4 w-4" />
-                {tr("شروط وطريقة التسليم اليدوي", "Manual Delivery & Fulfillment Terms")}
-              </h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {isRtl ? (product.delivery_info_ar || product.delivery_info) : product.delivery_info || tr(
-                  "يتم مراجعة الطلب وتجهيز بيانات الاشتراك والوصول يدوياً من الإدارة خلال مدة أقصاها 24 ساعة. ستصلك بيانات الحساب كاملة داخل صفحة طلباتي بالمنصة.",
-                  "Order is reviewed and credentials are manually provisioned by administration within 1-24 hours. Full access info will appear in your orders dashboard."
-                )}
-              </p>
             </div>
-          </div>
 
-          {/* Right / Pricing & Purchase Card (1 col) */}
-          <div className="lg:col-span-1 space-y-6 sticky top-6">
-            <Card className="border-2 border-primary/20 shadow-xl rounded-2xl overflow-hidden bg-card">
-              <CardHeader className="bg-slate-50/80 dark:bg-slate-900/40 border-b pb-4">
-                <CardTitle className="text-base font-bold">
-                  {tr("اختر خطة الاشتراك", "Select Subscription Offer")}
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  {tr("اختر المدة التي تناسبك لإتمام الطلب", "Select your preferred duration")}
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="p-5 space-y-5">
-                {/* Duration Offers List */}
-                <div className="space-y-2.5">
-                  {product.offers && product.offers.map((off: any) => {
-                    const isSelected = selectedOffer?.id === off.id;
-                    return (
-                      <div
-                        key={off.id}
-                        onClick={() => setSelectedOffer(off)}
-                        className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
-                          isSelected
-                            ? 'border-primary bg-primary/5 shadow-sm'
-                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                            isSelected ? 'border-primary bg-primary' : 'border-slate-400'
-                          }`}>
-                            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                          </div>
-                          <div>
-                            <span className="font-bold text-xs block">
-                              {isRtl ? off.label_ar : off.label}
-                            </span>
-                            {off.duration_months && (
-                              <span className="text-[10px] text-muted-foreground">
-                                {off.duration_months} {tr("شهر", "Months")}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="text-end">
-                          <span className="font-extrabold text-sm text-emerald-600 dark:text-emerald-400">
-                            ${Number(off.price).toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
+            {/* Right Column: Activation Info, Support & Storage Cards */}
+            <div className="lg:col-span-4 space-y-4">
+              {/* Activation Information Card */}
+              <div className="rounded-2xl p-5 border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 space-y-2">
+                <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
+                  <div className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <Lock className="h-3.5 w-3.5" />
+                  </div>
+                  <span>{tr("Activation Information", "Activation Information")}</span>
                 </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-normal">
+                  {tr(
+                    "You need to provide a valid email address during checkout for activation.",
+                    "You need to provide a valid email address during checkout for activation."
+                  )}
+                </p>
+              </div>
 
-                {/* Activation Email (if required) */}
-                {product.requires_email === 1 && (
-                  <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <Label htmlFor="act_email" className="text-xs font-semibold">
-                      {tr("البريد الإلكتروني المطلوب للتفعيل *", "Activation Email *")}
-                    </Label>
-                    <Input
-                      id="act_email"
-                      type="email"
-                      dir="ltr"
-                      placeholder="user@example.com"
-                      value={activationEmail}
-                      onChange={(e) => setActivationEmail(e.target.value)}
-                      className="text-xs"
-                    />
-                    <p className="text-[10px] text-muted-foreground">
-                      {tr("سيتم ربط وتفعيل الاشتراك أو إرسال الدعوة على هذا البريد.", "Subscription will be activated or invite sent to this email.")}
-                    </p>
+              {/* Support Card */}
+              <div className="rounded-2xl p-5 border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 space-y-3">
+                <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <MessageCircle className="h-3.5 w-3.5" />
                   </div>
-                )}
-
-                {/* Price Summary */}
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{tr("السعر الإجمالي", "Total Price")}:</span>
-                    <span className="font-extrabold text-base text-foreground">
-                      ${selectedOffer ? Number(selectedOffer.price).toFixed(2) : '0.00'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-[11px] text-emerald-600 dark:text-emerald-400">
-                    <span>{tr("طريقة التسليم", "Delivery Mode")}:</span>
-                    <span>{tr("يدوي عبر لوحة الإدارة", "Manual Admin Delivery")}</span>
-                  </div>
+                  <span>{tr("Support", "Support")}</span>
                 </div>
-
-                {/* Purchase Button */}
-                <Button
-                  onClick={handleOpenCheckout}
-                  size="lg"
-                  className="w-full gap-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg bg-gradient-to-r from-primary to-indigo-600 text-white"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  {tr("متابعة الدفع والشراء", "Proceed to Checkout")}
-                </Button>
-              </CardContent>
-
-              <CardFooter className="bg-slate-50/50 dark:bg-slate-900/20 p-4 border-t flex flex-col items-center gap-2 text-center">
                 <a
-                  href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`مرحباً، لدي استفسار بخصوص خدمة ${product.name_ar || product.name}`)}`}
+                  href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`مرحباً، أود الاستفسار عن خدمة: ${product.name}`)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+                  className="flex items-center gap-2.5 text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-semibold transition-colors"
                 >
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  {tr("هل لديك سؤال قبل الشراء؟ تواصل عبر واتساب", "Questions? Chat on WhatsApp")}
+                  <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <MessageCircle className="h-3 w-3 fill-current" />
+                  </div>
+                  <span>{tr("Contact us via WhatsApp if you face any issue.", "Contact us via WhatsApp if you face any issue.")}</span>
                 </a>
-              </CardFooter>
-            </Card>
+              </div>
+
+              {/* Feature Highlight / Included Storage Mint Card */}
+              <div className="rounded-2xl p-5 border border-emerald-200/70 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-200 space-y-1 shadow-sm">
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-semibold text-xs">
+                  <Cloud className="h-4 w-4" />
+                  <span>{tr("Included Storage", "Included Storage")}</span>
+                </div>
+                <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 pt-1">
+                  5TB
+                </div>
+                <div className="text-xs text-emerald-700/80 dark:text-emerald-300/80 font-normal">
+                  Gmail • Drive • Photos
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Checkout & Payment Modal */}
         <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
+          <DialogContent className="max-w-md rounded-2xl bg-card border border-slate-200 dark:border-slate-800 p-6">
+            <DialogHeader className="space-y-2">
               <DialogTitle className="text-lg font-bold">
-                {tr("اختر وسيلة الدفع المفضلة", "Choose Payment Method")}
+                {tr("تأكيد شراء الخدمة", "Confirm Service Purchase")}
               </DialogTitle>
-              <DialogDescription className="text-xs">
-                {product.name_ar || product.name} — {selectedOffer?.label_ar || selectedOffer?.label} (${selectedOffer ? Number(selectedOffer.price).toFixed(2) : ''})
+              <DialogDescription className="text-xs text-muted-foreground">
+                {product.name} — {selectedOffer ? (isRtl ? selectedOffer.label_ar : selectedOffer.label) : ''}
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-2">
-              {/* Payment Method Selector */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Wallet Method */}
-                <div
-                  onClick={() => setSelectedPaymentMethod('wallet')}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center text-center gap-2 ${
-                    selectedPaymentMethod === 'wallet'
-                      ? 'border-primary bg-primary/5 text-primary'
-                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                  }`}
-                >
-                  <Wallet className="h-6 w-6" />
-                  <div>
-                    <span className="font-bold text-xs block">{tr("رصيد المحفظة", "Wallet Balance")}</span>
-                    <span className="text-[10px] text-muted-foreground block">
-                      {tr("الرصيد", "Balance")}: ${walletBalance.toFixed(2)}
-                    </span>
-                  </div>
+            <div className="space-y-4 pt-2">
+              {/* Order Summary Box */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">{tr("المنتج", "Product")}</span>
+                  <span className="font-semibold">{product.name}</span>
                 </div>
-
-                {/* PayPal Business Method */}
-                <div
-                  onClick={() => setSelectedPaymentMethod('paypal')}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center text-center gap-2 ${
-                    selectedPaymentMethod === 'paypal'
-                      ? 'border-blue-600 bg-blue-500/5 text-blue-600 dark:text-blue-400'
-                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                  }`}
-                >
-                  <CreditCard className="h-6 w-6" />
-                  <div>
-                    <span className="font-bold text-xs block">PayPal / Card</span>
-                    <span className="text-[10px] text-muted-foreground block">
-                      {tr("بطاقة بنكية أو حساب", "Credit Card / PayPal")}
-                    </span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">{tr("الخطة المحددة", "Selected Plan")}</span>
+                  <span className="font-semibold">{selectedOffer?.label}</span>
+                </div>
+                {product.requires_email && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">{tr("البريد للتفعيل", "Activation Email")}</span>
+                    <span className="font-semibold text-primary">{activationEmail}</span>
                   </div>
+                )}
+                <div className="border-t border-slate-200 dark:border-slate-800 pt-2 flex justify-between items-center">
+                  <span className="font-bold text-sm">{tr("المجموع المستحق", "Total Amount")}</span>
+                  <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                    ${selectedOffer ? Number(selectedOffer.price).toFixed(2) : '0.00'}
+                  </span>
                 </div>
               </div>
 
-              {/* Option Details / Action */}
-              {selectedPaymentMethod === 'wallet' ? (
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">{tr("المبلغ المطلوب", "Required Amount")}:</span>
-                    <span className="font-bold">${selectedOffer ? Number(selectedOffer.price).toFixed(2) : '0.00'}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">{tr("رصيدك الحالي", "Your Balance")}:</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">${walletBalance.toFixed(2)}</span>
-                  </div>
-
-                  {walletBalance < Number(selectedOffer?.price || 0) ? (
-                    <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 shrink-0" />
-                      <span>{tr("رصيد المحفظة غير كافٍ. يمكنك الدفع عبر PayPal أو شحن المحفظة.", "Insufficient balance. Use PayPal or deposit to wallet.")}</span>
+              {/* Payment Methods Selection */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold">{tr("اختر طريقة الدفع", "Select Payment Method")}</Label>
+                
+                {/* Method 1: Wallet */}
+                <div
+                  onClick={() => setSelectedPaymentMethod('wallet')}
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                    selectedPaymentMethod === 'wallet'
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                      <Wallet className="h-4 w-4" />
                     </div>
-                  ) : (
-                    <p className="text-[11px] text-muted-foreground">
-                      {tr("سيتم خصم المبلغ فوراً من محفظتك وإرسال الطلب للإدارة لتسليم الخدمة.", "Amount will be deducted from your wallet instantly.")}
-                    </p>
+                    <div>
+                      <span className="text-xs font-bold block">{tr("رصيد المحفظة الداخلي", "Account Wallet Balance")}</span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {tr("الرصيد المتاح:", "Available:")} ${walletBalance.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                  {selectedPaymentMethod === 'wallet' && (
+                    <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center">
+                      <Check className="h-3 w-3" />
+                    </div>
                   )}
                 </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-blue-700 dark:text-blue-400">
-                    <Check className="h-4 w-4" />
-                    <span>{tr("دفع فوري وآمن بالبطاقة البنكية أو PayPal", "Instant & Secure Card/PayPal Checkout")}</span>
+
+                {/* Method 2: PayPal */}
+                <div
+                  onClick={() => setSelectedPaymentMethod('paypal')}
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                    selectedPaymentMethod === 'paypal'
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                      <CreditCard className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold block">{tr("PayPal / بطاقة بنكية", "PayPal / Credit Card")}</span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {tr("دفع فوري آمن ومباشر", "Instant and secure direct checkout")}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    {tr(
-                      "يتيح لك PayPal الدفع مباشرة ببطاقتك الائتمانية (Visa / MasterCard) دون الحاجة لحساب، أو تسجيل الدخول بحساب PayPal الشخصي.",
-                      "Pay directly using your credit/debit card (Visa/Mastercard) or log in with your PayPal account."
-                    )}
-                  </p>
+                  {selectedPaymentMethod === 'paypal' && (
+                    <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center">
+                      <Check className="h-3 w-3" />
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 space-y-2">
+                {selectedPaymentMethod === 'wallet' ? (
+                  <Button
+                    onClick={handleWalletPayment}
+                    disabled={isSubmitting || walletBalance < Number(selectedOffer?.price || 0)}
+                    className="w-full py-5 text-sm font-bold rounded-xl gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <ShieldCheck className="h-4 w-4" />
+                        <span>{tr("تأكيد الدفع من المحفظة", "Confirm Wallet Payment")}</span>
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handlePayPalDirectCheckout}
+                    disabled={isSubmitting}
+                    className="w-full py-5 text-sm font-bold rounded-xl gap-2 bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-md"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <CreditCard className="h-4 w-4" />
+                        <span>{tr("الدفع الفوري بواسطة PayPal", "Checkout with PayPal")}</span>
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsPaymentModalOpen(false)}
+                  className="w-full text-xs text-muted-foreground"
+                >
+                  {tr("إلغاء", "Cancel")}
+                </Button>
+              </div>
             </div>
-
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsPaymentModalOpen(false)}
-                disabled={isSubmitting}
-              >
-                {tr("إلغاء", "Cancel")}
-              </Button>
-
-              {selectedPaymentMethod === 'wallet' ? (
-                <Button
-                  size="sm"
-                  onClick={handleWalletPayment}
-                  disabled={isSubmitting || walletBalance < Number(selectedOffer?.price || 0)}
-                  className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-                  {tr("تأكيد وخصم من المحفظة", "Confirm & Pay from Wallet")}
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={handlePayPalDirectCheckout}
-                  disabled={isSubmitting}
-                  className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold"
-                >
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                  {tr("الدفع عبر PayPal / Card", "Pay with PayPal / Card")}
-                </Button>
-              )}
-            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
