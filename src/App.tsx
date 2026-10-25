@@ -93,6 +93,13 @@ import StudentNewsCenter from "./pages/student/StudentNewsCenter";
 import StudentTeamTree from "./pages/student/StudentTeamTree";
 import AdminPromisedPackages from "./pages/admin/AdminPromisedPackages";
 import StudentSupport from "./pages/student/StudentSupport";
+import ServicesStore from "./pages/student/ServicesStore";
+import ServiceDetails from "./pages/student/ServiceDetails";
+import ServiceOrders from "./pages/student/ServiceOrders";
+import CustomProjectRequest from "./pages/student/CustomProjectRequest";
+import ServicesManagement from "./pages/admin/ServicesManagement";
+import ServicesOrdersManagement from "./pages/admin/ServicesOrdersManagement";
+import CustomProjectsManagement from "./pages/admin/CustomProjectsManagement";
 import ChatPage from "./pages/shared/ChatPage";
 import MeetingRoom from "./pages/shared/MeetingRoom";
 import ProfileSettings from "./pages/shared/ProfileSettings";
@@ -262,6 +269,9 @@ const App = () => (
                 <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
                 <Route path="/admin/currency-settings" element={<AdminCurrencySettings />} />
                 <Route path="/admin/formations" element={<FormationsManagement />} />
+                <Route path="/admin/services" element={<ServicesManagement />} />
+                <Route path="/admin/services/orders" element={<ServicesOrdersManagement />} />
+                <Route path="/admin/services/custom-projects" element={<CustomProjectsManagement />} />
                 <Route path="/admin/users" element={<UsersManagement />} />
                 <Route path="/admin/formation-progress" element={<FormationProgressDashboard />} />
                 <Route path="/admin/chat" element={<ChatPage />} />
@@ -299,6 +309,10 @@ const App = () => (
               <Route element={<RequireActiveMembership />}>
                 <Route path="/student" element={<StudentDashboard />} />
                 <Route path="/student/academy" element={<StudentAcademy />} />
+                <Route path="/student/services" element={<ServicesStore />} />
+                <Route path="/student/services/my-orders" element={<ServiceOrders />} />
+                <Route path="/student/services/custom-project" element={<CustomProjectRequest />} />
+                <Route path="/student/services/:slug" element={<ServiceDetails />} />
                 <Route path="/student/packages" element={<PackagesStore />} />
                 <Route path="/student/my-package" element={<MyPackage />} />
                 <Route path="/student/wallet" element={<StudentWallet />} />

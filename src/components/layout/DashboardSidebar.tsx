@@ -45,7 +45,9 @@ import {
   LifeBuoy,
   Gift,
   Layers,
-  FolderKanban
+  FolderKanban,
+  ShoppingBag,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types';
@@ -92,6 +94,11 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     { to: '/admin/packages', icon: Package, label: t('nav.packages', 'Packages & Subscriptions'), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
     { to: '/admin/promised-packages', icon: Gift, label: t('nav.promisedPackages', tr("باقات الدعم (Promised)", "Promised Packages")), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
     { to: '/admin/challenges', icon: Flame, label: t('nav.challenges', 'Challenges & Contests'), category: tr("الأكاديمية والمسابقات", "Academy & Growth") },
+
+    // Services & Store
+    { to: '/admin/services', icon: ShoppingBag, label: tr("الخدمات والمنتجات", "Services & Store"), category: tr("الخدمات والمتجر", "Services & Store") },
+    { to: '/admin/services/orders', icon: CheckSquare, label: tr("طلبات الخدمات والتسليم", "Orders & Delivery"), category: tr("الخدمات والمتجر", "Services & Store") },
+    { to: '/admin/services/custom-projects', icon: Zap, label: tr("المشاريع البرمجية الخاصة", "Custom Projects"), category: tr("الخدمات والمتجر", "Services & Store") },
     
     // 3. Members & Network
     { to: '/admin/users', icon: Users, label: t('nav.users', 'User Management'), category: tr("المستخدمين والشبكة", "Members & Network") },
@@ -227,6 +234,9 @@ export function DashboardSidebar({ role, isOpen, onToggle }: SidebarProps) {
     { to: '/student', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
     { to: '/student/academy', icon: GraduationCap, label: t('nav.academy', 'Academy') },
     { to: '/student/formations', icon: BookOpen, label: tr('التكوينات (Formations)', 'Formations') },
+    { to: '/student/services', icon: ShoppingBag, label: tr('متجر الخدمات الرقمية', 'Services Store') },
+    { to: '/student/services/my-orders', icon: CheckSquare, label: tr('طلباتي والاشتراكات', 'My Service Orders') },
+    { to: '/student/services/custom-project', icon: Zap, label: tr('طلب مشروع خاص', 'Custom Project') },
     { to: '/student/community', icon: MessageSquare, label: t('nav.community', 'Nexyvora Community') },
     { to: '/student/news', icon: Newspaper, label: t('nav.newsCenter', 'News Center') },
     { to: '/student/packages', icon: Package, label: t('nav.packages', 'Packages') },

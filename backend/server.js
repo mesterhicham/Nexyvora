@@ -24,6 +24,7 @@ const currencyRoutes = require('./routes/currency');
 const supportRoutes = require('./routes/support');
 const promisedPackageRoutes = require('./routes/promisedPackage');
 const ipnLogRoutes = require('./routes/ipnLog');
+const serviceRoutes = require('./routes/services');
 const paymentRenewalWorker = require('./workers/paymentRenewalWorker');
 
 dotenv.config();
@@ -143,6 +144,7 @@ app.use('/api/currency', currencyRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/admin/promised-packages', promisedPackageRoutes);
 app.use('/api/admin/ipn-logs', ipnLogRoutes);
+app.use('/api/services', serviceRoutes);
 
 // ─── Root & Health ────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {

@@ -434,6 +434,67 @@ export const promisedPackageService = {
         api.delete(`/admin/promised-packages/${id}`).then(res => res.data),
 };
 
+export const serviceService = {
+    getCategories: () => api.get('/services/categories').then(res => res.data),
+    getProducts: (params?: { category_slug?: string; category_id?: string; search?: string; limit?: number; offset?: number }) => 
+        api.get('/services/products', { params }).then(res => res.data),
+    getProductBySlug: (slug: string) => api.get(`/services/products/${slug}`).then(res => res.data),
+    getPublicSettings: () => api.get('/services/settings').then(res => res.data),
+    createWalletOrder: (data: { offerId: string; activationEmail?: string }) => 
+        api.post('/services/orders/wallet', data).then(res => res.data),
+    createPayPalOrder: (data: { offerId: string; activationEmail?: string }) => 
+        api.post('/services/orders/paypal-create', data).then(res => res.data),
+    capturePayPalOrder: (data: { orderId: string; paypalOrderId: string }) => 
+        api.post('/services/orders/paypal-capture', data).then(res => res.data),
+    getMyOrders: () => api.get('/services/my-orders').then(res => res.data),
+    getMyOrderById: (id: string) => api.get(`/services/my-orders/${id}`).then(res => res.data),
+    createCustomProject: (data: {
+        project_name: string;
+        project_type: string;
+        description: string;
+        estimated_budget?: string;
+        estimated_duration?: string;
+        contact_email: string;
+        contact_whatsapp?: string;
+        attachment_url?: string;
+    }) => api.post('/services/custom-projects', data).then(res => res.data),
+    getMyCustomProjects: () => api.get('/services/custom-projects').then(res => res.data),
+    getMyCustomProjectById: (id: string) => api.get(`/services/custom-projects/${id}`).then(res => res.data),
+};
+
+export const adminServiceService = {
+    // Categories
+    getCategories: () => api.get('/services/admin/categories').then(res => res.data),
+    createCategory: (data: any) => api.post('/services/admin/categories', data).then(res => res.data),
+    updateCategory: (id: string, data: any) => api.put(`/services/admin/categories/${id}`, data).then(res => res.data),
+    deleteCategory: (id: string) => api.delete(`/services/admin/categories/${id}`).then(res => res.data),
+
+    // Products
+    getProducts: (params?: { category_id?: string; status?: string; search?: string }) => 
+        api.get('/services/admin/products', { params }).then(res => res.data),
+    createProduct: (data: any) => api.post('/services/admin/products', data).then(res => res.data),
+    updateProduct: (id: string, data: any) => api.put(`/services/admin/products/${id}`, data).then(res => res.data),
+    deleteProduct: (id: string) => api.delete(`/services/admin/products/${id}`).then(res => res.data),
+
+    // Orders & Manual Delivery
+    getOrders: (params?: { status?: string; search?: string; product_id?: string; limit?: number; offset?: number }) => 
+        api.get('/services/admin/orders', { params }).then(res => res.data),
+    getOrderById: (id: string) => api.get(`/services/admin/orders/${id}`).then(res => res.data),
+    deliverOrder: (id: string, data: { deliveryNotes: string; markCompleted?: boolean; subscriptionStart?: string; subscriptionEnd?: string; adminNotes?: string }) => 
+        api.put(`/services/admin/orders/${id}/deliver`, data).then(res => res.data),
+    updateOrderStatus: (id: string, data: { status: string; note?: string; adminNotes?: string }) => 
+        api.put(`/services/admin/orders/${id}/status`, data).then(res => res.data),
+    getStats: () => api.get('/services/admin/stats').then(res => res.data),
+
+    // Custom Projects
+    getCustomProjects: (params?: { status?: string; project_type?: string; search?: string }) => 
+        api.get('/services/admin/custom-projects', { params }).then(res => res.data),
+    getCustomProjectById: (id: string) => api.get(`/services/admin/custom-projects/${id}`).then(res => res.data),
+    updateCustomProject: (id: string, data: { status?: string; admin_notes?: string; meeting_date?: string; meeting_notes?: string }) => 
+        api.put(`/services/admin/custom-projects/${id}`, data).then(res => res.data),
+};
+
+
 
 
 

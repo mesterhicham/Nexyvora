@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePlatformSettings, useUpdatePlatformSetting } from '@/hooks/useAdminFeatures';
-import { Palette, Image, Type, Save, Loader2, Globe, Share2, Upload, Trash2, Sparkles, RefreshCw, Eye, ExternalLink, GraduationCap, Award, Video } from 'lucide-react';
+import { Palette, Image, Type, Save, Loader2, Globe, Share2, Upload, Trash2, Sparkles, RefreshCw, Eye, ExternalLink, GraduationCap, Award, Video, ShoppingBag, Phone, CreditCard, DollarSign } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { uploadService } from '@/services/apiService';
 import { toast } from 'sonner';
@@ -588,6 +588,10 @@ export default function PlatformSettings() {
           <TabsTrigger value="academy" className="flex items-center gap-2">
             <GraduationCap className="h-4 w-4 text-primary" />
             {tr("الأكاديمية وعرض المستويات", "Academy & Levels")}
+          </TabsTrigger>
+          <TabsTrigger value="services" className="flex items-center gap-2">
+            <ShoppingBag className="h-4 w-4 text-emerald-500" />
+            {tr("إعدادات الخدمات والدعم", "Services & Support")}
           </TabsTrigger>
         </TabsList>
 
@@ -2071,6 +2075,226 @@ export default function PlatformSettings() {
                       </Button>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* SERVICES & SUPPORT TAB */}
+        <TabsContent value="services" className="space-y-6">
+          <div className="grid gap-6">
+            {/* WhatsApp Support Number */}
+            <Card className="border-emerald-500/20 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    <Phone className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">
+                      {tr("رقم WhatsApp للدعم الفني والتواصل", "Support WhatsApp Number")}
+                    </CardTitle>
+                    <CardDescription>
+                      {tr(
+                        "يظهر هذا الرقم لجميع العملاء كزر تواصل عائم ومباشر في متجر الخدمات ونموذج طلب المشاريع الخاصة ومتابعة الطلبات.",
+                        "This number is displayed across the services storefront, custom project requests, and order tracking as a direct chat button."
+                      )}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="support_whatsapp_number">
+                    {tr("رقم الواتساب مع رمز الدولة (مثال: 212600000000+)", "WhatsApp Number with country code")}
+                  </Label>
+                  <div className="flex gap-2 max-w-md">
+                    <Input
+                      id="support_whatsapp_number"
+                      dir="ltr"
+                      value={getValue('support_whatsapp_number')}
+                      onChange={(e) => handleChange('support_whatsapp_number', e.target.value)}
+                      placeholder="+212600000000"
+                    />
+                    <Button
+                      onClick={() => handleSave('support_whatsapp_number')}
+                      disabled={!hasChanges('support_whatsapp_number') || updateSetting.isPending}
+                      className="gap-2 shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    >
+                      {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      {tr("حفظ الرقم", "Save Number")}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {tr("تأكد من كتابة الرقم بالصيغة الدولية مع رمز الدولة ليعمل رابط wa.me بشكل صحيح.", "Ensure the number is in international format for the wa.me link to work properly.")}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* PayPal Business Integration */}
+            <Card className="border-blue-500/20 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    <CreditCard className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">
+                      {tr("بوابة الدفع PayPal Business والبطاقات البنكية", "PayPal Business & Cards Gateway")}
+                    </CardTitle>
+                    <CardDescription>
+                      {tr(
+                        "ربط متجر الخدمات مع PayPal Business لتمكين الأعضاء من الدفع مباشرة بالبطاقة البنكية (Visa/Mastercard) أو عبر حساب PayPal.",
+                        "Connect services store with PayPal Business to enable direct credit/debit card and PayPal account payments."
+                      )}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{tr("وضع التشغيل (PayPal Mode)", "PayPal Environment Mode")}</Label>
+                    <div className="flex gap-2">
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={getValue('paypal_mode')}
+                        onChange={(e) => handleChange('paypal_mode', e.target.value)}
+                      >
+                        <option value="sandbox">Sandbox (تجريبي للاختبار)</option>
+                        <option value="live">Live (إنتاجي حقيقي)</option>
+                      </select>
+                      <Button
+                        onClick={() => handleSave('paypal_mode')}
+                        disabled={!hasChanges('paypal_mode') || updateSetting.isPending}
+                        size="sm"
+                        className="shrink-0"
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{tr("حالة التفعيل", "Status")}</Label>
+                    <div className="flex gap-2">
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={getValue('paypal_enabled')}
+                        onChange={(e) => handleChange('paypal_enabled', e.target.value)}
+                      >
+                        <option value="1">{tr("مفعّل (Enabled)", "Enabled")}</option>
+                        <option value="0">{tr("معطّل (Disabled)", "Disabled")}</option>
+                      </select>
+                      <Button
+                        onClick={() => handleSave('paypal_enabled')}
+                        disabled={!hasChanges('paypal_enabled') || updateSetting.isPending}
+                        size="sm"
+                        className="shrink-0"
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{tr("PayPal Client ID", "PayPal Client ID")}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      dir="ltr"
+                      value={getValue('paypal_client_id')}
+                      onChange={(e) => handleChange('paypal_client_id', e.target.value)}
+                      placeholder="e.g. A21AAJ... أو المعرف التجاري"
+                    />
+                    <Button
+                      onClick={() => handleSave('paypal_client_id')}
+                      disabled={!hasChanges('paypal_client_id') || updateSetting.isPending}
+                      className="gap-2 shrink-0"
+                    >
+                      <Save className="h-4 w-4" />
+                      {tr("حفظ", "Save")}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{tr("PayPal Client Secret", "PayPal Client Secret")}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="password"
+                      dir="ltr"
+                      value={getValue('paypal_client_secret')}
+                      onChange={(e) => handleChange('paypal_client_secret', e.target.value)}
+                      placeholder="••••••••••••••••••••••••"
+                    />
+                    <Button
+                      onClick={() => handleSave('paypal_client_secret')}
+                      disabled={!hasChanges('paypal_client_secret') || updateSetting.isPending}
+                      className="gap-2 shrink-0"
+                    >
+                      <Save className="h-4 w-4" />
+                      {tr("حفظ", "Save")}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {tr("يُحفظ المفتاح السري بأمان ولا يظهر للعملاء في الواجهة الأمامية إطلاقاً.", "Secret key is stored securely and never exposed to the frontend client.")}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Service Commission Settings */}
+            <Card className="border-amber-500/20 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">
+                      {tr("نسبة عمولة مبيعات الخدمات للمُحيل المباشر", "Direct Service Commission Rate")}
+                    </CardTitle>
+                    <CardDescription>
+                      {tr(
+                        "النسبة المئوية التي يحصل عليها المُحيل المباشر فقط (الجيل الأول) عند شراء العضو لأي خدمة أو منتج رقمي.",
+                        "Percentage earned strictly by the direct referrer (Gen 1) upon service purchases."
+                      )}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="service_commission_rate">
+                    {tr("نسبة العمولة (%)", "Commission Percentage (%)")}
+                  </Label>
+                  <div className="flex gap-2 max-w-xs">
+                    <Input
+                      id="service_commission_rate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      dir="ltr"
+                      value={getValue('service_commission_rate')}
+                      onChange={(e) => handleChange('service_commission_rate', e.target.value)}
+                      placeholder="10"
+                    />
+                    <Button
+                      onClick={() => handleSave('service_commission_rate')}
+                      disabled={!hasChanges('service_commission_rate') || updateSetting.isPending}
+                      className="gap-2 shrink-0"
+                    >
+                      <Save className="h-4 w-4" />
+                      {tr("حفظ", "Save")}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {tr("القيمة الافتراضية هي 10%. العمولة خاصة بقسم الخدمات فقط وتُودع مباشرة في رصيد المحفظة.", "Default is 10%. Applies exclusively to the services section and deposits to wallet balance.")}
+                  </p>
                 </div>
               </CardContent>
             </Card>
