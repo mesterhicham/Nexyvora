@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { tr } from '@/utils/tr';
@@ -34,6 +34,8 @@ export default function ServiceDetails() {
   // Payment modal state
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'wallet' | 'paypal'>('wallet');
+  const [isPayPalSdkReady, setIsPayPalSdkReady] = useState<boolean>(false);
+  const createdOrderIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (slug) {
@@ -150,6 +152,104 @@ export default function ServiceDetails() {
       setIsSubmitting(false);
     }
   };
+
+  // 1. Dynamically load PayPal JS SDK
+  useEffect(() => {
+    if (!settings?.paypal_client_id || !settings.paypal_enabled) return;
+
+    if ((window as any).paypal) {
+      setIsPayPalSdkReady(true);
+      return;
+    }
+
+    const scriptId = 'paypal-js-sdk';
+    const existing = document.getElementById(scriptId);
+    if (existing) {
+      existing.addEventListener('load', () => setIsPayPalSdkReady(true));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${settings.paypal_client_id}&currency=USD&components=buttons`;
+    script.async = true;
+    script.onload = () => setIsPayPalSdkReady(true);
+    script.onerror = (err) => console.error('Failed to load PayPal JS SDK:', err);
+    document.body.appendChild(script);
+  }, [settings?.paypal_client_id, settings?.paypal_enabled]);
+
+  // 2. Render PayPal Smart Buttons when modal opens and method is paypal
+  useEffect(() => {
+    if (!isPaymentModalOpen || selectedPaymentMethod !== 'paypal' || !isPayPalSdkReady) return;
+
+    const timer = setTimeout(() => {
+      const container = document.getElementById('paypal-buttons-container');
+      if (!container || !(window as any).paypal?.Buttons) return;
+
+      container.innerHTML = '';
+
+      try {
+        const buttons = (window as any).paypal.Buttons({
+          style: {
+            layout: 'vertical',
+            color: 'gold',
+            shape: 'rect',
+            label: 'pay'
+          },
+          createOrder: async () => {
+            if (product?.requires_email && !activationEmail.trim()) {
+              toast.error(tr('يرجى إدخال بريد التفعيل أولاً', 'Activation email is required'));
+              throw new Error('Activation email is required');
+            }
+
+            const res = await serviceService.createPayPalOrder({
+              offerId: selectedOffer.id,
+              activationEmail: activationEmail.trim() || undefined
+            });
+
+            if (!res?.success || !res?.data) {
+              throw new Error(res?.message || 'Failed to initialize PayPal order');
+            }
+
+            createdOrderIdRef.current = res.data.orderId;
+            return res.data.paypalOrderId;
+          },
+          onApprove: async (data: any) => {
+            setIsSubmitting(true);
+            toast.loading(tr('جاري تأكيد عملية الدفع من PayPal...', 'Verifying payment...'), { id: 'paypal-capture' });
+            try {
+              const captureRes = await serviceService.capturePayPalOrder({
+                orderId: createdOrderIdRef.current,
+                paypalOrderId: data.orderID
+              });
+
+              if (captureRes?.success) {
+                toast.success(tr('تم تأكيد الدفع بنجاح! طلبك قيد التجهيز.', 'Payment confirmed successfully!'), { id: 'paypal-capture' });
+                setIsPaymentModalOpen(false);
+                navigate('/student/services/my-orders');
+              } else {
+                toast.error(captureRes?.message || tr('فشل تأكيد الدفع', 'Payment capture failed'), { id: 'paypal-capture' });
+              }
+            } catch (err: any) {
+              toast.error(err.response?.data?.message || err.message || tr('خطأ أثناء تأكيد الدفع', 'Payment error'), { id: 'paypal-capture' });
+            } finally {
+              setIsSubmitting(false);
+            }
+          },
+          onError: (err: any) => {
+            console.error('PayPal Button Error:', err);
+            toast.error(tr('حدث خطأ في نافذة الدفع، يرجى المحاولة مرة أخرى', 'PayPal payment error, please retry'));
+          }
+        });
+
+        buttons.render('#paypal-buttons-container');
+      } catch (err) {
+        console.error('Error rendering PayPal Buttons:', err);
+      }
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [isPaymentModalOpen, selectedPaymentMethod, isPayPalSdkReady, selectedOffer, activationEmail]);
 
   const whatsappNumber = settings?.support_whatsapp_number || '+212600000000';
   const cleanPhone = whatsappNumber.replace(/[^0-9]/g, '');
@@ -637,20 +737,27 @@ export default function ServiceDetails() {
                     )}
                   </Button>
                 ) : (
-                  <Button
-                    onClick={handlePayPalDirectCheckout}
-                    disabled={isSubmitting}
-                    className="w-full py-5 text-sm font-bold rounded-xl gap-2 bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-md"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <CreditCard className="h-4 w-4" />
-                        <span>{tr("الدفع المباشر بالبطاقة البنكية أو PayPal", "Pay with Debit / Credit Card or PayPal")}</span>
-                      </>
+                  <div className="space-y-3 pt-1">
+                    {/* Official PayPal Buttons Container (renders PayPal + Debit/Credit Card) */}
+                    <div id="paypal-buttons-container" className="min-h-[90px] w-full" />
+                    
+                    {!isPayPalSdkReady && (
+                      <Button
+                        onClick={handlePayPalDirectCheckout}
+                        disabled={isSubmitting}
+                        className="w-full py-5 text-sm font-bold rounded-xl gap-2 bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-md"
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <CreditCard className="h-4 w-4" />
+                            <span>{tr("الدفع المباشر بالبطاقة البنكية أو PayPal", "Pay with Debit / Credit Card or PayPal")}</span>
+                          </>
+                        )}
+                      </Button>
                     )}
-                  </Button>
+                  </div>
                 )}
 
                 <Button
