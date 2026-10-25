@@ -174,6 +174,18 @@ export default function ServicesManagement() {
 
     setIsSubmitting(true);
     try {
+      const sanitizedOffers = formOffers.map((o) => {
+        const cleanPrice = typeof o.price === 'string' ? parseFloat(o.price.replace(',', '.')) : Number(o.price);
+        const cleanCost = (o.cost_price !== undefined && o.cost_price !== null && o.cost_price !== '')
+          ? (typeof o.cost_price === 'string' ? parseFloat(o.cost_price.replace(',', '.')) : Number(o.cost_price))
+          : null;
+        return {
+          ...o,
+          price: isNaN(cleanPrice) ? 0 : cleanPrice,
+          cost_price: isNaN(cleanCost as number) ? null : cleanCost
+        };
+      });
+
       const payload = {
         name: formName.trim() || formNameAr.trim(),
         name_ar: formNameAr.trim(),
@@ -181,11 +193,11 @@ export default function ServicesManagement() {
         category_id: formCategoryId,
         description: formDescription.trim(),
         description_ar: formDescriptionAr.trim(),
-        logo_url: formLogoUrl.trim() || undefined,
-        delivery_info_ar: formDeliveryInfoAr.trim() || undefined,
+        logo_url: formLogoUrl.trim() || null,
+        delivery_info_ar: formDeliveryInfoAr.trim() || null,
         requires_email: formRequiresEmail ? 1 : 0,
         status: formStatus,
-        offers: formOffers
+        offers: sanitizedOffers
       };
 
       if (editingProduct) {
@@ -199,7 +211,8 @@ export default function ServicesManagement() {
       setIsProductModalOpen(false);
       fetchData();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || tr('حدث خطأ أثناء حفظ المنتج', 'Failed to save product'));
+      console.error('Failed to save product:', err);
+      toast.error(err.response?.data?.message || err.response?.data?.error || tr('حدث خطأ أثناء حفظ المنتج', 'Failed to save product'));
     } finally {
       setIsSubmitting(false);
     }

@@ -168,15 +168,20 @@ exports.adminUpdateRequest = async (req, res) => {
         const { id } = req.params;
         const { status, admin_notes, meeting_date, meeting_notes } = req.body;
 
-        await db.query(`
-            UPDATE custom_project_requests
-            SET status = COALESCE(?, status),
-                admin_notes = COALESCE(?, admin_notes),
-                meeting_date = COALESCE(?, meeting_date),
-                meeting_notes = COALESCE(?, meeting_notes),
-                updated_at = NOW()
-            WHERE id = ?
-        `, [status, admin_notes, meeting_date, meeting_notes, id]);
+        const fields = [];
+        const params = [];
+
+        if (status !== undefined) { fields.push('status = ?'); params.push(status); }
+        if (admin_notes !== undefined) { fields.push('admin_notes = ?'); params.push(admin_notes || null); }
+        if (meeting_date !== undefined) { fields.push('meeting_date = ?'); params.push(meeting_date || null); }
+        if (meeting_notes !== undefined) { fields.push('meeting_notes = ?'); params.push(meeting_notes || null); }
+
+        fields.push('updated_at = NOW()');
+        params.push(id);
+
+        if (fields.length > 1) {
+            await db.query(`UPDATE custom_project_requests SET ${fields.join(', ')} WHERE id = ?`, params);
+        }
 
         // Notify user if status changed
         if (status) {

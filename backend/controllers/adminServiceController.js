@@ -1,6 +1,20 @@
 const db = require('../config/db');
 const crypto = require('crypto');
 
+const parseNum = (v, defaultVal = 0) => {
+    if (v === null || v === undefined || v === '') return defaultVal;
+    if (typeof v === 'string') v = v.replace(',', '.').trim();
+    const n = Number(v);
+    return isNaN(n) ? defaultVal : n;
+};
+
+const parseNullableNum = (v) => {
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'string') v = v.replace(',', '.').trim();
+    const n = Number(v);
+    return isNaN(n) ? null : n;
+};
+
 // --- CATEGORIES MANAGEMENT ---
 
 exports.adminGetCategories = async (req, res) => {
@@ -46,21 +60,26 @@ exports.adminUpdateCategory = async (req, res) => {
         const { id } = req.params;
         const { name, name_ar, name_fr, slug, type, description, description_ar, icon_url, sort_order, is_active } = req.body;
 
-        await db.query(`
-            UPDATE service_categories
-            SET name = COALESCE(?, name),
-                name_ar = COALESCE(?, name_ar),
-                name_fr = COALESCE(?, name_fr),
-                slug = COALESCE(?, slug),
-                type = COALESCE(?, type),
-                description = COALESCE(?, description),
-                description_ar = COALESCE(?, description_ar),
-                icon_url = COALESCE(?, icon_url),
-                sort_order = COALESCE(?, sort_order),
-                is_active = COALESCE(?, is_active),
-                updated_at = NOW()
-            WHERE id = ?
-        `, [name, name_ar, name_fr, slug, type, description, description_ar, icon_url, sort_order, is_active, id]);
+        const fields = [];
+        const params = [];
+
+        if (name !== undefined) { fields.push('name = ?'); params.push(name); }
+        if (name_ar !== undefined) { fields.push('name_ar = ?'); params.push(name_ar); }
+        if (name_fr !== undefined) { fields.push('name_fr = ?'); params.push(name_fr || null); }
+        if (slug !== undefined) { fields.push('slug = ?'); params.push(slug); }
+        if (type !== undefined) { fields.push('type = ?'); params.push(type); }
+        if (description !== undefined) { fields.push('description = ?'); params.push(description || null); }
+        if (description_ar !== undefined) { fields.push('description_ar = ?'); params.push(description_ar || null); }
+        if (icon_url !== undefined) { fields.push('icon_url = ?'); params.push(icon_url || null); }
+        if (sort_order !== undefined) { fields.push('sort_order = ?'); params.push(Number(sort_order) || 0); }
+        if (is_active !== undefined) { fields.push('is_active = ?'); params.push(is_active ? 1 : 0); }
+
+        fields.push('updated_at = NOW()');
+        params.push(id);
+
+        if (fields.length > 1) {
+            await db.query(`UPDATE service_categories SET ${fields.join(', ')} WHERE id = ?`, params);
+        }
 
         res.json({ success: true, message: 'Category updated successfully' });
     } catch (err) {
@@ -183,14 +202,19 @@ exports.adminCreateProduct = async (req, res) => {
         if (Array.isArray(offers) && offers.length > 0) {
             for (const off of offers) {
                 const offerId = crypto.randomUUID();
+                const price = parseNum(off.price, 0);
+                const costPrice = parseNullableNum(off.cost_price);
+                const durationMonths = off.duration_months ? (parseInt(off.duration_months, 10) || null) : null;
+                const isActive = off.is_active !== undefined ? (off.is_active ? 1 : 0) : 1;
+                const sortOrder = off.sort_order ? (parseInt(off.sort_order, 10) || 0) : 0;
+
                 await connection.query(`
                     INSERT INTO service_offers (
                         id, product_id, label, label_ar, duration_months, price, cost_price, currency, is_active, sort_order
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, 'USD', ?, ?)
                 `, [
                     offerId, productId, off.label || 'Standard', off.label_ar || 'قياسي',
-                    off.duration_months || null, Number(off.price) || 0, off.cost_price ? Number(off.cost_price) : null,
-                    off.is_active !== undefined ? (off.is_active ? 1 : 0) : 1, off.sort_order || 0
+                    durationMonths, price, costPrice, isActive, sortOrder
                 ]);
             }
         }
@@ -220,33 +244,34 @@ exports.adminUpdateProduct = async (req, res) => {
         connection = await db.getConnection();
         await connection.beginTransaction();
 
-        const jsonImages = images !== undefined ? JSON.stringify(images) : undefined;
-        const jsonFeatures = features !== undefined ? JSON.stringify(features) : undefined;
+        const jsonImages = images !== undefined ? JSON.stringify(images || []) : undefined;
+        const jsonFeatures = features !== undefined ? JSON.stringify(features || []) : undefined;
 
-        await connection.query(`
-            UPDATE service_products
-            SET category_id = COALESCE(?, category_id),
-                name = COALESCE(?, name),
-                name_ar = COALESCE(?, name_ar),
-                name_fr = COALESCE(?, name_fr),
-                slug = COALESCE(?, slug),
-                description = COALESCE(?, description),
-                description_ar = COALESCE(?, description_ar),
-                logo_url = COALESCE(?, logo_url),
-                images = COALESCE(?, images),
-                features = COALESCE(?, features),
-                delivery_info = COALESCE(?, delivery_info),
-                delivery_info_ar = COALESCE(?, delivery_info_ar),
-                requires_email = COALESCE(?, requires_email),
-                status = COALESCE(?, status),
-                sort_order = COALESCE(?, sort_order),
-                updated_at = NOW()
-            WHERE id = ?
-        `, [
-            category_id, name, name_ar, name_fr, slug,
-            description, description_ar, logo_url, jsonImages, jsonFeatures,
-            delivery_info, delivery_info_ar, requires_email, status, sort_order, id
-        ]);
+        const fields = [];
+        const params = [];
+
+        if (category_id !== undefined) { fields.push('category_id = ?'); params.push(category_id); }
+        if (name !== undefined) { fields.push('name = ?'); params.push(name); }
+        if (name_ar !== undefined) { fields.push('name_ar = ?'); params.push(name_ar); }
+        if (name_fr !== undefined) { fields.push('name_fr = ?'); params.push(name_fr || null); }
+        if (slug !== undefined) { fields.push('slug = ?'); params.push(slug); }
+        if (description !== undefined) { fields.push('description = ?'); params.push(description); }
+        if (description_ar !== undefined) { fields.push('description_ar = ?'); params.push(description_ar); }
+        if (logo_url !== undefined) { fields.push('logo_url = ?'); params.push(logo_url || null); }
+        if (jsonImages !== undefined) { fields.push('images = ?'); params.push(jsonImages); }
+        if (jsonFeatures !== undefined) { fields.push('features = ?'); params.push(jsonFeatures); }
+        if (delivery_info !== undefined) { fields.push('delivery_info = ?'); params.push(delivery_info || null); }
+        if (delivery_info_ar !== undefined) { fields.push('delivery_info_ar = ?'); params.push(delivery_info_ar || null); }
+        if (requires_email !== undefined) { fields.push('requires_email = ?'); params.push(requires_email ? 1 : 0); }
+        if (status !== undefined) { fields.push('status = ?'); params.push(status); }
+        if (sort_order !== undefined) { fields.push('sort_order = ?'); params.push(Number(sort_order) || 0); }
+
+        fields.push('updated_at = NOW()');
+        params.push(id);
+
+        if (fields.length > 1) {
+            await connection.query(`UPDATE service_products SET ${fields.join(', ')} WHERE id = ?`, params);
+        }
 
         // If offers array is provided, sync offers
         if (Array.isArray(offers)) {
@@ -257,11 +282,17 @@ exports.adminUpdateProduct = async (req, res) => {
                     DELETE FROM service_offers 
                     WHERE product_id = ? AND id NOT IN (?)
                 `, [id, existingOfferIds]);
-            } else {
+            } else if (offers.length === 0) {
                 await connection.query('DELETE FROM service_offers WHERE product_id = ?', [id]);
             }
 
             for (const off of offers) {
+                const price = parseNum(off.price, 0);
+                const costPrice = parseNullableNum(off.cost_price);
+                const durationMonths = off.duration_months ? (parseInt(off.duration_months, 10) || null) : null;
+                const isActive = off.is_active !== undefined ? (off.is_active ? 1 : 0) : 1;
+                const sortOrder = off.sort_order ? (parseInt(off.sort_order, 10) || 0) : 0;
+
                 if (off.id) {
                     await connection.query(`
                         UPDATE service_offers
@@ -269,8 +300,8 @@ exports.adminUpdateProduct = async (req, res) => {
                             is_active = ?, sort_order = ?, updated_at = NOW()
                         WHERE id = ? AND product_id = ?
                     `, [
-                        off.label, off.label_ar, off.duration_months || null, Number(off.price) || 0,
-                        off.cost_price ? Number(off.cost_price) : null, off.is_active ? 1 : 0, off.sort_order || 0,
+                        off.label || 'Standard', off.label_ar || 'قياسي', durationMonths, price,
+                        costPrice, isActive, sortOrder,
                         off.id, id
                     ]);
                 } else {
@@ -280,9 +311,8 @@ exports.adminUpdateProduct = async (req, res) => {
                             id, product_id, label, label_ar, duration_months, price, cost_price, currency, is_active, sort_order
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, 'USD', ?, ?)
                     `, [
-                        newOfferId, id, off.label, off.label_ar, off.duration_months || null,
-                        Number(off.price) || 0, off.cost_price ? Number(off.cost_price) : null,
-                        off.is_active ? 1 : 0, off.sort_order || 0
+                        newOfferId, id, off.label || 'Standard', off.label_ar || 'قياسي', durationMonths,
+                        price, costPrice, isActive, sortOrder
                     ]);
                 }
             }
