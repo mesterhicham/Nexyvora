@@ -12,7 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { 
   ChevronLeft, ChevronRight, Star, Clock, ShieldCheck, Wallet, 
   CreditCard, Sparkles, MessageCircle, AlertCircle, Loader2, Check,
-  Cloud, Lock, Info, CheckCircle2, ArrowRight, ArrowLeft
+  Cloud, Lock, Info, CheckCircle2, ArrowRight, ArrowLeft,
+  ShoppingCart, Shield, Zap, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -263,10 +264,10 @@ export default function ServiceDetails() {
       for (const entry of entries) {
         if (entry.contentRect.height > 250 && !hasScrolled) {
           hasScrolled = true;
-          const dialogEl = container.closest('[role="dialog"]');
-          if (dialogEl) {
-            dialogEl.scrollTo({
-              top: dialogEl.scrollHeight,
+          const scrollableEl = document.getElementById('checkout-modal-body') || container.closest('[role="dialog"]');
+          if (scrollableEl) {
+            scrollableEl.scrollTo({
+              top: scrollableEl.scrollHeight,
               behavior: 'smooth'
             });
           }
@@ -650,148 +651,236 @@ export default function ServiceDetails() {
           </div>
         </div>
 
-        {/* Checkout & Payment Modal */}
+        {/* Checkout & Payment Modal matching Image 2 */}
         <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-          <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto rounded-2xl bg-card border border-slate-200 dark:border-slate-800 p-6 shadow-2xl">
-            <DialogHeader className="space-y-2">
-              <DialogTitle className="text-lg font-bold">
-                {tr("تأكيد شراء الخدمة", "Confirm Service Purchase")}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                {product.name} — {selectedOffer ? (isRtl ? selectedOffer.label_ar : selectedOffer.label) : ''}
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 pt-2">
-              {/* Order Summary Box */}
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">{tr("المنتج", "Product")}</span>
-                  <span className="font-semibold">{product.name}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">{tr("الخطة المحددة", "Selected Plan")}</span>
-                  <span className="font-semibold">{selectedOffer?.label}</span>
-                </div>
-                {product.requires_email && (
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">{tr("البريد للتفعيل", "Activation Email")}</span>
-                    <span className="font-semibold text-primary">{activationEmail}</span>
-                  </div>
-                )}
-                <div className="border-t border-slate-200 dark:border-slate-800 pt-2 flex justify-between items-center">
-                  <span className="font-bold text-sm">{tr("المجموع المستحق", "Total Amount")}</span>
-                  <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">
-                    ${selectedOffer ? Number(selectedOffer.price).toFixed(2) : '0.00'}
-                  </span>
+          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] sm:max-h-[88vh] flex flex-col p-0 overflow-hidden rounded-3xl bg-card border border-slate-200 dark:border-slate-800 shadow-2xl">
+            {/* Modal Header */}
+            <div className="p-5 md:px-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPaymentModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-slate-200/60 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <div>
+                  <DialogTitle className="text-base md:text-lg font-black text-slate-900 dark:text-white">
+                    {tr("الدفع بالبطاقة البنكية", "Credit Card Payment")}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                    {tr("أكمل بياناتك لتأكيد الدفع", "Complete your information to confirm payment")}
+                  </DialogDescription>
                 </div>
               </div>
 
-              {/* Payment Methods Selection */}
-              <div className="space-y-2">
-                <Label className="text-xs font-bold">{tr("اختر طريقة الدفع", "Select Payment Method")}</Label>
-                
-                {/* Method 1: Wallet */}
-                <div
-                  onClick={() => setSelectedPaymentMethod('wallet')}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
-                    selectedPaymentMethod === 'wallet'
-                      ? 'border-primary bg-primary/5 shadow-sm'
-                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                      <Wallet className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold block">{tr("رصيد المحفظة الداخلي", "Account Wallet Balance")}</span>
-                      <span className="text-[11px] text-muted-foreground">
-                        {tr("الرصيد المتاح:", "Available:")} ${walletBalance.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                  {selectedPaymentMethod === 'wallet' && (
-                    <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center">
-                      <Check className="h-3 w-3" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Method 2: PayPal */}
-                <div
-                  onClick={() => setSelectedPaymentMethod('paypal')}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
-                    selectedPaymentMethod === 'paypal'
-                      ? 'border-primary bg-primary/5 shadow-sm'
-                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                      <CreditCard className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold block">{tr("PayPal / بطاقة بنكية", "PayPal / Credit Card")}</span>
-                      <span className="text-[11px] text-muted-foreground">
-                        {tr("دفع فوري آمن ومباشر", "Instant and secure direct checkout")}
-                      </span>
-                    </div>
-                  </div>
-                  {selectedPaymentMethod === 'paypal' && (
-                    <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center">
-                      <Check className="h-3 w-3" />
-                    </div>
-                  )}
-                </div>
+              {/* Brand Logo badge */}
+              <div className="flex items-center gap-1.5 font-black text-base text-slate-900 dark:text-white">
+                <span className="tracking-tight">Nexyvora</span>
+                <Sparkles className="h-4 w-4 text-primary fill-primary/20" />
               </div>
+            </div>
 
-              {/* Action Buttons */}
-              <div className="pt-2 space-y-2">
-                {selectedPaymentMethod === 'wallet' ? (
-                  <Button
-                    onClick={handleWalletPayment}
-                    disabled={isSubmitting || walletBalance < Number(selectedOffer?.price || 0)}
-                    className="w-full py-5 text-sm font-bold rounded-xl gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <ShieldCheck className="h-4 w-4" />
-                        <span>{tr("تأكيد الدفع من المحفظة", "Confirm Wallet Payment")}</span>
-                      </>
+            {/* Modal Scrollable Body */}
+            <div 
+              id="checkout-modal-body" 
+              className="flex-1 overflow-y-auto p-5 md:p-8 space-y-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                {/* Left Column: Order Summary & Guarantees (md:col-span-5) */}
+                <div className="md:col-span-5 space-y-4">
+                  <div className="rounded-2xl p-5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xs">
+                    <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-xs uppercase tracking-wider">
+                      <ShoppingCart className="h-4 w-4 text-primary" />
+                      <span>{tr("ملخص الطلب", "Order Summary")}</span>
+                    </div>
+
+                    {/* Product Summary Item */}
+                    <div className="flex items-center justify-between p-3.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 shadow-xs">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <Sparkles className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                            {product.name}
+                          </h4>
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            {selectedOffer ? (isRtl ? selectedOffer.label_ar : selectedOffer.label) : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="font-black text-xs text-slate-900 dark:text-white shrink-0">
+                        ${selectedOffer ? Number(selectedOffer.price).toFixed(2) : '0.00'} <span className="text-[10px] text-muted-foreground font-normal">USD</span>
+                      </div>
+                    </div>
+
+                    {product.requires_email && activationEmail && (
+                      <div className="text-xs p-2.5 rounded-xl bg-primary/5 border border-primary/10 text-primary flex justify-between items-center">
+                        <span className="text-muted-foreground">{tr("البريد للتفعيل:", "Activation Email:")}</span>
+                        <span className="font-bold truncate max-w-[170px]">{activationEmail}</span>
+                      </div>
                     )}
-                  </Button>
-                ) : (
-                  <div className="space-y-3 pt-1">
-                    {/* Official PayPal Buttons Container (renders PayPal + Debit/Credit Card) */}
-                    <div id="paypal-buttons-container" className="min-h-[90px] w-full" />
-                    
-                    {!isPayPalSdkReady && (
+
+                    {/* Total Price */}
+                    <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex justify-between items-center">
+                      <span className="font-bold text-xs text-slate-700 dark:text-slate-300">{tr("الإجمالي", "Total Amount")}</span>
+                      <span className="text-xl font-black text-primary">
+                        ${selectedOffer ? Number(selectedOffer.price).toFixed(2) : '0.00'} <span className="text-xs font-bold text-slate-500">USD</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Trust Guarantees Box */}
+                  <div className="p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 space-y-2.5 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2.5">
+                      <Lock className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                      <span>{tr("دفع آمن ومشفر بنسبة 100%", "100% Secure & encrypted checkout")}</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <Shield className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                      <span>{tr("حماية وضمان تفعيل الخدمة", "Service activation guarantee")}</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <Zap className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                      <span>{tr("تسليم وتفعيل فوري بعد التأكيد", "Fast delivery after payment")}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Payment Section (md:col-span-7) */}
+                <div className="md:col-span-7 space-y-4">
+                  {/* Section Title & Card Logos */}
+                  <div className="flex items-center justify-between pb-1">
+                    <div className="flex items-center gap-2 font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+                      <CreditCard className="h-4 w-4 text-primary" />
+                      <span>{tr("بيانات الدفع", "Payment Details")}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 opacity-90">
+                      <span className="px-2 py-0.5 rounded font-black text-[10px] bg-blue-600 text-white tracking-wider">VISA</span>
+                      <span className="px-1.5 py-0.5 rounded font-black text-[10px] bg-orange-600 text-white tracking-wider">MC</span>
+                      <span className="px-1.5 py-0.5 rounded font-bold text-[9px] bg-sky-500 text-white">AMEX</span>
+                    </div>
+                  </div>
+
+                  {/* Payment Method Switcher */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPaymentMethod('paypal')}
+                      className={`p-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                        selectedPaymentMethod === 'paypal'
+                          ? 'border-primary bg-primary/10 text-primary shadow-xs'
+                          : 'border-slate-200 dark:border-slate-800 text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-900'
+                      }`}
+                    >
+                      <CreditCard className="h-3.5 w-3.5" />
+                      <span>{tr("بطاقة بنكية / PayPal", "Credit Card / PayPal")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPaymentMethod('wallet')}
+                      className={`p-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                        selectedPaymentMethod === 'wallet'
+                          ? 'border-primary bg-primary/10 text-primary shadow-xs'
+                          : 'border-slate-200 dark:border-slate-800 text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-900'
+                      }`}
+                    >
+                      <Wallet className="h-3.5 w-3.5" />
+                      <span>{tr("المحفظة ($" + walletBalance.toFixed(2) + ")", "Wallet ($" + walletBalance.toFixed(2) + ")")}</span>
+                    </button>
+                  </div>
+
+                  {selectedPaymentMethod === 'wallet' ? (
+                    <div className="space-y-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-muted-foreground">{tr("الرصيد المتاح في محفظتك:", "Available balance:")}</span>
+                        <span className="font-bold text-sm">${walletBalance.toFixed(2)} USD</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-muted-foreground">{tr("المبلغ المطلوب خصمه:", "Amount to deduct:")}</span>
+                        <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                          ${selectedOffer ? Number(selectedOffer.price).toFixed(2) : '0.00'} USD
+                        </span>
+                      </div>
                       <Button
-                        onClick={handlePayPalDirectCheckout}
-                        disabled={isSubmitting}
-                        className="w-full py-5 text-sm font-bold rounded-xl gap-2 bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-md"
+                        onClick={handleWalletPayment}
+                        disabled={isSubmitting || walletBalance < Number(selectedOffer?.price || 0)}
+                        className="w-full py-5 text-sm font-bold rounded-xl gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md"
                       >
                         {isSubmitting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <>
-                            <CreditCard className="h-4 w-4" />
-                            <span>{tr("الدفع المباشر بالبطاقة البنكية أو PayPal", "Pay with Debit / Credit Card or PayPal")}</span>
+                            <ShieldCheck className="h-4 w-4" />
+                            <span>{tr("تأكيد الدفع من المحفظة", "Confirm Wallet Payment")}</span>
                           </>
                         )}
                       </Button>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/50 text-[11px] text-blue-900 dark:text-blue-200 flex items-start gap-2">
+                        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                        <span>
+                          {tr(
+                            "اختر 'بطاقة سحب أو ائتمان' بالأسفل لإدخال بيانات بطاقتك مباشرة، ثم اضغط زر إتمام الدفع الرسمي بالأسفل.",
+                            "Select 'Debit or Credit Card' below to fill in your card details, then click the official Pay Now button below."
+                          )}
+                        </span>
+                      </div>
 
+                      {/* Official PayPal Buttons Container (renders PayPal + Debit/Credit Card) */}
+                      <div id="paypal-buttons-container" className="min-h-[140px] w-full pt-1" />
+
+                      {!isPayPalSdkReady && (
+                        <Button
+                          onClick={handlePayPalDirectCheckout}
+                          disabled={isSubmitting}
+                          className="w-full py-5 text-sm font-bold rounded-xl gap-2 bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-md"
+                        >
+                          {isSubmitting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <CreditCard className="h-4 w-4" />
+                              <span>{tr("الدفع المباشر بالبطاقة البنكية أو PayPal", "Pay with Debit / Credit Card or PayPal")}</span>
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Fixed Footer Bar */}
+            <div className="p-4 px-6 md:px-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shrink-0">
+              <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  {tr("معالجة الدفع عبر", "Processed securely via")}
+                </span>
+                <span className="font-black text-blue-700 dark:text-blue-400 text-xs tracking-tight">PayPal</span>
+                <span>•</span>
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  {tr("مشفر وآمن 100%", "100% Encrypted")}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="text-right rtl:text-left">
+                  <span className="text-[10px] text-muted-foreground block">{tr("الإجمالي المستحق:", "Total Due:")}</span>
+                  <span className="font-black text-sm text-primary">
+                    ${selectedOffer ? Number(selectedOffer.price).toFixed(2) : '0.00'} USD
+                  </span>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsPaymentModalOpen(false)}
-                  className="w-full text-xs text-muted-foreground"
+                  className="text-xs text-muted-foreground hover:text-slate-900 dark:hover:text-white"
                 >
                   {tr("إلغاء", "Cancel")}
                 </Button>
