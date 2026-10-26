@@ -251,6 +251,33 @@ export default function ServiceDetails() {
     return () => clearTimeout(timer);
   }, [isPaymentModalOpen, selectedPaymentMethod, isPayPalSdkReady, selectedOffer, activationEmail]);
 
+  // Auto-scroll modal smoothly when PayPal card form expands
+  useEffect(() => {
+    if (!isPaymentModalOpen || selectedPaymentMethod !== 'paypal') return;
+
+    const container = document.getElementById('paypal-buttons-container');
+    if (!container) return;
+
+    let hasScrolled = false;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.height > 250 && !hasScrolled) {
+          hasScrolled = true;
+          const dialogEl = container.closest('[role="dialog"]');
+          if (dialogEl) {
+            dialogEl.scrollTo({
+              top: dialogEl.scrollHeight,
+              behavior: 'smooth'
+            });
+          }
+        }
+      }
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [isPaymentModalOpen, selectedPaymentMethod]);
+
   const whatsappNumber = settings?.support_whatsapp_number || '+212600000000';
   const cleanPhone = whatsappNumber.replace(/[^0-9]/g, '');
 
@@ -625,7 +652,7 @@ export default function ServiceDetails() {
 
         {/* Checkout & Payment Modal */}
         <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-          <DialogContent className="max-w-md rounded-2xl bg-card border border-slate-200 dark:border-slate-800 p-6">
+          <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto rounded-2xl bg-card border border-slate-200 dark:border-slate-800 p-6 shadow-2xl">
             <DialogHeader className="space-y-2">
               <DialogTitle className="text-lg font-bold">
                 {tr("تأكيد شراء الخدمة", "Confirm Service Purchase")}
