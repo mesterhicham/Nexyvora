@@ -55,6 +55,7 @@ export default function ServiceDetails() {
 
       if (prodRes?.success && prodRes.data) {
         setProduct(prodRes.data);
+        setActiveImageIndex(0);
         if (prodRes.data.offers && prodRes.data.offers.length > 0) {
           setSelectedOffer(prodRes.data.offers[0]);
         }
@@ -314,18 +315,28 @@ export default function ServiceDetails() {
 
   if (!product) return null;
 
-  // Prepare gallery images (5 images for the thumbnails row)
-  const defaultImages = [
-    product.logo_url || '/services/google_one.jpg',
-    '/services/hero_laptop.jpg',
-    '/services/gemini_advanced.jpg',
-    '/services/veo3.jpg',
-    '/services/chatgpt_plus.jpg'
-  ];
+  // Prepare gallery images (ONLY images uploaded for this specific product)
+  const galleryImages: string[] = [];
+  if (product.logo_url && typeof product.logo_url === 'string') {
+    galleryImages.push(product.logo_url);
+  }
+  if (Array.isArray(product.images)) {
+    for (const img of product.images) {
+      if (img && typeof img === 'string' && !galleryImages.includes(img)) {
+        galleryImages.push(img);
+      }
+    }
+  }
 
-  const galleryImages: string[] = (Array.isArray(product.images) && product.images.length > 0)
-    ? [...product.images, ...defaultImages].slice(0, 5)
-    : defaultImages;
+  // Fallback only if no images were ever uploaded for this product
+  if (galleryImages.length === 0) {
+    galleryImages.push('/placeholder.svg');
+  }
+
+  // Ensure active image index is always safe and within range
+  const safeActiveIndex = (activeImageIndex >= 0 && activeImageIndex < galleryImages.length)
+    ? activeImageIndex
+    : 0;
 
   // Features checkmarks list
   const featuresList = (Array.isArray(product.features) && product.features.length > 0)
@@ -390,35 +401,37 @@ export default function ServiceDetails() {
               {/* Main Showcase Square */}
               <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-gradient-to-br from-[#121829] to-[#0a0d18] border border-slate-800 flex items-center justify-center p-6 shadow-inner group">
                 <img
-                  src={galleryImages[activeImageIndex] || product.logo_url}
+                  src={galleryImages[safeActiveIndex]}
                   alt={product.name}
                   className="w-full h-full object-contain rounded-xl transform group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
-              {/* Gallery Thumbnails Row (5 items) */}
-              <div className="grid grid-cols-5 gap-2.5">
-                {galleryImages.map((img, idx) => {
-                  const isActive = activeImageIndex === idx;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveImageIndex(idx)}
-                      className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all p-1 bg-[#121829] ${
-                        isActive
-                          ? 'border-indigo-500 scale-105 shadow-md shadow-indigo-500/25 ring-2 ring-indigo-500/30'
-                          : 'border-slate-800 hover:border-slate-700 opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <img
-                        src={img}
-                        alt={`Thumbnail ${idx + 1}`}
-                        className="w-full h-full object-contain rounded-lg"
-                      />
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Gallery Thumbnails Row (Only shown if there are 2 or more images) */}
+              {galleryImages.length > 1 && (
+                <div className="flex flex-wrap gap-2.5 pt-1">
+                  {galleryImages.map((img, idx) => {
+                    const isActive = safeActiveIndex === idx;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setActiveImageIndex(idx)}
+                        className={`relative h-16 w-16 rounded-xl overflow-hidden border-2 transition-all p-1 bg-[#121829] ${
+                          isActive
+                            ? 'border-indigo-500 scale-105 shadow-md shadow-indigo-500/25 ring-2 ring-indigo-500/30'
+                            : 'border-slate-800 hover:border-slate-700 opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <img
+                          src={img}
+                          alt={`Thumbnail ${idx + 1}`}
+                          className="w-full h-full object-contain rounded-lg"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Right Column: Info, Plan Selector & Buy Now CTA */}

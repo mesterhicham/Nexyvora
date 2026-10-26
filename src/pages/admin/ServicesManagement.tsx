@@ -39,6 +39,11 @@ export default function ServicesManagement() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState<boolean>(false);
 
+  // Gallery upload ref and state
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingGallery, setIsUploadingGallery] = useState<boolean>(false);
+  const [formImages, setFormImages] = useState<string[]>([]);
+
   // Product form fields
   const [formName, setFormName] = useState('');
   const [formNameAr, setFormNameAr] = useState('');
@@ -84,6 +89,40 @@ export default function ServicesManagement() {
     }
   };
 
+  const handleGalleryFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setIsUploadingGallery(true);
+      const newUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+          const res = await uploadService.uploadFile(file);
+          const uploadedUrl = res.url || res.fileUrl || (res.filename ? `/uploads/${res.filename}` : '');
+          if (uploadedUrl) newUrls.push(uploadedUrl);
+        }
+      }
+      if (newUrls.length > 0) {
+        setFormImages(prev => [...prev, ...newUrls]);
+        toast.success(tr("تمت إضافة الصور إلى المعرض بنجاح", "Images added to gallery successfully"));
+      }
+    } catch (error: any) {
+      console.error("Failed to upload gallery images:", error);
+      toast.error(tr("حدث خطأ أثناء رفع الصور", "Failed to upload images"));
+    } finally {
+      setIsUploadingGallery(false);
+      if (galleryInputRef.current) {
+        galleryInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setFormImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -116,6 +155,7 @@ export default function ServicesManagement() {
     setFormDescription('');
     setFormDescriptionAr('');
     setFormLogoUrl('');
+    setFormImages([]);
     setFormDeliveryInfoAr('يتم تسليم الحساب والاشتراك يدوياً من الإدارة خلال مدة أقصاها 24 ساعة.');
     setFormRequiresEmail(false);
     setFormStatus('published');
@@ -134,6 +174,7 @@ export default function ServicesManagement() {
     setFormDescription(prod.description || '');
     setFormDescriptionAr(prod.description_ar || '');
     setFormLogoUrl(prod.logo_url || '');
+    setFormImages(Array.isArray(prod.images) ? prod.images : []);
     setFormDeliveryInfoAr(prod.delivery_info_ar || '');
     setFormRequiresEmail(prod.requires_email === 1);
     setFormStatus(prod.status || 'published');
@@ -194,6 +235,7 @@ export default function ServicesManagement() {
         description: formDescription.trim(),
         description_ar: formDescriptionAr.trim(),
         logo_url: formLogoUrl.trim() || null,
+        images: formImages,
         delivery_info_ar: formDeliveryInfoAr.trim() || null,
         requires_email: formRequiresEmail ? 1 : 0,
         status: formStatus,
@@ -540,6 +582,84 @@ export default function ServicesManagement() {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Service Gallery Images */}
+              <div className="space-y-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold flex items-center gap-1.5">
+                    <ImageIcon className="h-4 w-4 text-indigo-600" />
+                    {tr("معرض صور الخدمة الإضافية (Gallery Images)", "Service Gallery Images")}
+                  </Label>
+                  <span className="text-[11px] text-muted-foreground font-semibold">
+                    {formImages.length} {tr("صور", "images")}
+                  </span>
+                </div>
+
+                <input
+                  type="file"
+                  multiple
+                  ref={galleryInputRef}
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+                  className="hidden"
+                  onChange={handleGalleryFileUpload}
+                />
+
+                {/* Previews Grid */}
+                {formImages.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5 pt-1">
+                    {formImages.map((imgUrl, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-xl border border-slate-200 dark:border-slate-700 bg-background overflow-hidden group shadow-xs">
+                        <img
+                          src={imgUrl}
+                          alt={`Gallery image ${idx + 1}`}
+                          className="h-full w-full object-contain p-1"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryImage(idx)}
+                          className="absolute top-1 right-1 h-5 w-5 rounded-full bg-destructive text-white flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity shadow-sm"
+                          title={tr("حذف الصورة", "Delete image")}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">
+                    {tr("لا توجد صور إضافية. يمكنك رفع صور لعرضها في معرض صور الخدمة للعميل.", "No gallery images. You can upload extra images for the product gallery.")}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-2 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isUploadingGallery}
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="text-xs h-9 font-medium gap-1.5 bg-background shadow-xs hover:border-indigo-500 hover:text-indigo-600"
+                  >
+                    {isUploadingGallery ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600" />
+                        {tr("جاري الرفع...", "Uploading...")}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-3.5 w-3.5" />
+                        {tr("+ إضافة صور إلى المعرض", "+ Add images to gallery")}
+                      </>
+                    )}
+                  </Button>
+                  <span className="text-[11px] text-muted-foreground">
+                    {tr("(يمكنك اختيار أكثر من صورة معاً)", "(You can select multiple images)")}
+                  </span>
                 </div>
               </div>
 
