@@ -275,15 +275,22 @@ exports.adminUpdateProduct = async (req, res) => {
 
         // If offers array is provided, sync offers
         if (Array.isArray(offers)) {
-            // Delete removed offers
-            const existingOfferIds = offers.filter(o => o.id).map(o => o.id);
-            if (existingOfferIds.length > 0) {
-                await connection.query(`
-                    DELETE FROM service_offers 
-                    WHERE product_id = ? AND id NOT IN (?)
-                `, [id, existingOfferIds]);
-            } else if (offers.length === 0) {
-                await connection.query('DELETE FROM service_offers WHERE product_id = ?', [id]);
+            // Remove offers that are no longer in the list. Offers referenced by existing orders
+            // cannot be deleted (fk_service_orders_offer), so they are deactivated instead;
+            // otherwise the whole update (including new prices) would be rolled back.
+            const keptOfferIds = offers.filter(o => o.id).map(o => o.id);
+            const [removedOffers] = await connection.query(
+                `SELECT o.id, EXISTS(SELECT 1 FROM service_orders so WHERE so.offer_id = o.id) AS has_orders
+                 FROM service_offers o
+                 WHERE o.product_id = ?${keptOfferIds.length > 0 ? ' AND o.id NOT IN (?)' : ''}`,
+                keptOfferIds.length > 0 ? [id, keptOfferIds] : [id]
+            );
+            for (const removed of removedOffers) {
+                if (Number(removed.has_orders) === 1) {
+                    await connection.query('UPDATE service_offers SET is_active = 0, updated_at = NOW() WHERE id = ?', [removed.id]);
+                } else {
+                    await connection.query('DELETE FROM service_offers WHERE id = ?', [removed.id]);
+                }
             }
 
             for (const off of offers) {
