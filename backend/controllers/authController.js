@@ -366,18 +366,21 @@ exports.verifyWhatsAppOtp = async (req, res) => {
 
         const otpRecord = rows[0];
 
-        // Max 5 attempts
-        if (otpRecord.attempts >= 5) {
+        // Max 5 attempts - reserve the attempt atomically so parallel requests cannot bypass the limit
+        const [attemptUpd] = await db.query('UPDATE verification_otps SET attempts = attempts + 1 WHERE id = ? AND attempts < 5', [otpRecord.id]);
+        if (attemptUpd.affectedRows === 0) {
             return res.status(429).json({ error: 'تم تجاوز عدد المحاولات المسموح بها / Too many failed attempts. Please request a new code.' });
         }
 
         if (otpRecord.code !== inputHash) {
-            await db.query('UPDATE verification_otps SET attempts = attempts + 1 WHERE id = ?', [otpRecord.id]);
             return res.status(400).json({ error: 'رمز التحقق غير صحيح / Invalid verification code' });
         }
 
-        // Mark OTP verified
-        await db.query('UPDATE verification_otps SET is_verified = 1 WHERE id = ?', [otpRecord.id]);
+        // Mark OTP verified (one-time use)
+        const [consumeUpd] = await db.query('UPDATE verification_otps SET is_verified = 1 WHERE id = ? AND is_verified = 0', [otpRecord.id]);
+        if (consumeUpd.affectedRows === 0) {
+            return res.status(400).json({ error: 'رمز التحقق غير صالح أو انتهت صلاحيته / No OTP requested for this number or expired' });
+        }
 
         // If user is authenticated, update their profile
         if (req.user?.id) {
@@ -399,9 +402,13 @@ exports.verifyWhatsAppOtp = async (req, res) => {
  * Send Email OTP for registration / verification
  */
 exports.sendEmailOtp = async (req, res) => {
-    const { email, type = 'registration', name = '' } = req.body;
+    const { email, type = 'registration' } = req.body;
+    const name = String(req.body.name || '').trim().substring(0, 60);
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return res.status(400).json({ error: 'البريد الإلكتروني غير صحيح / Valid email is required' });
+    }
+    if (!['registration', 'verification', 'password_reset'].includes(type)) {
+        return res.status(400).json({ error: 'Invalid verification type' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -486,19 +493,23 @@ exports.verifyEmailOtp = async (req, res) => {
 
         const otpRecord = rows[0];
 
-        if (otpRecord.attempts >= 5) {
+        // Reserve the attempt atomically so parallel requests cannot bypass the 5-attempt limit
+        const [attemptUpd] = await db.query('UPDATE verification_otps SET attempts = attempts + 1 WHERE id = ? AND attempts < 5', [otpRecord.id]);
+        if (attemptUpd.affectedRows === 0) {
             return res.status(400).json({ 
                 error: 'تم تجاوز الحد الأقصى للمحاولات الخاطئة. يرجى طلب كود جديد / Too many incorrect attempts. Please request a new code.' 
             });
         }
 
         if (otpRecord.code !== inputHash) {
-            await db.query('UPDATE verification_otps SET attempts = attempts + 1 WHERE id = ?', [otpRecord.id]);
             return res.status(400).json({ error: 'كود التحقق غير صحيح / Incorrect verification code' });
         }
 
         // Mark OTP as verified (one-time use)
-        await db.query('UPDATE verification_otps SET is_verified = 1 WHERE id = ?', [otpRecord.id]);
+        const [consumeUpd] = await db.query('UPDATE verification_otps SET is_verified = 1 WHERE id = ? AND is_verified = 0', [otpRecord.id]);
+        if (consumeUpd.affectedRows === 0) {
+            return res.status(400).json({ error: 'كود التحقق غير صالح أو انتهت صلاحيته. يرجى طلب كود جديد / Verification code is invalid or expired.' });
+        }
 
         // Update email_verified in users and profiles if user exists
         try {

@@ -318,10 +318,16 @@ exports.handleGatewayWebhook = async (req, res) => {
     }
 
     // 1. Fetch active payment method and secret from database
-    const [methods] = await db.query(
-        'SELECT * FROM payment_methods WHERE (LOWER(provider) = ? OR LOWER(type) = ?) AND status = "active" LIMIT 1',
-        [rawProvider, rawProvider]
-    );
+    let methods;
+    try {
+        [methods] = await db.query(
+            'SELECT * FROM payment_methods WHERE (LOWER(provider) = ? OR LOWER(type) = ?) AND status = "active" LIMIT 1',
+            [rawProvider, rawProvider]
+        );
+    } catch (err) {
+        console.error('[Webhook] Failed to load payment method:', err.message);
+        return res.status(500).json({ error: 'Gateway configuration lookup failed' });
+    }
 
     if (methods.length === 0) {
         return res.status(404).json({ error: `Payment provider '${rawProvider}' is not configured or is inactive in payment methods` });

@@ -132,8 +132,8 @@ class ServiceCommissionService {
             referrerId, 
             commissionAmount, 
             balanceBefore, 
-            balanceAfter, 
-            orderId, 
+            balanceAfter,
+            `SCOM-${orderId}`, // distinct from the buyer's purchase reference (transactions.reference_id is UNIQUE)
             txDesc,
             JSON.stringify({ order_id: orderId, buyer_id: buyerId, rate_percentage: ratePercentage, sale_amount: saleAmount })
         ]);

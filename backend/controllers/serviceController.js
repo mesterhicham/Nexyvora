@@ -354,9 +354,13 @@ exports.createPayPalOrder = async (req, res) => {
         }
 
         // Determine public host URL for redirection
-        const protocol = (req.get('x-forwarded-proto') || req.protocol || 'https');
-        const host = req.get('x-forwarded-host') || req.get('host') || 'nexyvora.net';
-        const clientOrigin = `${protocol}://${host}`;
+        // Never trust Host / X-Forwarded-Host here: only a configured or whitelisted origin may be used
+        const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim().replace(/\/+$/, '')).filter(Boolean);
+        const requestOrigin = (req.get('origin') || '').replace(/\/+$/, '');
+        const clientOrigin = (process.env.FRONTEND_URL || '').replace(/\/+$/, '')
+            || (allowedOrigins.includes(requestOrigin) ? requestOrigin : '')
+            || allowedOrigins[0]
+            || 'https://nexyvora.net';
 
         // Create PayPal order via API v2
         const paypalOrder = await PayPalService.createOrder({
@@ -444,6 +448,15 @@ exports.capturePayPalOrder = async (req, res) => {
             return res.json({ success: true, message: 'Order is already paid', data: { orderNumber: order.order_number } });
         }
 
+        if (order.status !== 'pending_payment' || order.payment_method !== 'paypal') {
+            return res.status(400).json({ success: false, message: 'Order is not awaiting PayPal payment' });
+        }
+
+        // The PayPal order must be the one created for THIS order (prevents paying a cheap order and capturing an expensive one)
+        if (String(paypalOrderId) !== String(order.payment_reference)) {
+            return res.status(400).json({ success: false, message: 'PayPal order does not match this order' });
+        }
+
         // Call PayPal capture
         const captureData = await PayPalService.captureOrder(paypalOrderId);
 
@@ -454,10 +467,31 @@ exports.capturePayPalOrder = async (req, res) => {
             });
         }
 
-        const captureId = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id || paypalOrderId;
+        const capture = captureData.purchase_units?.[0]?.payments?.captures?.[0];
+        const capturedValue = Number(capture?.amount?.value);
+        const capturedCurrency = String(capture?.amount?.currency_code || '').toUpperCase();
+        const expectedValue = Number(order.price_at_purchase);
+        const expectedCurrency = String(order.currency || 'USD').toUpperCase();
+
+        if (!capture || capture.status !== 'COMPLETED' || capturedCurrency !== expectedCurrency || !(Math.abs(capturedValue - expectedValue) < 0.01)) {
+            console.error('[capturePayPalOrder] Amount mismatch', { orderId, paypalOrderId, capturedValue, capturedCurrency, expectedValue, expectedCurrency });
+            return res.status(400).json({ success: false, message: 'Captured PayPal amount does not match the order price' });
+        }
+
+        const captureId = capture.id || paypalOrderId;
 
         connection = await db.getConnection();
         await connection.beginTransaction();
+
+        // Lock the order and only transition from pending_payment (prevents double processing)
+        const [lockedRows] = await connection.query(
+            'SELECT status FROM service_orders WHERE id = ? AND user_id = ? FOR UPDATE',
+            [orderId, userId]
+        );
+        if (lockedRows.length === 0 || lockedRows[0].status !== 'pending_payment') {
+            await connection.rollback();
+            return res.json({ success: true, message: 'Order is already paid', data: { orderNumber: order.order_number } });
+        }
 
         // Update order status to paid
         await connection.query(`
@@ -465,7 +499,7 @@ exports.capturePayPalOrder = async (req, res) => {
             SET status = 'paid', 
                 payment_reference = ?,
                 updated_at = NOW()
-            WHERE id = ?
+            WHERE id = ? AND status = 'pending_payment'
         `, [captureId, orderId]);
 
         // Log status change

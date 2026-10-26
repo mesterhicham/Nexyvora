@@ -98,7 +98,7 @@ class PayPalService {
         const { baseUrl } = await this.getCredentials();
         const accessToken = await this.getAccessToken();
 
-        const response = await fetch(`${baseUrl}/v2/checkout/orders/${paypalOrderId}/capture`, {
+        const response = await fetch(`${baseUrl}/v2/checkout/orders/${encodeURIComponent(String(paypalOrderId))}/capture`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,

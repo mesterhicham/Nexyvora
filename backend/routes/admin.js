@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const { auth, authorize } = require('../middleware/authMiddleware');
+const { auth, authorize, optionalAuth } = require('../middleware/authMiddleware');
 
-// Public route to get platform settings (read-only for all visitors)
-router.get('/settings', adminController.getSettings);
+// Public route to get platform settings (sensitive keys are only returned to admins)
+router.get('/settings', optionalAuth, adminController.getSettings);
 
 // Protected routes
 router.use(auth);

@@ -4,10 +4,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // --- PLATFORM SETTINGS ---
+// Keys that must never be exposed to non-admin visitors (credentials, payout accounts, etc.)
+const SENSITIVE_SETTING_PATTERN = /(secret|password|passwd|token|api_?key|private|webhook|credential|payment_account_settings)/i;
+
 exports.getSettings = async (req, res) => {
     try {
         const [settings] = await db.execute('SELECT * FROM platform_settings');
-        res.json(settings);
+        const isAdmin = req.user && req.user.role === 'admin';
+        res.json(isAdmin ? settings : settings.filter(s => !SENSITIVE_SETTING_PATTERN.test(String(s.key || ''))));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -288,7 +292,6 @@ exports.getAllUsers = async (req, res) => {
                 COALESCE(r.role, u.role, 'student') AS role,
                 u.affiliate_code,
                 u.affiliate_enabled,
-                u.wallet_pin,
                 u.custom_unlocked_generations,
                 u.created_at,
                 p.full_name,
@@ -343,7 +346,6 @@ exports.getAllUsers = async (req, res) => {
                 city: r.city || '',
                 country: r.country || '',
                 affiliate_code: r.affiliate_code || '',
-                wallet_pin: r.wallet_pin || '',
                 custom_unlocked_generations: r.custom_unlocked_generations !== null && r.custom_unlocked_generations !== undefined ? Number(r.custom_unlocked_generations) : null,
                 created_at: r.created_at,
                 avatar_url: r.avatar_url,
@@ -696,11 +698,16 @@ exports.toggleRoomOpen = async (req, res) => {
     const { id } = req.params;
     const { room_open } = req.body;
     try {
-        await db.execute(`
-            UPDATE zoom_meetings 
-            SET room_open = ?, room_opened_at = IF(?, NOW(), NULL), updated_at = NOW() 
-            WHERE id = ?
-        `, [room_open ? 1 : 0, room_open ? 1 : 0, id]);
+        // Teachers may only open/close meetings they host
+        const isAdmin = req.user.role === 'admin';
+        const [result] = await db.execute(`
+            UPDATE zoom_meetings
+            SET room_open = ?, room_opened_at = IF(?, NOW(), NULL), updated_at = NOW()
+            WHERE id = ?${isAdmin ? '' : ' AND host_id = ?'}
+        `, isAdmin ? [room_open ? 1 : 0, room_open ? 1 : 0, id] : [room_open ? 1 : 0, room_open ? 1 : 0, id, req.user.id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Meeting not found or access denied' });
+        }
         res.json({ success: true, room_open });
     } catch (err) {
         res.status(500).json({ error: err.message });

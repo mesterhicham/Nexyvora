@@ -273,11 +273,45 @@ exports.deleteFormation = async (req, res) => {
 };
 
 // --- CONTENT ---
+// Helper: Return the user's approved enrollment for a formation (or null)
+async function getApprovedEnrollment(userId, formationId) {
+    const [rows] = await db.execute(
+        `SELECT fe.id FROM formation_enrollments fe
+         JOIN students s ON fe.student_id = s.id
+         WHERE s.user_id = ? AND fe.formation_id = ? AND fe.payment_status = 'approved'
+         LIMIT 1`,
+        [userId, formationId]
+    );
+    return rows[0] || null;
+}
+
+// Helper: Return the enrollment if it belongs to the current user (admins may access any)
+async function getOwnedEnrollment(reqUser, enrollmentId) {
+    if (reqUser.role === 'admin') {
+        const [rows] = await db.execute('SELECT * FROM formation_enrollments WHERE id = ?', [enrollmentId]);
+        return rows[0] || null;
+    }
+    const [rows] = await db.execute(
+        `SELECT fe.* FROM formation_enrollments fe
+         JOIN students s ON fe.student_id = s.id
+         WHERE fe.id = ? AND s.user_id = ?`,
+        [enrollmentId, reqUser.id]
+    );
+    return rows[0] || null;
+}
+
 exports.getFormationContent = async (req, res) => {
     const { id } = req.params;
     try {
         const [content] = await db.execute('SELECT * FROM formation_content WHERE formation_id = ? ORDER BY order_index ASC', [id]);
-        res.json(content);
+
+        const hasFullAccess = (await canUserManageContent(id, req.user)) || Boolean(await getApprovedEnrollment(req.user.id, id));
+        if (hasFullAccess) {
+            return res.json(content);
+        }
+
+        // Without an approved enrollment only the curriculum outline is visible (no file links)
+        res.json(content.map(c => ({ ...c, file_url: null, quiz_id: null, locked: true })));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -359,14 +393,20 @@ exports.deleteFormationContent = async (req, res) => {
 exports.reorderContent = async (req, res) => {
     const { items, formationId } = req.body;
     try {
-        if (formationId) {
-            const canManage = await canUserManageContent(formationId, req.user);
-            if (!canManage) {
+        if (!Array.isArray(items)) {
+            return res.status(400).json({ error: 'items must be an array' });
+        }
+        if (req.user.role !== 'admin') {
+            if (!formationId || !(await canUserManageContent(formationId, req.user))) {
                 return res.status(403).json({ error: 'غير مصرح لك بإعادة ترتيب محتوى هذا التكوين' });
             }
         }
         for (const item of items) {
-            await db.execute('UPDATE formation_content SET order_index = ? WHERE id = ?', [item.order_index, item.id]);
+            if (formationId) {
+                await db.execute('UPDATE formation_content SET order_index = ? WHERE id = ? AND formation_id = ?', [item.order_index, item.id, formationId]);
+            } else {
+                await db.execute('UPDATE formation_content SET order_index = ? WHERE id = ?', [item.order_index, item.id]);
+            }
         }
         res.json({ message: 'Content reordered successfully' });
     } catch (err) {
@@ -574,6 +614,9 @@ exports.getFormationStats = async (req, res) => {
 exports.getStudentProgress = async (req, res) => {
     const { enrollmentId } = req.params;
     try {
+        const enrollment = await getOwnedEnrollment(req.user, enrollmentId);
+        if (!enrollment) return res.status(404).json({ error: 'Enrollment not found' });
+
         const [progress] = await db.execute('SELECT * FROM formation_progress WHERE enrollment_id = ?', [enrollmentId]);
         res.json(progress);
     } catch (err) {
@@ -584,6 +627,20 @@ exports.getStudentProgress = async (req, res) => {
 exports.updateStudentProgress = async (req, res) => {
     const { enrollmentId, contentId, watchedSeconds, completed } = req.body;
     try {
+        const enrollment = await getOwnedEnrollment(req.user, enrollmentId);
+        if (!enrollment || enrollment.payment_status !== 'approved') {
+            return res.status(404).json({ error: 'Approved enrollment not found' });
+        }
+
+        // The content item must belong to the enrolled formation
+        const [contentRows] = await db.execute(
+            'SELECT id FROM formation_content WHERE id = ? AND formation_id = ?',
+            [contentId, enrollment.formation_id]
+        );
+        if (contentRows.length === 0) {
+            return res.status(400).json({ error: 'Content does not belong to this formation' });
+        }
+
         const [existing] = await db.execute(
             'SELECT id FROM formation_progress WHERE enrollment_id = ? AND content_id = ?',
             [enrollmentId, contentId]

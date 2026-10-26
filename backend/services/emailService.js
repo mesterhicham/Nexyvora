@@ -222,11 +222,19 @@ class EmailService {
                 ...variables
             };
 
-            // Replace {{variable}} tokens safely
+            // Replace {{variable}} tokens safely (values are HTML-escaped to prevent injection into emails)
+            const escapeHtml = (str) => str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
             for (const [key, val] of Object.entries(enrichedVars)) {
-                const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-                subject = subject.replace(regex, String(val ?? ''));
-                html = html.replace(regex, String(val ?? ''));
+                const safeKey = key.replace(/[^a-zA-Z0-9_]/g, '');
+                const regex = new RegExp(`{{\\s*${safeKey}\\s*}}`, 'g');
+                const strVal = String(val ?? '');
+                subject = subject.replace(regex, () => strVal.replace(/[\r\n]+/g, ' '));
+                html = html.replace(regex, () => escapeHtml(strVal));
             }
 
             return await this.sendEmail({

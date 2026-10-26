@@ -234,6 +234,15 @@ exports.getModuleById = async (req, res) => {
 };
 
 
+// Teachers may only manage modules assigned to their own teacher record
+async function teacherOwnsModule(user, moduleId) {
+    const [rows] = await db.execute(
+        'SELECT m.id FROM modules m JOIN teachers t ON m.teacher_id = t.id WHERE m.id = ? AND t.user_id = ?',
+        [moduleId, user.id]
+    );
+    return rows.length > 0;
+}
+
 exports.createModule = async (req, res) => {
     const { code, name, specialty_id, hours } = req.body;
     let { teacher_id } = req.body;
@@ -267,7 +276,13 @@ exports.updateModule = async (req, res) => {
     const { id } = req.params;
     let { code, name, specialty_id, teacher_id, hours } = req.body;
     try {
-        if (teacher_id) {
+        if (req.user.role === 'teacher') {
+            if (!(await teacherOwnsModule(req.user, id))) {
+                return res.status(403).json({ error: 'Access denied: you can only edit your own modules.' });
+            }
+            const [tRows] = await db.execute('SELECT id FROM teachers WHERE user_id = ?', [req.user.id]);
+            teacher_id = tRows[0].id;
+        } else if (teacher_id) {
             const [tRows] = await db.execute('SELECT id FROM teachers WHERE id = ? OR user_id = ?', [teacher_id, teacher_id]);
             if (tRows.length > 0) {
                 teacher_id = tRows[0].id;
@@ -287,6 +302,9 @@ exports.updateModule = async (req, res) => {
 exports.deleteModule = async (req, res) => {
     const { id } = req.params;
     try {
+        if (req.user.role === 'teacher' && !(await teacherOwnsModule(req.user, id))) {
+            return res.status(403).json({ error: 'Access denied: you can only delete your own modules.' });
+        }
         await db.execute('DELETE FROM modules WHERE id = ?', [id]);
         res.json({ message: 'Module deleted successfully' });
     } catch (err) {

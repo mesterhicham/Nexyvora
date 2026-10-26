@@ -214,6 +214,11 @@ exports.requestWithdrawal = async (req, res) => {
 
         // Check wallet balance with row lock
         const [wallets] = await connection.query('SELECT * FROM user_wallets WHERE user_id = ? FOR UPDATE', [userId]);
+        if (wallets.length > 0 && wallets[0].can_withdraw !== null && wallets[0].can_withdraw !== undefined && Number(wallets[0].can_withdraw) === 0) {
+            await connection.rollback();
+            return res.status(403).json({ error: 'تم إيقاف السحب على حسابك من طرف الإدارة / Withdrawals are disabled for your account.', code: 'WITHDRAWAL_DISABLED' });
+        }
+
         if (wallets.length === 0 || Number(wallets[0].balance) < withdrawAmount) {
             await connection.rollback();
             return res.status(400).json({ error: 'Insufficient available balance', code: 'INSUFFICIENT_BALANCE' });
