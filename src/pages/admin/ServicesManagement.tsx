@@ -51,6 +51,7 @@ export default function ServicesManagement() {
   const [formCategoryId, setFormCategoryId] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formDescriptionAr, setFormDescriptionAr] = useState('');
+  const [formFeatures, setFormFeatures] = useState('');
   const [formLogoUrl, setFormLogoUrl] = useState('');
   const [formDeliveryInfoAr, setFormDeliveryInfoAr] = useState('');
   const [formRequiresEmail, setFormRequiresEmail] = useState(false);
@@ -154,6 +155,7 @@ export default function ServicesManagement() {
     setFormCategoryId(categories[0]?.id || '');
     setFormDescription('');
     setFormDescriptionAr('');
+    setFormFeatures('');
     setFormLogoUrl('');
     setFormImages([]);
     setFormDeliveryInfoAr('يتم تسليم الحساب والاشتراك يدوياً من الإدارة خلال مدة أقصاها 24 ساعة.');
@@ -173,6 +175,22 @@ export default function ServicesManagement() {
     setFormCategoryId(prod.category_id || '');
     setFormDescription(prod.description || '');
     setFormDescriptionAr(prod.description_ar || '');
+    if (Array.isArray(prod.features)) {
+      setFormFeatures(prod.features.map((f: any) => typeof f === 'string' ? f : (f.ar || f.en)).join('\n'));
+    } else if (typeof prod.features === 'string' && prod.features.trim()) {
+      try {
+        const parsed = JSON.parse(prod.features);
+        if (Array.isArray(parsed)) {
+          setFormFeatures(parsed.map((f: any) => typeof f === 'string' ? f : (f.ar || f.en)).join('\n'));
+        } else {
+          setFormFeatures(prod.features);
+        }
+      } catch {
+        setFormFeatures(prod.features);
+      }
+    } else {
+      setFormFeatures('');
+    }
     setFormLogoUrl(prod.logo_url || '');
     setFormImages(Array.isArray(prod.images) ? prod.images : []);
     setFormDeliveryInfoAr(prod.delivery_info_ar || '');
@@ -227,6 +245,10 @@ export default function ServicesManagement() {
         };
       });
 
+      const parsedFeatures = formFeatures
+        ? formFeatures.split('\n').map((s) => s.trim()).filter(Boolean)
+        : [];
+
       const payload = {
         name: formName.trim() || formNameAr.trim(),
         name_ar: formNameAr.trim(),
@@ -234,6 +256,7 @@ export default function ServicesManagement() {
         category_id: formCategoryId,
         description: formDescription.trim(),
         description_ar: formDescriptionAr.trim(),
+        features: parsedFeatures,
         logo_url: formLogoUrl.trim() || null,
         images: formImages,
         delivery_info_ar: formDeliveryInfoAr.trim() || null,
@@ -663,14 +686,40 @@ export default function ServicesManagement() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">{tr("وصف الخدمة بالعربية", "Arabic Description")}</Label>
+                  <Textarea
+                    rows={4}
+                    value={formDescriptionAr}
+                    onChange={(e) => setFormDescriptionAr(e.target.value)}
+                    placeholder="باقة متكاملة تجمع لك أدوات قوية في الذكاء الاصطناعي وصناعة المحتوى..."
+                    className="text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">{tr("وصف الخدمة بالإنجليزية (Description EN)", "English Description")}</Label>
+                  <Textarea
+                    rows={4}
+                    value={formDescription}
+                    onChange={(e) => setFormDescription(e.target.value)}
+                    placeholder="All-in-one AI package with full access to advanced tools and features..."
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold">{tr("وصف الخدمة بالعربية", "Arabic Description")}</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold">{tr("مميزات الخدمة / What's included", "What's included (Features)")}</Label>
+                  <span className="text-[11px] text-muted-foreground">{tr("(سطر منفصل لكل ميزة)", "(One feature per line)")}</span>
+                </div>
                 <Textarea
-                  rows={3}
-                  value={formDescriptionAr}
-                  onChange={(e) => setFormDescriptionAr(e.target.value)}
-                  placeholder="حساب رسمي مفعل مع وصول كامل لكافة نماذج GPT-4o وتوليد الصور..."
-                  className="text-xs"
+                  rows={4}
+                  value={formFeatures}
+                  onChange={(e) => setFormFeatures(e.target.value)}
+                  placeholder={"GPT-4o & Claude 3.5 access\nUnlimited cloud storage\nPriority 24/7 technical support"}
+                  className="text-xs font-mono"
                 />
               </div>
 

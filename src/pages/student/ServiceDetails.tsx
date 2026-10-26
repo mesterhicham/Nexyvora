@@ -338,18 +338,25 @@ export default function ServiceDetails() {
     ? activeImageIndex
     : 0;
 
-  // Features checkmarks list
-  const featuresList = (Array.isArray(product.features) && product.features.length > 0)
-    ? product.features
-    : [
-        'Gemini - Your AI assistant for writing, coding, research and more.',
-        'Google Flow - Create stunning videos with AI.',
-        'Veo - Generate high-quality videos from text.',
-        'NotebookLM - Research and summarize your documents.',
-        'Google Drive - 5TB of cloud storage.',
-        'Gmail - Extra storage for your emails and attachments.',
-        'Google Photos - Store your photos and videos.'
-      ];
+  // Dynamic features list
+  let featuresList: any[] = [];
+  if (Array.isArray(product.features) && product.features.length > 0) {
+    featuresList = product.features;
+  } else if (typeof product.features === 'string' && product.features.trim()) {
+    try {
+      const parsed = JSON.parse(product.features);
+      if (Array.isArray(parsed)) featuresList = parsed;
+    } catch {
+      featuresList = product.features.split('\n').map((s: string) => s.trim()).filter(Boolean);
+    }
+  }
+
+  // Active localized product description & hero tagline
+  const activeDescription = isRtl
+    ? (product.description_ar || product.description || '')
+    : (product.description || product.description_ar || '');
+  const heroTagline = activeDescription ? activeDescription.split('\n')[0] : '';
+
 
   // Category badge label
   const categoryLabel = product.category_slug === 'digital-products' || product.category_type === 'digital_product'
@@ -449,9 +456,11 @@ export default function ServiceDetails() {
               </h1>
 
               {/* Tagline / Subtitle */}
-              <p className="text-slate-300 text-sm md:text-base font-normal leading-relaxed">
-                {isRtl ? (product.description_ar || product.description) : product.description}
-              </p>
+              {heroTagline && (
+                <p className="text-slate-300 text-sm md:text-base font-normal leading-relaxed line-clamp-2">
+                  {heroTagline}
+                </p>
+              )}
 
               {/* Rating Row: ★ 4.9 (124 reviews) */}
               <div className="flex items-center gap-2 pt-1">
@@ -569,46 +578,45 @@ export default function ServiceDetails() {
           </div>
         </div>
 
-        {/* Bottom Section: Product Description & What's Included (Clean White Container) */}
+        {/* Bottom Section: Product Description & What's Included */}
         <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 md:p-10 shadow-sm mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Left Column: Product Description & What's Included */}
             <div className="lg:col-span-8 space-y-8">
               {/* Product Description */}
-              <div className="space-y-3">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {tr("Product Description", "Product Description")}
-                </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                  {isRtl ? (product.description_ar || product.description) : product.description}
-                  {" "}
-                  {tr(
-                    "Google One AI Premium brings together the best of Google's AI tools and cloud services in one powerful subscription. Get access to Gemini, Flow, Veo, NotebookLM and more, plus 5TB of cloud storage for your files, photos, and emails.",
-                    "Google One AI Premium brings together the best of Google's AI tools and cloud services in one powerful subscription. Get access to Gemini, Flow, Veo, NotebookLM and more, plus 5TB of cloud storage for your files, photos, and emails."
-                  )}
-                </p>
-              </div>
+              {activeDescription && (
+                <div className="space-y-3">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    {tr("Product Description", "وصف المنتج")}
+                  </h2>
+                  <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal whitespace-pre-line">
+                    {activeDescription}
+                  </div>
+                </div>
+              )}
 
               {/* What's included */}
-              <div className="space-y-4 pt-2">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  {tr("What's included:", "What's included:")}
-                </h3>
-                <div className="space-y-3">
-                  {featuresList.map((feat: any, idx: number) => {
-                    const text = typeof feat === 'string' ? feat : (isRtl ? feat.ar || feat.en : feat.en);
-                    return (
-                      <div key={idx} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 font-medium">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <span>{text}</span>
-                      </div>
-                    );
-                  })}
+              {featuresList && featuresList.length > 0 && (
+                <div className="space-y-4 pt-2">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    {tr("What's included:", "ما الذي تتضمنه الخدمة:")}
+                  </h3>
+                  <div className="space-y-3">
+                    {featuresList.map((feat: any, idx: number) => {
+                      const text = typeof feat === 'string' ? feat : (isRtl ? feat.ar || feat.en : feat.en || feat.ar);
+                      return (
+                        <div key={idx} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 font-medium">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{text}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Right Column: Activation Info, Support & Storage Cards */}
+            {/* Right Column: Activation Info, Support & Guarantee Cards */}
             <div className="lg:col-span-4 space-y-4">
               {/* Activation Information Card */}
               <div className="rounded-2xl p-5 border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 space-y-2">
@@ -616,12 +624,12 @@ export default function ServiceDetails() {
                   <div className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                     <Lock className="h-3.5 w-3.5" />
                   </div>
-                  <span>{tr("Activation Information", "Activation Information")}</span>
+                  <span>{tr("Activation Information", "معلومات التفعيل")}</span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-normal">
                   {tr(
                     "You need to provide a valid email address during checkout for activation.",
-                    "You need to provide a valid email address during checkout for activation."
+                    "يرجى التأكد من كتابة بريد إلكتروني صحيح وصالح عند إتمام الطلب لتلقي بيانات التفعيل."
                   )}
                 </p>
               </div>
@@ -632,7 +640,7 @@ export default function ServiceDetails() {
                   <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                     <MessageCircle className="h-3.5 w-3.5" />
                   </div>
-                  <span>{tr("Support", "Support")}</span>
+                  <span>{tr("Support", "الدعم والمساعدة")}</span>
                 </div>
                 <a
                   href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`مرحباً، أود الاستفسار عن خدمة: ${product.name}`)}`}
@@ -643,22 +651,21 @@ export default function ServiceDetails() {
                   <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
                     <MessageCircle className="h-3 w-3 fill-current" />
                   </div>
-                  <span>{tr("Contact us via WhatsApp if you face any issue.", "Contact us via WhatsApp if you face any issue.")}</span>
+                  <span>{tr("Contact us via WhatsApp if you face any issue.", "تواصل معنا عبر واتساب للمساعدة الفورية")}</span>
                 </a>
               </div>
 
-              {/* Feature Highlight / Included Storage Mint Card */}
-              <div className="rounded-2xl p-5 border border-emerald-200/70 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-200 space-y-1 shadow-sm">
-                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-semibold text-xs">
-                  <Cloud className="h-4 w-4" />
-                  <span>{tr("Included Storage", "Included Storage")}</span>
+              {/* Delivery Info & Guarantee Card */}
+              <div className="rounded-2xl p-5 border border-indigo-200/70 dark:border-indigo-800/40 bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-950 dark:text-indigo-200 space-y-1.5 shadow-sm">
+                <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-semibold text-xs">
+                  <Sparkles className="h-4 w-4" />
+                  <span>{tr("Delivery & Guarantee", "طريقة التسليم والضمان")}</span>
                 </div>
-                <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 pt-1">
-                  5TB
-                </div>
-                <div className="text-xs text-emerald-700/80 dark:text-emerald-300/80 font-normal">
-                  Gmail • Drive • Photos
-                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                  {isRtl
+                    ? (product.delivery_info_ar || product.delivery_info || "تسليم رسمي ومضمون طوال فترة الاشتراك مع دعم فني متواصل.")
+                    : (product.delivery_info || product.delivery_info_ar || "Official and guaranteed access with continuous technical support throughout the subscription period.")}
+                </p>
               </div>
             </div>
           </div>
