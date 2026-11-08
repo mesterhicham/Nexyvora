@@ -31,7 +31,8 @@ import {
   Clock,
   Flame,
   ArrowUpCircle,
-  Tag
+  Tag,
+  Users
 } from 'lucide-react';
 import {
   Dialog,
