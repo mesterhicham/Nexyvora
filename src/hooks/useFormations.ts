@@ -37,6 +37,14 @@ export interface FormationContent {
   order_index: number;
   quiz_id: string | null;
   created_at: string;
+  /** Lesson presentation (migration 32) */
+  thumbnail_url?: string | null;
+  description?: string | null;
+  resources?: Array<{ title: string; url: string }>;
+  /** Computed by the server for the requesting member */
+  locked?: boolean;
+  completed?: boolean;
+  watched_seconds?: number;
 }
 
 export interface FormationEnrollment {
@@ -53,6 +61,10 @@ export interface FormationEnrollment {
   completed_contents?: number;
   is_completed?: boolean;
   progress_percent?: number;
+  package_name?: string | null;
+  package_name_ar?: string | null;
+  package_level?: number | null;
+  access_source?: 'purchase' | 'package';
 }
 
 export interface FormationPayment {
@@ -310,6 +322,10 @@ export function useUpdateProgress() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['formation-progress', variables.enrollmentId] });
       queryClient.invalidateQueries({ queryKey: ['formation-enrollments'] });
+      // Lock / completion states are computed by the server: refresh them when a lesson completes
+      if (variables?.completed) {
+        queryClient.invalidateQueries({ queryKey: ['formation-content'] });
+      }
     },
   });
 }
@@ -328,5 +344,12 @@ export function useSubmitFormationPayment() {
     onError: (error: Error) => {
       toast.error(error.message);
     },
+  });
+}
+
+// Ask the server whether the certificate can be issued (all lessons completed)
+export function useClaimCertificate() {
+  return useMutation({
+    mutationFn: (enrollmentId: string) => formationService.claimCertificate(enrollmentId),
   });
 }

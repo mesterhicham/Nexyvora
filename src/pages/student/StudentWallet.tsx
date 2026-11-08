@@ -1,3 +1,4 @@
+import { SecureLink } from '@/components/common/SecureFile';
 import { useState, useEffect, useRef } from 'react';
 import { tr } from '@/utils/tr';
 import { Link } from 'react-router-dom';
@@ -92,6 +93,8 @@ export default function StudentWallet() {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('nowpayments_crypto');
   const [paymentDetails, setPaymentDetails] = useState('');
+  const [walletPin, setWalletPin] = useState('');
+  const [walletPinConfirm, setWalletPinConfirm] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [payoutSettings, setPayoutSettings] = useState<any>(null);
 
@@ -142,7 +145,9 @@ export default function StudentWallet() {
             setIsDepositOpen(false);
           }
         }
-      } catch (err) {}
+      } catch {
+        // Polling is best effort: the next tick retries.
+      }
     }, 7000);
 
     return () => {
@@ -254,58 +259,6 @@ export default function StudentWallet() {
     }
   };
 
-  const defaultFallbackMethods = [
-    {
-      id: 'nowpayments_crypto',
-      name: 'NOWPayments.io — USDT (BEP20)',
-      name_ar: 'NOWPayments.io — USDT (BEP20)',
-      type: 'nowpayments_crypto',
-      provider: 'nowpayments',
-      crypto_currency: 'USDT_BEP20',
-      crypto_network: 'BEP20',
-      crypto_wallet_address: '0x1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B',
-      instructions_ar: 'يرجى إرسال مبلغ USDT المطلوب عبر شبكة BNB Smart Chain (BEP20) إلى العنوان أعلاه، ثم نسخ رمز المعاملة TxID لتأكيد الشحن فوراً.',
-      instructions: 'Send the exact USDT amount via BNB Smart Chain (BEP20) to the address above, then submit your TxID.',
-      require_receipt: true,
-      enabled_for_deposit: true,
-      enabled_for_withdrawal: true,
-      min_deposit: 10,
-      min_withdrawal: 20
-    },
-    {
-      id: 'bank_transfer',
-      name: 'Bank Transfer / Manuel Payment',
-      name_ar: 'تحويل بنكي / دفع يدوي',
-      type: 'bank_transfer',
-      provider: 'manual',
-      bank_name: 'Nexyvora International Bank',
-      account_holder: 'NEXYVORA ACADEMY',
-      account_number: 'DZ5200001000123456789012',
-      swift_code: 'NXTVUS33',
-      instructions_ar: 'يرجى تحويل المبلغ المطلوب إلى الحساب البنكي أعلاه وإرفاق صورة أو وصل التحويل مع رقم العملية لتسريع التفعيل.',
-      instructions: 'Please transfer to the bank account above and upload the receipt with the transaction reference.',
-      require_receipt: true,
-      enabled_for_deposit: true,
-      enabled_for_withdrawal: true,
-      min_deposit: 20,
-      min_withdrawal: 50
-    },
-    {
-      id: 'card_gateway',
-      name: 'Credit / Debit Card (Online Gateway)',
-      name_ar: 'بطاقة بنكية إلكترونية (Visa / Mastercard)',
-      type: 'card_gateway',
-      provider: 'stripe',
-      instructions_ar: 'دفع إلكتروني فوري وآمن بالبطاقة البنكية الدولية (Visa / Mastercard).',
-      instructions: 'Instant and secure online card payment via Visa or Mastercard.',
-      require_receipt: false,
-      enabled_for_deposit: true,
-      enabled_for_withdrawal: true,
-      min_deposit: 10,
-      min_withdrawal: 50
-    }
-  ];
-
   const getMethodIcon = (type: string, provider?: string) => {
     if (type === 'nowpayments_crypto' || provider === 'nowpayments') return Coins;
     if (type === 'bank_transfer' || provider === 'manual') return Building2;
@@ -313,7 +266,9 @@ export default function StudentWallet() {
     return DollarSign;
   };
 
-  const effectiveMethods = availableMethods.length > 0 ? availableMethods : defaultFallbackMethods;
+  // Only methods allowed by the admin "Country Currency" rules of the member's country.
+  // Never fall back to hardcoded methods: that showed fake accounts and USDT to restricted countries.
+  const effectiveMethods = availableMethods;
   const depositMethodsList = effectiveMethods.filter((m: any) => m.enabled_for_deposit);
   const withdrawMethodsList = effectiveMethods.filter((m: any) => m.enabled_for_withdrawal);
 
@@ -344,18 +299,33 @@ export default function StudentWallet() {
         : t('wallet.accountDetails', tr("يرجى كتابة تفاصيل الحساب أو عنوان محفظة USDT", "Please provide account details or USDT wallet address")));
     }
 
+    const hasWalletPin = !!walletData?.hasWalletPin;
+    if (!/^\d{4,6}$/.test(walletPin)) {
+      return toast.error(tr("رمز PIN يجب أن يتكون من 4 إلى 6 أرقام", "Wallet PIN must be 4 to 6 digits"));
+    }
+    if (!hasWalletPin && walletPin !== walletPinConfirm) {
+      return toast.error(tr("رمزا PIN غير متطابقين", "The two PIN entries do not match"));
+    }
+
     try {
       setSubmitting(true);
+      if (!hasWalletPin) {
+        await affiliateService.setWalletPin({ pin: walletPin });
+        setWalletData((prev: any) => (prev ? { ...prev, hasWalletPin: true } : prev));
+      }
       const methodLabel = selectedWithdrawMethod ? (isRtl ? (selectedWithdrawMethod.name_ar || selectedWithdrawMethod.name) : (selectedWithdrawMethod.name || selectedWithdrawMethod.name_ar)) : paymentMethod;
       const res = await affiliateService.requestWithdrawal({
         amount: amt,
         paymentMethod: methodLabel,
-        paymentDetails
+        paymentDetails,
+        walletPin
       });
       toast.success(res.message || t('common.success', tr("تم تقديم طلب السحب بنجاح", "Withdrawal request submitted successfully")));
       setIsWithdrawOpen(false);
       setWithdrawAmount('');
       setPaymentDetails('');
+      setWalletPin('');
+      setWalletPinConfirm('');
       loadData();
     } catch (err: any) {
       toast.error(err.response?.data?.error || t('common.error', tr("فشل تقديم طلب السحب", "Failed to submit withdrawal request")));
@@ -374,7 +344,7 @@ export default function StudentWallet() {
 
     try {
       setUploadingReceipt(true);
-      const res = await uploadService.uploadFile(file);
+      const res = await uploadService.uploadFile(file, undefined, { isPrivate: true });
       const url = res.url || res.fileUrl || res.path || (res.filename ? `/uploads/${res.filename}` : '');
       if (url) {
         setDepositReceiptUrl(url);
@@ -418,6 +388,7 @@ export default function StudentWallet() {
       const res = await affiliateService.requestDeposit({
         amount: amt,
         paymentMethod: isCrypto ? 'nowpayments_crypto' : methodLabel,
+        paymentMethodId: selectedDepositMethod?.id,
         paymentReference: depositReference.trim() || undefined,
         receiptUrl: depositReceiptUrl.trim() || undefined,
         notes: depositNotes.trim() || undefined
@@ -871,7 +842,7 @@ export default function StudentWallet() {
                                 </button>
                               )}
                               {meta.receiptUrl && (
-                                <a
+                                <SecureLink
                                   href={meta.receiptUrl}
                                   target="_blank"
                                   rel="noreferrer"
@@ -879,7 +850,7 @@ export default function StudentWallet() {
                                 >
                                   <ExternalLink className="h-3 w-3" />
                                   {t('wallet.viewReceipt', tr("وصل التحويل", "Receipt"))}
-                                </a>
+                                </SecureLink>
                               )}
                             </td>
                             <td className="p-4 text-slate-500 text-[11px] max-w-xs truncate">
@@ -1078,6 +1049,11 @@ export default function StudentWallet() {
                 <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
                   {t('wallet.paymentMethod', tr("وسيلة الدفع والشحن", "Payment & Deposit Method"))}
                 </Label>
+                {!loading && depositMethodsList.length === 0 && (
+                  <p className="text-[11px] text-amber-600 font-medium">
+                    {tr("لا توجد وسيلة إيداع متاحة لبلدك حالياً. يرجى التواصل مع الدعم.", "No deposit method is currently available for your country. Please contact support.")}
+                  </p>
+                )}
                 <div className="grid grid-cols-2 gap-1.5">
                   {depositMethodsList.map((m: any) => {
                     const Icon = getMethodIcon(m.type, m.provider);
@@ -1419,7 +1395,7 @@ export default function StudentWallet() {
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">
-                              <a
+                              <SecureLink
                                 href={depositReceiptUrl}
                                 target="_blank"
                                 rel="noreferrer"
@@ -1427,7 +1403,7 @@ export default function StudentWallet() {
                               >
                                 <ExternalLink className="h-3 w-3" />
                                 {t('wallet.viewReceipt', tr("معاينة", "View"))}
-                              </a>
+                              </SecureLink>
                               <Button
                                 type="button"
                                 size="sm"
@@ -1670,6 +1646,50 @@ export default function StudentWallet() {
                 {selectedWithdrawMethod?.type === 'nowpayments_crypto' && (
                   <p className="text-[10px] text-amber-600 font-medium">
                     {tr("⚠️ يرجى التأكد أن العنوان على شبكة BNB Smart Chain (BEP20) لاستلام أرباحك مباشرة وبأمان.", "⚠️ Please make sure the address is on BNB Smart Chain (BEP20) to receive your funds safely.")}
+                  </p>
+                )}
+              </div>
+
+              {/* Wallet PIN (created on first withdrawal, required for every withdrawal) */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                  {walletData?.hasWalletPin
+                    ? tr("رمز PIN للمحفظة", "Wallet PIN")
+                    : tr("أنشئ رمز PIN للمحفظة (4 إلى 6 أرقام)", "Create your wallet PIN (4-6 digits)")}
+                </Label>
+                <div className={`grid gap-1.5 ${walletData?.hasWalletPin ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                  <Input
+                    type="password"
+                    inputMode="numeric"
+                    autoComplete={walletData?.hasWalletPin ? 'current-password' : 'new-password'}
+                    maxLength={6}
+                    placeholder="••••"
+                    value={walletPin}
+                    onChange={(e) => setWalletPin(e.target.value.replace(/\D/g, ''))}
+                    className="rounded-xl text-xs h-9 font-mono tracking-[0.3em]"
+                  />
+                  {!walletData?.hasWalletPin && (
+                    <Input
+                      type="password"
+                      inputMode="numeric"
+                      autoComplete="new-password"
+                      maxLength={6}
+                      placeholder={tr("تأكيد الرمز", "Confirm PIN")}
+                      value={walletPinConfirm}
+                      onChange={(e) => setWalletPinConfirm(e.target.value.replace(/\D/g, ''))}
+                      className="rounded-xl text-xs h-9 font-mono tracking-[0.3em]"
+                    />
+                  )}
+                </div>
+                {walletData?.walletPinLockedUntil && (
+                  <p className="text-[10px] text-red-600 font-medium">
+                    {tr("رمز PIN مقفل مؤقتاً بسبب محاولات خاطئة. حاول لاحقاً أو تواصل مع الدعم.", "Wallet PIN is temporarily locked after failed attempts. Try later or contact support.")}
+                  </p>
+                )}
+                {!walletData?.hasWalletPin && (
+                  <p className="text-[10px] text-slate-500">
+                    {tr("سيُطلب هذا الرمز في كل عملية سحب. لا تشاركه مع أي شخص، ولا تستطيع الإدارة رؤيته.", "This PIN will be required for every withdrawal. Never share it; administrators cannot see it.")}
                   </p>
                 )}
               </div>

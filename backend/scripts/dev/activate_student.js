@@ -1,4 +1,4 @@
-const db = require('./config/db');
+const db = require('../../config/db');
 const crypto = require('crypto');
 
 async function seed() {

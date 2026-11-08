@@ -7,6 +7,15 @@ const generateUUID = () => {
     return crypto.randomUUID();
 };
 
+// The seed deletes and recreates the admin account: never allow it on production by accident.
+if (process.env.NODE_ENV === 'production' && !process.argv.includes('--force')) {
+    console.error('Refusing to seed a production database. Re-run with --force if you really mean it.');
+    process.exit(1);
+}
+
+// Use SEED_ADMIN_PASSWORD when provided, otherwise generate a strong random password.
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || crypto.randomBytes(12).toString('base64url');
+
 async function seed() {
     try {
         console.log('Seeding initial data...');
@@ -18,7 +27,7 @@ async function seed() {
 
         // 1. Create Admin User
         const adminId = generateUUID();
-        const hashedPassword = await bcrypt.hash('Admin123!', 10);
+        const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 12);
 
         await pool.query(
             'INSERT INTO users (id, email, password, role) VALUES (?, ?, ?, ?)',
@@ -68,7 +77,10 @@ async function seed() {
         }
 
         console.log('Seeding completed successfully.');
-        console.log('Admin credentials: admin@academy.com / Admin123!');
+        console.log('Admin account: admin@academy.com');
+        if (!process.env.SEED_ADMIN_PASSWORD) {
+            console.log(`Generated admin password (shown once, store it safely): ${ADMIN_PASSWORD}`);
+        }
         process.exit(0);
     } catch (err) {
         console.error('Seeding failed:', err.message);

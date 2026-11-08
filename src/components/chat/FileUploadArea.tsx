@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Paperclip, X, Image, FileText, File, Loader2 } from 'lucide-react';
+import { Paperclip, X, Image, FileText, File, Loader2, Video } from 'lucide-react';
 
 interface FileUploadAreaProps {
   onFileSelect: (file: File) => void;

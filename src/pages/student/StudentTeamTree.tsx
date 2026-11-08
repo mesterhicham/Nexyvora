@@ -476,7 +476,7 @@ export default function StudentTeamTree() {
     toast.success(tr("تم نسخ كود الإحالة بنجاح", "Affiliate code copied"));
   };
 
-  const affiliateCode = rootNode?.affiliate_code || user?.affiliate_code || 'NV------';
+  const affiliateCode = rootNode?.affiliate_code || user?.affiliateCode || 'NV------';
   const referralLink = `${window.location.origin}/auth?ref=${affiliateCode}`;
 
   return (

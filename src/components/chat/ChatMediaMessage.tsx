@@ -1,3 +1,4 @@
+import { safeUrl } from '@/lib/secureFiles';
 import { cn } from '@/lib/utils';
 import { Play, Pause, Volume2, Download, Maximize2, FileText, Music, Film, ExternalLink } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
@@ -89,7 +90,7 @@ export function ChatMediaMessage({ url, type, isOwn }: ChatMediaMessageProps) {
             فيديو / Video
           </span>
           <a
-            href={url}
+            href={safeUrl(url)}
             target="_blank"
             rel="noopener noreferrer"
             download
@@ -188,7 +189,7 @@ export function ChatMediaMessage({ url, type, isOwn }: ChatMediaMessageProps) {
               <Maximize2 className="w-4 h-4" />
             </span>
             <a
-              href={url}
+              href={safeUrl(url)}
               target="_blank"
               rel="noopener noreferrer"
               download
@@ -205,7 +206,7 @@ export function ChatMediaMessage({ url, type, isOwn }: ChatMediaMessageProps) {
           <DialogContent className="max-w-4xl p-2 bg-black/95 border-none text-white flex flex-col items-center">
             <div className="w-full flex justify-end gap-2 p-2">
               <a
-                href={url}
+                href={safeUrl(url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 download
@@ -214,7 +215,7 @@ export function ChatMediaMessage({ url, type, isOwn }: ChatMediaMessageProps) {
                 <Download className="w-4 h-4" /> تحميل الصورة
               </a>
               <a
-                href={url}
+                href={safeUrl(url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center gap-1.5 text-xs"
@@ -238,7 +239,7 @@ export function ChatMediaMessage({ url, type, isOwn }: ChatMediaMessageProps) {
 
   return (
     <a
-      href={url}
+      href={safeUrl(url)}
       target="_blank"
       rel="noopener noreferrer"
       download

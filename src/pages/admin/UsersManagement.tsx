@@ -65,7 +65,6 @@ interface EnrichedUser {
   city: string;
   country: string;
   affiliate_code: string;
-  wallet_pin?: string;
   custom_unlocked_generations?: number | null;
   created_at: string;
   avatar_url?: string | null;
@@ -89,7 +88,7 @@ interface EnrichedUser {
 
 export default function UsersManagement() {
   const navigate = useNavigate();
-  const { session, impersonateUser } = useAuth();
+  const { impersonateUser } = useAuth();
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
 
@@ -117,7 +116,7 @@ export default function UsersManagement() {
     email: '',
     username: '',
     password: '',
-    wallet_pin: '',
+    reset_wallet_pin: false,
     custom_unlocked_generations: 'default',
     package_id: 'none',
     status: 'active',
@@ -176,7 +175,7 @@ export default function UsersManagement() {
       email: u.email || '',
       username: u.username || '',
       password: '',
-      wallet_pin: u.wallet_pin || '',
+      reset_wallet_pin: false,
       custom_unlocked_generations: u.custom_unlocked_generations !== undefined && u.custom_unlocked_generations !== null
         ? String(u.custom_unlocked_generations)
         : 'default',
@@ -194,7 +193,7 @@ export default function UsersManagement() {
         email: editForm.email,
         username: editForm.username,
         password: editForm.password || undefined,
-        wallet_pin: editForm.wallet_pin || undefined,
+        reset_wallet_pin: editForm.reset_wallet_pin || undefined,
         custom_unlocked_generations: editForm.custom_unlocked_generations === 'default'
           ? null
           : parseInt(editForm.custom_unlocked_generations, 10),
@@ -236,7 +235,7 @@ export default function UsersManagement() {
       setAdjusting(true);
       await adminAffiliateService.adjustWalletBalance({
         userId: adjustUser.id,
-        type: adjustForm.type,
+        action: adjustForm.type,
         amount: numAmount,
         note: adjustForm.note || (adjustForm.type === 'credit' 
           ? (tr("تعديل رصيد يدوي (إيداع)", "Manual balance adjustment (Credit)")) 
@@ -843,20 +842,26 @@ export default function UsersManagement() {
                 />
               </div>
 
-              {/* New Wallet PIN */}
+              {/* Wallet PIN reset: admins never see or choose a user's PIN */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                   <Lock className="h-3.5 w-3.5 text-slate-400" />
-                  New Wallet PIN
+                  {tr("رمز PIN للمحفظة", "Wallet PIN")}
                 </Label>
-                <Input
-                  type="text"
-                  maxLength={6}
-                  placeholder="Leave empty to keep current PIN (4-6 digits)"
-                  value={editForm.wallet_pin}
-                  onChange={(e) => setEditForm({ ...editForm, wallet_pin: e.target.value })}
-                  className="rounded-2xl border-slate-200 dark:border-slate-800 text-xs py-2 font-mono"
-                />
+                <label className="flex items-start gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 p-2.5 text-xs cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-3.5 w-3.5 accent-red-600"
+                    checked={editForm.reset_wallet_pin}
+                    onChange={(e) => setEditForm({ ...editForm, reset_wallet_pin: e.target.checked })}
+                  />
+                  <span className="text-slate-600 dark:text-slate-300">
+                    {tr(
+                      "إعادة تعيين رمز PIN. سيُطلب من المستخدم إنشاء رمز جديد عند أول سحب.",
+                      "Reset the wallet PIN. The user will create a new one on their next withdrawal."
+                    )}
+                  </span>
+                </label>
               </div>
 
               {/* Package Select */}

@@ -356,6 +356,9 @@ CREATE TABLE `formation_content` (
   `duration_seconds` int(11) DEFAULT NULL,
   `order_index` int(11) DEFAULT '0',
   `quiz_id` varchar(36) DEFAULT NULL,
+  `thumbnail_url` text,
+  `description` text,
+  `resources` text,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `formation_id` (`formation_id`),
@@ -485,6 +488,8 @@ CREATE TABLE `formations` (
   `currency` varchar(10) DEFAULT 'USD',
   `thumbnail_url` text,
   `is_published` tinyint(1) DEFAULT '0',
+  `package_id` varchar(36) DEFAULT NULL,
+  `teacher_id` varchar(36) DEFAULT NULL,
   `created_by` varchar(36) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -750,6 +755,10 @@ CREATE TABLE `packages` (
   `name_ar` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `slug` varchar(100) NOT NULL,
   `price` decimal(10,2) NOT NULL,
+  `promo_price` decimal(10,2) DEFAULT NULL,
+  `promo_start_at` datetime DEFAULT NULL,
+  `promo_end_at` datetime DEFAULT NULL,
+  `is_promo_active` tinyint(1) DEFAULT '0',
   `level` int(11) NOT NULL,
   `unlocked_generations` int(11) NOT NULL DEFAULT '1',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -1223,6 +1232,10 @@ CREATE TABLE `users` (
   `kyc_status` enum('unverified','pending','verified','rejected') DEFAULT 'unverified',
   `password` varchar(255) NOT NULL,
   `wallet_pin` varchar(20) DEFAULT NULL,
+  `wallet_pin_hash` varchar(100) DEFAULT NULL,
+  `wallet_pin_failed_attempts` int NOT NULL DEFAULT '0',
+  `wallet_pin_locked_until` datetime DEFAULT NULL,
+  `custom_unlocked_generations` int DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -1231,6 +1244,24 @@ CREATE TABLE `users` (
   KEY `fk_users_referrer` (`referrer_id`),
   CONSTRAINT `fk_users_referrer` FOREIGN KEY (`referrer_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ------------------------------------------------------------
+-- Table: admin_audit_logs
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `admin_audit_logs` (
+  `id` varchar(36) NOT NULL,
+  `admin_id` varchar(36) NOT NULL,
+  `action` varchar(64) NOT NULL,
+  `target_user_id` varchar(36) DEFAULT NULL,
+  `ip_address` varchar(64) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `details` text,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_audit_admin` (`admin_id`),
+  KEY `idx_audit_target` (`target_user_id`),
+  KEY `idx_audit_action_date` (`action`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
 -- Table: verification_otps

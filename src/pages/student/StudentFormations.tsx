@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { tr } from '@/utils/tr';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -18,19 +18,16 @@ import {
   usePublishedFormations,
   useStudentEnrollments,
   useFormationContent,
-  useStudentProgress,
-  useUpdateProgress,
   useSubmitFormationPayment,
   Formation,
   FormationContent,
   FormationEnrollment,
 } from '@/hooks/useFormations';
-import { RestrictedVideoPlayer } from '@/components/formation/RestrictedVideoPlayer';
 import { FormationCertificate } from '@/components/formation/FormationCertificate';
 import { generateDiplomaPdf } from '@/utils/generateDiplomaPdf';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { packageService } from '@/services/apiService';
+import { packageService, formationService } from '@/services/apiService';
 import { AcademyLockedGate } from '@/components/academy/AcademyLockedGate';
 
 export default function StudentFormations() {
@@ -41,16 +38,13 @@ export default function StudentFormations() {
   const { data: enrollments } = useStudentEnrollments();
   
   const submitPayment = useSubmitFormationPayment();
-  const updateProgress = useUpdateProgress();
+  const navigate = useNavigate();
   const certificateRef = useRef<HTMLDivElement>(null);
 
   const [selectedFormation, setSelectedFormation] = useState<Formation | null>(null);
-  const [selectedEnrollment, setSelectedEnrollment] = useState<FormationEnrollment | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showWatchModal, setShowWatchModal] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [certificateData, setCertificateData] = useState<{ formationTitle: string; enrollmentId: string } | null>(null);
-  const [selectedContentIndex, setSelectedContentIndex] = useState(0);
   const [paymentData, setPaymentData] = useState({ method: 'bank_transfer', reference: '', notes: '' });
   const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
   const [userPackage, setUserPackage] = useState<any>(null);
@@ -67,8 +61,6 @@ export default function StudentFormations() {
       .finally(() => setPkgLoading(false));
   }, []);
 
-  const { data: formationContent } = useFormationContent(selectedEnrollment?.formation_id);
-  const { data: progress } = useStudentProgress(selectedEnrollment?.id);
 
   // Get enrolled formation IDs
   const enrolledFormationIds = useMemo(() => 
@@ -111,44 +103,9 @@ export default function StudentFormations() {
     setPaymentData({ method: 'bank_transfer', reference: '', notes: '' });
   };
 
-  const openWatchModal = (enrollment: FormationEnrollment) => {
-    setSelectedEnrollment(enrollment);
-    setSelectedContentIndex(0);
-    setShowWatchModal(true);
-  };
-
-  // Check if content is unlocked
-  const isContentUnlocked = (contentIndex: number) => {
-    if (contentIndex === 0) return true;
-    if (!formationContent || !progress) return false;
-    
-    const previousContent = formationContent[contentIndex - 1];
-    if (!previousContent) return true;
-    
-    const previousProgress = progress.find(p => p.content_id === previousContent.id);
-    return previousProgress?.completed || false;
-  };
-
-  const currentContent = formationContent?.[selectedContentIndex];
-  const currentProgress = progress?.find(p => p.content_id === currentContent?.id);
-
-  const handleVideoProgress = (seconds: number) => {
-    if (!selectedEnrollment || !currentContent) return;
-    updateProgress.mutate({
-      enrollmentId: selectedEnrollment.id,
-      contentId: currentContent.id,
-      watchedSeconds: seconds,
-    });
-  };
-
-  const handleVideoComplete = () => {
-    if (!selectedEnrollment || !currentContent) return;
-    updateProgress.mutate({
-      enrollmentId: selectedEnrollment.id,
-      contentId: currentContent.id,
-      watchedSeconds: currentContent.duration_seconds || 0,
-      completed: true,
-    });
+  // Lessons are watched on the dedicated Academy watch page
+  const openWatchPage = (enrollment: FormationEnrollment) => {
+    navigate(`/student/formations/${enrollment.id}/watch`);
   };
 
   const handleDownloadCertificate = async (enrollment: FormationEnrollment) => {
@@ -163,6 +120,13 @@ export default function StudentFormations() {
           `You cannot obtain the certificate until after completing 100% of the training course (${completed}/${total} completed).`
         )
       );
+      return;
+    }
+
+    try {
+      await formationService.claimCertificate(enrollment.id);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || tr("الشهادة غير متاحة بعد", "Certificate not available yet"));
       return;
     }
 
@@ -202,11 +166,11 @@ export default function StudentFormations() {
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           <span className="text-xs font-semibold">{tr("جاري التحقق من صلاحية الباقة...", "Checking package access...")}</span>
         </div>
-      ) : !userPackage || Number(userPackage.level) < 2 ? (
+      ) : !userPackage ? (
         <AcademyLockedGate 
           pendingPackage={pendingPackage} 
           userPackage={userPackage} 
-          reason={userPackage ? 'upgrade_required' : 'no_package'} 
+          reason="no_package" 
         />
       ) : (
         <>
@@ -216,14 +180,14 @@ export default function StudentFormations() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white">
-                CORE $50 — {tr("الأساس", "Foundation")}
+                COMMUNITY $30 — {tr("عضوية المجتمع", "Community")}
               </span>
               <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
                 {tr("اشتراك العضوية وتفعيل الأرباح", "Active Membership")}
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              {tr("باقتك الحالية تتيح لك مشاهدة الفيديوهات التعريفية بالمشروع وتفعيل رابط الإحالة. لفتح دورات المستوى 1 (التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي)، قم بالترقية إلى باقة FLOW بفارق السعر فقط ($100).", "Your current package grants access to project orientation videos and activates referral earnings. Upgrade to FLOW ($150) to unlock Level 1 (E-Commerce & Digital Business).")}
+              {tr("دورات باقة المجتمع مفعلة في حسابك. لفتح دورات المستوى 1 (التجارة الإلكترونية والبيزنس الرقمي بالذكاء الاصطناعي)، قم بالترقية إلى باقة FLOW.", "Your Community courses are unlocked. Upgrade to FLOW ($150) to unlock Level 1 (E-Commerce & Digital Business).")}
             </p>
           </div>
           <Link to="/student/packages" className="shrink-0">
@@ -311,7 +275,8 @@ export default function StudentFormations() {
               const isPending = pendingEnrollments.some(e => e.formation_id === formation.id);
               const userLevel = userPackage ? Number(userPackage.level) : 0;
               const formationLevel = formation.package_level != null ? Number(formation.package_level) : null;
-              const isCoveredByPackage = formationLevel !== null && userLevel >= formationLevel;
+              // The server decides coverage (admin "Assign Courses"): covered courses come back as enrollments
+              const isCoveredByPackage = !!enrolled;
               const isHigherPackage = formationLevel !== null && userLevel < formationLevel;
 
               return (
@@ -356,21 +321,7 @@ export default function StudentFormations() {
                         </div>
                         <Button 
                           className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold shadow-xs"
-                          onClick={() => {
-                            if (enrolled) {
-                              openWatchModal(enrolled);
-                            } else {
-                              openWatchModal({
-                                id: formation.id,
-                                formation_id: formation.id,
-                                student_id: user?.id || '',
-                                payment_status: 'approved',
-                                payment_id: null,
-                                enrolled_at: new Date().toISOString(),
-                                formation_title: formation.title,
-                              });
-                            }
-                          }}
+                          onClick={() => enrolled && openWatchPage(enrolled)}
                         >
                           <Play className="h-4 w-4 rtl:rotate-180" />
                           {tr("مشاهدة الدورة", "Watch Now")}
@@ -495,7 +446,7 @@ export default function StudentFormations() {
                     </div>
                   </CardContent>
                   <CardFooter className="flex gap-2 pt-2 border-t border-border/40">
-                    <Button className="flex-1 gap-2" onClick={() => openWatchModal(enrollment)}>
+                    <Button className="flex-1 gap-2" onClick={() => openWatchPage(enrollment)}>
                       <Play className="h-4 w-4 rtl:rotate-180" />
                       {isCompleted ? tr("مراجعة الدورة", "Review Course") : tr("متابعة", "Continue")}
                     </Button>
@@ -610,152 +561,6 @@ export default function StudentFormations() {
       </Dialog>
 
       {/* Watch Modal */}
-      <Dialog open={showWatchModal} onOpenChange={setShowWatchModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedEnrollment?.formation_title}</DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Video Player */}
-            <div className="lg:col-span-2">
-              {currentContent?.content_type === 'video' ? (
-                <RestrictedVideoPlayer
-                  src={currentContent.file_url}
-                  title={currentContent.title}
-                  duration={currentContent.duration_seconds || undefined}
-                  isLocked={!isContentUnlocked(selectedContentIndex)}
-                  initialProgress={currentProgress?.watched_seconds || 0}
-                  onProgress={handleVideoProgress}
-                  onComplete={handleVideoComplete}
-                />
-              ) : currentContent?.content_type === 'pdf' ? (
-                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                  {isContentUnlocked(selectedContentIndex) ? (
-                    <a 
-                      href={currentContent.file_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center gap-4 p-6 text-center"
-                    >
-                      <FileText className="h-16 w-16 text-primary" />
-                      <p className="font-medium">{currentContent.title}</p>
-                      <Button>{tr("فتح ملف PDF", "Open PDF")}</Button>
-                    </a>
-                  ) : (
-                    <div className="text-center p-6">
-                      <Lock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p>{tr("أكمل المحتوى السابق للفتح", "Complete the previous content to unlock")}</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                  <p className="text-muted-foreground">{tr("اختر محتوى من القائمة", "Select content from the list")}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Content List */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-border">
-                <h4 className="font-semibold text-sm">{tr("محتوى وقائمة دروس الدورة", "Course Curriculum")}</h4>
-                <span className="text-xs font-mono font-medium text-muted-foreground">
-                  {progress?.filter(p => p.completed).length || 0} / {formationContent?.length || 0} {tr("مكتمل", "completed")}
-                </span>
-              </div>
-              <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
-                {formationContent?.map((content, index) => {
-                  const isUnlocked = isContentUnlocked(index);
-                  const contentProgress = progress?.find(p => p.content_id === content.id);
-                  const isCompleted = contentProgress?.completed;
-
-                  return (
-                    <button
-                      key={content.id}
-                      onClick={() => isUnlocked && setSelectedContentIndex(index)}
-                      disabled={!isUnlocked}
-                      className={`w-full p-3 rounded-lg text-left rtl:text-right ltr:text-left transition-colors ${
-                        selectedContentIndex === index 
-                          ? 'bg-primary text-primary-foreground' 
-                          : isUnlocked 
-                            ? 'bg-muted hover:bg-muted/80' 
-                            : 'bg-muted/50 opacity-50 cursor-not-allowed'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {isCompleted ? (
-                          <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
-                        ) : content.content_type === 'video' ? (
-                          isUnlocked ? <Video className="h-5 w-5 shrink-0" /> : <Lock className="h-5 w-5 shrink-0" />
-                        ) : (
-                          isUnlocked ? <FileText className="h-5 w-5 shrink-0" /> : <Lock className="h-5 w-5 shrink-0" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{index + 1}. {content.title}</p>
-                          {content.duration_seconds && (
-                            <p className="text-xs opacity-70 font-mono">
-                              {Math.floor(content.duration_seconds / 60)}:{(content.duration_seconds % 60).toString().padStart(2, '0')}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Certificate Requirement & Claim Banner */}
-              {formationContent && formationContent.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-border">
-                  {(progress?.filter(p => p.completed).length || 0) >= formationContent.length ? (
-                    <div className="p-3.5 rounded-xl bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-teal-500/5 border border-emerald-500/30 text-center space-y-2">
-                      <div className="flex items-center justify-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300 text-xs">
-                        <Award className="h-4 w-4 text-amber-500" />
-                        {tr("تهانينا! لقد أتممت الدورة التكوينية بنجاح", "Congratulations! You completed the course")}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        {tr("يمكنك الآن الحصول على شهادة إتمام الدورة المعتمدة من منصة NEXYVORA.", "You can now claim your certified course completion certificate from NEXYVORA.")}
-                      </p>
-                      <Button
-                        size="sm"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold shadow-xs text-xs"
-                        onClick={() => {
-                          if (selectedEnrollment) {
-                            handleDownloadCertificate({
-                              ...selectedEnrollment,
-                              is_completed: true,
-                              total_contents: formationContent.length,
-                              completed_contents: formationContent.length
-                            });
-                          }
-                        }}
-                      >
-                        <Award className="h-4 w-4" />
-                        {tr("الحصول على الشهادة المعتمدة الآن", "Claim Your Certificate Now")}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-1">
-                      <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
-                        <Lock className="h-3.5 w-3.5 shrink-0" />
-                        <span>{tr("شرط الحصول على الشهادة:", "Certificate Requirement:")}</span>
-                      </div>
-                      <p className="text-muted-foreground text-[11px] leading-relaxed">
-                        {tr(
-                          `لا يمكن الحصول على الشهادة إلا بعد الإنتهاء من جميع دروس ومحتويات الدورة التكوينية (متبقي ${formationContent.length - (progress?.filter(p => p.completed).length || 0)} درس).`,
-                          `You can only obtain the certificate after completing all lessons (${formationContent.length - (progress?.filter(p => p.completed).length || 0)} lessons remaining).`
-                        )}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Certificate Modal */}
       <Dialog open={showCertificateModal} onOpenChange={setShowCertificateModal}>
         <DialogContent className="max-w-4xl">

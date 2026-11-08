@@ -1,3 +1,4 @@
+import { SecureImage, SecureLink } from '@/components/common/SecureFile';
 import { useState, useEffect, useMemo } from 'react';
 import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
@@ -570,7 +571,7 @@ export default function PaymentsManagement() {
                                 onClick={() => setReceiptModalUrl(payment.receipt_url)}
                                 className="cursor-pointer"
                               >
-                                <img 
+                                <SecureImage 
                                   src={payment.receipt_url} 
                                   alt="Payment receipt" 
                                   className="max-w-[150px] max-h-[100px] object-cover rounded border hover:opacity-80 transition-opacity"
@@ -1237,7 +1238,7 @@ export default function PaymentsManagement() {
                   className="border rounded-lg overflow-hidden bg-muted/20 p-2 cursor-pointer max-w-[240px] group relative hover:border-primary transition-colors"
                   onClick={() => setReceiptModalUrl(selectedPayment.receipt_url)}
                 >
-                  <img 
+                  <SecureImage 
                     src={selectedPayment.receipt_url} 
                     alt="Receipt preview" 
                     className="w-full max-h-36 object-contain rounded"
@@ -1340,7 +1341,7 @@ export default function PaymentsManagement() {
                       className="border-2 border-border/80 hover:border-primary rounded-xl overflow-hidden bg-muted/20 p-2 cursor-pointer transition-all group relative max-w-sm"
                       onClick={() => setReceiptModalUrl(selectedPayment.receipt_url)}
                     >
-                      <img 
+                      <SecureImage 
                         src={selectedPayment.receipt_url} 
                         alt="Payment receipt" 
                         className="w-full max-h-64 object-contain rounded-lg group-hover:scale-[1.01] transition-transform"
@@ -1361,7 +1362,7 @@ export default function PaymentsManagement() {
                         <Eye className="w-3.5 h-3.5" />
                         <span>{tr("معاينة مكبرة", "Preview Zoom")}</span>
                       </Button>
-                      <a
+                      <SecureLink
                         href={selectedPayment.receipt_url}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -1369,7 +1370,7 @@ export default function PaymentsManagement() {
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                         <span>{tr("فتح في نافذة جديدة", "Open in new tab")}</span>
-                      </a>
+                      </SecureLink>
                     </div>
                   </div>
                 ) : (
@@ -1410,19 +1411,19 @@ export default function PaymentsManagement() {
           </DialogHeader>
           {receiptModalUrl && (
             <div className="flex flex-col items-center gap-4">
-              <img 
+              <SecureImage 
                 src={receiptModalUrl} 
                 alt="Payment receipt" 
                 className="max-w-full max-h-[75vh] object-contain rounded"
               />
-              <a 
+              <SecureLink 
                 href={receiptModalUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-sm text-primary hover:underline"
               >
                 Open in new tab
-              </a>
+              </SecureLink>
             </div>
           )}
         </DialogContent>

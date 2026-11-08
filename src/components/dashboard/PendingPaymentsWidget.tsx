@@ -1,3 +1,4 @@
+import { SecureImage, SecureLink } from '@/components/common/SecureFile';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePendingPayments, useQuickPaymentAction } from '@/hooks/useDashboardData';
@@ -244,19 +245,19 @@ export function PendingPaymentsWidget() {
           </DialogHeader>
           {receiptUrl && (
             <div className="flex flex-col items-center gap-4">
-              <img 
+              <SecureImage 
                 src={receiptUrl} 
                 alt="Payment receipt" 
                 className="max-w-full max-h-[70vh] object-contain rounded"
               />
-              <a 
+              <SecureLink 
                 href={receiptUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-sm text-primary hover:underline"
               >
                 Open in new tab
-              </a>
+              </SecureLink>
             </div>
           )}
         </DialogContent>

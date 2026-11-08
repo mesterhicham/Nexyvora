@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { auth, authorize } = require('../middleware/authMiddleware');
+const { auth, authorize, forbidImpersonation } = require('../middleware/authMiddleware');
 
 router.use(auth);
 
 router.get('/profile', userController.getProfile);
 router.put('/profile', userController.updateProfile);
-router.post('/change-password', userController.changePassword);
+router.post('/change-password', forbidImpersonation, userController.changePassword);
 router.delete('/account', userController.deleteAccount);
 router.get('/stats/admin', authorize('admin'), userController.getAdminStats);
 router.get('/stats/student', authorize('student'), userController.getStudentStats);

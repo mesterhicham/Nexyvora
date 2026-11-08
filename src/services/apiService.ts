@@ -64,10 +64,14 @@ export const academicService = {
 };
 
 export const uploadService = {
-    uploadFile: (file: File, onProgress?: (percent: number) => void) => {
+    /**
+     * Upload a file. Pass { isPrivate: true } for sensitive documents (payment receipts, KYC):
+     * they are stored outside the public folder and served only to their owner and admins.
+     */
+    uploadFile: (file: File, onProgress?: (percent: number) => void, options: { isPrivate?: boolean } = {}) => {
         const formData = new FormData();
         formData.append('file', file);
-        return api.post('/upload', formData, {
+        return api.post(options.isPrivate ? '/upload?private=true' : '/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
             onUploadProgress: (progressEvent) => {
                 if (onProgress && progressEvent.total) {
@@ -206,6 +210,7 @@ export const formationService = {
 
     getAllEnrollments: () => api.get('/formation/enrollments/all').then(res => res.data),
     getStudentEnrollments: () => api.get('/formation/enrollments/mine').then(res => res.data),
+    claimCertificate: (enrollmentId: string) => api.get(`/formation/enrollments/${enrollmentId}/certificate`).then(res => res.data),
     updateEnrollmentStatus: ({ id, status }: any) => api.put(`/formation/enrollments/${id}/status`, { status }).then(res => res.data),
 
     getAllPayments: () => api.get('/formation/payments/all').then(res => res.data),
@@ -233,23 +238,31 @@ export const chatService = {
 };
 
 export const packageService = {
-    getAll: () => api.get('/packages').then(res => res.data),
+    getAll: (params?: { include_inactive?: boolean; all?: boolean }) => api.get('/packages', { params }).then(res => res.data),
     getDetails: (id: string) => api.get(`/packages/${id}`).then(res => res.data),
     getMyPackage: () => api.get('/packages/user/my-package').then(res => res.data),
-    purchaseOrUpgrade: (data: { packageId: string; paymentMethod?: string; paymentReference?: string; receiptUrl?: string; notes?: string; payCurrency?: string }) => 
+    purchaseOrUpgrade: (data: { packageId: string; isUpgrade?: boolean; paymentMethod?: string; paymentMethodId?: string; paymentReference?: string; receiptUrl?: string; notes?: string; payCurrency?: string }) => 
         api.post('/packages/purchase', data).then(res => res.data),
     checkNowPaymentsPayment: (orderId: string) => 
         api.get(`/packages/check-nowpayments/${orderId}`).then(res => res.data),
+    createPackage: (data: any) => 
+        api.post('/packages/admin', data).then(res => res.data),
     assignCourses: (packageId: string, formationIds: string[]) => 
         api.post(`/packages/admin/${packageId}/courses`, { formationIds }).then(res => res.data),
     updatePackage: (id: string, data: any) => 
         api.put(`/packages/admin/${id}`, data).then(res => res.data),
+    deletePackage: (id: string) => 
+        api.delete(`/packages/admin/${id}`).then(res => res.data),
+    manualUpgrade: (data: { userId: string; packageId: string; amountPaid?: number; notes?: string }) => 
+        api.post('/packages/admin/manual-upgrade', data).then(res => res.data),
+    getMembersWithPackages: (params?: { search?: string; packageId?: string; page?: number; limit?: number }) => 
+        api.get('/packages/admin/members-with-packages', { params }).then(res => res.data),
 };
 
 
 export const affiliateService = {
     getWallet: () => api.get('/affiliate/wallet').then(res => res.data),
-    requestDeposit: (data: { amount: number; paymentMethod: string; paymentReference?: string; receiptUrl?: string; notes?: string; payCurrency?: string }) => 
+    requestDeposit: (data: { amount: number; paymentMethod: string; paymentMethodId?: string; paymentReference?: string; receiptUrl?: string; notes?: string; payCurrency?: string }) => 
         api.post('/affiliate/deposit', data).then(res => res.data),
     getDeposits: () => api.get('/affiliate/deposits').then(res => res.data),
     getDepositAttempts: (id: string) => api.get(`/affiliate/deposits/${id}/attempts`).then(res => res.data),
@@ -257,8 +270,10 @@ export const affiliateService = {
         api.get('/affiliate/payment-methods', { params: { mode } }).then(res => res.data),
     getCommissions: (params?: { generation?: number; limit?: number; offset?: number }) => 
         api.get('/affiliate/commissions', { params }).then(res => res.data),
-    requestWithdrawal: (data: { amount: number; paymentMethod: string; paymentDetails: string }) => 
+    requestWithdrawal: (data: { amount: number; paymentMethod: string; paymentDetails: string; walletPin: string }) => 
         api.post('/affiliate/withdraw', data).then(res => res.data),
+    setWalletPin: (data: { pin: string; currentPin?: string }) =>
+        api.post('/affiliate/wallet-pin', data).then(res => res.data),
     getWithdrawals: () => api.get('/affiliate/withdrawals').then(res => res.data),
     getPayoutSettings: () => api.get('/affiliate/payout-settings').then(res => res.data),
     updatePayoutSettings: (data: any) => api.post('/affiliate/payout-settings', data).then(res => res.data),

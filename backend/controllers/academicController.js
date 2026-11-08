@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const { issueImpersonationToken, ImpersonationError } = require('../services/impersonationService');
 
 // --- PROGRAMS ---
 exports.getAllPrograms = async (req, res) => {
@@ -652,38 +652,27 @@ exports.updateStudent = async (req, res) => {
 exports.impersonateStudent = async (req, res) => {
     const { id } = req.params;
     try {
-        const [sRows] = await db.execute(`
-            SELECT s.id as student_id, s.user_id, u.email, u.role, u.token_version, p.full_name
-            FROM students s
-            JOIN users u ON s.user_id = u.id
-            LEFT JOIN profiles p ON s.user_id = p.id
-            WHERE s.id = ? OR s.user_id = ?
-        `, [id, id]);
-
+        // The route accepts either a students.id or a users.id
+        const [sRows] = await db.execute(
+            'SELECT s.id AS student_id, s.user_id FROM students s WHERE s.id = ? OR s.user_id = ? LIMIT 1',
+            [id, id]
+        );
         if (sRows.length === 0) {
             return res.status(404).json({ error: 'Student user not found' });
         }
 
-        const student = sRows[0];
-        const token = jwt.sign(
-            { id: student.user_id, role: 'student', token_version: student.token_version || 1, impersonatedBy: req.user.id },
-            process.env.JWT_SECRET,
-            { expiresIn: '1d' }
-        );
-
+        const { token, user } = await issueImpersonationToken(req, sRows[0].user_id);
         res.json({
             token,
-            user: {
-                id: student.user_id,
-                email: student.email,
-                role: 'student',
-                full_name: student.full_name || 'Student'
-            },
-            studentId: student.student_id
+            user: { ...user, full_name: user.full_name || 'Student' },
+            studentId: sRows[0].student_id
         });
     } catch (err) {
+        if (err instanceof ImpersonationError) {
+            return res.status(err.status).json({ error: err.message });
+        }
         console.error('[impersonateStudent]', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Failed to generate impersonation token' });
     }
 };
 

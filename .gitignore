@@ -40,6 +40,9 @@ backend/.env.*.local
 # Uploads & Temporary files
 backend/uploads/*
 !backend/uploads/.gitkeep
+!backend/uploads/private/
+backend/uploads/private/*
+!backend/uploads/private/.htaccess
 scratch
 
 # Editor & System files

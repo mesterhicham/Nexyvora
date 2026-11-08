@@ -21,7 +21,11 @@
 
 ### 🛡️ 3. Security & Governance
 - **Role-Based Access Control (RBAC):** Dedicated views and permissions for Admins, Teachers, and Students.
-- **Identity & KYC:** Document verification workflows for enhanced financial security.
+- **KYC Status:** Administrators review and set each member's verification status. (Self-service document upload is not implemented yet.)
+- **Wallet PIN:** Every withdrawal requires a 4-6 digit PIN, stored as a bcrypt hash and locked for 30 minutes after 5 failed attempts.
+- **Private Receipts:** Payment receipts are stored outside the public folder and served only to their owner and administrators.
+- **Audited Impersonation:** Admin impersonation tokens last 1 hour, cannot target admins, block withdrawals, payout and password changes, and are written to `admin_audit_logs`.
+- **Regulatory Country Rules:** Money movements use the most restrictive of the profile country and the trusted CDN country; the profile country is locked after KYC or financial activity.
 - **OTP Verification:** Multi-channel OTP support via Email (SMTP) and WhatsApp.
 - **Rate Limiting & Protection:** Helmet security headers and strict rate-limiting on authentication endpoints.
 
@@ -45,7 +49,7 @@
 1. Open your MySQL client (e.g. phpMyAdmin via MAMP).
 2. Create a database named `nexyvora`.
 3. Import `mysql_schema.sql` into the `nexyvora` database.
-4. Run migrations from `backend/migrations` if applicable.
+4. Run the migrations in `backend/migrations` in order, e.g. `node backend/migrations/30_security_hardening.js`.
 
 ### 2. Backend Setup
 ```bash
@@ -64,6 +68,18 @@ cp .env.example .env  # Configure VITE_API_URL
 npm run dev
 ```
 The frontend will be available at `http://localhost:8080` (or `http://localhost:5173`).
+
+---
+
+## 🧪 Checks & Tests
+
+```bash
+npm run typecheck          # frontend TypeScript check
+npm run lint               # frontend ESLint
+cd backend && npm test     # backend HTTP integration and security suites
+```
+
+The backend suite creates and deletes its own fixture records. To run it against an isolated database, set `NODE_ENV=test` and `DB_NAME_TEST` in `backend/.env`. One-off maintenance scripts live in `backend/scripts/dev/` and read credentials from environment variables.
 
 ---
 

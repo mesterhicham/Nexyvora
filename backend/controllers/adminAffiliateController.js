@@ -1,3 +1,4 @@
+const { logAdminAction } = require('../services/auditLogService');
 const db = require('../config/db');
 const crypto = require('crypto');
 const genUuid = () => crypto.randomUUID();
@@ -137,6 +138,7 @@ exports.adjustWalletBalance = async (req, res) => {
         ]);
 
         await connection.commit();
+        await logAdminAction(req, 'wallet_adjust', userId, { action, amount: numAmount, note: note || null });
         res.json({ message: 'Balance adjusted successfully', newBalance: balanceAfter });
     } catch (err) {
         if (connection) await connection.rollback();

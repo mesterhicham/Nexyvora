@@ -1,7 +1,8 @@
 const db = require('../config/db');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const { logAdminAction } = require('../services/auditLogService');
+const { issueImpersonationToken, ImpersonationError } = require('../services/impersonationService');
 
 // --- PLATFORM SETTINGS ---
 // Keys that must never be exposed to non-admin visitors (credentials, payout accounts, etc.)
@@ -384,7 +385,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     const { id } = req.params;
-    const { email, username, password, wallet_pin, custom_unlocked_generations, package_id, status, role } = req.body;
+    const { email, username, password, reset_wallet_pin, custom_unlocked_generations, package_id, status, role } = req.body;
 
     try {
         const updates = [];
@@ -446,9 +447,9 @@ exports.updateUser = async (req, res) => {
             params.push(hash);
             updates.push('token_version = COALESCE(token_version, 1) + 1');
         }
-        if (wallet_pin !== undefined) {
-            updates.push('wallet_pin = ?');
-            params.push(wallet_pin);
+        // Admins can only reset a wallet PIN (the user then creates a new one); they never see or set it.
+        if (reset_wallet_pin === true) {
+            updates.push('wallet_pin = NULL', 'wallet_pin_hash = NULL', 'wallet_pin_failed_attempts = 0', 'wallet_pin_locked_until = NULL');
         }
         if (custom_unlocked_generations !== undefined) {
             if (custom_unlocked_generations === null || custom_unlocked_generations === 'default' || custom_unlocked_generations === '') {
@@ -471,6 +472,16 @@ exports.updateUser = async (req, res) => {
         if (updates.length > 0) {
             params.push(id);
             await db.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+
+            const auditedChanges = {
+                email: email || undefined,
+                password_changed: password && password.trim().length > 0 ? true : undefined,
+                wallet_pin_reset: reset_wallet_pin === true ? true : undefined,
+                status: status || undefined,
+            };
+            if (Object.values(auditedChanges).some(v => v !== undefined)) {
+                await logAdminAction(req, 'update_user', id, auditedChanges);
+            }
         }
 
         if (email) {
@@ -502,29 +513,15 @@ exports.updateUser = async (req, res) => {
 };
 
 exports.impersonateUser = async (req, res) => {
-    const { id } = req.params;
     try {
-        const [users] = await db.query(
-            `SELECT u.id, u.email, u.role, u.username, u.token_version, u.affiliate_code, 
-                    p.full_name, p.avatar_url, p.country, p.country_code, p.city, p.whatsapp_number 
-             FROM users u 
-             LEFT JOIN profiles p ON u.id = p.id 
-             WHERE u.id = ?`, 
-            [id]
-        );
-        if (users.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        const user = users[0];
-        const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role, token_version: user.token_version || 1 },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        const { token, user } = await issueImpersonationToken(req, req.params.id);
         res.json({ token, user, message: 'Impersonation token generated' });
     } catch (err) {
+        if (err instanceof ImpersonationError) {
+            return res.status(err.status).json({ error: err.message });
+        }
         console.error('[impersonateUser]', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Failed to generate impersonation token' });
     }
 };
 

@@ -1,5 +1,7 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const { validateReceiptUrl } = require('../services/uploadUrlPolicy');
+const walletPinService = require('../services/walletPinService');
 const currencyService = require('../services/currencyService');
 const nowpaymentsService = require('../services/nowpaymentsService');
 const emailService = require('../services/emailService');
@@ -108,8 +110,11 @@ exports.getWallet = async (req, res) => {
         // Get affiliate settings (min withdrawal)
         const [minWithdrawalRow] = await db.query("SELECT value FROM platform_settings WHERE `key` = 'affiliate_min_withdrawal'");
         const minWithdrawal = Number(minWithdrawalRow[0]?.value || 50);
+        const pinStatus = await walletPinService.getPinStatus(userId);
 
         res.json({
+            hasWalletPin: pinStatus.hasPin,
+            walletPinLockedUntil: pinStatus.lockedUntil,
             wallet: {
                 balance: Number(wallet.balance),
                 pendingBalance: Number(wallet.pending_balance),
@@ -161,11 +166,27 @@ exports.getCommissionsHistory = async (req, res) => {
 };
 
 /**
+ * Create or change the wallet PIN of the logged-in user.
+ * Body: { pin, currentPin } - currentPin is required only when a PIN already exists.
+ */
+exports.setWalletPin = async (req, res) => {
+    const { pin, currentPin } = req.body || {};
+    try {
+        await walletPinService.setPin(req.user.id, String(pin ?? ''), String(currentPin ?? ''));
+        res.json({ message: 'تم حفظ رمز PIN للمحفظة بنجاح / Wallet PIN saved successfully', hasWalletPin: true });
+    } catch (err) {
+        if (walletPinService.sendPinError(res, err)) return;
+        console.error('[setWalletPin]', err);
+        res.status(500).json({ error: 'Failed to save wallet PIN' });
+    }
+};
+
+/**
  * Submit withdrawal request
  */
 exports.requestWithdrawal = async (req, res) => {
     const userId = req.user.id;
-    const { amount, paymentMethod, paymentDetails, payment_method, payment_details } = req.body || {};
+    const { amount, paymentMethod, paymentDetails, payment_method, payment_details, walletPin, wallet_pin } = req.body || {};
     const method = paymentMethod || payment_method;
     const details = paymentDetails || payment_details;
 
@@ -178,8 +199,17 @@ exports.requestWithdrawal = async (req, res) => {
         return res.status(400).json({ error: 'Payment method and details are required' });
     }
 
+    // Wallet PIN is mandatory for every withdrawal (counts failures and locks after repeated errors)
+    try {
+        await walletPinService.verifyPin(userId, String(walletPin ?? wallet_pin ?? ''));
+    } catch (err) {
+        if (walletPinService.sendPinError(res, err)) return;
+        console.error('[requestWithdrawal] PIN verification error:', err);
+        return res.status(500).json({ error: 'Failed to verify wallet PIN' });
+    }
+
     // Strict security check: DZ users or countries with USDT disabled cannot withdraw via crypto or USDT
-    const countryCode = await currencyService.detectUserCountry(req);
+    const countryCode = await currencyService.detectUserCountry(req, { strict: true });
     const countryRule = await currencyService.getRuleForCountry(countryCode);
     const isCrypto = (method || '').toLowerCase().includes('usdt') || 
                      (method || '').toLowerCase().includes('crypto') || 
@@ -448,7 +478,12 @@ exports.getRanksAndProgress = async (req, res) => {
  */
 exports.requestDeposit = async (req, res) => {
     const userId = req.user.id;
-    const { amount, paymentMethod = 'bank_transfer', paymentReference = '', notes = '', receiptUrl = '', payCurrency } = req.body;
+    const { amount, paymentMethod = 'bank_transfer', paymentReference = '', notes = '', payCurrency } = req.body;
+    const receiptCheck = validateReceiptUrl(req.body.receiptUrl, userId, { allowPublic: false });
+    if (!receiptCheck.ok) {
+        return res.status(400).json({ error: receiptCheck.error, code: 'INVALID_RECEIPT_URL' });
+    }
+    const receiptUrl = receiptCheck.value;
 
     const depositAmount = Number(amount);
     if (!depositAmount || depositAmount <= 0) {
@@ -456,7 +491,7 @@ exports.requestDeposit = async (req, res) => {
     }
 
     // Strict security check: DZ users or countries with USDT disabled cannot deposit via crypto or USDT
-    const countryCode = await currencyService.detectUserCountry(req);
+    const countryCode = await currencyService.detectUserCountry(req, { strict: true });
     const countryRule = await currencyService.getRuleForCountry(countryCode);
     const isCrypto = (paymentMethod || '').toLowerCase().includes('usdt') || 
                      (paymentMethod || '').toLowerCase().includes('crypto') || 
@@ -464,6 +499,16 @@ exports.requestDeposit = async (req, res) => {
                      (paymentReference || '').toLowerCase().includes('usdt');
     if ((countryCode === 'DZ' || !countryRule.usdt_enabled) && isCrypto) {
         return res.status(403).json({ error: 'إيداعات USDT والعملات المشفرة غير متاحة في بلدك أو تم حظرها بقرار تنظيمي' });
+    }
+
+    // The chosen method must be enabled for the member's country in the admin "Country Currency" page
+    const methodCheck = await require('./paymentMethodController').assertMethodAllowed(req, {
+        paymentMethodId: req.body.paymentMethodId,
+        paymentMethod,
+        mode: 'deposit'
+    });
+    if (!methodCheck.ok) {
+        return res.status(403).json({ error: methodCheck.error, code: 'METHOD_NOT_ALLOWED' });
     }
 
     const isNowPayments = (paymentMethod || '').toLowerCase().includes('nowpayments');

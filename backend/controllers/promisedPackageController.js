@@ -186,16 +186,24 @@ exports.grantPackage = async (req, res) => {
                 WHERE p.level <= ?
             `, [targetPackage.level]);
 
+            // formation_enrollments.student_id references students.id (not users.id)
+            const [studentRows] = await connection.query('SELECT id FROM students WHERE user_id = ? LIMIT 1', [user_id]);
+            let studentId = studentRows[0]?.id;
+            if (!studentId) {
+                studentId = genUuid();
+                await connection.query("INSERT INTO students (id, user_id, status) VALUES (?, ?, 'active')", [studentId, user_id]);
+            }
+
             for (const c of coursesToEnroll) {
                 const [exists] = await connection.query(
                     'SELECT id FROM formation_enrollments WHERE student_id = ? AND formation_id = ?',
-                    [user_id, c.formation_id]
+                    [studentId, c.formation_id]
                 );
                 if (exists.length === 0) {
                     await connection.query(`
                         INSERT INTO formation_enrollments (id, student_id, formation_id, payment_status, enrolled_at)
                         VALUES (?, ?, ?, 'approved', CURRENT_TIMESTAMP)
-                    `, [genUuid(), user_id, c.formation_id]);
+                    `, [genUuid(), studentId, c.formation_id]);
                 }
             }
         } catch (formationErr) {

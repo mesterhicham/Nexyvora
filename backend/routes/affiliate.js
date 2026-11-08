@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const affiliateController = require('../controllers/affiliateController');
-const { auth } = require('../middleware/authMiddleware');
+const { auth, forbidImpersonation } = require('../middleware/authMiddleware');
 
 // All affiliate routes require authentication
 router.use(auth);
@@ -11,7 +11,8 @@ router.get('/wallet', affiliateController.getWallet);
 router.get('/commissions', affiliateController.getCommissionsHistory);
 
 // Withdrawals
-router.post('/withdraw', affiliateController.requestWithdrawal);
+router.post('/withdraw', forbidImpersonation, affiliateController.requestWithdrawal);
+router.post('/wallet-pin', forbidImpersonation, affiliateController.setWalletPin);
 router.get('/withdrawals', affiliateController.getMyWithdrawals);
 
 // Wallet Deposits
@@ -24,7 +25,7 @@ router.get('/payment-methods', paymentMethodController.getActiveMethodsForStuden
 
 // Payout settings (bank / paypal / payoneer)
 router.get('/payout-settings', affiliateController.getPayoutSettings);
-router.post('/payout-settings', affiliateController.updatePayoutSettings);
+router.post('/payout-settings', forbidImpersonation, affiliateController.updatePayoutSettings);
 
 // 10-Generation Network Team & Tree
 router.get('/team', affiliateController.getMyTeamNetwork);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,99 +13,109 @@ import { ImpersonationBanner } from "@/components/layout/ImpersonationBanner";
 import { SEOHead } from "@/components/SEOHead";
 import { tr } from "@/utils/tr";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Auth from "./pages/Auth";
-import FormationLanding from "./pages/public/FormationLanding";
-import AdminSetup from "./pages/AdminSetup";
-import VerifyDiploma from "./pages/VerifyDiploma";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminAcademy from "./pages/admin/AdminAcademy";
-import AdminPackages from "./pages/admin/AdminPackages";
-import WalletManagement from "./pages/admin/WalletManagement";
-import AdminBonusPools from "./pages/admin/AdminBonusPools";
-import WithdrawalMonitoring from "./pages/admin/WithdrawalMonitoring";
-import DepositManagement from "./pages/admin/DepositManagement";
-import AdminTransactions from "./pages/admin/AdminTransactions";
-import AdminTeamTree from "./pages/admin/AdminTeamTree";
-import AdminKYC from "./pages/admin/AdminKYC";
-import LeaderRanks from "./pages/admin/LeaderRanks";
-import LeaderAchievers from "./pages/admin/LeaderAchievers";
-import AdminChallenges from "./pages/admin/AdminChallenges";
-import GenerationSettings from "./pages/admin/GenerationSettings";
-import UsersManagement from "./pages/admin/UsersManagement";
-import StudentsManagement from "./pages/admin/StudentsManagement";
-import TeachersManagement from "./pages/admin/TeachersManagement";
-import ProgramsManagement from "./pages/admin/ProgramsManagement";
-import SpecialtiesManagement from "./pages/admin/SpecialtiesManagement";
-import CohortsManagement from "./pages/admin/CohortsManagement";
-import ModulesManagement from "./pages/admin/ModulesManagement";
-import DiplomasManagement from "./pages/admin/DiplomasManagement";
-import ReportsPage from "./pages/admin/ReportsPage";
-import PlatformSettings from "./pages/admin/PlatformSettings";
-import AdminPolicies from "./pages/admin/AdminPolicies";
-import PoliciesPage from "./pages/public/PoliciesPage";
-import HolidaysManagement from "./pages/admin/HolidaysManagement";
-import NewsManagement from "./pages/admin/NewsManagement";
-import EmailSettings from "./pages/admin/EmailSettings";
-import ZoomMeetings from "./pages/admin/ZoomMeetings";
-import PlacementTestManagement from "./pages/admin/PlacementTestManagement";
-import PaymentsManagement from "./pages/admin/PaymentsManagement";
-import FormationsManagement from "./pages/admin/FormationsManagement";
-import ProgramPricing from "./pages/admin/ProgramPricing";
-import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
-import AdminCurrencySettings from "./pages/admin/AdminCurrencySettings";
+const Login = lazy(() => import("./pages/Login"));
+const Auth = lazy(() => import("./pages/Auth"));
+const FormationLanding = lazy(() => import("./pages/public/FormationLanding"));
+const AdminSetup = lazy(() => import("./pages/AdminSetup"));
+const VerifyDiploma = lazy(() => import("./pages/VerifyDiploma"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminAcademy = lazy(() => import("./pages/admin/AdminAcademy"));
+const AdminPackages = lazy(() => import("./pages/admin/AdminPackages"));
+const WalletManagement = lazy(() => import("./pages/admin/WalletManagement"));
+const AdminBonusPools = lazy(() => import("./pages/admin/AdminBonusPools"));
+const WithdrawalMonitoring = lazy(() => import("./pages/admin/WithdrawalMonitoring"));
+const DepositManagement = lazy(() => import("./pages/admin/DepositManagement"));
+const AdminTransactions = lazy(() => import("./pages/admin/AdminTransactions"));
+const AdminTeamTree = lazy(() => import("./pages/admin/AdminTeamTree"));
+const AdminKYC = lazy(() => import("./pages/admin/AdminKYC"));
+const LeaderRanks = lazy(() => import("./pages/admin/LeaderRanks"));
+const LeaderAchievers = lazy(() => import("./pages/admin/LeaderAchievers"));
+const AdminChallenges = lazy(() => import("./pages/admin/AdminChallenges"));
+const GenerationSettings = lazy(() => import("./pages/admin/GenerationSettings"));
+const UsersManagement = lazy(() => import("./pages/admin/UsersManagement"));
+const StudentsManagement = lazy(() => import("./pages/admin/StudentsManagement"));
+const TeachersManagement = lazy(() => import("./pages/admin/TeachersManagement"));
+const ProgramsManagement = lazy(() => import("./pages/admin/ProgramsManagement"));
+const SpecialtiesManagement = lazy(() => import("./pages/admin/SpecialtiesManagement"));
+const CohortsManagement = lazy(() => import("./pages/admin/CohortsManagement"));
+const ModulesManagement = lazy(() => import("./pages/admin/ModulesManagement"));
+const DiplomasManagement = lazy(() => import("./pages/admin/DiplomasManagement"));
+const ReportsPage = lazy(() => import("./pages/admin/ReportsPage"));
+const PlatformSettings = lazy(() => import("./pages/admin/PlatformSettings"));
+const AdminPolicies = lazy(() => import("./pages/admin/AdminPolicies"));
+const PoliciesPage = lazy(() => import("./pages/public/PoliciesPage"));
+const HolidaysManagement = lazy(() => import("./pages/admin/HolidaysManagement"));
+const NewsManagement = lazy(() => import("./pages/admin/NewsManagement"));
+const EmailSettings = lazy(() => import("./pages/admin/EmailSettings"));
+const ZoomMeetings = lazy(() => import("./pages/admin/ZoomMeetings"));
+const PlacementTestManagement = lazy(() => import("./pages/admin/PlacementTestManagement"));
+const PaymentsManagement = lazy(() => import("./pages/admin/PaymentsManagement"));
+const FormationsManagement = lazy(() => import("./pages/admin/FormationsManagement"));
+const ProgramPricing = lazy(() => import("./pages/admin/ProgramPricing"));
+const AdminPaymentSettings = lazy(() => import("./pages/admin/AdminPaymentSettings"));
+const AdminCurrencySettings = lazy(() => import("./pages/admin/AdminCurrencySettings"));
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
-import TeacherDashboard from "./pages/teacher/TeacherDashboard";
-import TeacherModules from "./pages/teacher/TeacherModules";
-import TeacherLessons from "./pages/teacher/TeacherLessons";
-import TeacherAssignments from "./pages/teacher/TeacherAssignments";
-import TeacherAttendance from "./pages/teacher/TeacherAttendance";
-import TeacherAnnouncements from "./pages/teacher/TeacherAnnouncements";
-import TeacherMeetingsPage from "./pages/teacher/TeacherMeetingsPage";
-import TeacherFormations from "./pages/teacher/TeacherFormations";
-import FormationProgressDashboard from "./pages/teacher/FormationProgressDashboard";
-import StudentDashboard from "./pages/student/StudentDashboard";
-import StudentCourses from "./pages/student/StudentCourses";
-import StudentCourseDetail from "./pages/student/StudentCourseDetail";
-import StudentLessons from "./pages/student/StudentLessons";
-import StudentLessonView from "./pages/student/StudentLessonView";
-import StudentAssignments from "./pages/student/StudentAssignments";
-import StudentGrades from "./pages/student/StudentGrades";
-import StudentDiploma from "./pages/student/StudentDiploma";
-import PlacementTest from "./pages/student/PlacementTest";
-import StudentMeetings from "./pages/student/StudentMeetings";
-import StudentFormations from "./pages/student/StudentFormations";
-import StudentAttendance from "./pages/student/StudentAttendance";
-import StudentAcademy from "./pages/student/StudentAcademy";
-import PackagesStore from "./pages/student/PackagesStore";
-import MyPackage from "./pages/student/MyPackage";
-import StudentWallet from "./pages/student/StudentWallet";
-import StudentTeam from "./pages/student/StudentTeam";
-import StudentRanks from "./pages/student/StudentRanks";
-import StudentChallenges from "./pages/student/StudentChallenges";
-import StudentCommunity from "./pages/student/StudentCommunity";
-import StudentBonusPool from "./pages/student/StudentBonusPool";
-import StudentFounder from "./pages/student/StudentFounder";
-import StudentActivation from "./pages/student/StudentActivation";
-import AdminFounderManagement from "./pages/admin/AdminFounderManagement";
-import AdminSupport from "./pages/admin/AdminSupport";
-import StudentNewsCenter from "./pages/student/StudentNewsCenter";
-import StudentTeamTree from "./pages/student/StudentTeamTree";
-import AdminPromisedPackages from "./pages/admin/AdminPromisedPackages";
-import StudentSupport from "./pages/student/StudentSupport";
-import ServicesStore from "./pages/student/ServicesStore";
-import ServiceDetails from "./pages/student/ServiceDetails";
-import ServiceOrders from "./pages/student/ServiceOrders";
-import CustomProjectRequest from "./pages/student/CustomProjectRequest";
-import ServicesManagement from "./pages/admin/ServicesManagement";
-import ServicesOrdersManagement from "./pages/admin/ServicesOrdersManagement";
-import CustomProjectsManagement from "./pages/admin/CustomProjectsManagement";
-import ChatPage from "./pages/shared/ChatPage";
-import MeetingRoom from "./pages/shared/MeetingRoom";
-import ProfileSettings from "./pages/shared/ProfileSettings";
-import NotFound from "./pages/NotFound";
+const TeacherDashboard = lazy(() => import("./pages/teacher/TeacherDashboard"));
+const TeacherModules = lazy(() => import("./pages/teacher/TeacherModules"));
+const TeacherLessons = lazy(() => import("./pages/teacher/TeacherLessons"));
+const TeacherAssignments = lazy(() => import("./pages/teacher/TeacherAssignments"));
+const TeacherAttendance = lazy(() => import("./pages/teacher/TeacherAttendance"));
+const TeacherAnnouncements = lazy(() => import("./pages/teacher/TeacherAnnouncements"));
+const TeacherMeetingsPage = lazy(() => import("./pages/teacher/TeacherMeetingsPage"));
+const TeacherFormations = lazy(() => import("./pages/teacher/TeacherFormations"));
+const FormationProgressDashboard = lazy(() => import("./pages/teacher/FormationProgressDashboard"));
+const StudentDashboard = lazy(() => import("./pages/student/StudentDashboard"));
+const StudentCourses = lazy(() => import("./pages/student/StudentCourses"));
+const StudentCourseDetail = lazy(() => import("./pages/student/StudentCourseDetail"));
+const StudentLessons = lazy(() => import("./pages/student/StudentLessons"));
+const StudentLessonView = lazy(() => import("./pages/student/StudentLessonView"));
+const StudentAssignments = lazy(() => import("./pages/student/StudentAssignments"));
+const StudentGrades = lazy(() => import("./pages/student/StudentGrades"));
+const StudentDiploma = lazy(() => import("./pages/student/StudentDiploma"));
+const PlacementTest = lazy(() => import("./pages/student/PlacementTest"));
+const StudentMeetings = lazy(() => import("./pages/student/StudentMeetings"));
+const StudentFormations = lazy(() => import("./pages/student/StudentFormations"));
+const FormationWatch = lazy(() => import("./pages/student/FormationWatch"));
+const StudentAttendance = lazy(() => import("./pages/student/StudentAttendance"));
+const StudentAcademy = lazy(() => import("./pages/student/StudentAcademy"));
+const PackagesStore = lazy(() => import("./pages/student/PackagesStore"));
+const MyPackage = lazy(() => import("./pages/student/MyPackage"));
+const StudentWallet = lazy(() => import("./pages/student/StudentWallet"));
+const StudentTeam = lazy(() => import("./pages/student/StudentTeam"));
+const StudentRanks = lazy(() => import("./pages/student/StudentRanks"));
+const StudentChallenges = lazy(() => import("./pages/student/StudentChallenges"));
+const StudentCommunity = lazy(() => import("./pages/student/StudentCommunity"));
+const StudentBonusPool = lazy(() => import("./pages/student/StudentBonusPool"));
+const StudentFounder = lazy(() => import("./pages/student/StudentFounder"));
+const StudentActivation = lazy(() => import("./pages/student/StudentActivation"));
+const AdminFounderManagement = lazy(() => import("./pages/admin/AdminFounderManagement"));
+const AdminSupport = lazy(() => import("./pages/admin/AdminSupport"));
+const StudentNewsCenter = lazy(() => import("./pages/student/StudentNewsCenter"));
+const StudentTeamTree = lazy(() => import("./pages/student/StudentTeamTree"));
+const AdminPromisedPackages = lazy(() => import("./pages/admin/AdminPromisedPackages"));
+const StudentSupport = lazy(() => import("./pages/student/StudentSupport"));
+const ServicesStore = lazy(() => import("./pages/student/ServicesStore"));
+const ServiceDetails = lazy(() => import("./pages/student/ServiceDetails"));
+const ServiceOrders = lazy(() => import("./pages/student/ServiceOrders"));
+const CustomProjectRequest = lazy(() => import("./pages/student/CustomProjectRequest"));
+const ServicesManagement = lazy(() => import("./pages/admin/ServicesManagement"));
+const ServicesOrdersManagement = lazy(() => import("./pages/admin/ServicesOrdersManagement"));
+const CustomProjectsManagement = lazy(() => import("./pages/admin/CustomProjectsManagement"));
+const ChatPage = lazy(() => import("./pages/shared/ChatPage"));
+const MeetingRoom = lazy(() => import("./pages/shared/MeetingRoom"));
+const ProfileSettings = lazy(() => import("./pages/shared/ProfileSettings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
+
+// Pages are code-split: each route downloads its own chunk on first visit.
+function PageLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center" role="status" aria-label="Loading">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+    </div>
+  );
+}
 
 function RequireActiveMembership() {
   const { user, role, loading: authLoading } = useAuth();
@@ -213,6 +223,7 @@ const App = () => (
           <AuthProvider>
             <CurrencyProvider>
               <ImpersonationBanner />
+              <Suspense fallback={<PageLoader />}>
               <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<DashboardRedirect />} />
@@ -331,6 +342,7 @@ const App = () => (
                 <Route path="/student/courses/:courseId" element={<StudentCourseDetail />} />
                 <Route path="/student/courses/:moduleId" element={<StudentCourseDetail />} />
                 <Route path="/student/formations" element={<StudentFormations />} />
+                <Route path="/student/formations/:enrollmentId/watch" element={<FormationWatch />} />
                 <Route path="/student/lessons" element={<StudentLessons />} />
                 <Route path="/student/lessons/:lessonId" element={<StudentLessonView />} />
                 <Route path="/student/assignments" element={<StudentAssignments />} />
@@ -350,6 +362,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
 
             </Routes>
+              </Suspense>
           </CurrencyProvider>
         </AuthProvider>
         </BrowserRouter>

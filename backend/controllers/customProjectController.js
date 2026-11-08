@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const { isSafeHttpUrl } = require('../services/uploadUrlPolicy');
 
 function generateRequestNumber() {
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -16,6 +17,10 @@ exports.createRequest = async (req, res) => {
             estimated_budget, estimated_duration,
             contact_email, contact_whatsapp, attachment_url
         } = req.body;
+
+        if (!isSafeHttpUrl(attachment_url)) {
+            return res.status(400).json({ error: 'رابط المرفق غير صالح / Invalid attachment link', code: 'UNSAFE_URL' });
+        }
 
         if (!project_name || !project_type || !description || !contact_email) {
             return res.status(400).json({

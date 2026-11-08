@@ -79,7 +79,7 @@ async function checkAndQualifyFounder(connection, userId) {
             // Create notification
             const notifMsg = `تهانينا الاستثنائية! 👑 لقد حققت $${directSales.toFixed(2)} في المبيعات المباشرة خلال 30 يوماً وأصبحت رسمياً عضواً مؤسساً (FOUNDER) وحجزت المقعد رقم #${nextSeat} مدى الحياة! ستشارك الآن في حوض الـ 2% شهرياً.`;
             await connection.query(`
-                INSERT INTO notifications (id, user_id, type, title, message, is_read, created_at)
+                INSERT INTO notifications (id, user_id, type, title, content, is_read, created_at)
                 VALUES (?, ?, 'success', '👑 مرحباً بك في نادي المؤسسين (Founders Club)', ?, 0, NOW())
             `, [genUuid(), userId, notifMsg]);
 
@@ -494,7 +494,7 @@ exports.manualGrantFounder = async (req, res) => {
         // Send notification to user
         const notifMsg = `تهانينا! 👑 تم منحك مقعد العضوية الشرفية في نادي المؤسسين (Founders Club) برقم المقعد #${seatToAssign}. ستشارك الآن في حوض الـ 2% شهرياً!`;
         await connection.query(`
-            INSERT INTO notifications (id, user_id, type, title, message, is_read, created_at)
+            INSERT INTO notifications (id, user_id, type, title, content, is_read, created_at)
             VALUES (?, ?, 'success', '👑 تم تعيينك كعضو مؤسس (Founder)', ?, 0, NOW())
         `, [genUuid(), userId, notifMsg]);
 
@@ -762,7 +762,7 @@ exports.executeMonthlyDistribution = async (req, res) => {
                 // Notification
                 const notifMsg = `مبروك! 👑 تم إيداع أرباحك من حوض المؤسسين (2%) بقيمة $${sharePerFounder.toFixed(2)} USD لشهر ${periodMonth}/${periodYear} في محفظتك بنجاح (المقعد #${founder.seat_number}).`;
                 await connection.query(`
-                    INSERT INTO notifications (id, user_id, type, title, message, is_read, created_at)
+                    INSERT INTO notifications (id, user_id, type, title, content, is_read, created_at)
                     VALUES (?, ?, 'success', '👑 صرف أرباح حوض المؤسسين الشهري', ?, 0, NOW())
                 `, [genUuid(), founder.user_id, notifMsg]);
             }

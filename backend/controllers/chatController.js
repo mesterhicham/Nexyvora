@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const { isSafeHttpUrl } = require('../services/uploadUrlPolicy');
 
 // --- GET CONVERSATIONS ---
 exports.getConversations = async (req, res) => {
@@ -252,6 +253,9 @@ exports.sendMessage = async (req, res) => {
 
     if (!content && !attachment_url) {
         return res.status(400).json({ error: 'Message content or attachment is required' });
+    }
+    if (!isSafeHttpUrl(attachment_url)) {
+        return res.status(400).json({ error: 'رابط غير صالح / Invalid link: only http(s) URLs are allowed', code: 'UNSAFE_URL' });
     }
 
     try {

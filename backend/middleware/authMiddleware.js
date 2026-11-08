@@ -56,7 +56,8 @@ const auth = async (req, res, next) => {
             email: decoded.email,
             role: liveRole,
             status: user.status,
-            token_version: user.token_version
+            token_version: user.token_version,
+            impersonated_by: decoded.impersonated_by || decoded.impersonatedBy || null
         };
 
         next();
@@ -92,7 +93,8 @@ const optionalAuth = async (req, res, next) => {
                     email: decoded.email,
                     role: liveRole,
                     status: user.status,
-                    token_version: user.token_version
+                    token_version: user.token_version,
+                    impersonated_by: decoded.impersonated_by || decoded.impersonatedBy || null
                 };
             }
         }
@@ -114,5 +116,19 @@ const authorize = (...roles) => {
     };
 };
 
-module.exports = { auth, authorize, optionalAuth };
+/**
+ * Block sensitive self-service actions (withdrawals, payout destination, password, wallet PIN)
+ * while an admin is impersonating the account.
+ */
+const forbidImpersonation = (req, res, next) => {
+    if (req.user?.impersonated_by) {
+        return res.status(403).json({
+            error: 'هذا الإجراء غير مسموح أثناء انتحال الهوية / This action is not allowed while impersonating a user',
+            code: 'IMPERSONATION_FORBIDDEN'
+        });
+    }
+    next();
+};
+
+module.exports = { auth, authorize, optionalAuth, forbidImpersonation };
 

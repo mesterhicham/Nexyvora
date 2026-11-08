@@ -66,12 +66,13 @@ export function AIAssistant({ role }: AIAssistantProps) {
 
   const sendChatMessage = async (userMessages: Message[]) => {
     const lastUserMsg = userMessages[userMessages.length - 1];
+    // The API expects { role, content } turns (see aiSupportService.handleQuery)
     const history = userMessages.slice(0, -1).map(m => ({
-      sender_role: m.role === 'user' ? 'user' : 'assistant',
-      message: m.content,
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content,
     }));
 
-    const response = await supportService.sendAiMessage({
+    const response = await supportService.aiChat({
       message: lastUserMsg.content,
       history,
     });

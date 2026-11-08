@@ -173,7 +173,7 @@ export default function TeacherAttendance() {
                           }
                           variant={
                             s.attendanceStatus === 'present' ? 'success' :
-                            s.attendanceStatus === 'late' ? 'warning' : 'destructive'
+                            s.attendanceStatus === 'late' ? 'warning' : 'error'
                           }
                         />
                       </TableCell>

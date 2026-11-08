@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const { isSafeHttpUrl } = require('../services/uploadUrlPolicy');
 
 // --- STUDENT RECORD ---
 exports.getStudentRecord = async (req, res) => {
@@ -98,6 +99,9 @@ exports.getStudentAssignments = async (req, res) => {
 // --- SUBMIT ASSIGNMENT ---
 exports.submitAssignment = async (req, res) => {
     const { assignment_id, submission_url, submission_text } = req.body;
+    if (!isSafeHttpUrl(submission_url)) {
+        return res.status(400).json({ error: 'رابط غير صالح / Invalid link: only http(s) URLs are allowed', code: 'UNSAFE_URL' });
+    }
     try {
         const [student] = await db.execute('SELECT id FROM students WHERE user_id = ?', [req.user.id]);
         if (student.length === 0) return res.status(404).json({ error: 'Student record not found' });

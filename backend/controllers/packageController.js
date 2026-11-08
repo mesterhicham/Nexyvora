@@ -1,11 +1,48 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const { validateReceiptUrl } = require('../services/uploadUrlPolicy');
 const emailService = require('../services/emailService');
 const nowpaymentsService = require('../services/nowpaymentsService');
 const rankService = require('../services/rankService');
+const currencyService = require('../services/currencyService');
 
 function genUuid() {
     return crypto.randomUUID();
+}
+
+/**
+ * Helper to compute effective price and promotional status for a package.
+ */
+function getEffectivePackagePrice(pkg) {
+    const regularPrice = Number(pkg.price);
+    const promoPrice = pkg.promo_price !== null && pkg.promo_price !== undefined ? Number(pkg.promo_price) : null;
+    
+    let isPromoCurrentlyActive = false;
+    let promoRemainingMs = 0;
+    
+    if (Number(pkg.is_promo_active) === 1 && promoPrice !== null && promoPrice > 0) {
+        const now = new Date();
+        const start = pkg.promo_start_at ? new Date(pkg.promo_start_at) : null;
+        const end = pkg.promo_end_at ? new Date(pkg.promo_end_at) : null;
+        
+        const hasStarted = !start || now >= start;
+        const hasNotEnded = !end || now <= end;
+        
+        if (hasStarted && hasNotEnded) {
+            isPromoCurrentlyActive = true;
+            if (end) {
+                promoRemainingMs = Math.max(0, end.getTime() - now.getTime());
+            }
+        }
+    }
+    
+    return {
+        effectivePrice: isPromoCurrentlyActive ? promoPrice : regularPrice,
+        regularPrice,
+        promoPrice,
+        isPromoCurrentlyActive,
+        promoRemainingMs
+    };
 }
 
 /**
@@ -66,23 +103,33 @@ async function getUserEffectiveUnlockedGenerations(userId, conn) {
 }
 
 /**
- * Get all available active packages
+ * Get all available packages
  */
 exports.getAllPackages = async (req, res) => {
     try {
+        const includeInactive = req.query.include_inactive === 'true' || req.query.all === 'true';
+        const whereClause = includeInactive ? '' : 'WHERE p.is_active = 1';
+
         const [packages] = await db.query(`
             SELECT p.*, 
                    (SELECT COUNT(*) FROM package_courses pc WHERE pc.package_id = p.id) AS course_count
             FROM packages p
-            WHERE p.is_active = 1
+            ${whereClause}
             ORDER BY p.level ASC
         `);
 
-        // Parse features JSON if string
-        const formatted = packages.map(pkg => ({
-            ...pkg,
-            features: typeof pkg.features === 'string' ? JSON.parse(pkg.features || '[]') : (pkg.features || [])
-        }));
+        // Parse features JSON if string and compute promotional pricing
+        const formatted = packages.map(pkg => {
+            const pricing = getEffectivePackagePrice(pkg);
+            return {
+                ...pkg,
+                price: pricing.regularPrice,
+                effective_price: pricing.effectivePrice,
+                has_active_promo: pricing.isPromoCurrentlyActive,
+                promo_remaining_ms: pricing.promoRemainingMs,
+                features: typeof pkg.features === 'string' ? JSON.parse(pkg.features || '[]') : (pkg.features || [])
+            };
+        });
 
         res.json({ packages: formatted });
     } catch (err) {
@@ -551,21 +598,62 @@ exports.getMyPackage = async (req, res) => {
             pending.features = JSON.parse(pending.features || '[]');
         }
 
-        // All active packages with full pricing and purchase status (no upgrade deductions)
+        // Check if user currently holds active FLOW package
+        const userHasFlow = current && (
+            (current.slug && current.slug.toLowerCase().includes('flow')) ||
+            Number(current.level) === 2 ||
+            (current.package_name && current.package_name.toUpperCase().includes('FLOW'))
+        );
+        const flowPaidAmount = userHasFlow ? Number(current.amount_paid || current.package_original_price || 150) : 0;
+
+        // All active packages with promotional pricing and upgrade calculations
         const [allPkgs] = await db.query('SELECT * FROM packages WHERE is_active = 1 ORDER BY level ASC');
         const activeOwnedPackageIds = new Set(
             purchasedPackages.filter(p => p.status === 'active').map(p => p.package_id)
         );
 
-        const availablePackages = allPkgs.map(pkg => ({
-            ...pkg,
-            price: Number(pkg.price),
-            upgrade_price: Number(pkg.price), // Keep for backwards compatibility
-            isPurchased: activeOwnedPackageIds.has(pkg.id),
-            features: typeof pkg.features === 'string' ? JSON.parse(pkg.features || '[]') : (pkg.features || [])
-        }));
+        const availablePackages = allPkgs.map(pkg => {
+            const pricing = getEffectivePackagePrice(pkg);
+            const isOwned = activeOwnedPackageIds.has(pkg.id);
+            const isHigherThanCurrent = current ? Number(pkg.level) > Number(current.level) : true;
 
-        // Available packages to purchase (those not yet owned)
+            // Upgrades are currently strictly for FLOW owners moving to a higher tier (e.g. AI PLUS)
+            let canUpgrade = false;
+            let upgradePrice = pricing.effectivePrice;
+            let upgradeDifference = 0;
+            let upgradeAdminReviewRequired = false;
+
+            if (userHasFlow && !isOwned && isHigherThanCurrent) {
+                canUpgrade = true;
+                const diff = Number((pricing.effectivePrice - flowPaidAmount).toFixed(2));
+                if (diff <= 0) {
+                    upgradeAdminReviewRequired = true;
+                    upgradePrice = 0;
+                    upgradeDifference = 0;
+                } else {
+                    upgradePrice = diff;
+                    upgradeDifference = diff;
+                }
+            }
+
+            return {
+                ...pkg,
+                price: pricing.regularPrice,
+                effective_price: pricing.effectivePrice,
+                has_active_promo: pricing.isPromoCurrentlyActive,
+                promo_remaining_ms: pricing.promoRemainingMs,
+                can_upgrade: canUpgrade,
+                upgrade_price: upgradePrice,
+                upgrade_difference: upgradeDifference,
+                upgrade_admin_review_required: upgradeAdminReviewRequired,
+                amount_previously_paid: userHasFlow ? flowPaidAmount : 0,
+                isPurchased: isOwned,
+                isCurrent: current ? current.package_id === pkg.id : false,
+                features: typeof pkg.features === 'string' ? JSON.parse(pkg.features || '[]') : (pkg.features || [])
+            };
+        });
+
+        // Available packages to purchase or upgrade
         const unpurchasedPackages = availablePackages.filter(pkg => !pkg.isPurchased);
 
         // Check if there is an active pending NOWPayments payment order
@@ -616,7 +704,32 @@ exports.getMyPackage = async (req, res) => {
  */
 exports.purchaseOrUpgradePackage = async (req, res) => {
     const userId = req.user.id;
-    const { packageId, paymentMethod = 'bank_transfer', paymentReference = '', receiptUrl = '', notes = '' } = req.body;
+    const { packageId, paymentMethod = 'bank_transfer', paymentReference = '', notes = '' } = req.body;
+    const receiptCheck = validateReceiptUrl(req.body.receiptUrl, userId, { allowPublic: false });
+    if (!receiptCheck.ok) {
+        return res.status(400).json({ error: receiptCheck.error, code: 'INVALID_RECEIPT_URL' });
+    }
+    const receiptUrl = receiptCheck.value;
+
+    // Same regulatory rule as deposits and withdrawals: no crypto / USDT for Algeria
+    if (currencyService.isCryptoPayment(paymentMethod, paymentReference) && await currencyService.isCryptoBlockedFor(req)) {
+        return res.status(403).json({
+            error: 'الدفع بـ USDT والعملات المشفرة غير متاح في بلدك. يرجى استخدام التحويل البنكي أو PayPal',
+            code: 'CRYPTO_NOT_ALLOWED'
+        });
+    }
+
+    // External methods must be enabled for the member's country in the admin "Country Currency" page
+    if (paymentMethod !== 'wallet') {
+        const methodCheck = await require('./paymentMethodController').assertMethodAllowed(req, {
+            paymentMethodId: req.body.paymentMethodId,
+            paymentMethod,
+            mode: 'deposit'
+        });
+        if (!methodCheck.ok) {
+            return res.status(403).json({ error: methodCheck.error, code: 'METHOD_NOT_ALLOWED' });
+        }
+    }
 
     if (!packageId) {
         return res.status(400).json({ error: 'Package ID is required' });
@@ -646,8 +759,76 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
             return res.status(400).json({ error: 'أنت تمتلك هذه الباقة بالفعل ومفعلة في حسابك.' });
         }
 
-        // Each package is purchased at its FULL price with NO deductions of previous packages
-        const saleAmount = Number(targetPackage.price);
+        // 2b. Check current active package for upgrade eligibility
+        const [activeUserPacks] = await connection.query(`
+            SELECT up.*, p.slug AS package_slug, p.name AS package_name, p.name_ar AS package_name_ar, 
+                   p.level AS package_level, p.price AS package_price
+            FROM user_packages up
+            JOIN packages p ON up.package_id = p.id
+            WHERE up.user_id = ? AND up.status = 'active'
+            ORDER BY p.level DESC, up.purchased_at DESC
+            LIMIT 1
+        `, [userId]);
+        const currentActivePack = activeUserPacks[0] || null;
+
+        const pricing = getEffectivePackagePrice(targetPackage);
+        let saleAmount = pricing.effectivePrice;
+        let isUpgrade = false;
+        let upgradedFromPackageId = null;
+
+        const userHasFlow = currentActivePack && (
+            (currentActivePack.package_slug && currentActivePack.package_slug.toLowerCase().includes('flow')) ||
+            Number(currentActivePack.package_level) === 2 ||
+            (currentActivePack.package_name && currentActivePack.package_name.toUpperCase().includes('FLOW'))
+        );
+
+        if (req.body.isUpgrade || (currentActivePack && targetPackage.level > currentActivePack.package_level)) {
+            isUpgrade = true;
+
+            // RULE: "الترقية بين الباقات تكون حالياً فقط لأصحاب باقة FLOW"
+            if (!userHasFlow) {
+                await connection.rollback();
+                return res.status(400).json({
+                    error: 'عذراً، نظام الترقية متاح حالياً فقط للمشتركين في باقة FLOW.',
+                    code: 'UPGRADE_FLOW_ONLY'
+                });
+            }
+
+            const previousPaid = Number(currentActivePack.amount_paid || currentActivePack.package_price || 150);
+            upgradedFromPackageId = currentActivePack.package_id;
+
+            // RULE: "إذا كان المبلغ المدفوع سابقًا أكبر من أو يساوي سعر الباقة الجديدة، تُحال الحالة للأدمن للمراجعة."
+            if (previousPaid >= pricing.effectivePrice) {
+                const pendingUpId = genUuid();
+                const adminReviewNotes = `[طلب ترقية يتطلب مراجعة الإدارة]: المبلغ المدفوع سابقاً ($${previousPaid}) يعادل أو يتجاوز سعر الباقة المستهدفة ($${pricing.effectivePrice}). ملاحظات: ${notes || 'لا توجد'}`;
+
+                await connection.query(`
+                    INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, upgraded_from_package_id, purchased_at)
+                    VALUES (?, ?, ?, 0.00, ?, ?, ?, ?, 'pending', 0, ?, CURRENT_TIMESTAMP)
+                `, [pendingUpId, userId, targetPackage.id, paymentMethod, paymentReference || `REV-${Date.now()}`, receiptUrl, adminReviewNotes, upgradedFromPackageId]);
+
+                const notifId = genUuid();
+                await connection.query(`
+                    INSERT INTO notifications (id, user_id, title, content, type, is_read, created_at)
+                    VALUES (?, ?, 'طلب الترقية قيد المراجعة الإدارية', ?, 'package', 0, CURRENT_TIMESTAMP)
+                `, [notifId, userId, `تم استلام طلب ترقيتك إلى باقة ${targetPackage.name_ar || targetPackage.name}. نظراً لمعادلة رصيدك السابق، تمت إحالة الطلب للإدارة للمراجعة وتأكيد التفعيل.`]);
+
+                await connection.commit();
+
+                return res.json({
+                    message: 'تم إحالة طلب الترقية إلى إدارة المنصة للمراجعة والتدقيق، وسيقوم فريق الدعم بتأكيد الترقية قريباً.',
+                    status: 'pending_admin_review',
+                    requiresAdminReview: true
+                });
+            }
+
+            // Normal upgrade: pay the difference only (e.g. $200 - $150 = $50 during promo)
+            saleAmount = Number((pricing.effectivePrice - previousPaid).toFixed(2));
+        }
+
+        const purchaseTitle = isUpgrade
+            ? `ترقية إلى باقة ${targetPackage.name_ar || targetPackage.name} (فرق السعر: $${saleAmount})`
+            : `شراء باقة ${targetPackage.name_ar || targetPackage.name} (${pricing.isPromoCurrentlyActive ? 'سعر العرض' : 'السعر الكامل'}: $${saleAmount})`;
 
         // 3. Handle Wallet vs Manual (Bank / USDT) Payment Methods
         const isWalletPayment = (paymentMethod === 'wallet');
@@ -685,16 +866,16 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 balanceBefore,
                 balanceAfter,
                 paymentRefToSave,
-                `شراء باقة ${targetPackage.name_ar || targetPackage.name} من رصيد المحفظة بالسعر الكامل ($${saleAmount})`,
-                JSON.stringify({ packageId: targetPackage.id, paymentMethod: 'wallet', isFullPurchase: true })
+                purchaseTitle,
+                JSON.stringify({ packageId: targetPackage.id, paymentMethod: 'wallet', isUpgrade, upgradedFromPackageId, saleAmount })
             ]);
 
             // Create active user_package entry (stored independently)
             const newUserPackageId = genUuid();
             await connection.query(`
-                INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, purchased_at, expires_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', 0, CURRENT_TIMESTAMP, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 YEAR))
-            `, [newUserPackageId, userId, targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes]);
+                INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, upgraded_from_package_id, purchased_at, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', 0, ?, CURRENT_TIMESTAMP, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 YEAR))
+            `, [newUserPackageId, userId, targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes, upgradedFromPackageId]);
 
             // Process activation (courses, commissions, notifications)
             const { distributedCommissions } = await processPackageActivation(connection, {
@@ -708,9 +889,14 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
 
             await connection.commit();
 
+            const successMsg = isUpgrade 
+                ? `تمت ترقية حسابك إلى باقة ${targetPackage.name_ar || targetPackage.name} بنجاح بعد دفع فرق السعر ($${saleAmount})!`
+                : `تم شراء وتفعيل باقة ${targetPackage.name_ar || targetPackage.name} بنجاح من رصيد المحفظة ($${saleAmount})!`;
+
             return res.json({
-                message: 'تم شراء وتفعيل الباقة بنجاح من رصيد المحفظة بالسعر الكامل!',
+                message: successMsg,
                 status: 'active',
+                isUpgrade,
                 package: targetPackage,
                 amountPaid: saleAmount,
                 commissionsDistributed: distributedCommissions.length
@@ -852,14 +1038,14 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 await connection.query(`
                     UPDATE user_packages 
                     SET package_id = ?, amount_paid = ?, payment_method = ?, payment_reference = ?,
-                        receipt_url = ?, notes = ?, purchased_at = CURRENT_TIMESTAMP
+                        receipt_url = ?, notes = ?, upgraded_from_package_id = ?, purchased_at = CURRENT_TIMESTAMP
                     WHERE id = ?
-                `, [targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes, targetUserPackageId]);
+                `, [targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes, upgradedFromPackageId, targetUserPackageId]);
             } else {
                 await connection.query(`
-                    INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, purchased_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, CURRENT_TIMESTAMP)
-                `, [targetUserPackageId, userId, targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes]);
+                    INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, upgraded_from_package_id, purchased_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, ?, CURRENT_TIMESTAMP)
+                `, [targetUserPackageId, userId, targetPackage.id, saleAmount, paymentMethod, paymentRefToSave, receiptUrl, notes, upgradedFromPackageId]);
             }
 
             // Record pending transaction in ledger for reference
@@ -872,16 +1058,20 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
                 userId,
                 saleAmount,
                 paymentRefToSave,
-                `طلب شراء وتفعيل باقة (${paymentMethod}): ${targetPackage.name_ar || targetPackage.name} بالسعر الكامل ($${saleAmount}) [قيد المراجعة]`,
-                JSON.stringify({ packageId: targetPackage.id, paymentMethod, receiptUrl, notes, isFullPurchase: true, userPackageId: targetUserPackageId })
+                `${purchaseTitle} [قيد المراجعة والتدقيق]`,
+                JSON.stringify({ packageId: targetPackage.id, paymentMethod, receiptUrl, notes, isUpgrade, upgradedFromPackageId, userPackageId: targetUserPackageId })
             ]);
 
             // Notify admin / log
             const notifId = genUuid();
+            const pendingNotifText = isUpgrade
+                ? `تم استلام طلب ترقية حسابك إلى باقة ${targetPackage.name_ar || targetPackage.name} وإرفاق وصل التحويل لفرق السعر ($${saleAmount}). طلبك الآن قيد المراجعة والتدقيق.`
+                : `تم استلام طلب تفعيل باقة ${targetPackage.name_ar || targetPackage.name} بنجاح وإرفاق وصل التحويل ($${saleAmount}). طلبك الآن قيد المراجعة والتدقيق.`;
+
             await connection.query(`
                 INSERT INTO notifications (id, user_id, title, content, type, is_read, created_at)
                 VALUES (?, ?, 'تم استلام طلب تفعيل الباقة', ?, 'package', 0, CURRENT_TIMESTAMP)
-            `, [notifId, userId, `تم استلام طلب تفعيل باقة ${targetPackage.name_ar || targetPackage.name} بنجاح وإرفاق وصل التحويل بالسعر الكامل ($${saleAmount}). طلبك الآن قيد المراجعة والتدقيق وسوف يتم تفعيل حسابك فور مراجعة الإدارة.`]);
+            `, [notifId, userId, pendingNotifText]);
 
             await connection.commit();
 
@@ -907,7 +1097,8 @@ exports.purchaseOrUpgradePackage = async (req, res) => {
  */
 exports.assignCoursesToPackage = async (req, res) => {
     const { packageId } = req.params;
-    const { formationIds = [] } = req.body;
+    // De-duplicate: the same course listed twice used to break the unique key and roll back the whole save
+    const formationIds = [...new Set((Array.isArray(req.body?.formationIds) ? req.body.formationIds : []).filter(Boolean).map(String))];
 
     const connection = await db.getConnection();
     try {
@@ -919,7 +1110,7 @@ exports.assignCoursesToPackage = async (req, res) => {
         // Insert new associations
         for (const formationId of formationIds) {
             await connection.query(`
-                INSERT INTO package_courses (id, package_id, formation_id)
+                INSERT IGNORE INTO package_courses (id, package_id, formation_id)
                 VALUES (?, ?, ?)
             `, [genUuid(), packageId, formationId]);
         }
@@ -964,7 +1155,7 @@ exports.assignCoursesToPackage = async (req, res) => {
 };
 
 /**
- * Admin: Update package details (name, price, generations, content, features)
+ * Admin: Update package details (name, price, promo, generations, content, features)
  */
 exports.updatePackage = async (req, res) => {
     const { id } = req.params;
@@ -974,6 +1165,11 @@ exports.updatePackage = async (req, res) => {
         description, 
         description_ar, 
         price, 
+        promo_price,
+        promo_start_at,
+        promo_end_at,
+        is_promo_active,
+        level,
         unlocked_generations, 
         features, 
         badge_text,
@@ -992,6 +1188,11 @@ exports.updatePackage = async (req, res) => {
         const updatedDesc = description !== undefined ? String(description).trim() : current.description;
         const updatedDescAr = description_ar !== undefined ? String(description_ar).trim() : current.description_ar;
         const updatedPrice = price !== undefined ? Number(price) : Number(current.price);
+        const updatedPromoPrice = promo_price !== undefined ? (promo_price !== null && promo_price !== '' ? Number(promo_price) : null) : current.promo_price;
+        const updatedPromoStart = promo_start_at !== undefined ? (promo_start_at ? new Date(promo_start_at) : null) : current.promo_start_at;
+        const updatedPromoEnd = promo_end_at !== undefined ? (promo_end_at ? new Date(promo_end_at) : null) : current.promo_end_at;
+        const updatedPromoActive = is_promo_active !== undefined ? (is_promo_active ? 1 : 0) : current.is_promo_active;
+        const updatedLevel = level !== undefined && level !== null ? parseInt(level, 10) : current.level;
         const updatedGens = unlocked_generations !== undefined ? Math.min(10, Math.max(0, parseInt(unlocked_generations, 10))) : current.unlocked_generations;
         
         let updatedFeatures = current.features;
@@ -1005,7 +1206,8 @@ exports.updatePackage = async (req, res) => {
         await db.query(`
             UPDATE packages 
             SET name = ?, name_ar = ?, description = ?, description_ar = ?, price = ?, 
-                unlocked_generations = ?, features = ?, badge_text = ?, is_active = ?, updated_at = NOW()
+                promo_price = ?, promo_start_at = ?, promo_end_at = ?, is_promo_active = ?,
+                level = ?, unlocked_generations = ?, features = ?, badge_text = ?, is_active = ?, updated_at = NOW()
             WHERE id = ?
         `, [
             updatedName,
@@ -1013,12 +1215,33 @@ exports.updatePackage = async (req, res) => {
             updatedDesc,
             updatedDescAr,
             updatedPrice,
+            updatedPromoPrice,
+            updatedPromoStart,
+            updatedPromoEnd,
+            updatedPromoActive,
+            updatedLevel,
             updatedGens,
             updatedFeatures,
             updatedBadge,
             updatedActive,
             id
         ]);
+
+        // Audit log
+        try {
+            await db.query(`
+                INSERT INTO admin_audit_logs (id, admin_id, action, target_user_id, ip_address, user_agent, details)
+                VALUES (?, ?, 'update_package', NULL, ?, ?, ?)
+            `, [genUuid(), req.user?.id, req.ip, (req.headers['user-agent'] || '').slice(0, 255), JSON.stringify({
+                packageId: id,
+                name: updatedName,
+                price: updatedPrice,
+                promo_price: updatedPromoPrice,
+                is_promo_active: updatedPromoActive
+            })]);
+        } catch (e) {
+            console.warn('[updatePackage:audit]', e.message);
+        }
 
         const [updatedRows] = await db.query('SELECT * FROM packages WHERE id = ?', [id]);
         const updatedPkg = updatedRows[0];
@@ -1027,7 +1250,265 @@ exports.updatePackage = async (req, res) => {
         res.json({ message: 'Package updated successfully', package: updatedPkg });
     } catch (err) {
         console.error('[updatePackage]', err);
-        res.status(500).json({ error: 'Failed to update package' });
+        res.status(500).json({ error: 'Failed to update package: ' + err.message });
+    }
+};
+
+/**
+ * Admin: Create a new package
+ */
+exports.createPackage = async (req, res) => {
+    try {
+        const {
+            name,
+            name_ar,
+            slug,
+            price,
+            promo_price,
+            promo_start_at,
+            promo_end_at,
+            is_promo_active,
+            level,
+            unlocked_generations,
+            description,
+            description_ar,
+            features,
+            badge_text,
+            is_active
+        } = req.body;
+
+        if (!name || !name_ar || price === undefined) {
+            return res.status(400).json({ error: 'Name, Arabic Name, and Price are required' });
+        }
+
+        const baseSlug = slug ? String(slug).trim().toLowerCase().replace(/\s+/g, '-') : String(name).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        let generatedSlug = baseSlug || `package-${Date.now()}`;
+        
+        // Ensure unique slug
+        const [existingSlug] = await db.query('SELECT id FROM packages WHERE slug = ?', [generatedSlug]);
+        if (existingSlug.length > 0) {
+            generatedSlug = `${generatedSlug}-${Date.now()}`;
+        }
+
+        // Determine level if not provided
+        let targetLevel = level !== undefined && level !== null ? parseInt(level, 10) : null;
+        if (!targetLevel) {
+            const [maxLevelRow] = await db.query('SELECT MAX(level) AS max_lvl FROM packages');
+            targetLevel = (maxLevelRow[0]?.max_lvl || 0) + 1;
+        }
+
+        // Check if level already taken, automatically find next available level
+        const [existingLvl] = await db.query('SELECT id FROM packages WHERE level = ?', [targetLevel]);
+        if (existingLvl.length > 0) {
+            const [maxLvl] = await db.query('SELECT MAX(level) AS max_lvl FROM packages');
+            targetLevel = (maxLvl[0]?.max_lvl || 0) + 1;
+        }
+
+        const id = genUuid();
+        const featuresJson = Array.isArray(features) ? JSON.stringify(features) : (typeof features === 'string' ? features : '[]');
+
+        await db.query(`
+            INSERT INTO packages (
+                id, name, name_ar, slug, price, promo_price, promo_start_at, promo_end_at, is_promo_active,
+                level, unlocked_generations, description, description_ar, features, badge_text, is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            id,
+            String(name).trim(),
+            String(name_ar).trim(),
+            generatedSlug,
+            Number(price),
+            promo_price !== undefined && promo_price !== null && promo_price !== '' ? Number(promo_price) : null,
+            promo_start_at ? new Date(promo_start_at) : null,
+            promo_end_at ? new Date(promo_end_at) : null,
+            is_promo_active ? 1 : 0,
+            targetLevel,
+            unlocked_generations !== undefined ? Math.min(10, Math.max(0, parseInt(unlocked_generations, 10))) : 1,
+            description ? String(description).trim() : null,
+            description_ar ? String(description_ar).trim() : null,
+            featuresJson,
+            badge_text ? String(badge_text).trim() : null,
+            is_active !== undefined ? (is_active ? 1 : 0) : 1
+        ]);
+
+        // Audit log
+        try {
+            await db.query(`
+                INSERT INTO admin_audit_logs (id, admin_id, action, target_user_id, ip_address, user_agent, details)
+                VALUES (?, ?, 'create_package', NULL, ?, ?, ?)
+            `, [genUuid(), req.user?.id, req.ip, (req.headers['user-agent'] || '').slice(0, 255), JSON.stringify({ packageId: id, name, price, level: targetLevel })]);
+        } catch (e) {
+            console.warn('[createPackage:audit]', e.message);
+        }
+
+        const [createdRows] = await db.query('SELECT * FROM packages WHERE id = ?', [id]);
+        const created = createdRows[0];
+        created.features = typeof created.features === 'string' ? JSON.parse(created.features || '[]') : (created.features || []);
+
+        res.status(201).json({ message: 'Package created successfully', package: created });
+    } catch (err) {
+        console.error('[createPackage]', err);
+        res.status(500).json({ error: 'Failed to create package: ' + err.message });
+    }
+};
+
+/**
+ * Admin: Deactivate/Delete a package
+ */
+exports.deletePackage = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query('UPDATE packages SET is_active = 0, updated_at = NOW() WHERE id = ?', [id]);
+
+        try {
+            await db.query(`
+                INSERT INTO admin_audit_logs (id, admin_id, action, target_user_id, ip_address, user_agent, details)
+                VALUES (?, ?, 'deactivate_package', NULL, ?, ?, ?)
+            `, [genUuid(), req.user?.id, req.ip, (req.headers['user-agent'] || '').slice(0, 255), JSON.stringify({ packageId: id })]);
+        } catch (e) {}
+
+        res.json({ message: 'Package deactivated successfully' });
+    } catch (err) {
+        console.error('[deletePackage]', err);
+        res.status(500).json({ error: 'Failed to deactivate package' });
+    }
+};
+
+/**
+ * Admin: Manually upgrade a member to a package
+ */
+exports.manualUpgradeUser = async (req, res) => {
+    const { userId, packageId, amountPaid = 0, notes = '' } = req.body;
+    if (!userId || !packageId) {
+        return res.status(400).json({ error: 'userId and packageId are required' });
+    }
+
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [userRows] = await connection.query('SELECT id, email, username FROM users WHERE id = ?', [userId]);
+        if (userRows.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: 'User not found' });
+        }
+        const user = userRows[0];
+
+        const [pkgRows] = await connection.query('SELECT * FROM packages WHERE id = ?', [packageId]);
+        if (pkgRows.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: 'Package not found' });
+        }
+        const targetPackage = pkgRows[0];
+
+        // Find current package
+        const [currentUpRows] = await connection.query(`
+            SELECT up.package_id FROM user_packages up WHERE up.user_id = ? AND up.is_current = 1 AND up.status = 'active' LIMIT 1
+        `, [userId]);
+        const previousPackageId = currentUpRows[0]?.package_id || null;
+
+        const newUpId = genUuid();
+        const paid = Number(amountPaid) >= 0 ? Number(amountPaid) : 0;
+        const upgradeNotes = notes ? `[ترقية يدوية من الإدارة]: ${notes}` : '[ترقية يدوية من لوحة تحكم الإدارة]';
+
+        await connection.query(`
+            INSERT INTO user_packages (id, user_id, package_id, amount_paid, payment_method, payment_reference, receipt_url, notes, status, is_current, upgraded_from_package_id, purchased_at, expires_at)
+            VALUES (?, ?, ?, ?, 'admin_manual', ?, NULL, ?, 'active', 0, ?, CURRENT_TIMESTAMP, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 YEAR))
+        `, [newUpId, userId, targetPackage.id, paid, `ADMIN-UPG-${Date.now()}`, upgradeNotes, previousPackageId]);
+
+        // Process activation
+        await processPackageActivation(connection, {
+            userPackageId: newUpId,
+            userId,
+            targetPackage,
+            saleAmount: paid,
+            paymentMethod: 'admin_manual',
+            paymentReference: `ADMIN-UPG-${Date.now()}`
+        });
+
+        // Audit log
+        await connection.query(`
+            INSERT INTO admin_audit_logs (id, admin_id, action, target_user_id, ip_address, user_agent, details)
+            VALUES (?, ?, 'manual_package_upgrade', ?, ?, ?, ?)
+        `, [genUuid(), req.user?.id, userId, req.ip, (req.headers['user-agent'] || '').slice(0, 255), JSON.stringify({
+            userId,
+            userEmail: user.email,
+            targetPackageId: targetPackage.id,
+            targetPackageName: targetPackage.name,
+            amountPaid: paid,
+            notes
+        })]);
+
+        await connection.commit();
+
+        res.json({
+            message: `تم ترقية وتفعيل اشتراك العضو (${user.email}) إلى باقة ${targetPackage.name_ar || targetPackage.name} بنجاح!`,
+            userPackageId: newUpId,
+            package: targetPackage
+        });
+    } catch (err) {
+        await connection.rollback();
+        console.error('[manualUpgradeUser]', err);
+        res.status(500).json({ error: 'Failed to manually upgrade user: ' + err.message });
+    } finally {
+        connection.release();
+    }
+};
+
+/**
+ * Admin: Get members with their current packages and subscriptions for management
+ */
+exports.getMembersWithPackages = async (req, res) => {
+    try {
+        const { search = '', packageId = '', limit = 50, page = 1 } = req.query;
+        const offset = (Math.max(1, parseInt(page, 10)) - 1) * parseInt(limit, 10);
+
+        let whereClause = 'WHERE u.role = "student"';
+        const params = [];
+
+        if (search) {
+            whereClause += ' AND (u.email LIKE ? OR u.username LIKE ? OR p_prof.full_name LIKE ?)';
+            const q = `%${search}%`;
+            params.push(q, q, q);
+        }
+
+        if (packageId) {
+            whereClause += ' AND up.package_id = ?';
+            params.push(packageId);
+        }
+
+        const [members] = await db.query(`
+            SELECT u.id, u.email, u.username, u.created_at,
+                   p_prof.full_name, p_prof.phone,
+                   up.id AS user_package_id, up.package_id, up.amount_paid, up.status AS subscription_status,
+                   up.payment_method, up.purchased_at, up.expires_at, up.notes AS subscription_notes,
+                   pkg.name AS package_name, pkg.name_ar AS package_name_ar, pkg.level AS package_level, pkg.price AS package_price
+            FROM users u
+            LEFT JOIN profiles p_prof ON u.id = p_prof.id
+            LEFT JOIN user_packages up ON (u.id = up.user_id AND up.is_current = 1 AND up.status = 'active')
+            LEFT JOIN packages pkg ON up.package_id = pkg.id
+            ${whereClause}
+            ORDER BY u.created_at DESC
+            LIMIT ? OFFSET ?
+        `, [...params, parseInt(limit, 10), offset]);
+
+        const [countRows] = await db.query(`
+            SELECT COUNT(DISTINCT u.id) AS total
+            FROM users u
+            LEFT JOIN profiles p_prof ON u.id = p_prof.id
+            LEFT JOIN user_packages up ON (u.id = up.user_id AND up.is_current = 1 AND up.status = 'active')
+            ${whereClause}
+        `, params);
+
+        res.json({
+            members,
+            total: countRows[0]?.total || 0,
+            page: parseInt(page, 10),
+            limit: parseInt(limit, 10)
+        });
+    } catch (err) {
+        console.error('[getMembersWithPackages]', err);
+        res.status(500).json({ error: 'Failed to fetch members subscriptions' });
     }
 };
 

@@ -1,5 +1,28 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const academyAccess = require('../services/academyAccessService');
+const { isSafeHttpUrl } = require('../services/uploadUrlPolicy');
+
+// Lesson presentation fields (migration 32)
+function cleanLessonExtras(body) {
+    const out = {};
+    if (body.thumbnail_url !== undefined) {
+        if (!isSafeHttpUrl(body.thumbnail_url)) throw new Error('Invalid thumbnail URL');
+        out.thumbnail_url = body.thumbnail_url ? String(body.thumbnail_url).trim() : null;
+    }
+    if (body.description !== undefined) {
+        out.description = body.description ? String(body.description).trim() : null;
+    }
+    if (body.resources !== undefined) {
+        const list = Array.isArray(body.resources) ? body.resources : [];
+        const cleaned = list
+            .filter(r => r && r.url && isSafeHttpUrl(r.url))
+            .slice(0, 20)
+            .map(r => ({ title: String(r.title || r.url).trim().slice(0, 200), url: String(r.url).trim() }));
+        out.resources = cleaned.length ? JSON.stringify(cleaned) : null;
+    }
+    return out;
+}
 
 // --- FORMATIONS ---
 exports.getAllFormations = async (req, res) => {
@@ -125,22 +148,9 @@ async function autoEnrollPackageStudents(formationId, packageId) {
 // Helper: Auto-enroll single student into all published formations their package qualifies for
 async function autoEnrollStudentForPackages(userId, studentId) {
     try {
-        const [packRows] = await db.query(`
-            SELECT MAX(p.level) AS max_level
-            FROM user_packages up
-            JOIN packages p ON up.package_id = p.id
-            WHERE up.user_id = ? AND up.status = 'active'
-        `, [userId]);
-
-        const maxLevel = packRows[0]?.max_level != null ? Number(packRows[0].max_level) : null;
-        if (maxLevel === null) return;
-
-        const [coveredFormations] = await db.query(`
-            SELECT f.id
-            FROM formations f
-            JOIN packages p ON f.package_id = p.id
-            WHERE f.is_published = 1 AND p.level <= ?
-        `, [maxLevel]);
+        // Courses assigned to the member's packages (admin "Assign Courses") and to lower tiers
+        const formationIds = await academyAccess.getPackageFormationIds(userId);
+        const coveredFormations = [...formationIds].map(id => ({ id }));
 
         for (const cf of coveredFormations) {
             const [exists] = await db.query(
@@ -303,15 +313,23 @@ async function getOwnedEnrollment(reqUser, enrollmentId) {
 exports.getFormationContent = async (req, res) => {
     const { id } = req.params;
     try {
-        const [content] = await db.execute('SELECT * FROM formation_content WHERE formation_id = ? ORDER BY order_index ASC', [id]);
+        const [content] = await db.execute('SELECT * FROM formation_content WHERE formation_id = ? ORDER BY order_index ASC, created_at ASC', [id]);
+        const access = await academyAccess.resolveFormationAccess(req.user, id);
 
-        const hasFullAccess = (await canUserManageContent(id, req.user)) || Boolean(await getApprovedEnrollment(req.user.id, id));
-        if (hasFullAccess) {
-            return res.json(content);
+        if (access.canManage) {
+            return res.json(academyAccess.buildLessonStates(content, [], { unlockAll: true }));
         }
 
-        // Without an approved enrollment only the curriculum outline is visible (no file links)
-        res.json(content.map(c => ({ ...c, file_url: null, quiz_id: null, locked: true })));
+        if (!access.allowed) {
+            // Without active access only the curriculum outline is visible (no files, quizzes or resources)
+            return res.json(content.map(c => ({
+                ...c, file_url: null, quiz_id: null, resources: [], locked: true, completed: false, watched_seconds: 0
+            })));
+        }
+
+        // Sequential unlocking is decided here, never by the client
+        const [progress] = await db.execute('SELECT * FROM formation_progress WHERE enrollment_id = ?', [access.enrollment.id]);
+        res.json(academyAccess.buildLessonStates(content, progress));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -333,11 +351,12 @@ exports.addFormationContent = async (req, res) => {
     const finalFileUrl = file_url || null;
 
     try {
+        const extras = cleanLessonExtras(req.body);
         await db.execute(
-            'INSERT INTO formation_content (id, formation_id, title, content_type, file_url, duration_seconds, order_index, quiz_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, formation_id, title, content_type, finalFileUrl, finalDuration, finalOrder, finalQuizId]
+            'INSERT INTO formation_content (id, formation_id, title, content_type, file_url, duration_seconds, order_index, quiz_id, thumbnail_url, description, resources) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, formation_id, title, content_type, finalFileUrl, finalDuration, finalOrder, finalQuizId, extras.thumbnail_url ?? null, extras.description ?? null, extras.resources ?? null]
         );
-        res.status(201).json({ id, formation_id, title, content_type, file_url: finalFileUrl, duration_seconds: finalDuration, order_index: finalOrder, quiz_id: finalQuizId });
+        res.status(201).json({ id, formation_id, title, content_type, file_url: finalFileUrl, duration_seconds: finalDuration, order_index: finalOrder, quiz_id: finalQuizId, ...extras, resources: academyAccess.parseResources(extras.resources) });
     } catch (err) {
         console.error('[addFormationContent error]:', err);
         res.status(500).json({ error: err.message });
@@ -361,11 +380,13 @@ exports.updateFormationContent = async (req, res) => {
         const finalQuizId = (quiz_id !== undefined && quiz_id !== null && quiz_id !== '' && quiz_id !== 'none' && quiz_id !== 'null') ? quiz_id : null;
         const finalFileUrl = file_url || null;
 
+        const extras = cleanLessonExtras(req.body);
+        const extraKeys = Object.keys(extras);
         await db.execute(
-            'UPDATE formation_content SET title = ?, content_type = ?, file_url = ?, duration_seconds = ?, order_index = ?, quiz_id = ? WHERE id = ?',
-            [title, content_type, finalFileUrl, finalDuration, finalOrder, finalQuizId, id]
+            `UPDATE formation_content SET title = ?, content_type = ?, file_url = ?, duration_seconds = ?, order_index = ?, quiz_id = ?${extraKeys.map(k => `, ${k} = ?`).join('')} WHERE id = ?`,
+            [title, content_type, finalFileUrl, finalDuration, finalOrder, finalQuizId, ...extraKeys.map(k => extras[k]), id]
         );
-        res.json({ id, title, content_type, file_url: finalFileUrl, duration_seconds: finalDuration, order_index: finalOrder, quiz_id: finalQuizId });
+        res.json({ id, title, content_type, file_url: finalFileUrl, duration_seconds: finalDuration, order_index: finalOrder, quiz_id: finalQuizId, ...extras, ...(extras.resources !== undefined ? { resources: academyAccess.parseResources(extras.resources) } : {}) });
     } catch (err) {
         console.error('[updateFormationContent error]:', err);
         res.status(500).json({ error: err.message });
@@ -468,7 +489,12 @@ exports.getStudentEnrollments = async (req, res) => {
             ORDER BY fe.enrolled_at DESC
         `, [studentId]);
 
-        const enriched = enrollments.map(e => {
+        const packageFormationIds = await academyAccess.getPackageFormationIds(userId);
+        const visible = enrollments.filter(e =>
+            e.payment_status !== 'approved' || academyAccess.isEnrollmentActive(e, packageFormationIds)
+        );
+
+        const enriched = visible.map(e => {
             const total = Number(e.total_contents) || 0;
             const completed = Number(e.completed_contents) || 0;
             const isCompleted = total > 0 && completed >= total;
@@ -478,7 +504,8 @@ exports.getStudentEnrollments = async (req, res) => {
                 total_contents: total,
                 completed_contents: completed,
                 is_completed: isCompleted,
-                progress_percent: percent
+                progress_percent: percent,
+                access_source: e.payment_id ? 'purchase' : 'package'
             };
         });
 
@@ -500,6 +527,10 @@ exports.claimCertificate = async (req, res) => {
             [enrollmentId, student[0].id]
         );
         if (enrollment.length === 0) return res.status(404).json({ error: 'Approved enrollment not found' });
+        const packageIds = enrollment[0].payment_id ? new Set() : await academyAccess.getPackageFormationIds(userId);
+        if (!academyAccess.isEnrollmentActive(enrollment[0], packageIds)) {
+            return res.status(403).json({ error: 'هذه الدورة غير متاحة في باقتك الحالية / This course is not included in your current package', code: 'COURSE_NOT_IN_PACKAGE' });
+        }
 
         const [counts] = await db.execute(`
             SELECT 
@@ -631,34 +662,51 @@ exports.updateStudentProgress = async (req, res) => {
         if (!enrollment || enrollment.payment_status !== 'approved') {
             return res.status(404).json({ error: 'Approved enrollment not found' });
         }
+        if (req.user.role !== 'admin') {
+            const packageIds = enrollment.payment_id ? new Set() : await academyAccess.getPackageFormationIds(req.user.id);
+            if (!academyAccess.isEnrollmentActive(enrollment, packageIds)) {
+                return res.status(403).json({ error: 'هذه الدورة غير متاحة في باقتك الحالية / This course is not included in your current package', code: 'COURSE_NOT_IN_PACKAGE' });
+            }
+        }
 
-        // The content item must belong to the enrolled formation
-        const [contentRows] = await db.execute(
-            'SELECT id FROM formation_content WHERE id = ? AND formation_id = ?',
-            [contentId, enrollment.formation_id]
+        const [contents] = await db.execute(
+            'SELECT * FROM formation_content WHERE formation_id = ? ORDER BY order_index ASC, created_at ASC',
+            [enrollment.formation_id]
         );
-        if (contentRows.length === 0) {
+        const [progressRows] = await db.execute('SELECT * FROM formation_progress WHERE enrollment_id = ?', [enrollmentId]);
+        const lessons = academyAccess.buildLessonStates(contents, progressRows);
+        const lesson = lessons.find(l => l.id === contentId);
+        if (!lesson) {
             return res.status(400).json({ error: 'Content does not belong to this formation' });
         }
-
-        const [existing] = await db.execute(
-            'SELECT id FROM formation_progress WHERE enrollment_id = ? AND content_id = ?',
-            [enrollmentId, contentId]
-        );
-
-        if (existing.length > 0) {
-            await db.execute(
-                'UPDATE formation_progress SET watched_seconds = ?, completed = ?, updated_at = NOW() WHERE enrollment_id = ? AND content_id = ?',
-                [watchedSeconds, completed ? 1 : 0, enrollmentId, contentId]
-            );
-        } else {
-            const id = crypto.randomUUID();
-            await db.execute(
-                'INSERT INTO formation_progress (id, enrollment_id, content_id, watched_seconds, completed) VALUES (?, ?, ?, ?, ?)',
-                [id, enrollmentId, contentId, watchedSeconds, completed ? 1 : 0]
-            );
+        if (lesson.locked) {
+            return res.status(403).json({ error: 'أكمل الدرس السابق أولاً / Complete the previous lesson first', code: 'LESSON_LOCKED' });
         }
-        res.json({ message: 'Progress updated' });
+
+        const watched = Math.max(0, Math.floor(Number(watchedSeconds) || 0));
+        const markComplete = completed === true || completed === 1 || completed === 'true';
+
+        // Videos complete only once (almost) fully watched; PDF / text / quiz complete with "Mark as read"
+        if (markComplete && lesson.content_type === 'video') {
+            const duration = Number(lesson.duration_seconds) || 0;
+            const bestWatched = Math.max(watched, lesson.watched_seconds || 0);
+            if (duration > 0 && bestWatched < Math.floor(duration * 0.9)) {
+                return res.status(400).json({ error: 'يجب مشاهدة الفيديو كاملاً لإكماله / Watch the whole video to complete it', code: 'VIDEO_NOT_WATCHED' });
+            }
+        }
+
+        // Progress never goes backwards: completion and watched time only increase
+        await db.execute(`
+            INSERT INTO formation_progress (id, enrollment_id, content_id, watched_seconds, completed, completed_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                watched_seconds = GREATEST(watched_seconds, VALUES(watched_seconds)),
+                completed_at = IF(completed = 0 AND VALUES(completed) = 1, NOW(), completed_at),
+                completed = GREATEST(completed, VALUES(completed)),
+                updated_at = NOW()
+        `, [crypto.randomUUID(), enrollmentId, contentId, watched, markComplete ? 1 : 0, markComplete ? new Date() : null]);
+
+        res.json({ message: 'Progress updated', completed: markComplete || lesson.completed });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

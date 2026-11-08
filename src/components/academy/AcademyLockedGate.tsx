@@ -25,7 +25,7 @@ interface AcademyLockedGateProps {
 export function AcademyLockedGate({ pendingPackage, userPackage, reason = 'no_package' }: AcademyLockedGateProps) {
   const navigate = useNavigate();
 
-  const isUpgrade = reason === 'upgrade_required' || (userPackage && Number(userPackage.level) < 2);
+  const isUpgrade = reason === 'upgrade_required';
   const isPending = !!pendingPackage;
 
   return (

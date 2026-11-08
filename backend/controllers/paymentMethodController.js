@@ -232,6 +232,155 @@ exports.toggleWithdrawal = async (req, res) => {
 };
 
 /**
+ * Single source of truth for the payment methods a member may use.
+ * Driven by the admin "Country Currency" rules (USDT / Bank / Stripe / PayPal / Payoneer toggles
+ * and the country's local bank details). Used for listing AND for validating submissions.
+ *
+ * @returns {Promise<{ safeMethods: object[], countryCode: string, rule: object }>}
+ */
+async function buildAllowedMethods(req, mode) {
+    let sql = "SELECT * FROM payment_methods WHERE status = 'active'";
+    if (mode === 'deposit') {
+        sql += " AND enabled_for_deposit = 1";
+    } else if (mode === 'withdrawal') {
+        sql += " AND enabled_for_withdrawal = 1";
+    }
+    sql += " ORDER BY sort_order ASC, name ASC";
+
+    const [rows] = await db.query(sql);
+
+    // Detect user country and apply strict country currency rules (no client overrides)
+    const countryCode = await currencyService.detectUserCountry(req, { strict: true });
+    const rule = await currencyService.getRuleForCountry(countryCode);
+
+    // Filter methods based on country rules
+    const filteredRows = rows.filter(m => {
+        const type = (m.type || '').toLowerCase();
+        const provider = (m.provider || '').toLowerCase();
+        const curr = (m.currency || '').toUpperCase();
+        const cryptoCurr = (m.crypto_currency || '').toUpperCase();
+
+        // Strict Algeria check or disabled USDT
+        if (countryCode === 'DZ' || !rule.usdt_enabled) {
+            if (type === 'crypto' || type === 'nowpayments_crypto' || provider === 'nowpayments') {
+                return false;
+            }
+            if (curr === 'USDT' || cryptoCurr.includes('USDT')) {
+                return false;
+            }
+        }
+
+        // Gateway toggles
+        if ((provider === 'stripe' || type === 'stripe') && !rule.stripe_enabled) {
+            return false;
+        }
+        if ((provider === 'paypal' || type === 'paypal') && !rule.paypal_enabled) {
+            return false;
+        }
+        if ((provider === 'payoneer' || type === 'payoneer') && !rule.payoneer_enabled) {
+            return false;
+        }
+        if ((type === 'bank_transfer' || provider === 'manual') && !rule.bank_transfer_enabled) {
+            return false;
+        }
+
+        return true;
+    });
+
+    // Mask sensitive server-side keys & inject Country-specific Manual Bank details if configured
+    const safeMethods = filteredRows.map(m => {
+        const isManualBank = (m.type === 'bank_transfer' || m.provider === 'manual');
+
+        // If this is manual bank transfer and country rule has custom bank details, override them dynamically
+        const bankName = (isManualBank && rule.bank_name) ? rule.bank_name : m.bank_name;
+        const accountHolder = (isManualBank && rule.account_holder) ? rule.account_holder : m.account_holder;
+        const accountNumber = (isManualBank && (rule.account_number || rule.iban)) ? (rule.account_number || rule.iban) : m.account_number;
+        const swiftCode = (isManualBank && rule.swift_code) ? rule.swift_code : m.swift_code;
+        const currency = (isManualBank && rule.currency_code) ? rule.currency_code : m.currency;
+        const instructions = (isManualBank && rule.bank_instructions) ? rule.bank_instructions : m.instructions;
+        const instructionsAr = (isManualBank && rule.bank_instructions_ar) ? rule.bank_instructions_ar : m.instructions_ar;
+
+        const nameAr = (isManualBank && rule.country_name_ar) 
+            ? `تحويل بنكي محلي (${rule.country_name_ar} - ${rule.currency_code})`
+            : m.name_ar;
+
+        const name = (isManualBank && rule.country_name)
+            ? `Bank Transfer (${rule.country_name} - ${rule.currency_code})`
+            : m.name;
+
+        return {
+            id: m.id,
+            name,
+            name_ar: nameAr,
+            type: m.type,
+            provider: m.provider,
+            currency,
+            crypto_currency: m.crypto_currency,
+            crypto_network: m.crypto_network,
+            crypto_wallet_address: m.crypto_wallet_address,
+            bank_name: bankName,
+            account_holder: accountHolder,
+            account_number: accountNumber,
+            iban: isManualBank ? (rule.iban || m.iban || accountNumber) : (m.iban || null),
+            swift_code: swiftCode,
+            instructions,
+            instructions_ar: instructionsAr,
+            require_receipt: !!m.require_receipt,
+            public_key: m.public_key, // safe for client-side Stripe Elements / CMI
+            is_sandbox: !!m.is_sandbox,
+            min_deposit: Number(m.min_deposit || 0),
+            max_deposit: Number(m.max_deposit || 0),
+            min_withdrawal: Number(m.min_withdrawal || 0),
+            max_withdrawal: Number(m.max_withdrawal || 0),
+            fee_percent: Number(m.fee_percent || 0),
+            fee_fixed: Number(m.fee_fixed || 0),
+            enabled_for_deposit: !!m.enabled_for_deposit,
+            enabled_for_withdrawal: !!m.enabled_for_withdrawal,
+            country_code: countryCode,
+            currency_symbol: rule.currency_symbol || '$'
+        };
+    });
+
+    // Ensure that if local bank transfer is enabled for this country, it is ALWAYS present in payment methods
+    const hasManualBank = safeMethods.some(m => m.type === 'bank_transfer' || m.provider === 'manual');
+    if (!hasManualBank && rule.bank_transfer_enabled) {
+        safeMethods.unshift({
+            id: 'country-bank-' + (countryCode ? countryCode.toLowerCase() : 'manual'),
+            name: rule.country_name ? `Bank Transfer (${rule.country_name} - ${rule.currency_code})` : 'Bank Transfer',
+            name_ar: rule.country_name_ar ? `تحويل بنكي محلي (${rule.country_name_ar} - ${rule.currency_code})` : 'تحويل بنكي محلي',
+            type: 'bank_transfer',
+            provider: 'manual',
+            currency: rule.currency_code || 'USD',
+            crypto_currency: null,
+            crypto_network: null,
+            crypto_wallet_address: null,
+            bank_name: rule.bank_name || (countryCode === 'DZ' ? 'BaridiMob' : 'Bank Transfer'),
+            account_holder: rule.account_holder || '',
+            account_number: rule.account_number || rule.iban || '',
+            iban: rule.iban || rule.account_number || '',
+            swift_code: rule.swift_code || '',
+            instructions: rule.bank_instructions || '',
+            instructions_ar: rule.bank_instructions_ar || '',
+            require_receipt: true,
+            public_key: null,
+            is_sandbox: false,
+            min_deposit: 0,
+            max_deposit: 100000,
+            min_withdrawal: 0,
+            max_withdrawal: 50000,
+            fee_percent: 0,
+            fee_fixed: 0,
+            enabled_for_deposit: true,
+            enabled_for_withdrawal: true,
+            country_code: countryCode,
+            currency_symbol: rule.currency_symbol || '$'
+        });
+    }
+
+    return { safeMethods, countryCode, rule };
+}
+
+/**
  * Get active payment methods for student (Deposit & Withdrawal)
  * Safe query masking private secrets
  */
@@ -239,143 +388,7 @@ exports.getActiveMethodsForStudents = async (req, res) => {
     const { mode } = req.query; // 'deposit' or 'withdrawal'
 
     try {
-        let sql = "SELECT * FROM payment_methods WHERE status = 'active'";
-        if (mode === 'deposit') {
-            sql += " AND enabled_for_deposit = 1";
-        } else if (mode === 'withdrawal') {
-            sql += " AND enabled_for_withdrawal = 1";
-        }
-        sql += " ORDER BY sort_order ASC, name ASC";
-
-        const [rows] = await db.query(sql);
-
-        // Detect user country and apply strict country currency rules
-        const countryCode = await currencyService.detectUserCountry(req);
-        const rule = await currencyService.getRuleForCountry(countryCode);
-
-        // Filter methods based on country rules
-        const filteredRows = rows.filter(m => {
-            const type = (m.type || '').toLowerCase();
-            const provider = (m.provider || '').toLowerCase();
-            const curr = (m.currency || '').toUpperCase();
-            const cryptoCurr = (m.crypto_currency || '').toUpperCase();
-
-            // Strict Algeria check or disabled USDT
-            if (countryCode === 'DZ' || !rule.usdt_enabled) {
-                if (type === 'crypto' || type === 'nowpayments_crypto' || provider === 'nowpayments') {
-                    return false;
-                }
-                if (curr === 'USDT' || cryptoCurr.includes('USDT')) {
-                    return false;
-                }
-            }
-
-            // Gateway toggles
-            if ((provider === 'stripe' || type === 'stripe') && !rule.stripe_enabled) {
-                return false;
-            }
-            if ((provider === 'paypal' || type === 'paypal') && !rule.paypal_enabled) {
-                return false;
-            }
-            if ((provider === 'payoneer' || type === 'payoneer') && !rule.payoneer_enabled) {
-                return false;
-            }
-            if ((type === 'bank_transfer' || provider === 'manual') && !rule.bank_transfer_enabled) {
-                return false;
-            }
-
-            return true;
-        });
-
-        // Mask sensitive server-side keys & inject Country-specific Manual Bank details if configured
-        const safeMethods = filteredRows.map(m => {
-            const isManualBank = (m.type === 'bank_transfer' || m.provider === 'manual');
-
-            // If this is manual bank transfer and country rule has custom bank details, override them dynamically
-            const bankName = (isManualBank && rule.bank_name) ? rule.bank_name : m.bank_name;
-            const accountHolder = (isManualBank && rule.account_holder) ? rule.account_holder : m.account_holder;
-            const accountNumber = (isManualBank && (rule.account_number || rule.iban)) ? (rule.account_number || rule.iban) : m.account_number;
-            const swiftCode = (isManualBank && rule.swift_code) ? rule.swift_code : m.swift_code;
-            const currency = (isManualBank && rule.currency_code) ? rule.currency_code : m.currency;
-            const instructions = (isManualBank && rule.bank_instructions) ? rule.bank_instructions : m.instructions;
-            const instructionsAr = (isManualBank && rule.bank_instructions_ar) ? rule.bank_instructions_ar : m.instructions_ar;
-
-            const nameAr = (isManualBank && rule.country_name_ar) 
-                ? `تحويل بنكي محلي (${rule.country_name_ar} - ${rule.currency_code})`
-                : m.name_ar;
-
-            const name = (isManualBank && rule.country_name)
-                ? `Bank Transfer (${rule.country_name} - ${rule.currency_code})`
-                : m.name;
-
-            return {
-                id: m.id,
-                name,
-                name_ar: nameAr,
-                type: m.type,
-                provider: m.provider,
-                currency,
-                crypto_currency: m.crypto_currency,
-                crypto_network: m.crypto_network,
-                crypto_wallet_address: m.crypto_wallet_address,
-                bank_name: bankName,
-                account_holder: accountHolder,
-                account_number: accountNumber,
-                iban: isManualBank ? (rule.iban || m.iban || accountNumber) : (m.iban || null),
-                swift_code: swiftCode,
-                instructions,
-                instructions_ar: instructionsAr,
-                require_receipt: !!m.require_receipt,
-                public_key: m.public_key, // safe for client-side Stripe Elements / CMI
-                is_sandbox: !!m.is_sandbox,
-                min_deposit: Number(m.min_deposit || 0),
-                max_deposit: Number(m.max_deposit || 0),
-                min_withdrawal: Number(m.min_withdrawal || 0),
-                max_withdrawal: Number(m.max_withdrawal || 0),
-                fee_percent: Number(m.fee_percent || 0),
-                fee_fixed: Number(m.fee_fixed || 0),
-                enabled_for_deposit: !!m.enabled_for_deposit,
-                enabled_for_withdrawal: !!m.enabled_for_withdrawal,
-                country_code: countryCode,
-                currency_symbol: rule.currency_symbol || '$'
-            };
-        });
-
-        // Ensure that if local bank transfer is enabled for this country, it is ALWAYS present in payment methods
-        const hasManualBank = safeMethods.some(m => m.type === 'bank_transfer' || m.provider === 'manual');
-        if (!hasManualBank && rule.bank_transfer_enabled) {
-            safeMethods.unshift({
-                id: 'country-bank-' + (countryCode ? countryCode.toLowerCase() : 'manual'),
-                name: rule.country_name ? `Bank Transfer (${rule.country_name} - ${rule.currency_code})` : 'Bank Transfer',
-                name_ar: rule.country_name_ar ? `تحويل بنكي محلي (${rule.country_name_ar} - ${rule.currency_code})` : 'تحويل بنكي محلي',
-                type: 'bank_transfer',
-                provider: 'manual',
-                currency: rule.currency_code || 'USD',
-                crypto_currency: null,
-                crypto_network: null,
-                crypto_wallet_address: null,
-                bank_name: rule.bank_name || (countryCode === 'DZ' ? 'BaridiMob' : 'Bank Transfer'),
-                account_holder: rule.account_holder || '',
-                account_number: rule.account_number || rule.iban || '',
-                iban: rule.iban || rule.account_number || '',
-                swift_code: rule.swift_code || '',
-                instructions: rule.bank_instructions || '',
-                instructions_ar: rule.bank_instructions_ar || '',
-                require_receipt: true,
-                public_key: null,
-                is_sandbox: false,
-                min_deposit: 0,
-                max_deposit: 100000,
-                min_withdrawal: 0,
-                max_withdrawal: 50000,
-                fee_percent: 0,
-                fee_fixed: 0,
-                enabled_for_deposit: true,
-                enabled_for_withdrawal: true,
-                country_code: countryCode,
-                currency_symbol: rule.currency_symbol || '$'
-            });
-        }
+        const { safeMethods, countryCode, rule } = await buildAllowedMethods(req, mode);
 
         res.json({ 
             paymentMethods: safeMethods,
@@ -401,3 +414,73 @@ exports.getActiveMethodsForStudents = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch active payment methods' });
     }
 };
+
+/**
+ * Resolve the method a member selected and make sure the country rules allow it.
+ * @returns {Promise<{ ok: true, method: object } | { ok: false, error: string }>}
+ */
+async function resolveAllowedMethod(req, methodId, mode = 'deposit') {
+    const { safeMethods, rule } = await buildAllowedMethods(req, mode);
+    const method = safeMethods.find(m => String(m.id) === String(methodId));
+    if (!method) {
+        const country = rule.country_name_ar || rule.country_name || rule.country_code;
+        return {
+            ok: false,
+            error: `طريقة الدفع هذه غير متاحة في بلدك (${country}) / This payment method is not available in your country`
+        };
+    }
+    return { ok: true, method };
+}
+
+/**
+ * Map a method object, or a free-text method name sent by older clients, to a category
+ * that matches the toggles of the admin "Country Currency" page.
+ */
+function categorizeMethod(m) {
+    if (!m) return 'other';
+    if (typeof m === 'string') {
+        const v = m.toLowerCase();
+        if (/usdt|crypto|nowpayments|trc20|bep20/.test(v)) return 'crypto';
+        if (/paypal/.test(v)) return 'paypal';
+        if (/payoneer/.test(v)) return 'payoneer';
+        if (/card|stripe|visa|mastercard|cmi|بطاقة/.test(v)) return 'card';
+        if (/bank|baridi|ccp|rip|rib|manual|transfer|بنك|تحويل/.test(v)) return 'bank';
+        return 'other';
+    }
+    const type = String(m.type || '').toLowerCase();
+    const provider = String(m.provider || '').toLowerCase();
+    if (type === 'crypto' || type === 'nowpayments_crypto' || provider === 'nowpayments') return 'crypto';
+    if (type === 'paypal' || provider === 'paypal') return 'paypal';
+    if (type === 'payoneer' || provider === 'payoneer') return 'payoneer';
+    if (type === 'bank_transfer' || provider === 'manual') return 'bank';
+    if (type === 'card_gateway' || provider === 'stripe' || provider === 'cmi' || type === 'fiat') return 'card';
+    return 'other';
+}
+
+/**
+ * Enforce the country rules on a submitted deposit / purchase.
+ * Prefers the exact paymentMethodId; falls back to the category of the method name.
+ * @returns {Promise<{ ok: true, method: object|null, category: string } | { ok: false, error: string }>}
+ */
+async function assertMethodAllowed(req, { paymentMethodId, paymentMethod, mode = 'deposit' }) {
+    const { safeMethods, rule } = await buildAllowedMethods(req, mode);
+    const country = rule.country_name_ar || rule.country_name || rule.country_code;
+    const refused = {
+        ok: false,
+        error: `طريقة الدفع هذه غير متاحة في بلدك (${country}) / This payment method is not available in your country`
+    };
+
+    if (paymentMethodId) {
+        const method = safeMethods.find(m => String(m.id) === String(paymentMethodId));
+        return method ? { ok: true, method, category: categorizeMethod(method) } : refused;
+    }
+
+    const category = categorizeMethod(String(paymentMethod || ''));
+    const method = safeMethods.find(m => categorizeMethod(m) === category) || null;
+    return method ? { ok: true, method, category } : refused;
+}
+
+exports.buildAllowedMethods = buildAllowedMethods;
+exports.resolveAllowedMethod = resolveAllowedMethod;
+exports.categorizeMethod = categorizeMethod;
+exports.assertMethodAllowed = assertMethodAllowed;

@@ -1,3 +1,4 @@
+import { useCountryPaymentMethods, isBankMethod, isCryptoMethod } from '@/hooks/useCountryPaymentMethods';
 import React, { useState, useEffect } from 'react';
 import { tr } from '@/utils/tr';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -51,6 +52,7 @@ interface SkoolLevelShowcaseProps {
     title?: string;
     description?: string;
     videoUrl?: string;
+    introBanner?: string;
     author?: string;
     badge?: string;
     flowTitle?: string;
@@ -147,6 +149,7 @@ const formatVideoEmbedUrl = (url?: string) => {
   const [selectedPostPkg, setSelectedPostPkg] = useState<any>(null);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState<boolean>(false);
   const [paymentMethod, setPaymentMethod] = useState<string>('wallet');
+  const { methods: countryMethods } = useCountryPaymentMethods('deposit');
   const [paymentRef, setPaymentRef] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [loadingPackages, setLoadingPackages] = useState<boolean>(true);
@@ -577,7 +580,10 @@ const formatVideoEmbedUrl = (url?: string) => {
 
       const res = await packageService.purchaseOrUpgrade({
         packageId: pkgId,
-        paymentMethod,
+        paymentMethod: paymentMethod === 'wallet'
+          ? 'wallet'
+          : (isCryptoMethod(countryMethods.find((m) => m.id === paymentMethod)) ? 'nowpayments_crypto' : (countryMethods.find((m) => m.id === paymentMethod)?.type || 'bank_transfer')),
+        paymentMethodId: paymentMethod === 'wallet' ? undefined : paymentMethod,
         paymentReference: paymentMethod === 'wallet' ? `WALLET-${Date.now()}` : (paymentRef || `MANUAL-${Date.now()}`)
       });
 
@@ -971,59 +977,27 @@ const formatVideoEmbedUrl = (url?: string) => {
                     </span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('baridimob')}
-                    className={`p-3 rounded-xl border text-right rtl:text-right ltr:text-left transition-all ${
-                      paymentMethod === 'baridimob'
-                        ? 'border-primary bg-primary/10 text-primary font-bold'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <CreditCard className="h-4 w-4" />
-                      <span>BaridiMob / CCP</span>
-                    </div>
-                    <span className="text-[11px] text-slate-400 block">
-                      {tr("تحويل محلي سريع", "Fast Local Transfer")}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('crypto')}
-                    className={`p-3 rounded-xl border text-right rtl:text-right ltr:text-left transition-all ${
-                      paymentMethod === 'crypto'
-                        ? 'border-primary bg-primary/10 text-primary font-bold'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Zap className="h-4 w-4" />
-                      <span>USDT (TRC20)</span>
-                    </div>
-                    <span className="text-[11px] text-slate-400 block">
-                      {tr("دفع كريبتو فوري", "Instant Crypto")}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('paypal')}
-                    className={`p-3 rounded-xl border text-right rtl:text-right ltr:text-left transition-all ${
-                      paymentMethod === 'paypal'
-                        ? 'border-primary bg-primary/10 text-primary font-bold'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <CreditCard className="h-4 w-4" />
-                      <span>PayPal</span>
-                    </div>
-                    <span className="text-[11px] text-slate-400 block">
-                      {tr("دفع دولي آمن", "Secure International")}
-                    </span>
-                  </button>
+                  {/* Methods allowed by the admin "Country Currency" rules of the member's country */}
+                  {countryMethods.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setPaymentMethod(m.id)}
+                      className={`p-3 rounded-xl border text-right rtl:text-right ltr:text-left transition-all ${
+                        paymentMethod === m.id
+                          ? 'border-primary bg-primary/10 text-primary font-bold'
+                          : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1">
+                        {isCryptoMethod(m) ? <Zap className="h-4 w-4" /> : <CreditCard className="h-4 w-4" />}
+                        <span>{tr(m.name_ar || m.name, m.name || m.name_ar || '')}</span>
+                      </div>
+                      {isBankMethod(m) && m.bank_name && (
+                        <span className="text-[11px] text-slate-400 block">{m.bank_name}</span>
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
 

@@ -1,3 +1,4 @@
+import { SecureLink } from '@/components/common/SecureFile';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { tr } from '@/utils/tr';
@@ -280,7 +281,7 @@ export default function CustomProjectsManagement() {
                   {editingRequest.attachment_url && (
                     <div className="pt-2 border-t flex items-center gap-2">
                       <span className="text-muted-foreground">{tr("رابط المرفقات:", "Attachment Link:")}</span>
-                      <a
+                      <SecureLink
                         href={editingRequest.attachment_url}
                         target="_blank"
                         rel="noreferrer"
@@ -288,7 +289,7 @@ export default function CustomProjectsManagement() {
                       >
                         <ExternalLink className="h-3 w-3" />
                         {editingRequest.attachment_url}
-                      </a>
+                      </SecureLink>
                     </div>
                   )}
                 </div>

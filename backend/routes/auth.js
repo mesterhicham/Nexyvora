@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const { auth, optionalAuth } = require('../middleware/authMiddleware');
+const { auth, optionalAuth, forbidImpersonation } = require('../middleware/authMiddleware');
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
-router.post('/change-password', auth, authController.changePassword);
+router.post('/change-password', auth, forbidImpersonation, authController.changePassword);
 router.get('/validate-referral/:code', authController.validateReferralCode);
 
 // First Admin Setup

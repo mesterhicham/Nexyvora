@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const crypto = require('crypto');
+const { validateReceiptUrl } = require('../services/uploadUrlPolicy');
 
 // --- PROGRAM PRICING ---
 exports.getProgramPricing = async (req, res) => {
@@ -73,7 +74,12 @@ exports.getAllPayments = async (req, res) => {
 };
 
 exports.submitPayment = async (req, res) => {
-    const { programId, amount, referenceNumber, notes, receiptUrl } = req.body;
+    const { programId, amount, referenceNumber, notes } = req.body;
+    const receiptCheck = validateReceiptUrl(req.body.receiptUrl, req.user.id, { allowPublic: false });
+    if (!receiptCheck.ok) {
+        return res.status(400).json({ error: receiptCheck.error, code: 'INVALID_RECEIPT_URL' });
+    }
+    const receiptUrl = receiptCheck.value;
     try {
         const [student] = await db.execute('SELECT id FROM students WHERE user_id = ? OR id = ?', [req.user.id, req.user.id]);
         let studentId;

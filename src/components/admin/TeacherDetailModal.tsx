@@ -1,3 +1,4 @@
+import { SecureLink } from '@/components/common/SecureFile';
 import React, { useState, useEffect } from 'react';
 import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
@@ -122,6 +123,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
         hire_date: teach.hire_date ? teach.hire_date.substring(0, 10) : '',
         experience: teach.experience || '',
         bio: teach.bio || prof.bio || '',
+        newPassword: '',
       });
 
       // Certifications
@@ -861,7 +863,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                       <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t border-border/50 mt-3">
                         <span>{cert.issue_date || (tr("تاريخ غير محدد", "No date"))}</span>
                         {cert.file_url ? (
-                          <a
+                          <SecureLink
                             href={cert.file_url}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -869,7 +871,7 @@ export function TeacherDetailModal({ teacherId, open, onOpenChange }: TeacherDet
                           >
                             <ExternalLink className="w-3 h-3" />
                             <span>{tr("عرض الوثيقة", "View Document")}</span>
-                          </a>
+                          </SecureLink>
                         ) : (
                           <span className="text-slate-400">{tr("لا يوجد ملف مرفق", "No document attached")}</span>
                         )}

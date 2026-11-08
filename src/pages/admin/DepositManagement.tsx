@@ -1,3 +1,5 @@
+import { SecureImage, SecureLink } from '@/components/common/SecureFile';
+import { openSecureFile } from '@/lib/secureFiles';
 import { useState, useEffect } from 'react';
 import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
@@ -900,14 +902,14 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                   <span className="text-slate-400 block mb-1.5 font-bold">{tr("صورة وصل التحويل:", "Transfer Receipt Proof:")}</span>
                   {approveItem.receipt_url ? (
                     <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-black/5 dark:bg-black/30 p-2 text-center">
-                      <img 
+                      <SecureImage 
                         src={approveItem.receipt_url} 
                         alt="Transfer Receipt" 
                         className="max-h-44 mx-auto rounded-lg object-contain cursor-pointer hover:opacity-95 transition-opacity"
-                        onClick={() => window.open(approveItem.receipt_url, '_blank')}
+                        onClick={() => openSecureFile(approveItem.receipt_url)}
                       />
                       <div className="mt-1.5 flex items-center justify-center gap-2">
-                        <a 
+                        <SecureLink 
                           href={approveItem.receipt_url} 
                           target="_blank" 
                           rel="noreferrer" 
@@ -915,7 +917,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                         >
                           <ExternalLink className="h-3 w-3" />
                           {tr("عرض بالحجم الكامل ↗", "View Full Image ↗")}
-                        </a>
+                        </SecureLink>
                       </div>
                     </div>
                   ) : (
@@ -1008,14 +1010,14 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                       </p>
                       <Button
                         size="sm"
-                        onClick={() => window.open(viewingReceipt.url, '_blank')}
+                        onClick={() => openSecureFile(viewingReceipt.url)}
                         className="rounded-xl font-bold text-xs"
                       >
                         {tr("فتح ملف PDF في نافذة جديدة", "Open PDF in New Tab")}
                       </Button>
                     </div>
                   ) : (
-                    <img
+                    <SecureImage
                       src={viewingReceipt.url}
                       alt="Transfer Receipt"
                       className="max-h-[60vh] w-auto max-w-full rounded-xl object-contain shadow-sm"
@@ -1024,7 +1026,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                 </div>
 
                 <div className="flex items-center justify-between gap-2 pt-1">
-                  <a
+                  <SecureLink
                     href={viewingReceipt.url}
                     target="_blank"
                     rel="noreferrer"
@@ -1032,7 +1034,7 @@ export default function DepositManagement({ defaultTab }: DepositManagementProps
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     <span>{tr("فتح في نافذة جديدة", "Open in New Tab")}</span>
-                  </a>
+                  </SecureLink>
                   <Button
                     variant="outline"
                     size="sm"

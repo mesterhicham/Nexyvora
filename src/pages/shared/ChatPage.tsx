@@ -694,9 +694,9 @@ export default function ChatPage() {
                                 {convName}
                               </p>
                               {convRole === 'admin' ? (
-                                <ShieldCheck className="w-3.5 h-3.5 text-blue-500 shrink-0" title="إدارة" />
+                                <ShieldCheck className="w-3.5 h-3.5 text-blue-500 shrink-0" aria-label="إدارة" />
                               ) : convRole === 'teacher' ? (
-                                <GraduationCap className="w-3.5 h-3.5 text-amber-500 shrink-0" title="أستاذ" />
+                                <GraduationCap className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-label="أستاذ" />
                               ) : null}
                             </div>
                             {conv.last_message && (

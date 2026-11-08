@@ -1,0 +1,3 @@
+# Defense in depth: private uploads (payment receipts, KYC) must only be served
+# by the authenticated Node route /api/upload/secure/:filename, never by Apache.
+Require all denied

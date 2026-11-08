@@ -10,8 +10,12 @@ router.post('/purchase', auth, packageController.purchaseOrUpgradePackage);
 router.get('/check-nowpayments/:orderId', auth, packageController.checkNowPaymentsPayment);
 
 // Admin routes
+router.post('/admin', auth, authorize('admin'), packageController.createPackage);
 router.post('/admin/:packageId/courses', auth, authorize('admin'), packageController.assignCoursesToPackage);
 router.put('/admin/:id', auth, authorize('admin'), packageController.updatePackage);
+router.delete('/admin/:id', auth, authorize('admin'), packageController.deletePackage);
+router.post('/admin/manual-upgrade', auth, authorize('admin'), packageController.manualUpgradeUser);
+router.get('/admin/members-with-packages', auth, authorize('admin'), packageController.getMembersWithPackages);
 
 // Public route to view packages
 router.get('/', packageController.getAllPackages);

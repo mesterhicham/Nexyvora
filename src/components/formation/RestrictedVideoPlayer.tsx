@@ -9,10 +9,15 @@ interface RestrictedVideoPlayerProps {
   title: string;
   duration?: number;
   onProgress?: (watchedSeconds: number) => void;
-  onComplete?: () => void;
+  /** Called once per mount when ~95% of the video has been watched */
+  onComplete?: (watchedSeconds: number) => void;
   isLocked?: boolean;
   initialProgress?: number;
+  /** Already completed lessons can be re-watched and scrubbed freely */
+  alreadyCompleted?: boolean;
 }
+
+const PROGRESS_REPORT_STEP = 10; // seconds between progress saves
 
 export function RestrictedVideoPlayer({
   src,
@@ -22,14 +27,17 @@ export function RestrictedVideoPlayer({
   onComplete,
   isLocked = false,
   initialProgress = 0,
+  alreadyCompleted = false,
 }: RestrictedVideoPlayerProps) {
+  const completedRef = useRef(alreadyCompleted);
+  const lastReportedRef = useRef(Math.floor(initialProgress));
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(initialProgress);
+  const [currentTime, setCurrentTime] = useState(alreadyCompleted ? 0 : initialProgress);
   const [videoDuration, setVideoDuration] = useState(duration || 0);
   const [isMuted, setIsMuted] = useState(false);
-  const [maxWatched, setMaxWatched] = useState(initialProgress);
+  const [maxWatched, setMaxWatched] = useState(alreadyCompleted ? Number.MAX_SAFE_INTEGER : initialProgress);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimeout = useRef<NodeJS.Timeout>();
 
@@ -56,15 +64,19 @@ export function RestrictedVideoPlayer({
     const current = video.currentTime;
     setCurrentTime(current);
 
-    // Update max watched
+    // Update max watched; save progress every PROGRESS_REPORT_STEP seconds instead of every tick
     if (current > maxWatched) {
       setMaxWatched(current);
-      onProgress?.(Math.floor(current));
+      if (!completedRef.current && Math.floor(current) - lastReportedRef.current >= PROGRESS_REPORT_STEP) {
+        lastReportedRef.current = Math.floor(current);
+        onProgress?.(Math.floor(current));
+      }
     }
 
-    // Check completion (95% watched)
-    if (videoDuration > 0 && current >= videoDuration * 0.95) {
-      onComplete?.();
+    // Completion (95% watched) is reported exactly once
+    if (!completedRef.current && videoDuration > 0 && current >= videoDuration * 0.95) {
+      completedRef.current = true;
+      onComplete?.(Math.ceil(current));
     }
   }, [maxWatched, videoDuration, onProgress, onComplete]);
 
@@ -94,7 +106,7 @@ export function RestrictedVideoPlayer({
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setVideoDuration(videoRef.current.duration);
-      if (initialProgress > 0) {
+      if (initialProgress > 0 && !alreadyCompleted) {
         videoRef.current.currentTime = initialProgress;
       }
     }
@@ -161,6 +173,7 @@ export function RestrictedVideoPlayer({
   return (
     <div
       ref={containerRef}
+      dir="ltr"
       className="relative aspect-video bg-black rounded-lg overflow-hidden group"
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
@@ -171,7 +184,14 @@ export function RestrictedVideoPlayer({
         className="w-full h-full object-contain"
         onLoadedMetadata={handleLoadedMetadata}
         onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
+        onPause={() => {
+          setIsPlaying(false);
+          const t = Math.floor(videoRef.current?.currentTime || 0);
+          if (!completedRef.current && t > lastReportedRef.current) {
+            lastReportedRef.current = t;
+            onProgress?.(t);
+          }
+        }}
         onClick={togglePlay}
         controlsList="nodownload noplaybackrate"
         disablePictureInPicture

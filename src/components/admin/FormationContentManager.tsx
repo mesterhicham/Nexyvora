@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -189,6 +190,13 @@ export function FormationContentManager({ open, onOpenChange, formation }: Forma
   const [isUploading, setIsUploading] = useState(false);
   const [editingContent, setEditingContent] = useState<FormationContent | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  // Lesson presentation shown on the student watch page
+  const [editDescription, setEditDescription] = useState('');
+  const [editThumbnail, setEditThumbnail] = useState('');
+  const [editDuration, setEditDuration] = useState('');
+  const [editResources, setEditResources] = useState<Array<{ title: string; url: string }>>([]);
+  const [uploadingThumb, setUploadingThumb] = useState(false);
+  const [uploadingResource, setUploadingResource] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<FormationContent | null>(null);
   
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -207,7 +215,7 @@ export function FormationContentManager({ open, onOpenChange, formation }: Forma
 
     const oldIndex = content.findIndex((item) => item.id === active.id);
     const newIndex = content.findIndex((item) => item.id === over.id);
-    const newOrder = arrayMove(content, oldIndex, newIndex);
+    const newOrder = arrayMove(content as Array<{ id: string }>, oldIndex, newIndex);
     
     const items = newOrder.map((item, index) => ({ id: item.id, order_index: index + 1 }));
     reorderContent.mutate({ formationId: formation.id, items });
@@ -223,7 +231,9 @@ export function FormationContentManager({ open, onOpenChange, formation }: Forma
           clearTimeout(timer);
           try {
             window.URL.revokeObjectURL(video.src);
-          } catch (e) {}
+          } catch {
+            // The object URL may already be revoked; nothing to clean up.
+          }
           resolve(Math.round(video.duration) || 0);
         };
         video.onerror = () => {
@@ -381,14 +391,43 @@ export function FormationContentManager({ open, onOpenChange, formation }: Forma
           title: editTitle.trim(),
           content_type: editingContent.content_type,
           file_url: editingContent.file_url,
-          duration_seconds: editingContent.duration_seconds,
+          duration_seconds: editDuration.trim() ? Math.max(0, Math.round(Number(editDuration))) || null : editingContent.duration_seconds,
           order_index: editingContent.order_index,
-          quiz_id: editingContent.quiz_id
+          quiz_id: editingContent.quiz_id,
+          description: editDescription.trim(),
+          thumbnail_url: editThumbnail.trim(),
+          resources: editResources.filter((r) => r.url.trim()).map((r) => ({ title: r.title.trim() || r.url.trim(), url: r.url.trim() })),
         });
         setEditingContent(null);
         refetch();
     } catch (error) {
         // Error toast handled by hook
+    }
+  };
+
+  const handleThumbnailUpload = async (file?: File) => {
+    if (!file) return;
+    setUploadingThumb(true);
+    try {
+      const res = await uploadService.uploadFile(file);
+      setEditThumbnail(res.url || '');
+    } catch {
+      toast.error('فشل رفع الصورة / Thumbnail upload failed');
+    } finally {
+      setUploadingThumb(false);
+    }
+  };
+
+  const handleResourceUpload = async (file?: File) => {
+    if (!file) return;
+    setUploadingResource(true);
+    try {
+      const res = await uploadService.uploadFile(file);
+      setEditResources((list) => [...list, { title: file.name, url: res.url || '' }]);
+    } catch {
+      toast.error('فشل رفع الملف / Resource upload failed');
+    } finally {
+      setUploadingResource(false);
     }
   };
 
@@ -511,6 +550,10 @@ export function FormationContentManager({ open, onOpenChange, formation }: Forma
                             onEdit={() => {
                               setEditingContent(item);
                               setEditTitle(item.title);
+                              setEditDescription(item.description || '');
+                              setEditThumbnail(item.thumbnail_url || '');
+                              setEditDuration(item.duration_seconds ? String(item.duration_seconds) : '');
+                              setEditResources(Array.isArray(item.resources) ? item.resources : []);
                             }}
                           />
                         ))}
@@ -750,9 +793,9 @@ export function FormationContentManager({ open, onOpenChange, formation }: Forma
 
       {/* Edit Title Dialog */}
       <Dialog open={!!editingContent} onOpenChange={() => setEditingContent(null)}>
-        <DialogContent className="max-w-md rounded-2xl">
+        <DialogContent className="max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold">تعديل عنوان المحتوى (Edit Content Title)</DialogTitle>
+            <DialogTitle className="text-base font-bold">تعديل الدرس (Edit Lesson)</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
@@ -763,6 +806,94 @@ export function FormationContentManager({ open, onOpenChange, formation }: Forma
                 placeholder="أدخل عنوان المحتوى"
                 className="rounded-xl text-sm"
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">وصف الدرس (Description)</Label>
+              <Textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="يظهر أسفل الفيديو في صفحة المشاهدة"
+                className="rounded-xl text-sm min-h-[90px]"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">الصورة المصغّرة (Thumbnail)</Label>
+              <div className="flex items-center gap-3">
+                <div className="w-32 aspect-video rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                  {editThumbnail ? (
+                    <img src={editThumbnail} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground px-2 text-center">صورة الدورة أو صورة Nexyvora</span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="inline-flex">
+                    <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => handleThumbnailUpload(e.target.files?.[0])} />
+                    <span className="cursor-pointer rounded-xl border border-border px-3 py-1.5 text-xs font-bold hover:bg-muted">
+                      {uploadingThumb ? 'جاري الرفع...' : 'رفع صورة'}
+                    </span>
+                  </label>
+                  {editThumbnail && (
+                    <button type="button" className="text-[11px] text-rose-500 font-bold text-start" onClick={() => setEditThumbnail('')}>
+                      إزالة الصورة
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {editingContent?.content_type === 'video' && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">مدة الفيديو بالثواني (Duration, seconds)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={editDuration}
+                  onChange={(e) => setEditDuration(e.target.value)}
+                  placeholder="مثال: 479"
+                  className="rounded-xl text-sm"
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">الموارد (Resources)</Label>
+                <div className="flex items-center gap-2">
+                  <label className="inline-flex">
+                    <input type="file" className="hidden" onChange={(e) => handleResourceUpload(e.target.files?.[0])} />
+                    <span className="cursor-pointer rounded-lg border border-border px-2 py-1 text-[11px] font-bold hover:bg-muted">
+                      {uploadingResource ? 'جاري الرفع...' : 'رفع ملف'}
+                    </span>
+                  </label>
+                  <button type="button" className="rounded-lg border border-border px-2 py-1 text-[11px] font-bold hover:bg-muted" onClick={() => setEditResources((l) => [...l, { title: '', url: '' }])}>
+                    + رابط
+                  </button>
+                </div>
+              </div>
+              {editResources.length === 0 && <p className="text-[11px] text-muted-foreground">لا توجد موارد لهذا الدرس.</p>}
+              {editResources.map((r, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input
+                    value={r.title}
+                    onChange={(e) => setEditResources((l) => l.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))}
+                    placeholder="العنوان"
+                    className="rounded-lg text-xs h-8 w-1/3"
+                  />
+                  <Input
+                    value={r.url}
+                    onChange={(e) => setEditResources((l) => l.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
+                    placeholder="https://..."
+                    dir="ltr"
+                    className="rounded-lg text-xs h-8 flex-1"
+                  />
+                  <button type="button" className="text-rose-500 text-xs font-bold px-1" onClick={() => setEditResources((l) => l.filter((_, j) => j !== i))}>
+                    ✕
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
           <DialogFooter className="gap-2">

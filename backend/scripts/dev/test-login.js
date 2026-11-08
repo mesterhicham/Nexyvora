@@ -1,10 +1,20 @@
 const axios = require('axios');
 
+// Never hardcode credentials: this repository has been public.
+const ADMIN_EMAIL = process.env.ADMIN_TEST_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_TEST_PASSWORD;
+const API_URL = process.env.API_URL || 'http://localhost:5000';
+
 async function testLogin() {
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+        console.error('Set ADMIN_TEST_EMAIL and ADMIN_TEST_PASSWORD in the environment before running this script.');
+        process.exit(1);
+    }
+
     try {
-        const response = await axios.post('http://localhost:5000/api/auth/login', {
-            email: 'admin@academy.com',
-            password: 'Admin123!'
+        const response = await axios.post(`${API_URL}/api/auth/login`, {
+            email: ADMIN_EMAIL,
+            password: ADMIN_PASSWORD
         });
 
         console.log('Login successful!');

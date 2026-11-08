@@ -1,3 +1,4 @@
+import { SecureLink } from '@/components/common/SecureFile';
 import React, { useState, useEffect } from 'react';
 import { tr } from '@/utils/tr';
 import { useTranslation } from 'react-i18next';
@@ -968,7 +969,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                               </td>
                               <td className="p-3 text-xs">
                                 {p.receipt_url ? (
-                                  <a
+                                  <SecureLink
                                     href={p.receipt_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -976,7 +977,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                                   >
                                     <ExternalLink className="w-3 h-3" />
                                     <span>{tr("عرض الوصل", "View Receipt")}</span>
-                                  </a>
+                                  </SecureLink>
                                 ) : (
                                   <span className="text-muted-foreground">-</span>
                                 )}
@@ -1160,7 +1161,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                               </td>
                               <td className="p-3 text-xs">
                                 {sub.file_url ? (
-                                  <a
+                                  <SecureLink
                                     href={sub.file_url}
                                     target="_blank"
                                     rel="noreferrer"
@@ -1168,7 +1169,7 @@ export function StudentDetailModal({ studentId, open, onOpenChange }: StudentDet
                                   >
                                     <ExternalLink className="w-3 h-3" />
                                     <span>{tr("تحميل", "Download")}</span>
-                                  </a>
+                                  </SecureLink>
                                 ) : '-'}
                               </td>
                             </tr>

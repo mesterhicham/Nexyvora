@@ -1,4 +1,4 @@
-const db = require('./config/db');
+const db = require('../../config/db');
 const jwt = require('jsonwebtoken');
 
 const API_BASE = 'http://localhost:5001/api';

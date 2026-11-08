@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { academicService, userService, paymentService } from '@/services/apiService';
+import { academicService, userService, paymentService, studentService } from '@/services/apiService';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 

@@ -450,14 +450,14 @@ export default function StudentTeam() {
               <div className="p-3 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/80 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-violet-600 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                    {user?.name ? user.name[0].toUpperCase() : 'ME'}
+                    {user?.full_name ? user.full_name[0].toUpperCase() : 'ME'}
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">
                       {t('team.rootNode', tr("قائد الشبكة (أنت)", "Network Leader (You)"))}
                     </span>
                     <h4 className="text-xs font-black text-slate-900 dark:text-white">
-                      {user?.name || user?.email}
+                      {user?.full_name || user?.email}
                     </h4>
                   </div>
                 </div>

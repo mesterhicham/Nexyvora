@@ -128,7 +128,8 @@ exports.updateProfile = async (req, res) => {
         const forbiddenKeys = [
             'id', 'role', 'roles', 'status', 'user_status', 'is_admin', 'isadmin',
             'token_version', 'tokenversion', 'account_role', 'permissions', 'user_roles',
-            'password', 'affiliate_code', 'referrer_id', 'email_verified', 'created_at', 'updated_at'
+            'password', 'affiliate_code', 'referrer_id', 'email_verified', 'created_at', 'updated_at',
+            'wallet_pin', 'wallet_pin_hash', 'kyc_status'
         ];
 
         const providedKeys = Object.keys(body).map(k => k.toLowerCase().replace(/[^a-z0-9]/g, ''));
@@ -171,6 +172,34 @@ exports.updateProfile = async (req, res) => {
 
         if (body.country !== undefined) {
             const cleanCountry = body.country ? String(body.country).trim() : null;
+
+            // The country drives regulatory payment rules (e.g. USDT is banned for DZ).
+            // Once KYC is approved or money has moved, only an administrator can change it.
+            const [[current]] = await db.query(
+                `SELECT p.country_code, p.country, u.kyc_status,
+                        (SELECT COUNT(*) FROM transactions t
+                          WHERE t.user_id = u.id AND t.type IN ('deposit', 'withdrawal')
+                            AND t.status IN ('pending', 'completed')) AS money_tx,
+                        (SELECT COUNT(*) FROM withdrawal_requests w WHERE w.user_id = u.id) AS withdrawals
+                 FROM users u LEFT JOIN profiles p ON p.id = u.id
+                 WHERE u.id = ? LIMIT 1`,
+                [userId]
+            );
+            const currentCode = current ? (current.country_code || resolveCountryCode(current.country)) : null;
+            const requestedCode = resolveCountryCode(cleanCountry);
+            const isChange = currentCode && requestedCode !== currentCode;
+            const isLocked = current && (
+                ['approved', 'verified'].includes(String(current.kyc_status || '').toLowerCase()) ||
+                Number(current.money_tx) > 0 ||
+                Number(current.withdrawals) > 0
+            );
+            if (isChange && isLocked) {
+                return res.status(403).json({
+                    error: 'لا يمكن تغيير البلد بعد توثيق الحساب أو إجراء عمليات مالية. يرجى التواصل مع الدعم / Country cannot be changed after KYC approval or financial activity. Please contact support.',
+                    code: 'COUNTRY_LOCKED'
+                });
+            }
+
             profileUpdates.push('country = ?');
             profileValues.push(cleanCountry);
             const countryCode = resolveCountryCode(cleanCountry);

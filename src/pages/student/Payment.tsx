@@ -1,3 +1,4 @@
+import { SecureImage, SecureLink } from '@/components/common/SecureFile';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -129,7 +130,7 @@ export default function Payment() {
     
     setIsUploading(true);
     try {
-      const res = await uploadService.uploadFile(receiptFile);
+      const res = await uploadService.uploadFile(receiptFile, undefined, { isPrivate: true });
       if (!res?.url) {
         throw new Error('No URL returned from server');
       }
@@ -268,7 +269,7 @@ export default function Payment() {
                 {pendingPayment.receipt_url && (
                   <div className="mt-3">
                     <p className="font-medium mb-2">Receipt Uploaded:</p>
-                    <img 
+                    <SecureImage 
                       src={pendingPayment.receipt_url} 
                       alt="Payment receipt" 
                       className="max-w-[200px] rounded border"
@@ -455,14 +456,14 @@ export default function Payment() {
                         {payment.reference_number || 'No reference'} • {safeFormatDate(payment.created_at, 'PPP')}
                       </p>
                       {payment.receipt_url && (
-                        <a 
+                        <SecureLink 
                           href={payment.receipt_url} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-xs text-primary hover:underline"
                         >
                           View Receipt
-                        </a>
+                        </SecureLink>
                       )}
                     </div>
                     {getStatusBadge(payment.status)}

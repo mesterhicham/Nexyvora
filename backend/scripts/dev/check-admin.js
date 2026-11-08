@@ -1,8 +1,17 @@
-const pool = require('./config/db');
+const pool = require('../../config/db');
 const axios = require('axios');
 const bcrypt = require('bcryptjs');
 
+// Never hardcode credentials: this repository has been public.
+const ADMIN_PASSWORD = process.env.ADMIN_TEST_PASSWORD;
+const API_URL = process.env.API_URL || 'http://localhost:5000';
+
 async function main() {
+    if (!ADMIN_PASSWORD) {
+        console.error('Set ADMIN_TEST_PASSWORD in the environment before running this script.');
+        process.exit(1);
+    }
+
     try {
         console.log('--- 1. Querying users with admin role ---');
         const [users] = await pool.query("SELECT u.id, u.email, u.password, u.role, p.full_name FROM users u LEFT JOIN profiles p ON u.id = p.id WHERE u.role = 'admin' OR u.email LIKE '%admin%'");
@@ -14,15 +23,15 @@ async function main() {
         }
 
         const admin = users[0];
-        console.log('\n--- 2. Checking password against Admin123! ---');
-        const match = await bcrypt.compare('Admin123!', admin.password);
-        console.log('Password "Admin123!" matches hash:', match);
+        console.log('\n--- 2. Checking password against ADMIN_TEST_PASSWORD ---');
+        const match = await bcrypt.compare(ADMIN_PASSWORD, admin.password);
+        console.log('ADMIN_TEST_PASSWORD matches hash:', match);
 
         console.log('\n--- 3. Testing login API endpoint ---');
         try {
-            const res = await axios.post('http://localhost:5001/api/auth/login', {
+            const res = await axios.post(`${API_URL}/api/auth/login`, {
                 email: admin.email,
-                password: 'Admin123!'
+                password: ADMIN_PASSWORD
             });
             console.log('Login API status:', res.status);
             console.log('Login API user:', res.data.user);

@@ -61,24 +61,32 @@ export default function StudentAcademy() {
     }
   };
 
-  // Check if member has an active package of level >= 2 (FLOW, GROW, PRIME)
-  const hasActiveLevelPackage = myPackage && myPackage.status === 'active' && Number(myPackage.level) >= 2;
+  // Every member with an active package (COMMUNITY, FLOW, GROW, PRIME) can enter the Academy.
+  // Which courses they see is decided by the admin "Assign Courses" page, enforced by the server.
+  const hasActiveLevelPackage = !!myPackage && (!myPackage.status || myPackage.status === 'active');
 
   // Compute expiration date formatting
   const expiresAtFormatted = myPackage?.expires_at 
     ? new Date(myPackage.expires_at).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : null;
 
-  // Filter formations relevant to student's package level
-  const userLevel = Number(myPackage?.level) || 0;
+  // Courses granted to this member: the server returns only courses assigned to their package tier
+  // (or bought individually) as approved enrollments.
   const eligibleFormations = useMemo(() => {
-    if (!allFormations) return [];
-    // Formations with package_id <= userLevel or without package
-    return allFormations.filter(f => {
-      if (!f.package_level) return true;
-      return Number(f.package_level) <= userLevel;
+    const approved = (enrollments || []).filter(e => e.payment_status === 'approved');
+    return approved.map(e => {
+      const f = allFormations?.find(x => x.id === e.formation_id);
+      return {
+        id: e.formation_id,
+        enrollmentId: e.id,
+        title: f?.title || e.formation_title || '',
+        description: f?.description || null,
+        thumbnail_url: f?.thumbnail_url || e.thumbnail_url || null,
+        package_name: e.package_name || f?.package_name || null,
+        package_name_ar: e.package_name_ar || f?.package_name_ar || null,
+      };
     });
-  }, [allFormations, userLevel]);
+  }, [allFormations, enrollments]);
 
   // Remaining Academic Sections (excluding Formations since it has its own dedicated spotlight)
   const otherAcademicSections = [
@@ -198,7 +206,9 @@ export default function StudentAcademy() {
                     <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 text-xs font-bold gap-1.5 shadow-sm">
                       <ShieldCheck className="h-3.5 w-3.5" />
                       <span>{isRtl ? (myPackage.package_name_ar || myPackage.package_name) : (myPackage.package_name || myPackage.package_name_ar)}</span>
-                      <span>({tr("المستوى", "Level")} {Number(myPackage.level) - 1})</span>
+                      {Number(myPackage.level) - 1 >= 1 && (
+                        <span>({tr("المستوى", "Level")} {Number(myPackage.level) - 1})</span>
+                      )}
                     </Badge>
 
                     {expiresAtFormatted && (
@@ -273,7 +283,7 @@ export default function StudentAcademy() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {eligibleFormations.slice(0, 4).map((formation) => {
-                    const isEnrolled = enrollments?.some(e => e.formation_id === formation.id && e.payment_status === 'approved');
+                    const isEnrolled = true;
                     return (
                       <Card key={formation.id} className="overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary/40 transition-all duration-200 hover:shadow-md flex flex-col bg-white dark:bg-slate-900 rounded-2xl group">
                         {/* Thumbnail */}
@@ -315,7 +325,7 @@ export default function StudentAcademy() {
                               <span>{isEnrolled ? tr("أنت مسجل بالدورة", "Enrolled") : tr("متاح للدخول فوراً", "Available Now")}</span>
                             </span>
 
-                            <Link to="/student/formations">
+                            <Link to={`/student/formations/${formation.enrollmentId}/watch`}>
                               <Button size="sm" className="h-8 rounded-xl font-bold text-xs gap-1.5 px-3">
                                 <Play className="h-3 w-3 rtl:rotate-180" />
                                 <span>{isEnrolled ? tr("متابعة", "Watch") : tr("دخول الدورة", "Start")}</span>

@@ -174,7 +174,7 @@ export function useSubmitManualPayment() {
     }) => {
       let receiptUrl = data.receiptUrl || '';
       if (data.file) {
-        const uploadRes = await uploadService.uploadFile(data.file);
+        const uploadRes = await uploadService.uploadFile(data.file, undefined, { isPrivate: true });
         receiptUrl = uploadRes.url;
       }
 
